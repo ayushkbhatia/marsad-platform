@@ -177,7 +177,7 @@ export function createSnapshotStore(deps: SnapshotStoreDeps): SnapshotStore {
       `;
       logger?.info('snapshot deduped (raw_snapshots conflict)', { sourceId: source.id, sha256 });
       return {
-        snapshotId: existing[0]?.id ?? -1,
+        snapshotId: existing[0]?.id != null ? Number(existing[0].id) : -1,
         lakeSnapshotId,
         sha256,
         deduped: true,
@@ -186,7 +186,10 @@ export function createSnapshotStore(deps: SnapshotStoreDeps): SnapshotStore {
       };
     }
 
-    const snapshotId = rawRows[0]!.id;
+    // postgres.js returns bigint (raw_snapshots.id) as a STRING at runtime despite
+    // the `{ id: number }` type — coerce so downstream Number.isFinite checks
+    // (LakeStagingEmitter.assertRow) and numeric FKs get a real number.
+    const snapshotId = Number(rawRows[0]!.id);
 
     // Step 5: changed — advance source watermarks + fetch_log(changed=true).
     await sql`
