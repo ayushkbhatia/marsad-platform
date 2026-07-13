@@ -85,7 +85,12 @@ export function createPlaywrightDriver(opts: PlaywrightDriverOptions = {}): Brow
 
       const context = await browser.newContext({
         locale: opts.locale ?? 'en-US',
-        ...(opts.userAgent ? { userAgent: opts.userAgent } : {}),
+        // Default to a real desktop-Chrome UA. Headless Chromium's default UA
+        // contains "HeadlessChrome", which Akamai (TDWL/ADX) fingerprints and
+        // serves a 200 soft-block HTML page for — masking the JSON feed.
+        userAgent:
+          opts.userAgent ??
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
         ...(authHeaderFallback ? { extraHTTPHeaders: authHeaderFallback } : {}),
       });
       const navTimeout = opts.navigationTimeoutMs ?? 30_000;
