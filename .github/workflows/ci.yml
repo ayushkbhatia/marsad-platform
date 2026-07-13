@@ -81,6 +81,13 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: worker/package-lock.json
+      # The worker imports the standalone marsad-ingestion package (file:../ingestion)
+      # for its real types. Build it (with its own devDeps) first — ingestion no
+      # longer auto-builds on install, so worker tsc needs dist/index.d.ts present.
+      - run: npm ci
+        working-directory: ingestion
+      - run: npm run build
+        working-directory: ingestion
       - run: npm ci
       - run: npx tsc --noEmit
 

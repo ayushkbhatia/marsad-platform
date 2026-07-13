@@ -87,19 +87,11 @@ values ('MSX data is syncing slower than usual. Last update 09:19 GST.', 'degrad
         '2026-07-12 05:25:00+00');
 
 -- ---------------------------------------------------------------------------
--- Ingestion registry rows the sweep/scheduler operate on.
-insert into ingest.sources (venue, data_type, entry_url, endpoint_config, transport, last_content_hash, last_changed_at, last_success_at, consecutive_failures) values
-  ('TDWL', 'quotes',       'https://www.saudiexchange.sa/market-watch',        '{"kind":"xhr_board"}', 'http_bootstrap', 'a3f1c2', '2026-07-12 05:26:00+00', '2026-07-12 05:26:00+00', 0),
-  ('TDWL', 'filings_list', 'https://www.saudiexchange.sa/announcements',       '{"kind":"list"}',      'http',           '9b77e0', '2026-07-12 05:05:00+00', '2026-07-12 05:40:00+00', 0),
-  ('QE',   'quotes',       'https://www.qe.com.qa/market-watch',               '{"kind":"board"}',     'http',           'c410aa', '2026-07-12 05:26:00+00', '2026-07-12 05:26:00+00', 0),
-  ('MSX',  'quotes',       'https://www.msx.om/market-watch',                  '{"kind":"board"}',     'http',           '77d2b9', '2026-07-12 05:19:00+00', '2026-07-12 05:19:00+00', 4),
-  ('BHB',  'quotes',       'https://www.bahrainbourse.com/market-watch',       '{"kind":"bulletin"}',  'http',           '5e00c4', '2026-07-12 05:26:00+00', '2026-07-12 05:26:00+00', 0);
-
-insert into ingest.schedules (source_id, cadence_minutes, session_only, offset_minutes)
-select id, case data_type when 'quotes' then 10 else 5 end,
-       data_type = 'quotes',
-       case venue when 'TDWL' then 0 when 'QE' then 3 when 'MSX' then 4 when 'BHB' then 5 else 1 end
-from ingest.sources;
+-- Ingestion registry (ingest.sources + ingest.schedules) is seeded
+-- authoritatively by migration 0017_ingest_sources, which runs during
+-- `supabase db reset` before this fixture. The old sample rows here collided
+-- with 0017 on the (venue, data_type, entry_url) unique key (MSX quotes shared
+-- a URL), so the fixture no longer re-seeds them.
 
 -- ---------------------------------------------------------------------------
 -- Filings behind the fixture.

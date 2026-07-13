@@ -12,6 +12,14 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Standalone packages with their own toolchains (VPS worker + ingestion),
+    // DB migrations, docs and captured fixtures are not part of the Next app's
+    // lint surface — they are typechecked/tested in their own packages/CI jobs.
+    "worker/**",
+    "ingestion/**",
+    "supabase/**",
+    "docs/**",
+    "**/fixtures/**",
   ]),
 ]);
 
