@@ -2,6 +2,7 @@
 # VPS via worker-deploy.yml; infra is provisioning config; migrations apply
 # via supabase db push in CI (06-infra-cost.md §10).
 worker/
+ingestion/
 infra/
 docs/
 supabase/

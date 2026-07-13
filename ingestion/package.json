@@ -1,0 +1,42 @@
+{
+  "name": "marsad-ingestion",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Marsad P1 ingestion: transport-agnostic scrapers, snapshot-first store, venue adapters, and the lake verification pipeline (01-ingestion.md, 02-data-lake.md). Runs on the VPS worker; excluded from Vercel and root tsc.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.9"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "fixtures",
+    "CONTRACT.md"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "prepare": "npm run build",
+    "test": "node --import tsx --test \"src/**/*.test.ts\""
+  },
+  "dependencies": {
+    "postgres": "^3.4.5",
+    "undici": "^6.21.0",
+    "playwright": "^1.49.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

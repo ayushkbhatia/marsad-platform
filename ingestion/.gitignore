@@ -1,0 +1,5 @@
+node_modules/
+dist/
+*.tsbuildinfo
+# Keep local secrets out of git even if the root .env* pattern is ever loosened.
+.env

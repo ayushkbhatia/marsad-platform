@@ -1,0 +1,139 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { createHttpClient, parseRetryAfter, type LowLevelTransport, type LowLevelResponse } from './fetcher.js';
+import { FetchError } from './types.js';
+
+function jsonResponse(status: number, body: string, headers: Record<string, string> = {}): LowLevelResponse {
+  return {
+    statusCode: status,
+    headers,
+    body: { arrayBuffer: async () => new TextEncoder().encode(body).buffer },
+  };
+}
+
+function fakeTransport(script: LowLevelResponse[] | ((call: number, url: string) => LowLevelResponse)) {
+  let call = 0;
+  const calls: string[] = [];
+  const t: LowLevelTransport = async (url) => {
+    calls.push(url);
+    const idx = call++;
+    const res = Array.isArray(script) ? script[Math.min(idx, script.length - 1)]! : script(idx, url);
+    return res;
+  };
+  return { t, calls: () => calls };
+}
+
+const noSleep = async () => {};
+// Unit tests exercise retry/budget/conditional logic, not the ≤1 req/s smoother
+// (that has its own coverage in rate-limit.test.ts). A high rate keeps the token
+// bucket out of the way so back-to-back fake requests don't stall under noSleep.
+const FAST = { ratePerSec: 100_000 };
+
+test('HttpClient: happy path returns body + flattened headers', async () => {
+  const { t } = fakeTransport([jsonResponse(200, '{"ok":true}', { 'Content-Type': 'application/json' })]);
+  const c = createHttpClient({ transport: t, sleep: noSleep, ...FAST });
+  const res = await c.get('https://qe.com.qa/x.txt');
+  assert.equal(res.status, 200);
+  assert.equal(res.body.toString(), '{"ok":true}');
+  assert.equal(res.headers['content-type'], 'application/json');
+  assert.equal(res.fromCache304, false);
+});
+
+test('HttpClient: 304 returns empty body + fromCache304', async () => {
+  const { t } = fakeTransport([jsonResponse(304, '', { etag: 'W/"a"' })]);
+  const c = createHttpClient({ transport: t, sleep: noSleep, ...FAST });
+  const res = await c.get('https://x.test/', { conditional: { etag: 'W/"a"' } });
+  assert.equal(res.status, 304);
+  assert.equal(res.fromCache304, true);
+  assert.equal(res.body.length, 0);
+});
+
+test('HttpClient: retries 5xx then succeeds (3 attempts)', async () => {
+  const { t, calls } = fakeTransport([
+    jsonResponse(503, 'busy'),
+    jsonResponse(500, 'busy'),
+    jsonResponse(200, 'done'),
+  ]);
+  const c = createHttpClient({ transport: t, sleep: noSleep, maxRetries: 3, ...FAST });
+  const res = await c.get('https://x.test/');
+  assert.equal(res.status, 200);
+  assert.equal(res.body.toString(), 'done');
+  assert.equal(calls().length, 3);
+});
+
+test('HttpClient: 5xx exhausts retries → FetchError HTTP_5XX', async () => {
+  const { t, calls } = fakeTransport([jsonResponse(500, 'x')]);
+  const c = createHttpClient({ transport: t, sleep: noSleep, maxRetries: 3, ...FAST });
+  await assert.rejects(
+    () => c.get('https://x.test/'),
+    (e: unknown) => e instanceof FetchError && e.errorClass === 'HTTP_5XX',
+  );
+  assert.equal(calls().length, 3, 'exactly maxRetries attempts');
+});
+
+test('HttpClient: 4xx does NOT retry (endpoint moved)', async () => {
+  const { t, calls } = fakeTransport([jsonResponse(404, 'gone')]);
+  const c = createHttpClient({ transport: t, sleep: noSleep, ...FAST });
+  await assert.rejects(
+    () => c.get('https://x.test/'),
+    (e: unknown) => e instanceof FetchError && e.errorClass === 'HTTP_4XX' && e.status === 404,
+  );
+  assert.equal(calls().length, 1, 'no retry on 4xx');
+});
+
+test('HttpClient: 429 honors Retry-After then succeeds', async () => {
+  const { t, calls } = fakeTransport([
+    jsonResponse(429, '', { 'retry-after': '2' }),
+    jsonResponse(200, 'ok'),
+  ]);
+  const sleeps: number[] = [];
+  const c = createHttpClient({
+    transport: t,
+    sleep: async (ms) => {
+      sleeps.push(ms);
+    },
+    maxRetries: 3,
+    ...FAST,
+  });
+  const res = await c.get('https://x.test/');
+  assert.equal(res.status, 200);
+  assert.equal(calls().length, 2);
+  // Retry-After=2s ⇒ backoff base 2000ms ±30% jitter (§10) ⇒ ~1400–2600ms.
+  assert.ok(
+    sleeps.some((s) => s >= 1400),
+    `slept ~2s per Retry-After (got ${JSON.stringify(sleeps)})`,
+  );
+});
+
+test('HttpClient: network error retried then classified NETWORK', async () => {
+  let n = 0;
+  const t: LowLevelTransport = async () => {
+    n++;
+    throw new Error('ECONNRESET');
+  };
+  const c = createHttpClient({ transport: t, sleep: noSleep, maxRetries: 2, ...FAST });
+  await assert.rejects(
+    () => c.get('https://x.test/'),
+    (e: unknown) => e instanceof FetchError && e.errorClass === 'NETWORK',
+  );
+  assert.equal(n, 2);
+});
+
+test('HttpClient: per-host daily budget hard ceiling refuses over-limit', async () => {
+  const { t } = fakeTransport([jsonResponse(200, 'ok')]);
+  const c = createHttpClient({ transport: t, sleep: noSleep, budgetPerHostPerDay: 2, ...FAST });
+  await c.get('https://cap.test/1');
+  await c.get('https://cap.test/2');
+  await assert.rejects(
+    () => c.get('https://cap.test/3'),
+    (e: unknown) => e instanceof FetchError && e.errorClass === 'HTTP_4XX' && /budget/.test(e.message),
+  );
+});
+
+test('parseRetryAfter: seconds and HTTP-date forms', () => {
+  assert.equal(parseRetryAfter('5'), 5000);
+  assert.equal(parseRetryAfter(undefined), undefined);
+  const future = new Date(Date.now() + 10_000).toUTCString();
+  const ms = parseRetryAfter(future);
+  assert.ok(ms !== undefined && ms > 5000 && ms <= 11000);
+});

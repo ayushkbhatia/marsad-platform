@@ -49,3 +49,10 @@ export function registeredHandlers(): string[] {
 registerHandler("noop", async (payload, ctx) => {
   ctx.log.info("noop handler executed", { payload });
 });
+
+// ---------------------------------------------------------------------------
+// P1 ingestion handlers (CONTRACT §9). These take an injected IngestionRuntime
+// (built from the marsad-ingestion package), so they are registered explicitly
+// at boot rather than at import time. See ./register-ingestion-handlers.ts.
+// ---------------------------------------------------------------------------
+export { registerIngestionHandlers } from "./register-ingestion-handlers.js";

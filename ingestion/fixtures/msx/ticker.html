@@ -1,0 +1,2727 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>
+	Muscat Stock Exchange
+</title>
+
+    <!--meta charset="utf-8" /-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" /><link rel="shortcut icon" type="image/x-icon" href="images/favicon.ico" /><link rel="shortcut icon" type="image/x-icon" href="images/favicon.png" /><link href="css/bootstrap.css" rel="stylesheet" type="text/css" /><link href="css/font-awesome.min.css" rel="stylesheet" type="text/css" /><link href="css/slick.css" rel="stylesheet" type="text/css" />
+    <link href="css/styleEn.css" rel="stylesheet" type="text/css" />
+    <link href="css/animate.css" rel="stylesheet" type="text/css" /><link href="css/NotiCenterAlign.css" rel="stylesheet" type="text/css" /><link href="css/cyrillic.css" rel="stylesheet" type="text/css" /><link href="css/Material.css" rel="stylesheet" type="text/css" /><link rel="stylesheet" href="kendo/styles/kendo.common.min.css" /><link rel="stylesheet" href="kendo/styles/kendo.default.min.css" /><link rel="stylesheet" href="kendo/styles/kendo.default.mobile.min.css" /><link rel="stylesheet" href="kendo/styles/kendo.silver.min.css" /><link rel="stylesheet" href="kendo/styles/kendo.silver.mobile.min.css" /><link rel="stylesheet" href="kendo/styles/kendo.rtl.min.css" />
+    <link href="css/siteEn.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/jquery-ui.min.css" /><link rel="stylesheet" href="css/tabs.css" />
+    <link rel="stylesheet" href="css/listingEn.css" />
+    <link rel="stylesheet" href="css/listing-newEn.css" />
+    <link rel="stylesheet" href="css/lightbox.css" />
+    <!--Favicon-->
+    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon" /><link rel="icon" href="images/favicon.ico" type="image/x-icon" /><link rel="icon" href="images/favicon.png" />
+
+    <!--Google Font-->
+    <link href="css/googlefonts.css" rel="stylesheet" />
+
+    <link href="css/responsiveEn.css" rel="stylesheet" type="text/css" />
+
+    <script src="jss/jquery-3.6.3.min.js"></script>
+    <script src="js/jquery-ui.min.js"></script>
+    <script src="highstock/code/highstock.js"></script>
+    <script src="highstock/code/modules/heatmap.js"></script>
+    <script src="highstock/code/modules/treemap.js"></script>
+    <script src="highstock/code/modules/no-data-to-display.js"></script>
+
+
+
+
+
+    <script src="jss/json2.js"></script>
+    <script src="Scripts/jquery.signalR-2.4.3.min.js"></script>
+
+
+    <script>
+        window.rsConf = { general: { usePost: true } };
+    </script>
+
+
+    <style>
+        .thumbnail {
+            width: 0px;
+            height: 0px;
+        }
+
+        .fullscreen {
+            background-color: #333;
+        }
+    </style>
+
+
+</head>
+<body>
+    <form method="post" action="./" onsubmit="javascript:return WebForm_OnSubmit();" id="aspnetForm">
+<div class="aspNetHidden">
+<input type="hidden" name="__EVENTTARGET" id="__EVENTTARGET" value="" />
+<input type="hidden" name="__EVENTARGUMENT" id="__EVENTARGUMENT" value="" />
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="vyRIqFPG82f5/EKZpQaAikRWD4B7W7V1+zmqMZhmSHkLag92YVX25WwLyOhxcxMgac/Wu7IcYZjRywS9PrtRdnzkwgRRiO9HQSEYRXwbkThzVXXXcayhJZc+rsBNMbrpzSnN3ElxqaqAkGJLnlovTGA+5c4DqQeul9jAXi1FAWQb1wdy8UM3/5euWPmNdbcPL25akSwWeS9iBZHoyeJ4CXf57K6NKvA0zefS/0dOfHt8CKNslAr5AvCR8wk+f7dieuQL3X4CbGgfuHkbkiKUftuGzj8AZBxt8B2lLJcILO3VFZ+XBqzKkC5z3ir03xQGHjWo85Alrwe2Uf8Fwgb6/QxTC4gx06mSx/2kPAh2cRHZ0GRfFm8cMplWtcjd+780tzkl5qI554f07Stsp0PEICF/c6oCbIy7VFgCwOMZZvtFNb3YcU5uxySipoc8wPJ1MsFi9T8niK8P+bwMk9BuPI/epOtL4FtPTiCzxamJvy6NWv4d5UoPnx9vETX/u/175Q9wzdOoi6GsDAhO/jXvLPtiIvMeLgVnOhVswXXfxYbN24piOBosywvhg/e2dmGH0I7unDx5asqy+EQbFh2LJh/C5RwxDIBlKTkPDXdJMO6YKr/he2eTecJUQUN9TlYnE0d5Wm/FcZNxppygjmx1aQH+yq43OOMhI7bDLMuo12HAtIeOYvrLuFCCZfE24uzzewTWjXNz6/+EBvHe4Ohk0MuK16wKcKRQXfvsi7Lreefd3BhivQ6iXxrxao4ZhCjv9PLq242y1mvYixUYumQFWlOdXa5xvbr6weqjfkupBApoG9fP1hePPlao5TZOGfaWP3fnev7MYC8FueDL+W9CWQ==" />
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+var theForm = document.forms['aspnetForm'];
+if (!theForm) {
+    theForm = document.aspnetForm;
+}
+function __doPostBack(eventTarget, eventArgument) {
+    if (!theForm.onsubmit || (theForm.onsubmit() != false)) {
+        theForm.__EVENTTARGET.value = eventTarget;
+        theForm.__EVENTARGUMENT.value = eventArgument;
+        theForm.submit();
+    }
+}
+//]]>
+</script>
+
+
+<script src="/WebResource.axd?d=pynGkmcFUV13He1Qd6_TZMvCf-oCh4t1CYQAzQ-M8ybnzz0yw4p6oTG1Vv8piGJggUNWjjGb-D0HaHVqFE0eqQ2&amp;t=638901670312636832" type="text/javascript"></script>
+
+
+<script src="/WebResource.axd?d=x2nkrMJGXkMELz33nwnakJ1vS9e67ilCp_lK_5ij6nW2M-1pi84De9egS24f-t7nTJ43N0gSuw99CepiZ5RyKnFpfU4tSfyWgN7I-FkJvxE1&amp;t=638901670312636832" type="text/javascript"></script>
+<script type="text/javascript">
+//<![CDATA[
+function WebForm_OnSubmit() {
+if (typeof(ValidatorOnSubmit) == "function" && ValidatorOnSubmit() == false) return false;
+return true;
+}
+//]]>
+</script>
+
+<div class="aspNetHidden">
+
+	<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="CA0B0334" />
+	<input type="hidden" name="__VIEWSTATEENCRYPTED" id="__VIEWSTATEENCRYPTED" value="" />
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="BV9TSV5bitGQH0kQo1Fk93QpEgpx4g9lOP/IcUJ8+VCI6HJ9KbIdXGS1b4xPGv4JbEvzTaLPiZg4R2b82YTbIL4IeD+DVqSpbBrAb9mEBS8CLvkZurv/caq/WnV3hKtxMolMC2WtftsDAgJxgL+kVGOXzlUrlZ/rMVH64IFx4RuewgwN5nRr92nmUD8Axhw29XdRowFWpEiwoptJ43xuXcyOko4q/DcCbfDaKjZB+OMLtjFPyzQLAja7bmPdNXY3iq2DNSaZk8Uvycg2llAkIQ==" />
+</div>
+        
+        <script>
+            var FinancialReportsV = "/MSMDOCS/FinancialReports";
+            var CompanyDownloadsV = "/MSMDOCS/downloads";
+            var msmDocsV = "/MSMDOCS";
+            var IndicesRevision = "/MSMDOCS/downloads";
+            var MonthlyReportingV = "MSMDOCS/MonthlyReporting";
+            var CL_FinancialReportsV = "/MSMDOCS/CL_FinancialReports";
+            var MarketInsightsFiles = "msmDocs/MarketInsightsDocs";
+        </script>
+        <div class="main-html-part">
+            <!--login-register-->
+
+            <header>
+                <div class="top-social-part" style="height: 48px;">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-sm-12 col-md-12 main-ticker">
+                                <div class="topnews_section">
+                                    <div class="scrImg">
+                                        <div id="my-mask1">
+                                            <div id="ticker1" class='scrollTicker' onmouseover="ticker1.stop()" onmouseout="ticker1.start()">
+                                                <ul class="market-ticker"></ul>
+                                                <script id="market-ticker-template" type="text/x-jquery-tmpl">
+                                                    <li><a href="snapshot.aspx?s=${Symbol}">
+                                                        <img src="images/${Image}" />&nbsp;${Symbol} ${ClosePrice}(${Change}%)</a></li>
+                                                </script>
+                                            </div>
+                                            <div id="tickerSize1" class="scrollTicker" style="position: absolute; visibility: hidden;"></div>
+                                        </div>
+                                        <div class="arro-wl">
+                                            <div class="button-group market-ticker-filter-button">
+                                                <button type="button" class="new_btn_drop_dwon dropdown-toggle" data-toggle="dropdown">
+                                                    <img src="images/type_icon.png" alt="" />
+                                                </button>
+                                                <ul class="dropdown-menu" id="market-ticker-filter">
+                                                    
+                                                </ul>
+                                            </div>
+                                            <span class='leftArrow handCursor' onclick="ticker1.changeDirection(true)"></span>
+                                            <span class='rightArrow handCursor' onclick="ticker1.changeDirection(false)"></span>
+                                        </div>
+                                        <div class="more_btn_news">
+                                            <a href="market-watch-custom.aspx" target="_blank">
+                                                More
+                                                <i class="fa fa-angle-double-right" aria-hidden="true"></i></a><a class="btnDock aM" href="#" onclick="window.open(&quot;ticker-popup.aspx&quot;,&quot;_blank&quot;,&quot;height=140,location=no,menubar=no,resizable=no,scrollbars=no,status=no,titlebar=no,toolbar=no,width=1300&quot;);"><i class="fa fa-external-link" aria-hidden="true"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="top-logoseciton">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-3 col-sm-2 logo-div">
+                                <div style="display: none;" class="kk-menu-trigger kk-menu-trigger-new"><span></span></div>
+                                <div class="logo-">
+                                    <a href="default.aspx">
+                                        <img src="images/logo.png" class="img-responsive " alt="" />
+                                        
+                                    </a>
+                                </div>
+                                <div class=" pull-right mob-men hidden-sm hidden-md hidden-lg">
+                                    <div class="kk-menu-trigger"><span></span></div>
+                                </div>
+                            </div>
+                            <div class="Advertising-image col-md-5 col-sm-2 Advertising-box-left">
+                                <div class="slider single-item">
+                                    <div class="slider single-item-HeaderAdvertisement HeaderAdvertisement-div"></div>
+                                </div>
+                                <script id="HeaderAdvertisement-template" type="text/x-jquery-tmpl">
+                                    <div>
+                                        <a href="{{html UrlEn}}" style="cursor: hand;" target="_blank">
+                                            <img class="imgAdvertising" src="msmDocs/HeaderAdvertisement/{{html ImgNameEn}}" /></a>
+                                    </div>
+                                </script>
+
+                            </div>
+
+                            <div class="col-md-4 col-sm-2 NotificationFloat-left div-dir-left">
+                                <div class="col-md-11 col-sm-2 NotificationFloat-left theme-red">
+                                    <ul class="nav navbar-nav navbar-right">
+                                        <li class="dropdown">
+                                            <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown" role="button" title="Today Notifications">
+                                                <img src="images/NotificationsSVG.png" />
+                                                <span class="label-count" id="lblNotificationsCount"></span>
+                                            </a>
+                                            <ul class="dropdown-menu-notification">
+                                                <li class="header">
+                                                    Today Notifications</li>
+                                                <li class="body">
+                                                    <ul class="Notimenu">
+                                                        <div class=" Notifications-div"></div>
+                                                        <script id="Notifications-template" type="text/x-jquery-tmpl">
+                                                            <li>
+                                                                <a href="{{html LinkEn}}" target="_blank">
+                                                                    <table border="0">
+                                                                        <tr>
+                                                                            <td style="padding-left: 10px;">{{if CompanyLogo == "-1"}}
+                                                                                        <div class="icon-circle {{html NotiColor}}">
+                                                                                            <i>{{html symbol}}</i>
+                                                                                        </div>
+                                                                                {{else}}
+                                                                                        <img id="CompLogo" src="msmDocs/images/Companies/{{html CompanyLogo}}" class="NotificationSize" />
+                                                                                {{/if}}  
+                                                                            </td>
+                                                                            <td style="padding-right: 10px;">
+                                                                                <div class="menu-info truncate" title="{{html TitleEn}}">
+                                                                                    <h4>{{html LongNameEn}} - <i class="fa fa-clock-o"></i>{{html NotifiTime}}</h4>
+                                                                                    <br />
+                                                                                    <h4>{{html TitleEn}}</h4>
+                                                                                </div>
+                                                                            </td>
+                                                                            <td style="text-align: right;">
+                                                                                <img src="images/{{html rowIcon}}" alt="img" style="padding: 10px;" title="${rowIconEn}" data-original-title="${rowIconEn}" /><img id="newsimg" src="images/{{html isHotImg}}" style="padding: 10px;" />
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </a>
+                                                            </li>
+                                                        </script>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </div>
+
+
+                                <div class="col-md-1 col-sm-2 NotificationFloat-left theme-red">
+                                    <ul class="nav navbar-nav navbar-right">
+                                        <li class="dropdown">
+                                            <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown" role="button" title="Tips">
+                                                <img src="images/Tips.png" />
+                                                <span class="label-count" id="lblSummaryTipsCount"></span>
+                                            </a>
+                                            <ul class="dropdown-menu-notification TipsMainWidth">
+                                                <li class="header">
+                                                    Tips</li>
+                                                <li class="body">
+                                                    <ul class="Notimenu">
+                                                        <div class="SummTips-div"></div>
+                                                        <script id="SummTips-template" type="text/x-jquery-tmpl">
+                                                            <li>
+                                                                <table border="0">
+                                                                    <tr>
+                                                                        <td style="padding-left: 10px;">
+                                                                            <img width="40px" height="40px" alt="" src="msmDocs/SummaryTips/{{html IconEn}}" />
+                                                                            <i></i>
+                                                                        </td>
+                                                                        <td style="padding-right: 10px;">
+                                                                            <div class="menu-info truncateNoti" title="{{html TitleEn}}">
+                                                                                <br />
+                                                                                <span style="font-family: Arial,Verdana; font-size: 18px;">{{html TitleEn}}</span>
+                                                                                <br />
+                                                                                <br />
+                                                                                <span style="font-family: Arial,Verdana; font-size: 14px;">{{html BodyEn}}</span><br />
+                                                                                <br />
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                            </li>
+                                                        </script>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+
+                            <div class="Advertising-image col-md-1 col-sm-1 Advertising-box-left">
+                                <a id="MainSearchLink1" href="#" class="hidden-sm hidden-md hidden-lg">
+                                    Search
+                                    <i class="fa fa-search" aria-hidden="true"></i>
+                                </a>
+                            </div>
+
+
+                            <div class="col-md-4 col-sm-10 hidden-xs search-icons-area">
+
+                                <div class="follow-us pull-right" style="width: 390px; margin-top: 15px;">
+                                    <ul class="cont-links">
+                                        <li>
+                                            <a id="MainSearchLink" href="#">
+                                                Search
+                                                <i class="fa fa-search" aria-hidden="true"></i>
+                                            </a>
+                                        </li>
+                                        
+                                        <li class="MainLoginLinkLI"><a id="MainLoginLink" href="#">
+                                            Login<i class="fa fa-user" aria-hidden="true"></i></a></li>
+                                        
+                                        <li style="display: none;"><a href="contactus.aspx">
+                                            Contact Us<i class="fa fa-phone" aria-hidden="true"></i></a></li>
+                                        <!--<li><a href="#">Guest Sign up <i class="fa fa-key" aria-hidden="true"></i></a></li>-->
+                                        <li><a href="feedback.aspx">
+                                            Feedback
+                                            <i class="fa fa-edit" aria-hidden="true"></i></a></li>
+                                        <li class="a-pm">
+                                            <div id="a-min">A-</div>
+                                        </li>
+                                        <li class="a-pm">
+                                            <div id="a-plu">A+</div>
+                                        </li>
+                                    </ul>
+
+
+                                    <div class="top-sicl pull-right" style="display: none">
+                                        <b>
+                                            Follow us</b>
+                                        <ul>
+                                            <li style="display: none;"><a href="https://www.facebook.com/profile.php?id=100008322019007" target="_blank"><i class="fa fa-facebook" aria-hidden="true"></i></a></li>
+                                            <li><a href="https://www.instagram.com/p/CNewJehjLZk/?igshid=sheupqu6m00i" target="_blank"><i class="fa fa-instagram" aria-hidden="true"></i></a></li>
+                                            <li><a href="https://www.linkedin.com/company/muscat-stock-exchange-msx" target="_blank"><i class="fa fa-linkedin" aria-hidden="true"></i></a></li>
+                                            <li><a href="https://twitter.com/msx_oman?s=11" target="_blank"><i class="fa fa-twitter" aria-hidden="true"></i></a></li>
+                                            <li><a href="http://youtube.com/channel/UCUqKA6TOL4lxKhIHlkBrgcw" target="_blank"><i class="fa fa-youtube" aria-hidden="true"></i></a></li>
+                                            <li></li>
+
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <nav class="navigation-top">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <ul class="main-menu">
+                                    <li class="active"><a href="default.aspx"><i class="fa fa-home" aria-hidden="true"></i></a></li>
+
+                                    <li class="have-sub-menu"><a onclick="return false" href="#">
+                                        Market Participants
+                                        <i class="fa fa-angle-down" aria-hidden="true"></i></a>
+                                        <ul class="sub-menu">
+                                            <li class="have-sub-menu-2">
+                                                <a onclick="return false" href="#">
+                                                    Issuers
+                                                    <i class="fa fa-angle-down" aria-hidden="true"></i>
+                                                </a>
+                                                <ul class="sub-menu-2">
+                                                    <li><a href="companies.aspx">
+                                                        Companies Shares</a></li>
+                                                    <li><a href="bonds.aspx">
+                                                        Bonds and Sukuk</a></li>
+                                                    <li><a href="mutual-funds.aspx">
+                                                        Mutual Funds Units</a></li>
+                                                </ul>
+                                            </li>
+
+                                            <li class="have-sub-menu-2">
+                                                <a onclick="return false" href="#">
+                                                    Brokers
+                                                    <i class="fa fa-angle-down" aria-hidden="true"></i>
+                                                </a>
+                                                <ul class="sub-menu-2">
+                                                    <li><a href="brokers.aspx">
+                                                        Licensed Brokerage Companies</a></li>
+                                                    <li><a href="page.aspx?b1=Brokers&b2=CISI-Program-Requirements&pg=CISI&t=Pages&ti=CISI-Program-Requirements">
+                                                        CISI Program Requirements
+                                                    </a></li>
+                                                    <li><a href="page.aspx?b1=Brokers&b2=CPD-Program&pg=CPD&t=Pages&ti=CPD-Program">
+                                                        CPD Program
+                                                    </a></li>
+                                                    <li style="display: none;"><a href="downloads.aspx?b1=Publications&b2=Brokers-Trading-Activities&c=10&ti=Brokers-Trading-Activities">
+                                                        Brokers Trading Activities</a></li>
+                                                </ul>
+                                            </li>
+
+
+                                            <li><a href="Custodians.aspx">
+                                                Custodians</a></li>
+                                            <li><a href="AuthorizedDataProviders.aspx">
+                                                Authorized Data Providers</a></li>
+
+                                            <li>
+                                                <a href="MarketMaking.aspx">
+                                                    Market Making
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </li>
+
+
+                                    <li class="have-sub-menu"><a onclick="return false" href="#">
+                                        Listing & Trading&nbsp;<span style="color: white; font-size: 10px; background-color: red;">New!</span>
+                                        <i class="fa fa-angle-down" aria-hidden="true"></i></a>
+                                        <ul class="sub-menu">
+                                            <li class="have-sub-menu-2">
+                                                <a onclick="return false" href="#">
+                                                    Listing
+                                                    <i class="fa fa-angle-down" aria-hidden="true"></i>
+                                                </a>
+                                                <ul class="sub-menu-2">
+                                                    <li>
+                                                        <a href="Listing.aspx?p=ljb">
+                                                            Listing
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="Listing.aspx?p=incinto">
+                                                            Incentives
+                                                        </a>
+                                                    </li>
+                                                    <li class="have-sub-menu-8">
+                                                        <a onclick="return false" href="#">
+                                                            AIM Market
+                                                            <i class="fa fa-angle-down" aria-hidden="true"></i>
+                                                        </a>
+                                                        <ul class="sub-menu-8">
+                                                            <li><a href="Listing.aspx?p=aimd">
+                                                                About AIM Market</a></li>
+
+                                                            <li><a href="msmdocs/downloads/لائحة تنظيم سوق الشركات الواعدة.pdf" target="_blank">
+                                                                AIM Regulation
+                                                            </a>
+                                                            </li>
+                                                            <li><a href="https://fsa.gov.om/Home/PublicPage/TheGuidelineofIncentiveProgram" target="_blank">
+                                                                AIM Guidelines
+                                                            </a>
+                                                            </li>
+                                                            <li><a href="Listing.aspx?p=lrat">
+                                                                Listing Readiness Assessment Tool
+                                                            </a>
+                                                            </li>
+                                                        </ul>
+                                                    </li>
+                                                    <li>
+                                                        <a href="ReqMeeting.aspx">
+                                                            Request for meeting&nbsp;<span style="color: white; font-size: 10px; background-color: red;">
+                                                                New!</span>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                            <li class="have-sub-menu-2">
+                                                <a onclick="return false" href="#">
+                                                    Trading Information
+                                                    <i class="fa fa-angle-down" aria-hidden="true"></i>&nbsp;<span style="color: white; font-size: 10px; background-color: red;">
+                                                        New!</span>
+                                                </a>
+                                                <ul class="sub-menu-2">
+                                                    <li>
+                                                        <a href="page.aspx?b1=Trading&b2=Trading-Info&mi=1&ti=Trading-Info">
+                                                            Steps of trading in MSX
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="page.aspx?b1=Trading&b2=Trading-Info&mi=2&ti=Trading-Info">
+                                                            Trading Rules
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="page.aspx?b1=Trading&b2=Trading-Info&mi=3&ti=Trading-Info">
+                                                            Trading Time
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="page.aspx?b1=Trading&b2=Trading-Info&mi=4&ti=Trading-Info">
+                                                            Orders
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="page.aspx?b1=Trading&b2=Trading-Info&mi=5&ti=Trading-Info">
+                                                            Trading Fees
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a href="page.aspx?b1=Trading&b2=Trading-Info&mi=6&ti=Trading-Info">
+                                                            Day Trade
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>
+
+
+                                    <li class="have-sub-menu" style="display: none;"><a href="SME.aspx">
+                                        Promising Market&nbsp;<span style="color: white; font-size: 10px; background-color: red;">
+                                            New!</span></a>
+                                    </li>
+
+                                    <li class="have-sub-menu"><a onclick="return false" href="#">
+                                        Market Watch
+                                        <i class="fa fa-angle-down" aria-hidden="true"></i></a>
+                                        <ul class="sub-menu">
+                                            <li><a href="market-watch-custom.aspx" target="_blank">
+                                                Today</a></li>
+                                            <li><a href="market-watch-history.aspx">
+                                                Historical</a></li>
+                                        </ul>
+                                    </li>
+
+                                    <li class="have-sub-menu">
+                                        <a onclick="return false" href="#">
+                                            MSX Market Insights
+                                            <i class="fa fa-angle-down" aria-hidden="true"></i>
+                                        </a>
+                                        <ul class="sub-menu">
+                                            <li><a href="MSX-Market-Insights.aspx?b1=Market Insights&b2=Daily&c=0">
+                                                Daily</a></li>
+                                            <li><a href="MSX-Market-Insights.aspx?b1=Market Insights&b2=Weekly&c=1">
+                                                Weekly</a></li>
+                                            <li><a href="MSX-Market-Insights.aspx?b1=Market Insights&b2=Monthly&c=2">
+                                                Monthly</a></li>
+                                            <li><a href="MSX-Market-Insights.aspx?b1=Market Insights&b2=Quarterly&c=3">
+                                                Quarterly</a></li>
+                                            <li><a href="MSX-Market-Insights.aspx?b1=Market Insights&b2=Yearly&c=4">
+                                                Yearly</a></li>
+                                        </ul>
+                                    </li>
+
+                                    <li class="have-sub-menu"><a onclick="return false" href="#">
+                                        Indices<i class="fa fa-angle-down" aria-hidden="true"></i></a>
+                                        <ul class="sub-menu">
+                                            <li><a href="page.aspx?b1=Indices&b2=MSX-Indices&mi=&ti=MSX-Indices">
+                                                MSX Indices</a></li>
+                                            <li><a href="performance.aspx">
+                                                Performance</a></li>
+                                            <li><a href="components.aspx">
+                                                Indices Data</a></li>
+                                            <li><a href="component-track.aspx">
+                                                Indices Historical Data</a></li>
+                                            <li><a href="revision.aspx">
+                                                Indices Publications</a></li>
+                                            
+                                        </ul>
+                                    </li>
+                                    <li class="have-sub-menu lst-menu"><a onclick="return false" href="#">
+                                        E-services&nbsp;<span style="color: white; font-size: 10px; background-color: red;">
+                                                            New!</span><i class="fa fa-angle-down" aria-hidden="true"></i></a>
+                                        <ul class="sub-menu">
+                                            <li><a href="page.aspx?b1=EServices&b2=Overview&pg=EServicesOverview&t=Pages&ti=EServices--Overview">
+                                                Overview</a></li>
+                                            <!-- By Rabah 18092019 -->
+                                            
+
+                                            <!-- By Rabah 19122024 -->
+                                            
+
+                                            <li class="have-sub-menu-5">
+                                                <a onclick="return false" href="#">
+                                                    Registration to E-Listing Services
+                                                    <i class="fa fa-angle-down" aria-hidden="true"></i>
+                                                </a>
+                                                <ul class="sub-menu-5">
+                                                    <li><a href="ListReqAuth.aspx">
+                                                        Closed Securities(SAOC/Funds)</a></li>
+                                                    <li><a href="ListReqAuthSAOG.aspx">
+                                                        Public Securities(SAOG/Funds/Bonds/Sukuk)</a></li>
+                                                </ul>
+                                            </li>
+                                            <li><a href="services-and-fees.aspx">
+                                                Webservices & Fees</a></li>
+                                            <li><a href="licensee-details-form.aspx">
+                                                E-Form</a></li>
+                                            <li><a href="Whistleblower.aspx">
+                                                Whistleblower
+                                            </a></li>
+                                            <li id="liPuriCalc">
+                                                
+                                                <a href="javascript:LoginPopup();">
+                                                    Purification Calculator&nbsp;<span style="color: white; font-size: 10px; background-color: red;">
+                                                            New!</span>
+                                                    </a></li>
+                                        </ul>
+                                    </li>
+
+                                    <li class="have-sub-menu"><a onclick="return false" href="#">
+                                        Publications
+                                        <i class="fa fa-angle-down" aria-hidden="true"></i></a>
+                                        <ul class="sub-menu">
+                                            <li class="have-sub-menu-2">
+                                                <a onclick="return false" href="#">
+                                                    Statistical Bulletins
+                                                    <i class="fa fa-angle-down" aria-hidden="true"></i>
+                                                </a>
+                                                <ul class="sub-menu-2">
+                                                    <li><a href="downloads.aspx?b1=Publications&b2=Daily-Publications&c=3&ti=Daily-Publications">
+                                                        Daily</a></li>
+                                                    <li><a href="downloads.aspx?b1=Publications&b2=Weekly-Publications&c=4&ti=Weekly-Publications">
+                                                        Weekly</a></li>
+                                                    <li><a href="downloads.aspx?b1=Publications&b2=Monthly-Publications&c=5&ti=Monthly-Publications">
+                                                        Monthly</a></li>
+                                                    <li><a href="downloads.aspx?b1=Publications&b2=Quarterly-Publications&c=16&ti=Quarterly-Publications">
+                                                        Quarterly</a></li>
+                                                    <li><a href="downloads.aspx?b1=Publications&b2=Yearly-Publications&c=6&ti=Yearly-Publications">
+                                                        Yearly</a></li>
+                                                </ul>
+                                            </li>
+
+                                            <li class="have-sub-menu-2">
+                                                <a onclick="return false" href="#">
+                                                    Price Bulletins
+                                                    <i class="fa fa-angle-down" aria-hidden="true"></i>
+                                                </a>
+                                                <ul class="sub-menu-2">
+                                                    <li><a href="downloads.aspx?b1=Publications&b2=Daily-Price%20Bulletins&c=17&ti=Daily-Price%20Bulletins">
+                                                        Daily</a></li>
+                                                    <li><a href="downloads.aspx?b1=Publications&b2=Weekly-Price%20Bulletins&c=18&ti=Weekly-Price%20Bulletins">
+                                                        Weekly</a></li>
+                                                    <li><a href="downloads.aspx?b1=Publications&b2=Monthly-Price%20Bulletins&c=19&ti=Monthly-Price%20Bulletins">
+                                                        Monthly</a></li>
+                                                    <li><a href="downloads.aspx?b1=Publications&b2=Yearly-Price%20Bulletins&c=21&ti=Yearly-Price%20Bulletins">
+                                                        Yearly</a></li>
+                                                </ul>
+                                            </li>
+
+
+                                            <li><a href="downloads.aspx?b1=Publications&b2=Prospectus&c=12&ti=Prospectus">
+                                                Prospectus</a></li>
+                                            <li><a href="downloads.aspx?b1=Publications&b2=MSX-Annual-Report&c=13&ti=MSX-Annual-Report">
+                                                MSX Annual Report</a></li>
+                                            <li><a href="downloads.aspx?b1=Publications&b2=MSX-Financial-Report&c=22&ti=MSX-Financial-Report">
+                                                MSX Financial Report</a></li>
+                                            <li><a href="downloads.aspx?b1=Publications&b2=Companies-Guide&c=15&ti=Companies-Guide">
+                                                Companies Guide</a></li>
+                                            <li class="have-sub-menu-3">
+                                                <a onclick="return false" href="#">
+                                                    Dividends
+                                                    <i class="fa fa-angle-down" aria-hidden="true"></i>
+                                                </a>
+                                                <ul class="sub-menu-3">
+                                                    <li><a href="dividends.aspx">
+                                                        Companies</a></li>
+                                                    <li><a href="dividendsBonds.aspx">
+                                                        Bonds and Sukuk</a></li>
+                                                    <li><a href="dividendsFunds.aspx">
+                                                        Funds</a></li>
+                                                </ul>
+                                            </li>
+                                            <li><a href="downloads.aspx?b1=Publications&b2=Awareness-Publications&c=7&ti=Awareness-Publications">
+                                                Awareness Publications</a></li>
+                                            <li><a href="ShariahCompliant.aspx">
+                                                List of Shariah Compliant Companies
+                                                &nbsp;<span style="color: white; font-size: 10px; background-color: red;">
+                                                    New!</span>
+                                            </a></li>
+                                            <li><a href="Companies-Fin-Pref.aspx">
+                                                Companies Financial Performance</a>
+                                            </li>
+
+                                            <li><a href="downloads.aspx?b1=Publications&b2=Other-Publications&c=8&ti=Other-Publications">
+                                                Other</a></li>
+                                        </ul>
+                                    </li>
+                                    <li class="have-sub-menu"><a onclick="return false" href="#">
+                                        Sustainable Investments
+                                        <i class="fa fa-angle-down" aria-hidden="true"></i></a>
+                                        <ul class="sub-menu">
+                                            <li><a href="page.aspx?b1=SUSTAINABLE-INVESTMENTS&b2=SUSTAINABLE-INVESTMENTS-OVERVIEW&pg=ESGIROVERVIEW&t=Pages&ti=SUSTAINABLE-INVESTMENTS">
+                                                OVERVIEW
+                                            </a></li>
+                                            <li><a href="page.aspx?b1=SUSTAINABLE-INVESTMENTS&b2=ESG&pg=ESG&t=Pages&ti=ESG">
+                                                ESG
+                                            </a></li>
+                                            <li><a href="page.aspx?b1=SUSTAINABLE-INVESTMENTS&b2=IR&pg=IR&t=Pages&ti=IR">
+                                                IR
+                                            </a></li>
+                                            <li><a href="page.aspx?b1=SUSTAINABLE-INVESTMENTS&b2=CSR&pg=CSR&t=Pages&ti=CSR">
+                                                CSR
+                                            </a></li>
+                                            <li><a href="ESG-Companies.aspx">
+                                                ESG Disclosures
+                                            </a></li>
+                                            <li><a href=" javascript:BookView('https://www.msx.om/MSMDOCS/downloads/ESG-MSX-E.pdf','EN');" id="ctl00_aESGDisclosuresGuideline">
+                                                ESG Disclosure Guideline
+                                            </a></li>
+                                            <li><a href="downloads.aspx?b1=Publications&b2=MSX-Sustainability-Report&c=23&ti=MSX-Sustainability-Report">
+                                                MSX Sustainability Report</a></li>
+                                            <li><a href=" javascript:BookView('https://www.msx.om/MSMDOCS/downloads/IR-Best-Practice-Guide-MSX-E.pdf','EN');" id="ctl00_aIRBestPracticeGuide">
+                                                IR Best Practice Guide
+                                            </a></li>
+                                        </ul>
+                                    </li>
+                                    <li class="have-sub-menu"><a onclick="return false" href="#">
+                                        Careers
+                                        <i class="fa fa-angle-down" aria-hidden="true"></i></a>
+                                        <ul class="sub-menu">
+                                            <li><a href="VacancyApply.aspx">
+                                                Vacancies
+                                            </a></li>
+                                            <li><a href="InternshipOpp.aspx">
+                                                Level Up Program
+                                            </a></li>
+                                        </ul>
+                                    </li>
+                                    <li class="have-sub-menu"><a onclick="return false" href="#" style="display: none;">
+                                        Summer Training Program
+                                        <i class="fa fa-angle-down" aria-hidden="true"></i>&nbsp;<span style="color: white; font-size: 10px; background-color: red;">
+                                            New!</span></a>
+                                        <ul class="sub-menu">
+                                            <li><a href="page.aspx?b1=SummerTrainingProgram&b2=AboutSummerTrainingProgram&pg=Training&t=Pages&ti=AboutTraining">
+                                                About Summer Training Program
+                                            </a></li>
+                                            <li><a href="TrainingGallery.aspx">
+                                                Training Program Album
+                                            </a></li>
+                                            <li><a href="page.aspx?b1=SummerTrainingProgram&b2=ListofTrainees&pg=LOTrainees&t=Pages&ti=ListofTrainees">
+                                                List Of Trainees
+                                            </a></li>
+                                            <li><a href="TrainingFAQ.aspx">
+                                                FAQ's
+                                            </a></li>
+                                        </ul>
+                                    </li>
+                                    <li class="have-sub-menu" style="display: none;"><a onclick="return false" href="#">
+                                        <a href="https://www.msx.om/snapshot.aspx?s=BRDE" target="_blank">
+                                            BARKA DESALINATION -  IPO
+                                            <span style="color: white; font-size: 10px; background-color: red;">
+                                                New!</span>
+                                        </a></li>
+                                    <li class="have-sub-menu" style="display: none;"><a onclick="return false" href="#">
+                                        Quick Links<i class="fa fa-angle-down" aria-hidden="true"></i></a>
+                                        <ul class="sub-menu quicklinks-div"></ul>
+                                        <script id="quicklinks-template-sec" type="text/x-jquery-tmpl">
+                                            <li><a href="${URLEn}" target="_blank">{{html NameEn}}</a></li>
+                                        </script>
+                                    </li>
+                                    <li class="have-sub-menu"><a onclick="return false" href="#">
+                                        <a href="events-calendar.aspx">
+                                            Events Calendar
+                                        </a></li>
+                                    <li class="have-sub-menu"><a onclick="return false" href="#">
+                                        Tabadul
+                                        <i class="fa fa-angle-down" aria-hidden="true"></i></a>
+                                        <ul class="sub-menu">
+                                            <li><a href="TabadulOverview.aspx">
+                                                OVERVIEW
+                                            </a></li>
+                                            <li><a href="TabadulGettingStarted.aspx">
+                                                Getting Started
+                                            </a></li>
+                                            <li><a href="Tabadul-FAQ.aspx">
+                                                FAQ's
+                                            </a></li>
+                                            <li><a href="https://www.adx.ae/English/pages/mw-tabadul.aspx" id="ctl00_alinkMWTAb" target="_blank">
+                                                Tabadul Market Watch
+                                            </a></li>
+                                        </ul>
+                                    </li>
+                                    <li class="have-sub-menu"><a onclick="return false" href="#">
+                                        Our Profile<i class="fa fa-angle-down" aria-hidden="true"></i></a>
+                                        <ul class="sub-menu">
+                                            <li><a href="page.aspx?b1=Our-Profile&b2=Vision-%26-Mission&p=MissionAndObjectives&ti=Vision-%26-Mission">
+                                                Vision & Mission</a></li>
+                                            <li style="display: none"><a href="page.aspx?b1=Our-Profile&b2=Chairman-Message&p=Chairman&ti=Chairman-Message">
+                                                Chairman Message</a></li>
+                                            <li><a href="page.aspx?b1=Our-Profile&b2=Board-Members&p=OurOrgBoardOfDirectors&ti=Board-Members">
+                                                Board Members</a></li>
+                                            <li><a href="page.aspx?b1=Our-Profile&b2=CEO-Message&p=CEOMessage&ti=CEO-Message">
+                                                CEO Message</a></li>
+                                            <li><a href="page.aspx?b1=Our-Profile&b2=Organizational-Structure&p=OurOrgOrgStructure&ti=Organizational-Structure">
+                                                Organizational Structure</a></li>
+                                            <li style="display: none;"><a href="page.aspx?b1=Our-Profile&b2=Achievements&p=Achievements&ti=Achievements">
+                                                Achievements</a></li>
+                                            <li><a href="page.aspx?b1=Our-Profile&b2=History&p=HistoryEvents&ti=History">
+                                                History</a></li>
+                                        </ul>
+                                    </li>
+                                    <li class="active mobile-hide" style="width: 50px">
+                                        <a id="ctl00_LangLinkButton" href="javascript:__doPostBack(&#39;ctl00$LangLinkButton&#39;,&#39;&#39;)"><b>ع</b></a>
+                                    </li>
+                                    <li class="hidden-lg hidden-md hidden-sm" style="display: none !important"><a href="#">
+                                        Login</a></li>
+                                    <li class="hidden-lg hidden-md hidden-sm" style="display: none !important"><a href="NewRegistration.aspx">
+                                        Register</a></li>
+                                    <li class="hidden-lg hidden-md hidden-sm active">
+                                        <a id="ctl00_LangLinkButton1" href="javascript:__doPostBack(&#39;ctl00$LangLinkButton1&#39;,&#39;&#39;)"><b>ع</b></a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+                <div style="clear: both"></div>
+                <div class="marque-nes" style="display: none;">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="scrImg width92">
+                                    <div id="my-mask2">
+                                        <div id="ticker2" class='scrollTicker' onmouseover="ticker2.stop()" onmouseout="ticker2.start()">
+                                            <ul class="news-ticker"></ul>
+                                        </div>
+                                        <script id="news-ticker-template" type="text/x-jquery-tmpl">
+                                            <li>
+                                                <img src="images/white-round-1.png" alt="" height="13" width="12" />
+                                                {{if TypeID == "1"}}
+                                                    {{if Doc_News != ''}}  
+                                                        <p><a href="/msmdocs/images/newsdocs/${Doc_News}" target="_blank">${DateTimeEn}: ${CompanyNameEn}: ${TitleEn}</a></p>
+                                                {{else}}
+                                                        <p><a href="snapshot.aspx?s=${Symbol}&se=4&ni=${NewsID}">${DateTimeEn}: ${CompanyNameEn}: ${TitleEn}</a></p>
+                                                {{/if}}  
+                                                {{else}}
+                                                    {{if TypeID == "2"}}
+                                                        {{if Doc_News != ''}}  
+                                                            <p><a href="/msmdocs/images/newsdocs/${Doc_News}" target="_blank">${DateTimeEn}: ${TitleEn}</a></p>
+                                                {{else}}
+                                                            <p><a href="details.aspx?b1=Events&t=Events&i=${NewsID}">${DateTimeEn}: ${TitleEn}</a></p>
+                                                {{/if}}  
+                                                {{/if}}
+                                                    {{if TypeID == "3"}}
+                                                        {{if Doc_News != ''}}  
+                                                            <p><a href="/msmdocs/images/newsdocs/${Doc_News}" target="_blank">${DateTimeEn}: ${TitleEn}</a></p>
+                                                {{else}}
+                                                            <p><a href="details.aspx?b1=Circulars&t=Circulars&i=${NewsID}">${DateTimeEn}: ${TitleEn}</a></p>
+                                                {{/if}}  
+                                                   {{/if}}
+                                                {{/if}}
+                                            </li>
+                                        </script>
+                                        <div id="tickerSize2" class="scrollTicker" style="position: absolute; visibility: hidden;"></div>
+                                    </div>
+                                    <div class="arro-wl">
+                                        <div class="button-group news-ticker-filter-button">
+                                            <button type="button" class="new_btn_drop_dwon dropdown-toggle" data-toggle="dropdown">
+                                                <img src="images/type_icon.png" alt="" />
+                                            </button>
+                                            <ul class="dropdown-menu" id="news-ticker-filter">
+                                                <li><a href="#" data-value="" tabindex="-1" class="news-ticker-filter-active">
+                                                    All</a></li>
+                                                <li><a href="#" data-value="1" tabindex="-1">
+                                                    Company News</a></li>
+                                                <li><a href="#" data-value="2" tabindex="-1">
+                                                    Exchange News</a>
+                                                </li>
+                                                <li><a href="#" data-value="3" tabindex="-1">
+                                                    Circulars/Decisions</a></li>
+                                            </ul>
+                                        </div>
+                                        <span class='leftArrow handCursor' onclick="ticker2.changeDirection(true)"></span>
+                                        <span class='rightArrow handCursor' onclick="ticker2.changeDirection(false)"></span>
+                                    </div>
+                                    <div class="more_btn_news">
+                                        <a href="news-calendar.aspx">
+                                            More
+                                            <i class="fa fa-angle-double-right" aria-hidden="true"></i></a><a class="btnDock aM" href="#" onclick="window.open(&quot;news-popup.aspx&quot;,&quot;_blank&quot;,&quot;height=140,location=no,menubar=no,resizable=no,scrollbars=no,status=no,titlebar=no,toolbar=no,width=1300&quot;);"><i class="fa fa-external-link" aria-hidden="true"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="lower-seciton">
+
+                
+    
+
+    <link rel="stylesheet" type="text/css" href="css1/CountDownTemp.css" />
+    <script type="text/javascript" src="js/kinetic.js"></script>
+    <script type="text/javascript" src="js/jquery.final-countdown.js"></script>
+
+
+    <div class="main-baner">
+        <!--Slider section-->
+        <div class="top-main-slider slider home-banners-div">
+        </div>
+        <script id="home-banners-template" type="text/x-jquery-tmpl">
+            <div class="fir-main-sl" style="background-image: url(msmDocs/banners/${FileNameEn})"></div>
+        </script>
+    </div>
+    <!--market-pace-tab-->
+    <div id="mySidenav" class="mark-tab-sec">
+        <div><a href="javascript:void(0)" class="closebtn hidden-xs" onclick="closeNav()" style="visibility: hidden">&times;</a></div>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="mark-tabs wow fadeIn">
+
+                        
+
+                        <div class="tab-content clearfix">
+                            <div id="container-expanded-home">
+                                <i class="fa fa-expand chart-expand-icon chart-expanded-icon-home" aria-hidden="true"></i>
+                                <div id="chart-container-expanded-home"></div>
+                            </div>
+                            <div class="tab-pane active" id="market-1">
+                                <div class="market-wach market-today">
+                                    <ul class="date-tab">
+                                        <li><i class="fa fa-calendar-check-o" aria-hidden="true"></i>&nbsp;<span class="load-day"></span> <span class="load-date"></span></li>
+                                        <li><i class="fa fa-clock-o" aria-hidden="true"></i>&nbsp;<span class="load-time"></span>&nbsp;<span class="GMT-load-time"></span></li>
+                                    </ul>
+
+                                    
+                                    <span class="mnark-tex">
+                                        <img src="images/market-text-En.png" class="img-responsive" alt="" /></span>
+                                    
+                                    <span class="datastatusdelay">
+                                        Delayed 15 minutes
+                                    </span>
+                                    
+                                    <div style="clear: both;"></div>
+                                    <span class="msn-tim">
+                                        MSX 30 | As on
+                                        <span class="load-ason-time"></span>&nbsp;|&nbsp;<span class="load-ason-date"></span>&nbsp;|&nbsp;<span class="load-status"></span></span>
+                                    <div class="main-price">
+                                        <span class="load-big-arrow"></span>
+                                        <b><span class="load-MSX30"></span></b><em><span class="load-change"></span>% (<span class="load-change-value"></span>)</em>
+                                    </div>
+                                    <div class="up-down-mark">
+                                        <ul>
+                                            <li>
+                                                <img src="images/small-1.png" alt="" />
+                                                <span class="load-up"></span>
+                                                UP
+                                            </li>
+                                            <li class="mw-down-arrow">
+                                                <img src="images/small-2.png" alt="" style="width: 13px;" />
+                                                <span class="load-down"></span>
+                                                DOWN
+                                            </li>
+                                            <li class="up-down-mark-unchanged">
+                                                <img src="images/small-3.png" alt="" />
+                                                <span class="load-unchanged"></span>
+                                                UNCHANGED
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <ul class="watch-es">
+                                        <li style="width: 30%">
+                                            
+                                            <span>
+                                                Turnover<br />
+                                                <span class="load-turnover"></span></span>
+                                        </li>
+                                        <li>
+                                            
+                                            <span>
+                                                Volume<br />
+                                                <span class="load-volume"></span></span>
+                                        </li>
+                                        <li style="width: 20%">
+                                            
+                                            <span>
+                                                Trades<br />
+                                                <span class="load-trades"></span></span>
+                                        </li>
+                                        <li>
+                                            
+                                            <span>
+                                                Traded Securities<br />
+                                                <span class="load-sectrades"></span></span>
+                                        </li>
+                                    </ul>
+                                    <div class="trade_link">
+                                        <a id="linkChartTrend" href="#market-1" data-toggle="tab" class="trand-1">
+                                            TREND</a>
+                                    </div>
+                                    <div class="clearfix"></div>
+                                    <div class="trand_graph" style="height: 0px; overflow: hidden;">
+                                        <i class="fa fa-expand chart-expand-icon-home" aria-hidden="true"></i>
+                                        <div id="trend-chart-container" style="width: 100%; height: 118px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--msn-today-seciton-->
+    <div class="msn-today-section">
+        <div class="container">
+            <div class="row">
+                <div class="titl-div" style="text-align: center; display: none;">
+                    <p>
+                        Listing BARKA DESALINATION COMPANY
+                    </p>
+                </div>
+                <div class="countdown countdown-container container" style="display: none;">
+                    <div class="clock row">
+                        <div class="clock-itemEn clock-days countdown-time-value col-sm-6 col-md-3">
+                            <div class="wrap">
+                                <div class="inner">
+                                    <div id="canvas-days" class="clock-canvas"></div>
+                                    <div class="text">
+                                        <p class="val">0</p>
+                                        <p class="type-days type-time">
+                                            <b>DAYS</b>
+                                        </p>
+                                    </div>
+                                    <!-- /.text -->
+                                </div>
+                                <!-- /.inner -->
+                            </div>
+                            <!-- /.wrap -->
+                        </div>
+                        <!-- /.clock-item -->
+                        <div class="clock-itemEn clock-hours countdown-time-value col-sm-6 col-md-3">
+                            <div class="wrap">
+                                <div class="inner">
+                                    <div id="canvas-hours" class="clock-canvas"></div>
+                                    <div class="text">
+                                        <p class="val">0</p>
+                                        <p class="type-hours type-time">
+                                            <b>HOURS</b>
+                                        </p>
+                                    </div>
+                                    <!-- /.text -->
+                                </div>
+                                <!-- /.inner -->
+                            </div>
+                            <!-- /.wrap -->
+                        </div>
+                        <!-- /.clock-item -->
+                        <div class="clock-itemEn clock-minutes countdown-time-value col-sm-6 col-md-3">
+                            <div class="wrap">
+                                <div class="inner">
+                                    <div id="canvas-minutes" class="clock-canvas"></div>
+                                    <div class="text">
+                                        <p class="val">0</p>
+                                        <p class="type-minutes type-time">
+                                            <b>MINUTES</b>
+                                        </p>
+                                    </div>
+                                    <!-- /.text -->
+                                </div>
+                                <!-- /.inner -->
+                            </div>
+                            <!-- /.wrap -->
+                        </div>
+                        <!-- /.clock-item -->
+                        <div class="clock-itemEn clock-seconds countdown-time-value col-sm-6 col-md-3">
+                            <div class="wrap">
+                                <div class="inner">
+                                    <div id="canvas-seconds" class="clock-canvas"></div>
+                                    <div class="text">
+                                        <p class="val">0</p>
+                                        <p class="type-seconds type-time">
+                                            <b>SECONDS</b>
+                                        </p>
+                                    </div>
+                                    <!-- /.text -->
+                                </div>
+                                <!-- /.inner -->
+                            </div>
+                            <!-- /.wrap -->
+                        </div>
+                        <!-- /.clock-item -->
+                    </div>
+                    <!-- /.clock -->
+                </div>
+                <!-- /.countdown-wrapper -->
+            </div>
+            <div class="row">
+                <div class="col-md-6 wow slideInLeft box-left">
+                    <div class="titl-div">
+                        <img src="images/white-1.png" alt="">
+                        <p>
+                            MSX <b>Today</b>
+                        </p>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </div>
+                    <div class="toyda-tabl">
+                        <ul class="ms-to">
+                            <li class="active" id="liTopG"><a id="linkTopG" data-toggle="tab" href="#msn-1">
+                                TOP GAINERS</a></li>
+                            <li id="liTopL"><a id="linkTopL" data-toggle="tab" href="#msn-2">
+                                Top Losers
+                            </a></li>
+                            <li id="liTopV"><a id="linkTopV" data-toggle="tab" href="#msn-3">
+                                Most Active by Volume</a></li>
+                            <li id="liTopT"><a id="linkTopT" data-toggle="tab" href="#msn-4">
+                                Most Active by Turnover</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div id="msn-1" class="tab-pane fade in active">
+                                <div class="tal-ms-list top-gainers">
+                                    <ul class="thum-ul">
+                                        <li>
+                                            Company</li>
+                                        <li>
+                                            Price</li>
+                                        <li>
+                                            Price Chg (%)</li>
+                                    </ul>
+                                </div>
+                                <div class="loader-100">
+                                    <img src="images/loading-image.gif" alt="" />
+                                </div>
+                                <script id="top-template" type="text/x-jquery-tmpl">
+                                    <ul class="temporary">
+                                        <li><a href="snapshot.aspx?s=${Symbol}">${ShortNameEn}</a></li>
+                                        <li>
+                                            <em>${ClosePrice}</em>
+                                            <img src='images/${Image}' />
+                                            <em>${ChangeVal}</em>
+                                        </li>
+                                        <li class="${ClassName}">${Change}%</li>
+                                    </ul>
+                                </script>
+                            </div>
+                            <div id="msn-2" class="tab-pane fade">
+                                <div class="tal-ms-list top-losers">
+                                    <ul class="thum-ul">
+                                        <li>
+                                            Company</li>
+                                        <li>
+                                            Price</li>
+                                        <li>
+                                            Price Chg (%)</li>
+                                    </ul>
+                                </div>
+                                <div class="loader-100">
+                                    <img src="images/loading-image.gif" alt="" />
+                                </div>
+                            </div>
+                            <div id="msn-3" class="tab-pane fade">
+                                <div class="tal-ms-list top-volume">
+                                    <ul class="thum-ul">
+                                        <li>
+                                            Company</li>
+                                        <li>
+                                            Price</li>
+                                        <li>
+                                            Price Chg (%)</li>
+                                        <li>
+                                            Volume</li>
+                                    </ul>
+                                </div>
+                                <div class="loader-100">
+                                    <img src="images/loading-image.gif" alt="" />
+                                </div>
+                                <script id="topV-template" type="text/x-jquery-tmpl">
+                                    <ul class="temporary">
+                                        <li><a href="snapshot.aspx?s=${Symbol}">${ShortNameEn}</a></li>
+                                        <li>
+                                            <em>${ClosePrice}</em>
+                                            <img src='images/${Image}' />
+                                            <em>${ChangeVal}</em>
+                                        </li>
+                                        <li class="${ClassName}">${Change}%</li>
+                                        <li>${Volume}</li>
+                                    </ul>
+                                </script>
+                            </div>
+                            <div id="msn-4" class="tab-pane fade">
+                                <div class="tal-ms-list top-turnover">
+                                    <ul class="thum-ul">
+                                        <li>
+                                            Company</li>
+                                        <li>
+                                            Price</li>
+                                        <li>
+                                            Price Chg (%)</li>
+                                        <li>
+                                            Turnover</li>
+                                    </ul>
+                                </div>
+                                <div class="loader-100">
+                                    <img src="images/loading-image.gif" alt="" />
+                                </div>
+                                <script id="topT-template" type="text/x-jquery-tmpl">
+                                    <ul class="temporary">
+                                        <li><a href="snapshot.aspx?s=${Symbol}">${ShortNameEn}</a></li>
+                                        <li>
+                                            <em>${ClosePrice}</em>
+                                            <img src='images/${Image}' />
+                                            <em>${ChangeVal}</em>
+                                        </li>
+                                        <li class="${ClassName}">${Change}%</li>
+                                        <li>${Turnover}</li>
+                                    </ul>
+                                </script>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6  wow slideInRight box-right">
+                    <div class="titl-div">
+                        <img src="images/white-2.png" alt="" />
+                        <p>
+                            Indices <b>Performance</b>
+                        </p>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </div>
+                    <div class="toyda-tabl">
+                        <ul class="ms-to">
+                            <li class="active" id="liMSX30Index"><a id="linkMSX30Index" data-toggle="tab" href="#prof-1">
+                                MSX30</a></li>
+                            <li id="liFinIndex"><a id="linkFinIndex" data-toggle="tab" href="#prof-2">
+                                Financial
+                            </a></li>
+                            <li id="liIndIndex"><a id="linkIndIndex" data-toggle="tab" href="#prof-3">
+                                Industry</a></li>
+                            <li id="liSerIndex"><a id="linkSerIndex" data-toggle="tab" href="#prof-4">
+                                Services</a></li>
+                            <li id="liSharIndex"><a id="linkSharIndex" data-toggle="tab" href="#prof-5">
+                                Shariah</a></li>
+                            <li id="liTRIndex"><a id="linkTRIndex" data-toggle="tab" href="#prof-7">
+                                TR Indices</a></li>
+                            <li id="liFixedIncIndex"><a id="linkFixedIncIndex" data-toggle="tab" href="#prof-11">
+                                Fixed Income</a></li>
+                        </ul>
+                        <ul class="ms-to tab-pane fade" id="prof-7" style="display: none;">
+                            <li id="liMSXTRIndex"><a id="linkMSXTRIndex" data-toggle="tab" href="#prof-6">
+                                MSXTR</a></li>
+                            <li id="liFinTRIndex"><a id="linkFinTRIndex" data-toggle="tab" href="#prof-8">
+                                FINANCIAL TR
+                            </a></li>
+                            <li id="liIndTRIndex"><a id="linkIndTRIndex" data-toggle="tab" href="#prof-9">
+                                INDUSTRIAL TR</a></li>
+                            <li id="liSerTRIndex"><a id="linkSerTRIndex" data-toggle="tab" href="#prof-10">
+                                SERVICES TR</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div id="prof-1" class="tab-pane fade active in">
+                                <div class="perfon-tabl">
+                                    <div class="fir-pred indices-MSX30">
+                                        <div class="loader-100">
+                                            <img src="images/loading-image.gif" alt="" />
+                                        </div>
+                                    </div>
+                                    <script id="indices-template" type="text/x-jquery-tmpl">
+                                        <span class="home-indices-index">
+                                            <img src='images/${Image}.png' />
+                                            <p>
+                                                ${MSX30}
+                                                <br />
+                                                <i>${Change}% (${ChangeValue})</i>
+                                            </p>
+                                        </span>
+                                        <em class="home-indices-DateTime">${DateEn}&nbsp;|&nbsp;${TimeEn}</em>
+                                        <div class="up-down-mark">
+                                            <ul>
+                                                <li>
+                                                    <img src="images/small-1.png" alt="" />
+                                                    GONE UP
+                                                    <span class="home-indices-Up">${Up}</span></li>
+                                                <li>
+                                                    <img src="images/small-2.png" alt="" />
+                                                    GONE DOWN
+                                                    <span class="home-indices-Down">${Down}</span></li>
+                                                <li>
+                                                    <img src="images/small-3.png" alt="" />
+                                                    UNCHANGED
+                                                    <span class="home-indices-Unchanged">${Unchanged}</span></li>
+                                            </ul>
+                                        </div>
+                                        <div class="turn-over-sec">
+                                            <ul>
+                                                <li>
+                                                    <b>
+                                                        Turnover</b>
+                                                    <span class="home-indices-Turnover">${Turnover}</span>
+                                                </li>
+                                                <li>
+                                                    <b>
+                                                        Volume</b>
+                                                    <span class="home-indices-Volume">${Volume}</span>
+                                                </li>
+                                            </ul>
+                                            <ul>
+                                                <li>
+                                                    <b>
+                                                        Trades</b>
+                                                    <span class="home-indices-Trades">${Trades}</span>
+                                                </li>
+                                                <li>
+                                                    <b>
+                                                        Traded Securities</b>
+                                                    <span class="home-indices-SecTrades">${SecTrades}</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </script>
+                                </div>
+                            </div>
+                            <div id="prof-2" class="tab-pane fade">
+                                <div class="perfon-tabl">
+                                    <div class="fir-pred indices-financial">
+                                        <div class="loader-100">
+                                            <img src="images/loading-image.gif" alt="" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="prof-3" class="tab-pane fade">
+                                <div class="perfon-tabl">
+                                    <div class="fir-pred indices-industry">
+                                        <div class="loader-100">
+                                            <img src="images/loading-image.gif" alt="" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="prof-4" class="tab-pane fade">
+                                <div class="perfon-tabl">
+                                    <div class="fir-pred indices-services">
+                                        <div class="loader-100">
+                                            <img src="images/loading-image.gif" alt="" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="prof-5" class="tab-pane fade">
+                                <div class="perfon-tabl">
+                                    <div class="fir-pred indices-shariah">
+                                        <div class="loader-100">
+                                            <img src="images/loading-image.gif" alt="" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="prof-6" class="tab-pane fade">
+                                <div class="perfon-tabl">
+                                    <div class="fir-pred indices-MSXTR">
+                                        <div class="loader-100">
+                                            <img src="images/loading-image.gif" alt="" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="prof-8" class="tab-pane fade">
+                                <div class="perfon-tabl">
+                                    <div class="fir-pred indices-BKITR">
+                                        <div class="loader-100">
+                                            <img src="images/loading-image.gif" alt="" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="prof-9" class="tab-pane fade">
+                                <div class="perfon-tabl">
+                                    <div class="fir-pred indices-INDTR">
+                                        <div class="loader-100">
+                                            <img src="images/loading-image.gif" alt="" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="prof-10" class="tab-pane fade">
+                                <div class="perfon-tabl">
+                                    <div class="fir-pred indices-SINTR">
+                                        <div class="loader-100">
+                                            <img src="images/loading-image.gif" alt="" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="prof-11" class="tab-pane fade">
+                                <div class="perfon-tabl">
+                                    <div class="fir-pred indices-MSXB">
+                                        <div class="loader-100">
+                                            <img src="images/loading-image.gif" alt="" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--news-sec-->
+    <div class="new-sect">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 wow fadeInLeft box-1">
+                    <div class="titl-div">
+                        <img src="images/blue-1.png" alt="" />
+                        <p>
+                            Companies <b>Disclosure</b>
+                        </p>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </div>
+                    <div class="new-marg new s-tick latestnews-div"></div>
+                    <div class="latest-more">
+                        <a href="newsbytype.aspx?type=1&month=7&year=2026">
+                            more
+                            &raquo;</a>
+                    </div>
+                    
+                    <script id="latestnews-template" type="text/x-jquery-tmpl">
+                        <div class="new-scrol-sect">
+                            <span>{{html DateTextEn}}
+                            </span>
+                            <a href="details.aspx?b1=News&t=News&i=${NewsID}" style="display: block">${TitleEn}</a>
+                            {{if Doc_News != '' && Doc_News.includes('.pdf')}}  
+                                <a href="javascript:BookView('/msmdocs/images/newsdocs/${Doc_News}','EN');"><i class="fa fa-download" aria-hidden="true"></i></a>
+                            {{else Doc_News != ''}}
+                             <a href="/msmdocs/images/newsdocs/${Doc_News}" target="_blank"><i class="fa fa-download" aria-hidden="true"></i></a>
+                            {{/if}}  
+                            <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A//www.msx.om/details.aspx?b1=News%26t=News%26i=${NewsID}" onclick="window.open(this.href, 'facebookwindow','left=20,top=20,width=600,height=700,toolbar=0,resizable=1'); return false;"><i class="fa fa-facebook" aria-hidden="true"></i></a>
+                            <a href="https://twitter.com/intent/tweet?text=https%3A//www.msx.om/details.aspx?b1=News%26t=News%26i=${NewsID}" onclick="window.open(this.href, 'twitterwindow','left=20,top=20,width=600,height=300,toolbar=0,resizable=1'); return false;"><i class="fa fa-twitter" aria-hidden="true"></i></a>
+                            <a href="https://www.linkedin.com/shareArticle?mini=true&url=https%3A//www.msx.om/details.aspx?b1=News%26t=News%26i=${NewsID}&title=&summary=&source=" onclick="window.open(this.href, 'linkedinwindow','left=20,top=20,width=600,height=700,toolbar=0,resizable=1'); return false;"><i class="fa fa-linkedin" aria-hidden="true"></i></a>
+                            <a href="https://wa.me/?text=https%3A//www.msx.om/details.aspx?b1=News%26t=News%26i=${NewsID}" onclick="window.open(this.href, 'whatsappnwindow','left=20,top=20,width=600,height=700,toolbar=0,resizable=1'); return false;"><i class="fa fa-whatsapp" aria-hidden="true"></i></a>
+                            <a href="#" onclick="CopyShareLink(${NewsID});return false;"><i class="fa fa-link" aria-hidden="true" title="Copy link to clipboard"></i></a>
+                            <div class="alert alert-success updated fr-updated-linktitle${NewsID}">
+                                Link copied to Clipboard!
+                                <i class="fa fa-check" aria-hidden="true"></i>
+                            </div>
+                            <input hidden="hidden" type="text" value="https://www.msx.om/details.aspx?b1=News&t=News&i=${NewsID}" id="myShareLink${NewsID}" />
+                            <br />
+                            <a href="snapshot.aspx?s=${Symbol}" style="font-size: 12px;"><b>${CompanyNameEn}</b></a>
+                        </div>
+                    </script>
+                </div>
+                <div class="col-md-4  wow fadeInDown box-2">
+                    <div class="lat-t">
+                        <div class="titl-div">
+                            <img src="images/blue-new.png" alt="">
+                            <p>
+                                MSX <b>ANNOUNCEMENTS</b>
+                            </p>
+                            <i class="fa fa-angle-right" aria-hidden="true"></i>
+                        </div>
+                        <div class="new-tabl mide_tab">
+                            <ul>
+                                <li class="active"><a id="linkNewsAdmin" data-toggle="tab" href="#mid-3" aria-expanded="false">
+                                    Administrative Decisions</a></li>
+                                <li class=""><a id="linkNewsCircular" data-toggle="tab" href="#mid-1" aria-expanded="true">
+                                    Circulars</a></li>
+                                <li class=""><a id="linkNewsEvents" data-toggle="tab" href="#mid-2" aria-expanded="false">
+                                    Exchange News</a></li>
+                            </ul>
+                        </div>
+                        <div class="tab-content">
+                            <div id="mid-3" class="tab-pane fade active in">
+                                <div class="tal-ms-list mide_tab">
+                                    <div class="new-marg decisions-div"></div>
+                                    <div class="latest-more">
+                                        <a href="newsbytype.aspx?type=3&month=7&year=2026">
+                                            more
+                                            &raquo;</a>
+                                    </div>
+                                    <script id="decisions-template" type="text/x-jquery-tmpl">
+                                        <div class="new-scrol-sect">
+                                            <span>{{html DateTextEn}}
+                                            </span>
+                                            <a href="details.aspx?b1=Decisions&t=Decisions&i=${NewsID}" style="display: block">${TitleEn}</a>
+                                            {{if Doc_News != '' && Doc_News.includes('.pdf')}}  
+                                                <a href="javascript:BookView('/msmdocs/images/newsdocs/${Doc_News}','EN');"><i class="fa fa-download" aria-hidden="true"></i></a>
+                                            {{else Doc_News != ''}}
+                                            <a href="/msmdocs/images/newsdocs/${Doc_News}" target="_blank"><i class="fa fa-download" aria-hidden="true"></i></a>
+                                            {{/if}}
+                                            <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A//www.msx.om/details.aspx?b1=Decisions%26t=Decisions%26i=${NewsID}" onclick="window.open(this.href, 'facebookwindow','left=20,top=20,width=600,height=700,toolbar=0,resizable=1'); return false;"><i class="fa fa-facebook" aria-hidden="true"></i></a>
+                                            <a href="https://twitter.com/intent/tweet?text=https%3A//www.msx.om/details.aspx?b1=Decisions%26t=Decisions%26i=${NewsID}" onclick="window.open(this.href, 'twitterwindow','left=20,top=20,width=600,height=300,toolbar=0,resizable=1'); return false;"><i class="fa fa-twitter" aria-hidden="true"></i></a>
+                                            <a href="https://www.linkedin.com/shareArticle?mini=true&url=https%3A//www.msx.om/details.aspx?b1=Decisions%26t=Decisions%26i=${NewsID}&title=&summary=&source=" onclick="window.open(this.href, 'linkedinwindow','left=20,top=20,width=600,height=700,toolbar=0,resizable=1'); return false;"><i class="fa fa-linkedin" aria-hidden="true"></i></a>
+                                            <a href="https://wa.me/?text=https%3A//www.msx.om/details.aspx?b1=Decisions%26t=Decisions%26i=${NewsID}" onclick="window.open(this.href, 'whatsappnwindow','left=20,top=20,width=600,height=700,toolbar=0,resizable=1'); return false;"><i class="fa fa-whatsapp" aria-hidden="true"></i></a>
+                                            <a href="#" onclick="CopyShareLink(${NewsID});return false;"><i class="fa fa-link" aria-hidden="true" title="Copy link to clipboard"></i></a>
+                                            <div class="alert alert-success updated fr-updated-linktitle${NewsID}">
+                                                Link copied to Clipboard!
+                                                <i class="fa fa-check" aria-hidden="true"></i>
+                                            </div>
+                                            <input hidden="hidden" type="text" value="https://www.msx.om/details.aspx?b1=Decisions&t=Decisions&i=${NewsID}" id="myShareLink${NewsID}" />
+                                        </div>
+                                    </script>
+                                </div>
+                            </div>
+                            <div id="mid-1" class="tab-pane fade">
+                                <div class="tal-ms-list mide_tab">
+                                    <div class="new-marg circulars-div"></div>
+                                    <div class="latest-more">
+                                        <a href="newsbytype.aspx?type=3&month=7&year=2026">
+                                            more
+                                            &raquo;</a>
+                                    </div>
+                                    <script id="circulars-template" type="text/x-jquery-tmpl">
+                                        <div class="new-scrol-sect">
+                                            <span>{{html DateTextEn}}
+                                            </span>
+                                            <a href="details.aspx?b1=Circulars&t=Circulars&i=${NewsID}" style="display: block">${TitleEn}</a>
+                                            {{if Doc_News != '' && Doc_News.includes('.pdf')}}  
+                                             <a href="javascript:BookView('/msmdocs/images/newsdocs/${Doc_News}','EN');"><i class="fa fa-download" aria-hidden="true"></i></a>
+                                            {{else Doc_News != ''}}
+                                            <a href="/msmdocs/images/newsdocs/${Doc_News}" target="_blank"><i class="fa fa-download" aria-hidden="true"></i></a>
+                                            {{/if}}
+                                             <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A//www.msx.om/details.aspx?b1=Circulars%26t=Circulars%26i=${NewsID}" onclick="window.open(this.href, 'facebookwindow','left=20,top=20,width=600,height=700,toolbar=0,resizable=1'); return false;"><i class="fa fa-facebook" aria-hidden="true"></i></a>
+                                            <a href="https://twitter.com/intent/tweet?text=https%3A//www.msx.om/details.aspx?b1=Circulars%26t=Circulars%26i=${NewsID}" onclick="window.open(this.href, 'twitterwindow','left=20,top=20,width=600,height=300,toolbar=0,resizable=1'); return false;"><i class="fa fa-twitter" aria-hidden="true"></i></a>
+                                            <a href="https://www.linkedin.com/shareArticle?mini=true&url=https%3A//www.msx.om/details.aspx?b1=Circulars%26t=Circulars%26i=${NewsID}&title=&summary=&source=" onclick="window.open(this.href, 'linkedinwindow','left=20,top=20,width=600,height=700,toolbar=0,resizable=1'); return false;"><i class="fa fa-linkedin" aria-hidden="true"></i></a>
+                                            <a href="https://wa.me/?text=https%3A//www.msx.om/details.aspx?b1=Circulars%26t=Circulars%26i=${NewsID}" onclick="window.open(this.href, 'whatsappnwindow','left=20,top=20,width=600,height=700,toolbar=0,resizable=1'); return false;"><i class="fa fa-whatsapp" aria-hidden="true"></i></a>
+                                            <a href="#" onclick="CopyShareLink(${NewsID});return false;"><i class="fa fa-link" aria-hidden="true" title="Copy link to clipboard"></i></a>
+                                            <div class="alert alert-success updated fr-updated-linktitle${NewsID}">
+                                                Link copied to Clipboard!
+                                                <i class="fa fa-check" aria-hidden="true"></i>
+                                            </div>
+                                            <input hidden="hidden" type="text" value="https://www.msx.om/details.aspx?b1=Circulars&t=Circulars&i=${NewsID}" id="myShareLink${NewsID}" />
+                                        </div>
+                                    </script>
+                                </div>
+                            </div>
+                            <div id="mid-2" class="tab-pane fade">
+                                <div class="tal-ms-list mide_tab">
+                                    <div class="new-marg events-div"></div>
+                                    <div class="latest-more">
+                                        <a href="newsbytype.aspx?type=2&month=7&year=2026">
+                                            more
+                                            &raquo;</a>
+                                    </div>
+                                    <script id="events-template" type="text/x-jquery-tmpl">
+                                        <div class="new-scrol-sect">
+                                            <span>{{html DateTextEn}}
+                                            </span>
+                                            <a href="details.aspx?b1=Events&t=Events&i=${NewsID}" style="display: block">${TitleEn}</a>
+                                            {{if Doc_News != '' && Doc_News.includes('.pdf')}}  
+                                             <a href="javascript:BookView('/msmdocs/images/newsdocs/${Doc_News}','EN');"><i class="fa fa-download" aria-hidden="true"></i></a>
+                                            {{else Doc_News != ''}}
+                                            <a href="/msmdocs/images/newsdocs/${Doc_News}" target="_blank"><i class="fa fa-download" aria-hidden="true"></i></a>
+                                            {{/if}}
+                                              <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A//www.msx.om/details.aspx?b1=Events%26t=Events%26i=${NewsID}" onclick="window.open(this.href, 'facebookwindow','left=20,top=20,width=600,height=700,toolbar=0,resizable=1'); return false;"><i class="fa fa-facebook" aria-hidden="true"></i></a>
+                                            <a href="https://twitter.com/intent/tweet?text=https%3A//www.msx.om/details.aspx?b1=Events%26t=Events%26i=${NewsID}" onclick="window.open(this.href, 'twitterwindow','left=20,top=20,width=600,height=300,toolbar=0,resizable=1'); return false;"><i class="fa fa-twitter" aria-hidden="true"></i></a>
+                                            <a href="https://www.linkedin.com/shareArticle?mini=true&url=https%3A//www.msx.om/details.aspx?b1=Events%26t=Events%26i=${NewsID}&title=&summary=&source=" onclick="window.open(this.href, 'linkedinwindow','left=20,top=20,width=600,height=700,toolbar=0,resizable=1'); return false;"><i class="fa fa-linkedin" aria-hidden="true"></i></a>
+                                            <a href="https://wa.me/?text=https%3A//www.msx.om/details.aspx?b1=Events%26t=Events%26i=${NewsID}" onclick="window.open(this.href, 'whatsappnwindow','left=20,top=20,width=600,height=700,toolbar=0,resizable=1'); return false;"><i class="fa fa-whatsapp" aria-hidden="true"></i></a>
+                                            <a href="#" onclick="CopyShareLink(${NewsID});return false;"><i class="fa fa-link" aria-hidden="true" title="Copy link to clipboard"></i></a>
+                                            <div class="alert alert-success updated fr-updated-linktitle${NewsID}">
+                                                Link copied to Clipboard!
+                                                <i class="fa fa-check" aria-hidden="true"></i>
+                                            </div>
+                                            <input hidden="hidden" type="text" value="https://www.msx.om/details.aspx?b1=Events&t=Events&i=${NewsID}" id="myShareLink${NewsID}" />
+                                        </div>
+                                    </script>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4  wow fadeInRight box-3">
+                    <div class="titl-div">
+                        <img src="images/blue-2.png" alt="" />
+                        <p>
+                            Financial <b>Reports</b>
+                        </p>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </div>
+                    <div class="new-marg">
+                        <div class="tal-ms-list financial-div">
+                            <ul class="thum-ul">
+                                <li>
+                                    Company Name</li>
+                                <li>
+                                    Period</li>
+                                <li>
+                                    Downloads</li>
+                            </ul>
+                        </div>
+                        <div class="latest-more">
+                            <a href="financial-reports.aspx">
+                                more
+                                &raquo;</a>
+                        </div>
+                        <script id="financial-template" type="text/x-jquery-tmpl">
+                            <ul class="temporary">
+                                <li class="financial-reports-title new-scrol-sect">
+                                    <a href="snapshot.aspx?s=${Symbol}">${CompanyNameEn}</a><br />
+                                    <a style="color: #404040;" href="https://www.facebook.com/sharer/sharer.php?u=https%3A//www.msx.om//MSMDOCS/FinancialReports/${FileNameEn}" onclick="window.open(this.href, 'facebookwindow','left=20,top=20,width=600,height=700,toolbar=0,resizable=1'); return false;"><i class="fa fa-facebook" aria-hidden="true"></i></a>
+                                    <a style="color: #404040;" href="https://twitter.com/intent/tweet?text=https%3A//www.msx.om//MSMDOCS/FinancialReports/${FileNameEn}" onclick="window.open(this.href, 'twitterwindow','left=20,top=20,width=600,height=300,toolbar=0,resizable=1'); return false;"><i class="fa fa-twitter" aria-hidden="true"></i></a>
+                                    <a href="https://www.linkedin.com/shareArticle?mini=true&url=https%3A//www.msx.om//MSMDOCS/FinancialReports/${FileNameEn}&title=&summary=&source=" onclick="window.open(this.href, 'linkedinwindow','left=20,top=20,width=600,height=700,toolbar=0,resizable=1'); return false;"><i class="fa fa-linkedin" aria-hidden="true"></i></a>
+                                    <a href="https://wa.me/?text=https%3A//www.msx.om//MSMDOCS/FinancialReports/${FileNameEn}" onclick="window.open(this.href, 'whatsappnwindow','left=20,top=20,width=600,height=700,toolbar=0,resizable=1'); return false;"><i class="fa fa-whatsapp" aria-hidden="true"></i></a>
+                                    <a href="#" onclick="CopyShareLink(${ReportID});return false;"><i class="fa fa-link" aria-hidden="true" title="Copy link to clipboard"></i></a>
+                                    <div class="alert alert-success updated fr-updated-linktitle${ReportID}">
+                                        Link copied to Clipboard!
+                                        <i class="fa fa-check" aria-hidden="true"></i>
+                                    </div>
+                                    <input hidden="hidden" type="text" value="https://www.msx.om//MSMDOCS/FinancialReports/${FileNameEn}" id="myShareLink${ReportID}" />
+                                </li>
+                                <li class="financial-reports-name">${NameEn}</li>
+                                <li style="min-width: 100px">
+                                    <span class="down-btn">
+                                        <a href="/MSMDOCS/FinancialReports/${FileNameAr}" target="_blank"><i class="fa fa-download" aria-hidden="true"></i>AR</a>
+                                        <a href="/MSMDOCS/FinancialReports/${FileNameEn}" target="_blank"><i class="fa fa-download" aria-hidden="true"></i>EN</a>
+                                    </span>
+                                </li>
+                            </ul>
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--multi-asset-->
+    <div class="mult-assets" style="height: 245px;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12" style="display: none;">
+                    <div class="titl-div">
+                        <p>
+                            A Multi-AsSET <b>MARKETPLACE</b>
+                        </p>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </div>
+                </div>
+                <div class="mult-asset-icons">
+                    <div class="multiple-items slider multi-asset-div">
+                        
+                        <div class="ase-ico wow fadeIn" data-wow-delay=".2s" data-toggle="tooltip" data-placement="bottom" title="As of 13/07/2026" data-original-title="As of 13/07/2026">
+                            <i>
+                                <img src="images/multi-1.png" alt="" />
+                            </i>
+                            <b>
+                                <span id="ListedSecuritiesSpan"></span>
+                            </b>
+                            <p>
+                                No of Listed Securities
+                            </p>
+                        </div>
+
+                        <div class="ase-ico wow fadeIn" data-wow-delay=".4s" data-toggle="tooltip" data-placement="bottom" title="As of 13/07/2026 Excluding Closed Companies" data-original-title="As of 13/07/2026 Excluding Closed Companies">
+                            <i>
+                                <img src="images/multi-2.png" alt="" /></i>
+                            <b>
+                                <span id="MarketCapSpan"></span>
+                            </b>
+                            <p>
+                                Market Capitalization
+                            </p>
+                        </div>
+
+                        <div class="ase-ico wow fadeIn" data-wow-delay=".6s" data-toggle="tooltip" data-placement="bottom" title="As of 13/07/2026" data-original-title="As of 13/07/2026">
+                            <i>
+                                <img src="images/multi-3.png" alt="" /></i>
+                            <b>
+                                <span id="BrokersSpan"></span>
+                            </b>
+                            <p>
+                                Brokers
+                            </p>
+                        </div>
+
+                        <div class="ase-ico wow fadeIn" data-wow-delay=".8s" data-toggle="tooltip" data-placement="bottom" title="From 01/01/2026 to 13/07/2026" data-original-title="From 01/01/2026 to 13/07/2026">
+                            <i>
+                                <img src="images/multi-4.png" alt="" /></i>
+                            <b>
+                                <span id="ValueTradedSpan"></span>
+                            </b>
+                            <p>
+                                Value Traded
+                                RO
+                            </p>
+                        </div>
+
+                        <div class="ase-ico wow fadeIn" data-wow-delay="1s" data-toggle="tooltip" data-placement="bottom" title="From 01/01/2026 to 13/07/2026" data-original-title="From 01/01/2026 to 13/07/2026">
+                            <i>
+                                <img src="images/multi-5.png" alt="" /></i>
+                            <b>
+                                <span id="SharesTradedSpan"></span>
+                            </b>
+                            <p>
+                                Shares Traded
+                            </p>
+                        </div>
+                        <div class="ase-ico wow fadeIn" data-wow-delay="1.2s" data-toggle="tooltip" data-placement="bottom" title="As of 13/07/2026" data-original-title="As of 13/07/2026">
+                            <i>
+                                <img src="images/multi-6.png" alt="" /></i>
+                            <b>
+                                <span id="InvestorNationalitiesSpan"></span>
+                            </b>
+                            <p>
+                                Investor Nationalities
+                            </p>
+                        </div>
+
+                        <div class="ase-ico wow fadeIn" data-wow-delay="1.2s" data-toggle="tooltip" data-placement="bottom" title="As of 06/2026 Including(GCC, Arab and Foreigner)" data-original-title="As of 06/2026 Including(GCC, Arab and Foreigner)">
+                            <i>
+                                <img src="images/multi-7.png" alt="" /></i>
+                            <b>
+                                <span id="ForeignInvestmentSpan"></span>
+                            </b>
+                            <p class="direction-rtl">
+                                Foreign Investment %
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--aouceent-->
+    <div class="msn-today-section anouc-ment head-map new-sect">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 wow fadeInLeft box-left">
+                    <div class="titl-div">
+                        <img src="images/blue-6.png" alt="">
+                        <p>
+                            INDICES <b>HEAT MAP</b>
+                        </p>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </div>
+                    <div class="toyda-tabl home-heatmap" style="overflow: hidden; height: 400px;">
+                        <ul class="ms-to">
+                            <li class="active" id="liMSX30"><a id="linkMSX30" data-toggle="tab" href="#map-1" aria-expanded="true">
+                                MSX30</a></li>
+                            <li id="liFin" class=""><a id="linkFin" data-toggle="tab" href="#map-2" aria-expanded="false">
+                                Financial
+                            </a></li>
+                            <li id="liIndust" class=""><a id="linkIndust" data-toggle="tab" href="#map-3" aria-expanded="false">
+                                Industry
+                            </a></li>
+                            <li id="liServ" class=""><a id="linkServ" data-toggle="tab" href="#map-4" aria-expanded="false">
+                                Services
+                            </a></li>
+                            <li id="liShari" class=""><a id="linkShari" data-toggle="tab" href="#map-5" aria-expanded="false">
+                                Shariah</a></li>
+                            <li id="liTR" class=""><a id="linkTR" data-toggle="tab" href="#map-7" aria-expanded="false">
+                                TR Indices</a></li>
+                            <li id="liMSXB" class=""><a id="linkMSXB" data-toggle="tab" href="#map-11" aria-expanded="false">
+                                FIXED INCOME INDEX
+                            </a></li>
+                        </ul>
+                        <ul class="ms-to" id="map-7" style="display: none;">
+                            <li id="liMSXTR" class=""><a id="linkMSXTR" data-toggle="tab" href="#map-6" aria-expanded="false">
+                                MSXTR</a></li>
+                            <li id="liFinTR" class=""><a id="linkFinTR" data-toggle="tab" href="#map-8" aria-expanded="false">
+                                Financial TR
+                            </a></li>
+                            <li id="liIndustTR" class=""><a id="linkIndustTR" data-toggle="tab" href="#map-9" aria-expanded="false">
+                                Industry TR
+                            </a></li>
+                            <li id="liServTR" class=""><a id="linkServTR" data-toggle="tab" href="#map-10" aria-expanded="false">
+                                Services TR
+                            </a></li>
+                        </ul>
+                        <div class="tab-content direction-ltr">
+                            <div id="map-1" class="tab-pane fade active in">
+                                <div class="tal-ms-list">
+                                    <div id="heatmapchart-MSX30-container" class="home-heatmap-div"></div>
+                                </div>
+                            </div>
+                            <div id="map-2" class="tab-pane fade">
+                                <div class="tal-ms-list">
+                                    <div id="heatmapchart-BKINV-container" class="home-heatmap-div"></div>
+                                </div>
+                            </div>
+                            <div id="map-3" class="tab-pane fade">
+                                <div class="tal-ms-list">
+                                    <div id="heatmapchart-INDSI-container" class="home-heatmap-div"></div>
+                                </div>
+                            </div>
+                            <div id="map-4" class="tab-pane fade">
+                                <div class="tal-ms-list">
+                                    <div id="heatmapchart-SINSI-container" class="home-heatmap-div"></div>
+                                </div>
+                            </div>
+                            <div id="map-5" class="tab-pane fade">
+                                <div class="tal-ms-list">
+                                    <div id="heatmapchart-MSXSI-container" class="home-heatmap-div"></div>
+                                </div>
+                            </div>
+                            <div id="map-6" class="tab-pane fade">
+                                <div class="tal-ms-list">
+                                    <div id="heatmapchart-MSXTR-container" class="home-heatmap-div"></div>
+                                </div>
+                            </div>
+                            <div id="map-8" class="tab-pane fade">
+                                <div class="tal-ms-list">
+                                    <div id="heatmapchart-BKITR-container" class="home-heatmap-div"></div>
+                                </div>
+                            </div>
+                            <div id="map-9" class="tab-pane fade">
+                                <div class="tal-ms-list">
+                                    <div id="heatmapchart-INDTR-container" class="home-heatmap-div"></div>
+                                </div>
+                            </div>
+                            <div id="map-10" class="tab-pane fade">
+                                <div class="tal-ms-list">
+                                    <div id="heatmapchart-SINTR-container" class="home-heatmap-div"></div>
+                                </div>
+                            </div>
+                            <div id="map-11" class="tab-pane fade">
+                                <div class="tal-ms-list">
+                                    <div id="heatmapchart-MSXB-container" class="home-heatmap-div"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 wow zoomIn box-left">
+                    <div class="titl-div">
+                        <p>
+                            &nbsp;
+                        </p>
+                    </div>
+                    <div class="anouc-image">
+                        <div class="slider single-item announcements-div"></div>
+                        <script id="announcements-template" type="text/x-jquery-tmpl">
+                            <div>{{html ContentEn}}</div>
+                        </script>
+                    </div>
+                </div>
+                <div class="col-md-3 wow zoomIn box-left">
+                    <div class="titl-div">
+                        <p>
+                            &nbsp;
+                        </p>
+                    </div>
+                    <div class="anouc-image">
+                        <div class="slider single-item1 tips-div"></div>
+                        <script id="tips-template" type="text/x-jquery-tmpl">
+                            <div>{{html ContentEn}}</div>
+                        </script>
+                    </div>
+                </div>
+                <div class="col-md-5 wow zoomIn" style="display: none;">
+                    <div class="titl-div">
+                        <img src="images/blue-5.png" alt="" />
+                        <p>
+                            OTHER <b>SECURITIES</b>
+                        </p>
+                        <i class="fa fa-angle-right" aria-hidden="true"></i>
+                    </div>
+                    <div class="toyda-tabl">
+                        <ul class="ms-to">
+                            <li class="active"><a data-toggle="tab" href="#anou-1" aria-expanded="true">
+                                Bonds and Sukuk</a></li>
+                            
+                            <li class="" ><a data-toggle="tab" href="#anou-2" aria-expanded="false">
+                                Mutual Funds
+                            </a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div id="anou-1" class="tab-pane fade active in">
+                                <div class="tal-ms-list other-securities-bonds">
+                                    <ul class="thum-ul">
+                                        <li>
+                                            Name</li>
+                                        <li>
+                                            Price</li>
+                                    </ul>
+                                    <script id="other-securities-template" type="text/x-jquery-tmpl">
+                                        <ul class="temporary">
+                                            <li><a href="snapshot.aspx?s=${Symbol}&t=b">${ShortNameEn}</a></li>
+                                            <li>${LTP}</li>
+                                        </ul>
+                                    </script>
+                                    <script id="other-securities-funds-template" type="text/x-jquery-tmpl">
+                                        <ul class="temporary">
+                                            <li><a href="snapshot.aspx?s=${Symbol}&t=f">${ShortNameEn}</a></li>
+                                            <li>${LTP}</li>
+                                        </ul>
+                                    </script>
+                                </div>
+                            </div>
+                            <div id="anou-2" class="tab-pane fade">
+                                <div class="tal-ms-list other-securities-funds">
+                                    <ul class="thum-ul">
+                                        <li>
+                                            Name</li>
+                                        <li>
+                                            Price</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 wow zoomIn box-left" style="display: none;">
+                    <div class="box-left opinion-poll">
+                        <div class="titl-div">
+                            <p>
+                                &nbsp;
+                            </p>
+                        </div>
+                        <div class="toyda-tabl">
+                            <img src="images/detailsbannerEn.jpg" alt="" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--map-links-->
+    <div class="msn-today-section head-map new-sect" style="display: none">
+        <div class="container">
+            <div class="row">
+
+                <div class="col-md-6 wow fadeInRight box-right">
+                    <div class="row">
+                        <div class="col-md-7 box-left">
+                            <div class="titl-div">
+                                <img src="images/blue-7.png" alt="" />
+                                <p>
+                                    QUICK <b>LINKS</b>
+                                </p>
+                                <i class="fa fa-angle-right" aria-hidden="true"></i>
+                            </div>
+                            <ul class="quic-lin quicklinks-div"></ul>
+                            <script id="quicklinks-template" type="text/x-jquery-tmpl">
+                                <li><a href="${URLEn}" target="_blank">{{html NameEn}}</a></li>
+                            </script>
+                            <div class="advertisment direction-ltr">
+                                <div class="slider single-item">
+                                    <div class="slider single-item-ads ads-div"></div>
+                                </div>
+                                <script id="ads-template" type="text/x-jquery-tmpl">
+                                    <div>
+                                        <a href="${LinkEn}" target="_blank">
+                                            <img src="/MSMDOCS/images/${ImgNameEn}" alt="img" /></a>
+                                    </div>
+                                </script>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="new-link-q">
+                                <ul class="homequicklinks-div"></ul>
+                                <script id="homequicklinks-template" type="text/x-jquery-tmpl">
+                                    <li>
+                                        <a href="${URLEn}">
+                                            <img src="${IconEn}" alt="" />&nbsp;${NameEn}
+                                        </a>
+                                    </li>
+                                </script>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade popup-modal direction-rtl">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <p>
+                        
+                    </p>
+                    <br />
+                    
+                    <p style="display: none;">
+                        May this special day bring peace, happiness and prosperity. Eid Mubarak.
+                    </p>
+                    
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary popup-dontshow" data-dismiss="modal">
+                        Don't Show this Message Again</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">
+                        Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <script>
+        function openNav() {
+            //document.getElementById("mySidenav").style.width = "600px";
+            //$("#mySidenav").fadeIn();
+            $("#mySidenav").animate({
+                left: '0',
+                opacity: '0.1'
+            });
+            $("#mySidenav").mouseenter(function () {
+                $("#mySidenav").animate({
+                    opacity: '1'
+                });
+            });
+            $("#mySidenav").mouseleave(function () {
+                $("#mySidenav").animate({
+                    opacity: '0.1'
+                });
+            });
+        }
+
+        function closeNav() {
+            //  document.getElementById("mySidenav").style.width = "0";
+            $("#mySidenav").animate({
+                left: '0',
+                opacity: '0'
+            });
+            //$("#mySidenav").fadeOut();
+        }
+
+        $('document').ready(function () {
+            'use strict';
+            var end = Math.floor((new Date("02/27/2022")).getTime() / 1000);
+            var start = Math.floor((new Date("02/24/2022")).getTime() / 1000);
+            var now = Math.floor((new Date).getTime() / 1000);
+            $('.countdown').final_countdown({
+                'start': start,
+                'end': end,
+                'now': now
+            });
+        });
+    </script>
+    <style>
+        .slid-buton {
+            display: block;
+        }
+
+        .Temp-slid-buton {
+            display: block;
+        }
+
+        .MarketToday-slid-buton {
+            display: block;
+        }
+
+        .ui-tooltip {
+            min-width: 180px;
+            text-align: center;
+        }
+
+        .ui-tooltip-content {
+            font-weight: bold;
+        }
+
+
+        .sidenav {
+            height: 100%;
+            width: 0;
+            position: absolute;
+            z-index: 9999;
+            top: 125px;
+            right: 0;
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 60px;
+        }
+
+            .sidenav a {
+                padding: 8px 8px 8px 32px;
+                text-decoration: none;
+                font-size: 25px;
+                color: #818181;
+                display: block;
+                transition: 0.3s;
+            }
+
+                .sidenav a:hover {
+                    color: #f1f1f1;
+                }
+
+        .mark-tab-sec .closebtn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+            margin-left: 50px;
+        }
+    </style>
+
+
+                <footer class="foter-sec wow fadeInUp">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-9 footer-1">
+                                <div class="row">
+                                    <div class="col-md-3 col-sm-6 footer-1-box">
+                                        <ul class="ul-footer-men">
+                                            <li><b>
+                                                Foreign Investments
+                                            </b></li>
+                                            <li><a href="page.aspx?b1=Foreign-Investments&b2=Introductory&fo=IntroductoryContent&t=ForeignInvestments&ti=Foreign-Investment-Introductory">
+                                                Introductory</a></li>
+                                            <li><a href="foreign-investments-by-company.aspx">
+                                                By Company</a></li>
+                                            <li><a href="foreign-investments-by-sector.aspx">
+                                                By Sector</a></li>
+                                        </ul>
+                                        
+                                        <ul class="ul-footer-men">
+                                            <li><b>
+                                                Company Ownership</b></li>
+                                            <li><a href="https://www.mcd.om/en/Default/Statistic/MajorInvestors5OrMore" target="_blank">
+                                                5% or More Ownership</a></li>
+                                            <li><a href="https://www.mcd.om/en/Default/Statistic/InvestorOwnershipPercentageInListedSecurities" target="_blank">
+                                                Investor Ownership (%)</a></li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-3 col-sm-6 footer-1-box">
+                                        <ul class="ul-footer-men">
+                                            <li><b>
+                                                Rules and Regulations</b></li>
+                                            <li style="display: none"><a href="https://www.msx.om//MSMDOCS/downloads/listingreqirmentsEn.pdf" id="ctl00_ListingRequirementsLink" target="_blank">
+                                                Listing Requirements</a></li>
+                                            <li style="display: none"><a href="https://www.msx.om//MSMDOCS/downloads/tradingrulesEn.pdf" id="ctl00_AuctionLink" target="_blank">
+                                                Trading Rules</a></li>
+                                            <li style="display: none"><a href="https://www.msx.om//MSMDOCS/downloads/Clearanceandsettlementregulation_12Oct2011_En.pdf" id="ctl00_ClearingAndSettlementLink" target="_blank">
+                                                Clearing & Settlement</a></li>
+                                            <li><a href="page.aspx?b1=Trading&b2=Trading-Info&mi=2&ti=Trading-Info">
+                                                Legislations Regulating</a></li>
+                                            <li><a href="page.aspx?b1=Trading&b2=Trading-Info&mi=5&ti=Trading-Info">
+                                                Fees</a></li>
+                                            <li><a href="page.aspx?b1=Trading&b2=Trading-Info&mi=3&ti=Trading-Info">
+                                                Trading Time</a></li>
+                                        </ul>
+                                        <ul class="ul-footer-men">
+                                            <li style="display: none"><b>
+                                                Info. & Awareness</b></li>
+                                            <li style="display: none"><a href="page.aspx?b1=Info.-%26-Awareness&b2=Introductory&fo=IntroductoryContent&t=InformationAndAwareness&ti=Info.-%26-Awareness-Introductory">
+                                                Introductory</a></li>
+                                            <li style="display: none"><a href="page.aspx?b1=Info.-%26-Awareness&b2=Publications&fo=PublicationsContent&t=InformationAndAwareness&ti=Publications">
+                                                Publication</a></li>
+                                        </ul>
+                                        <ul class="ul-footer-men">
+                                            <li><a href="Tender.aspx">
+                                                Tender&nbsp;<span style="color: white; font-size: 10px; background-color: red;">
+                                                    New!</span></a></li>
+                                            <li><a href="https://www.surveymonkey.com/r/G97YK6W" target="_blank">
+                                                Supplier Register&nbsp;<span style="color: white; font-size: 10px; background-color: red;">
+                                                    New!</span></a></li>
+                                            <li><a href="MSMDOCS\downloads\MSX_mandatory_list_v1.xlsx">
+                                                MSX ICV Mandatory List&nbsp;<span style="color: white; font-size: 10px; background-color: red;">
+                                                    New!</span></a></li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="col-md-3 col-sm-6 footer-1-box">
+                                        <ul class="ul-footer-men">
+                                            <li><a href="Whistleblower.aspx">
+                                                Whistleblower
+                                            </a></li>
+                                            <li style="display: none"><b>
+                                                Other Links</b></li>
+                                            <li><a href="financial-reports.aspx">
+                                                Financial Reports</a></li>
+                                            <li><a href="Companies-Fin-Pref.aspx">
+                                                Financial Performance</a></li>
+                                            <li><a href="news-calendar.aspx">
+                                                News Calendar</a></li>
+                                            <li><a href="https://fsa.gov.om/Home/AGMs?year=2026" target="_blank">
+                                                AGMs
+                                            </a></li>
+                                            <li><a href="glossary.aspx">
+                                                Glossary</a></li>
+                                            <li><a href="bond-calculator.aspx">
+                                                Bond Calculator</a></li>
+                                            <li><a href="gallery.aspx">
+                                                Photo Gallery</a></li>
+                                            <li><a href="links.aspx">
+                                                Links</a></li>
+                                            <li><a href="exchange-holidays.aspx">
+                                                Exchange Events/Holidays</a></li>
+                                            <li style="display: none;"><a href="uil.aspx">
+                                                Useful lnvestors' links</a></li>
+                                            <li><a href="faq.aspx">
+                                                FAQ's</a></li>
+                                            <li style="display: none;"><a href="https://www.MSM2.gov.om" target="_blank">
+                                                Earlier Website</a></li>
+                                            <li><a href="VacancyApply.aspx">
+                                                Vacancies</a></li>
+                                            <li><a href="dividends.aspx">
+                                                Companies Dividends</a></li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-3 col-sm-6 footer-1-box">
+                                        <ul class="ul-footer-men">
+                                            <li><b>
+                                                RSS</b></li>
+                                            <li><a href="rss.aspx?t=Company" target="_blank">
+                                                Company News</a></li>
+                                            <li><a href="rss.aspx?t=Circulars" target="_blank">
+                                                Circulars and decisions</a></li>
+                                            <li><a href="rss.aspx?t=Events" target="_blank">
+                                                Exchange News</a></li>
+                                            <li><a href="rss.aspx?t=Daily" target="_blank">
+                                                Daily statistics</a></li>
+                                            <li><a href="rss.aspx?t=Weekly" target="_blank">
+                                                Weekly statistics</a></li>
+                                            <li><a href="rss.aspx?t=Monthly" target="_blank">
+                                                Monthly statistics</a></li>
+                                            <li><a href="rss.aspx?t=Yearly" target="_blank">
+                                                Yearly statistics</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 footer-2">
+                                <ul class="ul-footer-men">
+                                    <li><b>
+                                        Stay Connected</b></li>
+                                </ul>
+                                <div class="social-icons">
+                                    <a style="display: none;" class="face" href="https://www.facebook.com/profile.php?id=100008322019007" target="_blank"><i class="fa fa-facebook" aria-hidden="true"></i></a>
+                                    <a class="lin" href="https://www.linkedin.com/company/muscat-stock-exchange-msx" target="_blank"><i class="fa fa-linkedin" aria-hidden="true"></i></a>
+                                    <a class="twi" href="https://twitter.com/msx_oman?s=11" target="_blank"><i class="fa fa-twitter" aria-hidden="true"></i></a>
+                                    <a class="ins" href="https://www.instagram.com/p/CNewJehjLZk/?igshid=sheupqu6m00i" target="_blank"><i class="fa fa-instagram" aria-hidden="true"></i></a>
+                                    <a class="you-t" href="http://youtube.com/channel/UCUqKA6TOL4lxKhIHlkBrgcw" target="_blank"><i class="fa fa-youtube-play" aria-hidden="true"></i></a>
+                                    <a class="g-plu" href="https://plus.google.com/109822776561512210813/posts" target="_blank" style="display: none;"><i class="fa fa-google-plus" aria-hidden="true"></i></a>
+                                    <a style="background-color: #CA9B03" class="face" href="page.aspx?b1=Advertise-with-Us&pg=AdsWithUs&t=Pages&ti=Advertise-with-Us" target="_blank"><i class="fa" aria-hidden="true">Ads</i></a>
+                                    <a class="whats" href="https://wa.me/96871515111" target="_blank" title="Send your name and family name"><i class="fa fa-whatsapp" aria-hidden="true"></i></a>
+                                </div>
+                                <div class="downl-now">
+                                    <b>
+                                        Download Apps Now
+                                    </b>
+                                    <a href="https://play.google.com/store/apps/developer?id=MSX+-+Muscat+Stock+Exchange" target="_blank">
+                                        <img src="images/app-1.png" alt="" /></a>
+                                    <a href="https://itunes.apple.com/ae/developer/muscat-securities-market/id556735794" target="_blank">
+                                        <img src="images/app-2.png" alt="" /></a>
+                                </div>
+                                <div class="downl-now">
+                                    &nbsp;
+                                     &nbsp;
+                                        <img src="images/AndriodMSXQR.png" alt="MSX Andriod App" />
+                                    &nbsp;
+                                     &nbsp;
+                                     &nbsp;
+                                        <img src="images/AppleMSXQR.png" alt="MSX Apple App" />
+                                </div>
+                                <div class="footer_ads_btn" style="display: none">
+                                    <a href="page.aspx?b1=Advertise-with-Us&pg=AdsWithUs&t=Pages&ti=Advertise-with-Us">
+                                        Ads with us</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="botm-foot">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <p class="pull-left bottom-footer-1">
+                                        ©
+                                        Copyrights
+                                        2026,
+                                        Muscat Stock Exchange. All Rights Reserved
+                                        <br />
+                                        All currency units in this website are in Omani Riyals, unless stated otherwise.
+                                        <br />
+                                        Site best viewed with Google Chrome, Microsoft Edge, Mozilla Firefox, Safari with 1360 x 768 Screen Resolution.
+                                    </p>
+                                    <ul class="pull-right bot-men bottom-footer-2">
+                                        <li><a href="contactus.aspx">
+                                            Contact Us
+                                        </a></li>
+                                        <li style="display: none"><a href="glossary.aspx">
+                                            Glossary</a></li>
+                                        <li><a href="sitemap.aspx">
+                                            Site Map</a></li>
+                                        
+                                        <li><a href="/MSMDOCS/downloads/PrivacyPolicyen.pdf" target="_blank">
+                                            Privacy Policy
+                                        </a></li>
+                                        <li><a href="/MSMDOCS/downloads/TipsandHintsen.pdf" target="_blank">
+                                            Secure Browsing</a></li>
+                                        <li><a href="/MSMDOCS/downloads/Disclaimeren.pdf" target="_blank">
+                                            Disclaimer & Terms Of Use</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+
+            </div>
+        </div>
+
+
+
+        
+        <div class="slid-buton">
+            <a href="NewRegistration.aspx">
+                <img src="images/register-En.png" alt="" /></a>
+            <div class="left-box">
+                <div class="leftreservation">
+                    <div class="leftimgbox" style="float: right;">
+                        <div class="">
+                            <a href="#">
+                                <img src="images/login-En.png" alt=""></a>
+                        </div>
+
+
+
+                        <!-- <img  src="img/newsimg.jpg" alt="img" />-->
+
+                    </div>
+
+                    <div class="lefthidetextarea">
+                        <div class="hidetextareainner">
+                            <div class="panelCloseleft">X</div>
+                            <div class="login_area">
+                                <h2>
+                                    Login</h2>
+                                <div class="form_area">
+                                    <div onkeypress="javascript:return WebForm_FireDefaultButton(event, &#39;ctl00_LoginButton&#39;)">
+	
+                                        <p style="color: #c82e36;">
+                                            Please note the Market Data is delayed by 15 minutes.
+                                        </p>
+                                        <p>
+                                            Access Real Time Role 
+                                        </p>
+                                        <input name="ctl00$UserNameTextBox" type="text" id="ctl00_UserNameTextBox" class="username" placeholder="User ID" autocomplete="off" />
+                                        <span id="ctl00_ctl27" style="color:Red;font-weight:normal;display:none;">Mandatory Field</span>
+                                        <span id="ctl00_RegularExpressionValidator8" style="color:Red;display:none;">Special Characters not allowed</span>
+                                        <input name="ctl00$PasswordTextBox" type="password" id="ctl00_PasswordTextBox" class="password" placeholder="Password" autocomplete="off" />
+                                        <span id="ctl00_ctl28" style="color:Red;font-weight:normal;display:none;">Mandatory Field</span>
+                                        <span id="ctl00_RegularExpressionValidator1" style="color:Red;display:none;">Special Characters not allowed</span>
+
+                                        
+
+                                        <div class="submit_btn">
+                                            <p id="forgotpwd" style="border: 1px; border: solid #c82e36; border-width: thin;">
+                                                Forgot Password
+                                            </p>
+                                            <input type="submit" name="ctl00$LoginButton" value="Login" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$LoginButton&quot;, &quot;&quot;, true, &quot;HomeLogin&quot;, &quot;&quot;, false, false))" id="ctl00_LoginButton" />
+                                        </div>
+                                    
+</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="hidetextareainner1">
+                            <div class="panelCloseleft">X</div>
+                            <div class="login_area">
+                                <h2>
+                                    Forgot Password</h2>
+                                <div class="form_area">
+                                    <div onkeypress="javascript:return WebForm_FireDefaultButton(event, &#39;ctl00_RetrievePasswordButton&#39;)">
+	
+                                        <p style="color: #c82e36;">
+                                            Please note the Market Data is delayed by 15 minutes.
+                                        </p>
+                                        <p>
+                                            Please enter Email, your User Name and your password will be sent to your email address submitted in your registration profile.
+                                        </p>
+                                        <input name="ctl00$EmailTextBox1" type="text" id="ctl00_EmailTextBox1" class="username" placeholder="Email" autocomplete="off" />
+                                        <span id="ctl00_RegularExpressionValidator2" style="color:Red;display:none;">Special Characters not allowed</span>
+                                        <div class="submit_btn">
+                                            <input type="submit" name="ctl00$RetrievePasswordButton" value="Retrieve Password" onclick="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;ctl00$RetrievePasswordButton&quot;, &quot;&quot;, true, &quot;&quot;, &quot;&quot;, false, false))" id="ctl00_RetrievePasswordButton" />
+                                        </div>
+
+                                    
+</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        
+        <input type="hidden" id="returnToken" name="returnToken" />
+        <div style="display: none;" class="Temp-slid-buton hidden-xs">
+            <a href="https://www.MSM2.gov.om" target="_blank">
+                <img src="images/Earlier%20website-En.gif" alt="" /></a>
+        </div>
+        <div style="display: none;" class="MarketToday-slid-buton hidden-xs">
+            <a href="javascript:void(0)" onclick="openNav()">
+                <img src="images/market-today-En.gif" alt="" /></a>
+        </div>
+        <div class="modal fade session-modal direction-rtl">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <p class="text-align-custom session-box-text">
+                            Your session will expire in 1 minute
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary session-reset">
+                            Continue</button>
+                        <button type="button" class="btn btn-secondary session-logout" data-dismiss="modal">
+                            Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="top-search" style="display: none;">
+            <div class="left-Searchbox">
+                <div class="inp-fie col-md-6">
+                    <table style="border: 0;">
+                        <tr>
+                            <td>
+                                <input name="ctl00$MainSearch" type="text" id="ctl00_MainSearch" placeholder="Type Name/Symbol" class="MainSearch" /></td>
+                            <td>
+                                <select id="MainSearchType">
+                                    <option value="companies" >
+                                        Companies</option>
+                                    <option value="downloads" >
+                                        Publications</option>
+                                    <option value="financial" >
+                                        Financial Reports</option>
+                                    <option value="news" >
+                                        News</option>
+                                    <option value="events" >
+                                        Exchange News</option>
+                                    <option value="funds" >
+                                        Mutual Funds</option>
+                                    <option value="bonds" >
+                                        Bonds and Sukuk</option>
+                                    <option value="brokers" >
+                                        Brokers</option>
+                                    <option value="CD" >
+                                        Circulars / Decisions</option>
+                                    <option value="All" selected='selected'>
+                                        All</option>
+                                </select></td>
+                            <td>
+                                <button id="MainSearchButton" type="button">
+                                    <i class="fa fa-search" aria-hidden="true"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="books">
+                <div class="thumbnail" data-book-id="book1" id="btnBook">
+                </div>
+            </div>
+        </div>
+
+
+        <script src="js/jquery.tmpl.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+        <script src="js/slick.js"></script>
+        <script src="js/jquery.bootstrap.newsbox.js"></script>
+        <script src="kendo/js/jszip.min.js"></script>
+        <script src="js/cbpFWTabs.js"></script>
+        <script src="js/kendo.custom.min.js"></script>
+
+
+
+        <script src="js/jquery.cookie.js"></script>
+        <script src="js/ArabicGlobalResources.js"></script>
+        <script src="js/site.js"></script>
+        <script src="js/securities.js"></script>
+        <script src="js/indices.js"></script>
+        <script src="js/company.js"></script>
+        <script src="js/fonts.js"></script>
+
+        <script src="js/wow.min.js"></script>
+        <script src="js/Ticker.js"></script>
+        <script src="js/custom.js"></script>
+        <script src="js/search.js"></script>
+        <script src="js/jquery.printElement.js"></script>
+
+
+
+        <script src="js/libs/html2canvas.min.js"></script>
+        <script src="js/libs/three.min.js"></script>
+        <script src="js/libs/pdf.min.js"></script>
+        <script src="js/lightbox.js"></script>
+        <script src="js/dist/3dflipbook.min.js"></script>
+
+
+
+
+        
+        <script>
+            //sessionInitiCheck();
+            $("body")
+                .mouseenter(function () {
+                    clearSessionTimeoutInterval();
+                    if ($('#mwWhidden').val() == 'enter')
+                        $('#txtSearchMW').val('');
+                    else
+                        $("#mwWhidden").val($("#txtSearchMW").val());
+                })
+                .mouseleave(function () {
+                    sessionInitiCheck();
+                });
+        </script>
+        
+
+        <script type="text/javascript">
+            function BookView(BookName, BookLang) {
+                //var BookName = GetURLParameter('BookName');
+                //var BookLang = GetURLParameter('BookLang');
+                var BookLangFlag = false;
+                if (BookLang != null && BookLang != undefined)
+                    if (BookLang.toUpperCase() == 'AR')
+                        BookLangFlag = true;
+                var PDFLink = BookName;
+                window.jQuery(function () {
+                    var $ = window.jQuery;
+                    var styleClb = function () {
+                        $('.fb3d-modal').removeClass('light').addClass('dark');
+                    }, booksOptions = {
+                        book1: {
+                            pdf: PDFLink,
+                            propertiesCallback: function (props) {
+                                props.page.depth /= 4;
+                                props.cover.padding = 0.002;
+                                props.rtl = BookLangFlag;
+                                return props;
+                            },
+                            controlsProps: {
+                                downloadURL: PDFLink,
+                                actions: {
+                                    cmdBackward: {
+                                        code: 37,
+                                    },
+                                    cmdForward: {
+                                        code: 39
+                                    },
+                                    cmdSave: {
+                                        code: 68,
+                                        flags: 1,
+                                    },
+                                    cmdSinglePage: {
+                                        activeForMobile: true
+                                    }
+                                }
+                            },
+                            template: {
+                                html: 'templates/default-book-view.html',
+                                styles: [
+                                    'css/white-book-view.css'
+                                ],
+                                links: [{
+                                    rel: 'stylesheet',
+                                    href: 'css/font-awesome.min.css'
+                                }],
+                                script: 'js/default-book-view.js',
+                                sounds: {
+                                    startFlip: 'sounds/start-flip.mp3',
+                                    endFlip: 'sounds/end-flip.mp3'
+                                }
+                            },
+                            styleClb: styleClb
+                        }
+                    };
+
+                    var instance = {
+                        scene: undefined,
+                        options: undefined,
+                        node: $('.fb3d-modal .mount-container')
+                    };
+
+                    var modal = $('.fb3d-modal');
+                    modal.on('fb3d.modal.hide', function () {
+                        instance.scene.dispose();
+                    });
+                    modal.on('fb3d.modal.show', function () {
+                        instance.scene = instance.node.FlipBook(instance.options);
+                        instance.options.styleClb();
+                    });
+                    $('.books').find('.thumbnail').click(function (e) {
+                        var target = $(e.target);
+                        while (target[0] && !target.attr('data-book-id')) {
+                            target = $(target[0].parentNode);
+                        }
+                        if (target[0]) {
+                            instance.options = booksOptions[target.attr('data-book-id')];
+                            $('.fb3d-modal').fb3dModal('show');
+                        }
+                    });
+                    $("#btnBook").click();
+                    //$(".cmdFullScreen").click();
+                });
+            }
+            function GetURLParameter(sParam) {
+                var sPageURL = window.location.search.substring(1);
+                var sURLVariables = sPageURL.split('&');
+                for (var i = 0; i < sURLVariables.length; i++) {
+                    var sParameterName = sURLVariables[i].split('=');
+                    if (sParameterName[0] == sParam) {
+                        return sParameterName[1];
+                    }
+                }
+            }
+
+
+            function CopyShareLink(newsID) {
+                //var copyText = document.getElementById("myShareLink");
+                //copyText.select();
+                //copyText.setSelectionRange(0, 99999);
+                //document.execCommand("copy");
+
+                var $temp = $("<input>");
+                $("body").append($temp);
+                $temp.val($("#myShareLink" + newsID).val()).select();
+                document.execCommand("copy");
+                $temp.remove();
+
+
+                if ($(".fr-updated-linktitle").length > 0)
+                    updated(".fr-updated-linktitle");
+                else
+                    updated(".fr-updated-linktitle" + newsID);
+            }
+
+        </script>
+
+        <script src="js/survey.js"></script>
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-BQNXL7KYTM"></script>
+        <script> 
+            window.dataLayer = window.dataLayer || [];
+            function gtag() {
+                dataLayer.push(arguments);
+            }
+            gtag('js', new Date());
+            gtag('config', 'G-BQNXL7KYTM');
+
+
+            //var _gaq = _gaq || [];
+            ////Replace Key Here
+            //_gaq.push(['_setAccount', 'UA-61571770-1']);
+            //_gaq.push(['_trackPageview']);
+
+            //(function () {
+            //    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            //    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            //    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            //})();
+
+
+            //$(document).ready(function () {
+            //     if (window.location.host != 'msx.om' || window.location.host != 'www.msx.om'){
+            //         var url = window.location.protocol + "//" + window.location.host + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+            //         var url = 'https://www.msx.om';
+            //         if (window.location.pathname != '' && window.location.pathname != '/')
+            //             url = url + window.location.pathname;
+            //         $(location).attr('href', url);
+            //     }
+            // });
+
+
+        </script>
+
+        <script src="https://www.google.com/recaptcha/api.js?render=6LfXGJMcAAAAABgMA4Cg67RrDROx_mnigg5kq2u2"></script>
+        <script type="text/javascript">
+            grecaptcha.ready(function () {
+                grecaptcha.execute('6LfXGJMcAAAAABgMA4Cg67RrDROx_mnigg5kq2u2', { action: 'login' }).then(function (token) {
+                    document.getElementById('returnToken').value = token;
+                });
+            });
+            setInterval(function () {
+                grecaptcha.ready(function () {
+                    grecaptcha.execute('6LfXGJMcAAAAABgMA4Cg67RrDROx_mnigg5kq2u2', { action: 'login' }).then(function (token) {
+                        document.getElementById('returnToken').value = token;
+                    });
+                });
+            }, 90 * 1000);
+        </script>
+        <script type="text/javascript">
+            (function (c, l, a, r, i, t, y) {
+                c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) };
+                t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i;
+                y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
+            })(window, document, "clarity", "script", "w4blgk3t69");
+        </script>
+
+
+    
+<script type="text/javascript">
+//<![CDATA[
+var Page_Validators =  new Array(document.getElementById("ctl00_ctl27"), document.getElementById("ctl00_RegularExpressionValidator8"), document.getElementById("ctl00_ctl28"), document.getElementById("ctl00_RegularExpressionValidator1"), document.getElementById("ctl00_RegularExpressionValidator2"));
+//]]>
+</script>
+
+<script type="text/javascript">
+//<![CDATA[
+var ctl00_ctl27 = document.all ? document.all["ctl00_ctl27"] : document.getElementById("ctl00_ctl27");
+ctl00_ctl27.controltovalidate = "ctl00_UserNameTextBox";
+ctl00_ctl27.focusOnError = "t";
+ctl00_ctl27.errormessage = "Mandatory Field";
+ctl00_ctl27.display = "Dynamic";
+ctl00_ctl27.validationGroup = "HomeLogin";
+ctl00_ctl27.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+ctl00_ctl27.initialvalue = "";
+var ctl00_RegularExpressionValidator8 = document.all ? document.all["ctl00_RegularExpressionValidator8"] : document.getElementById("ctl00_RegularExpressionValidator8");
+ctl00_RegularExpressionValidator8.controltovalidate = "ctl00_UserNameTextBox";
+ctl00_RegularExpressionValidator8.focusOnError = "t";
+ctl00_RegularExpressionValidator8.errormessage = "Special Characters not allowed";
+ctl00_RegularExpressionValidator8.display = "Dynamic";
+ctl00_RegularExpressionValidator8.validationGroup = "HomeLogin";
+ctl00_RegularExpressionValidator8.evaluationfunction = "RegularExpressionValidatorEvaluateIsValid";
+ctl00_RegularExpressionValidator8.validationexpression = "^[a-zA-Z0-9ء-ي -()~$^\\-_+%*&/#@!.]*";
+var ctl00_ctl28 = document.all ? document.all["ctl00_ctl28"] : document.getElementById("ctl00_ctl28");
+ctl00_ctl28.controltovalidate = "ctl00_PasswordTextBox";
+ctl00_ctl28.focusOnError = "t";
+ctl00_ctl28.errormessage = "Mandatory Field";
+ctl00_ctl28.display = "Dynamic";
+ctl00_ctl28.validationGroup = "HomeLogin";
+ctl00_ctl28.evaluationfunction = "RequiredFieldValidatorEvaluateIsValid";
+ctl00_ctl28.initialvalue = "";
+var ctl00_RegularExpressionValidator1 = document.all ? document.all["ctl00_RegularExpressionValidator1"] : document.getElementById("ctl00_RegularExpressionValidator1");
+ctl00_RegularExpressionValidator1.controltovalidate = "ctl00_PasswordTextBox";
+ctl00_RegularExpressionValidator1.focusOnError = "t";
+ctl00_RegularExpressionValidator1.errormessage = "Special Characters not allowed";
+ctl00_RegularExpressionValidator1.display = "Dynamic";
+ctl00_RegularExpressionValidator1.validationGroup = "HomeLogin";
+ctl00_RegularExpressionValidator1.evaluationfunction = "RegularExpressionValidatorEvaluateIsValid";
+ctl00_RegularExpressionValidator1.validationexpression = "^[a-zA-Z0-9ء-ي -()~$^\\-_+%*&/#@!.]*";
+var ctl00_RegularExpressionValidator2 = document.all ? document.all["ctl00_RegularExpressionValidator2"] : document.getElementById("ctl00_RegularExpressionValidator2");
+ctl00_RegularExpressionValidator2.controltovalidate = "ctl00_EmailTextBox1";
+ctl00_RegularExpressionValidator2.focusOnError = "t";
+ctl00_RegularExpressionValidator2.errormessage = "Special Characters not allowed";
+ctl00_RegularExpressionValidator2.display = "Dynamic";
+ctl00_RegularExpressionValidator2.evaluationfunction = "RegularExpressionValidatorEvaluateIsValid";
+ctl00_RegularExpressionValidator2.validationexpression = "^[a-zA-Z0-9ء-ي -()~$^\\-_+%*&/#@!.]*";
+//]]>
+</script>
+
+
+<script type="text/javascript">
+//<![CDATA[
+
+var Page_ValidationActive = false;
+if (typeof(ValidatorOnLoad) == "function") {
+    ValidatorOnLoad();
+}
+
+function ValidatorOnSubmit() {
+    if (Page_ValidationActive) {
+        return ValidatorCommonOnSubmit();
+    }
+    else {
+        return true;
+    }
+}
+        //]]>
+</script>
+</form>
+</body>
+</html>

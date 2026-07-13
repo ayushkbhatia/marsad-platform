@@ -1,0 +1,53 @@
+{
+  "_fixture_note": "Shape of the TDWL (Saudi Exchange) full-main-market quote response, per docs/architecture/P1-recon-findings.md §'TDWL — confirmed working data path'. This is a SHAPE SAMPLE (2 rows) hand-built from the recon capture, NOT a verbatim fetch — TDWL is Akamai-WAF'd (403 to plain curl) and the real golden must be captured on the VPS via the Playwright request-context path described in README.md. Response arrives with content-type text/html but is clean JSON; parse anyway. Endpoint/action id/PUID are portal-generated and MUST be scraped from the page at runtime and stored in ingest.sources.endpoint_config — never hardcoded.",
+  "data": [
+    {
+      "sectorName": "Energy",
+      "sectorRef": "31",
+      "companyRef": 2030,
+      "acrynomName": "SARCO",
+      "transactionDate": "Jul 13, 2026 3:18:51 PM",
+      "lastTradePrice": 51.5,
+      "lastTradePriceModified": "51.50",
+      "lastTradeQuantity": 50,
+      "lastUpdatetime": "Jul 13, 2026 4:00:00 PM",
+      "askPrice": 51.5,
+      "askQuantity": 745,
+      "bidPrice": 51.4,
+      "bidQuantity": 320,
+      "openingPrice": 51.0,
+      "highPrice": 51.8,
+      "lowPrice": 50.9,
+      "previousClosePrice": 51.2,
+      "change": 0.3,
+      "changePercent": 0.59,
+      "volumeTraded": 128340,
+      "valueTraded": 6608510.0,
+      "noOfTrades": 412
+    },
+    {
+      "sectorName": "Banks",
+      "sectorRef": "40",
+      "companyRef": 1120,
+      "acrynomName": "ALRAJHI",
+      "transactionDate": "Jul 13, 2026 3:19:03 PM",
+      "lastTradePrice": 92.1,
+      "lastTradePriceModified": "92.10",
+      "lastTradeQuantity": 120,
+      "lastUpdatetime": "Jul 13, 2026 4:00:00 PM",
+      "askPrice": 92.2,
+      "askQuantity": 1500,
+      "bidPrice": 92.0,
+      "bidQuantity": 880,
+      "openingPrice": 91.5,
+      "highPrice": 92.4,
+      "lowPrice": 91.3,
+      "previousClosePrice": 91.6,
+      "change": 0.5,
+      "changePercent": 0.55,
+      "volumeTraded": 2841220,
+      "valueTraded": 261470000.0,
+      "noOfTrades": 5210
+    }
+  ]
+}

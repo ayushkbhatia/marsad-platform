@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+
+
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Market watch | DFM</title>
+    <link href="/artifacts/css/mw3.8.1.css?v=3105" rel="stylesheet" />
+    <link href="/artifacts/css/custom.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Coda:wght@400&family=Almarai:wght@300;400;700&family=DM Sans:wght@400;500;700&display=swap" />
+    <!--[if lt IE 9]>
+        <script type="text/javascript" src="/artifacts/js/fallback.min.js"></script>
+    <![endif]-->
+    <script type="text/javascript" src="/builds/ga.js"></script>
+    <!--    <script type="text/javascript" src="/builds/config3.3.js?v=128"></script>-->
+    <script type="text/javascript" src="/builds/config.js?v=15334655"></script>
+    <script type="text/javascript" id="GA">
+        insert_ga("marketwatch");
+        var ismobile = "0";
+    </script>
+    <script type="text/javascript" src="/artifacts/js/jit.min.js"></script>
+
+
+
+    <meta name="smartbanner:title" content="DFM App">
+
+    <meta name="smartbanner:author" content="Dubai Financial Market">
+
+    <meta name="smartbanner:price" content="FREE">
+
+    <meta name="smartbanner:price-suffix-apple" content=" - On the App Store">
+
+    <meta name="smartbanner:icon-apple" content="https://is2-ssl.mzstatic.com/image/thumb/Purple124/v4/c4/bb/06/c4bb06e0-6c98-6f3a-4b7b-1483e787901d/AppIcon-0-0-1x_U007emarketing-0-0-0-7-0-0-sRGB-0-0-0-GLES2_U002c0-512MB-85-220-0-0.jpeg/230x0w.jpg">
+
+    <meta name="smartbanner:button" content="View">
+
+    <meta name="smartbanner:button-url-apple" content="https://apps.apple.com/ae/app/dfm-dubai-financial-market/id997641752">
+    <meta name="smartbanner:enabled-platforms" content="ios">
+
+    <meta name="smartbanner:close-label" content="Close this banner">
+    <!-- End Google Analytics -->
+
+</head>
+
+<body class="light-theme overflow-x-hidden w-100 " style="display: none;"  data-device=pc>
+    <div id="StartLoader" style="position: fixed; width: 100%; text-align: center; z-index: 1000; background: #fff; height: 100%; transition: all 0.5s ease-out;opacity:1">
+        <div style="margin: 300px auto; width: 120px">
+            <div style="display:flex; flex-direction:column">
+                <img className="d-block mt-4" height={100} src='/artifacts/img/loader.gif' />
+                <span id="LoadingText" dir="ltr" style="font-size:10px">LOADING ...</span>
+                <div id="loader-progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+                </div>
+                <div class="modal-body">
+                    ...
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default close-caption" data-dismiss="modal"></button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade"
+         id="userpreferencesModal"
+         tabindex="-1"
+         role="dialog"
+         aria-labelledby="userpreferencesModalTitle"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="comp-desc-top row-fluid" id="block-trades-head">
+                        <div class="span8 title">
+                            <p class="page-title text-2xl user-preferences-title">User Preferences</p>
+                        </div>
+                    </div>
+                    <div class="tab-content py-2">
+                        <div id="blocktrades" class="tab-pane tab-fix active">
+                            <div class="d-flex flex-column">
+                                <p class="title mb-1 mt-0 fw-bold color-theme-label">Color Theme</p>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="checkbox" id="toggleDarkTheme">
+                                    <label class="form-check-label dark-theme-label" for="toggleDarkTheme">Dark Theme</label>
+                                </div>
+                                <p class="title mb-1 mt-3 fw-bold display-settings-label">Display Settings</p>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="checkbox" id="toggleTicker">
+                                    <label class="form-check-label hide-ticker-label" for="toggleTicker">Hide Ticker</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="checkbox" id="toggleMarketSummary">
+                                    <label class="form-check-label hide-market-summary-label" for="toggleMarketSummary">Hide Market Summary</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="checkbox" id="toggleMarketNews">
+                                    <label class="form-check-label hide-market-news-label" for="toggleMarketNews">Hide News</label>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn btn-secondary close-caption"
+                            data-bs-dismiss="modal">
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade"
+         id="blockTradesModal"
+         tabindex="-1"
+         role="dialog"
+         aria-labelledby="blockTradesModalTitle"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn btn-secondary close-caption"
+                            data-bs-dismiss="modal">
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade"
+         id="insiderTradesModal"
+         tabindex="-1"
+         role="dialog"
+         aria-labelledby="insiderTradesModalTitle"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn btn-secondary close-caption"
+                            data-bs-dismiss="modal">
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade"
+         id="bigChartModal"
+         tabindex="-1"
+         role="dialog"
+         aria-labelledby="bigChartModalTitle"
+         aria-hidden="true">
+        <div class="modal-dialog modal-fullcustom modal-fullscreen" >
+            <div class="modal-content">
+                <div class="modal-body" style="padding:10px">
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn btn-secondary close-caption"
+                            data-bs-dismiss="modal">
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="StickyLegend">
+
+    </div>
+
+
+
+
+
+    <div id="redirectCaption" style="display: none">Redirection in process. Please wait...</div>
+
+    <div id="dfm-marketwatch" class="main-container page-container">
+        <div id="MWHeader" class="main-container w-100 mx-auto border border-top-0 border-start-0 border-end-0 position-fixed overflow-visible bg-light" style="z-index:999; top: 0">
+            <div class="d-flex  flex-wrap w-100 h-100 justify-content-between">
+                <a id="dfm-web" class="h-44px d-lg-none d-md-none d-flex w-auto align-items-center ps-2 me-2" href="https://www.dfm.ae/">
+                    <img class="w-auto d-block light-theme-item" style="height: 23px" src="/artifacts/img/brand-logo.7043be0.svg" alt="DFM" />
+                    <img class="w-auto d-block dark-theme-item" style="height: 23px" src="/artifacts/img/dfm-new-logo-white.25af061.svg" alt="DFM" />
+
+                </a>
+                <div class="col-lg-3 p-0 m-0 h-100 d-block d-lg-none d-md-none">
+                    <div class="d-flex  flex-lg-nowrap flex-wrap flex-row justify-content-end h-100  align-items-stretch">
+                        <a class="h-44px d-flex  px-1 px-md-2 px-lg-3 align-items-center border border-end-0 border-top-0 border-bottom-0  btn-container btn  bg-none text-nowrap text-xxs text-uppercase text-dark insider-link" href="#"></a>
+                        <a href="#" class="d-flex  px-1 px-md-2 px-lg-3 login-menu h-44px align-items-center border border-end-0 border-top-0 border-bottom-0  btn-container btn bg-none text-xxs text-uppercase text-dark" id="login-drop-1" style="display: block">
+                            <div class="wellcome-item">
+                                <div class="link-wrapper d-flex align-items-center justify-content-between">
+                                    <span id="login-menu " class="me-1 text-nowrap">Login</span>
+                                    <svg class="light-theme-item" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M14.985 15.6042C14.4027 14.8332 13.6494 14.208 12.7843 13.7778C11.9193 13.3476 10.9661 13.1241 9.99999 13.125C9.03386 13.1241 8.08073 13.3476 7.21567 13.7778C6.35062 14.208 5.59727 14.8332 5.01499 15.6042M14.985 15.6042C16.1212 14.5935 16.9226 13.2613 17.2843 11.7842C17.646 10.3072 17.5502 8.75507 17.0095 7.33373C16.4689 5.91239 15.5089 4.68898 14.257 3.82575C13.005 2.96251 11.5203 2.50024 9.99957 2.50024C8.47888 2.50024 6.9941 2.96251 5.74216 3.82575C4.49022 4.68898 3.53026 5.91239 2.9896 7.33373C2.44894 8.75507 2.35312 10.3072 2.71484 11.7842C3.07656 13.2613 3.87874 14.5935 5.01499 15.6042M14.985 15.6042C13.6133 16.8276 11.838 17.5026 9.99999 17.5C8.16168 17.5028 6.38685 16.8278 5.01499 15.6042M12.5 8.125C12.5 8.78804 12.2366 9.42392 11.7678 9.89277C11.2989 10.3616 10.663 10.625 9.99999 10.625C9.33695 10.625 8.70107 10.3616 8.23222 9.89277C7.76338 9.42392 7.49999 8.78804 7.49999 8.125C7.49999 7.46196 7.76338 6.82607 8.23222 6.35723C8.70107 5.88839 9.33695 5.625 9.99999 5.625C10.663 5.625 11.2989 5.88839 11.7678 6.35723C12.2366 6.82607 12.5 7.46196 12.5 8.125Z" stroke="#525656" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    <svg class="dark-theme-item" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M14.985 15.6042C14.4027 14.8332 13.6494 14.208 12.7843 13.7778C11.9193 13.3476 10.9661 13.1241 9.99999 13.125C9.03386 13.1241 8.08073 13.3476 7.21567 13.7778C6.35062 14.208 5.59727 14.8332 5.01499 15.6042M14.985 15.6042C16.1212 14.5935 16.9226 13.2613 17.2843 11.7842C17.646 10.3072 17.5502 8.75507 17.0095 7.33373C16.4689 5.91239 15.5089 4.68898 14.257 3.82575C13.005 2.96251 11.5203 2.50024 9.99957 2.50024C8.47888 2.50024 6.9941 2.96251 5.74216 3.82575C4.49022 4.68898 3.53026 5.91239 2.9896 7.33373C2.44894 8.75507 2.35312 10.3072 2.71484 11.7842C3.07656 13.2613 3.87874 14.5935 5.01499 15.6042M14.985 15.6042C13.6133 16.8276 11.838 17.5026 9.99999 17.5C8.16168 17.5028 6.38685 16.8278 5.01499 15.6042M12.5 8.125C12.5 8.78804 12.2366 9.42392 11.7678 9.89277C11.2989 10.3616 10.663 10.625 9.99999 10.625C9.33695 10.625 8.70107 10.3616 8.23222 9.89277C7.76338 9.42392 7.49999 8.78804 7.49999 8.125C7.49999 7.46196 7.76338 6.82607 8.23222 6.35723C8.70107 5.88839 9.33695 5.625 9.99999 5.625C10.663 5.625 11.2989 5.88839 11.7678 6.35723C12.2366 6.82607 12.5 7.46196 12.5 8.125Z" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </a>
+
+                        <div class="dropdown btn-container border border-end-0 border-top-0 border-bottom-0 d-none">
+                            <button class="btn me-3 dropdown-toggle h-44px d-flex align-items-center    btn  bg-none text-nowrap text-xxs text-uppercase text-dark " type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <svg class="light-theme-item" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M14.985 15.6042C14.4027 14.8332 13.6494 14.208 12.7843 13.7778C11.9193 13.3476 10.9661 13.1241 9.99999 13.125C9.03386 13.1241 8.08073 13.3476 7.21567 13.7778C6.35062 14.208 5.59727 14.8332 5.01499 15.6042M14.985 15.6042C16.1212 14.5935 16.9226 13.2613 17.2843 11.7842C17.646 10.3072 17.5502 8.75507 17.0095 7.33373C16.4689 5.91239 15.5089 4.68898 14.257 3.82575C13.005 2.96251 11.5203 2.50024 9.99957 2.50024C8.47888 2.50024 6.9941 2.96251 5.74216 3.82575C4.49022 4.68898 3.53026 5.91239 2.9896 7.33373C2.44894 8.75507 2.35312 10.3072 2.71484 11.7842C3.07656 13.2613 3.87874 14.5935 5.01499 15.6042M14.985 15.6042C13.6133 16.8276 11.838 17.5026 9.99999 17.5C8.16168 17.5028 6.38685 16.8278 5.01499 15.6042M12.5 8.125C12.5 8.78804 12.2366 9.42392 11.7678 9.89277C11.2989 10.3616 10.663 10.625 9.99999 10.625C9.33695 10.625 8.70107 10.3616 8.23222 9.89277C7.76338 9.42392 7.49999 8.78804 7.49999 8.125C7.49999 7.46196 7.76338 6.82607 8.23222 6.35723C8.70107 5.88839 9.33695 5.625 9.99999 5.625C10.663 5.625 11.2989 5.88839 11.7678 6.35723C12.2366 6.82607 12.5 7.46196 12.5 8.125Z" stroke="#525656" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <svg class="dark-theme-item" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M14.985 15.6042C14.4027 14.8332 13.6494 14.208 12.7843 13.7778C11.9193 13.3476 10.9661 13.1241 9.99999 13.125C9.03386 13.1241 8.08073 13.3476 7.21567 13.7778C6.35062 14.208 5.59727 14.8332 5.01499 15.6042M14.985 15.6042C16.1212 14.5935 16.9226 13.2613 17.2843 11.7842C17.646 10.3072 17.5502 8.75507 17.0095 7.33373C16.4689 5.91239 15.5089 4.68898 14.257 3.82575C13.005 2.96251 11.5203 2.50024 9.99957 2.50024C8.47888 2.50024 6.9941 2.96251 5.74216 3.82575C4.49022 4.68898 3.53026 5.91239 2.9896 7.33373C2.44894 8.75507 2.35312 10.3072 2.71484 11.7842C3.07656 13.2613 3.87874 14.5935 5.01499 15.6042M14.985 15.6042C13.6133 16.8276 11.838 17.5026 9.99999 17.5C8.16168 17.5028 6.38685 16.8278 5.01499 15.6042M12.5 8.125C12.5 8.78804 12.2366 9.42392 11.7678 9.89277C11.2989 10.3616 10.663 10.625 9.99999 10.625C9.33695 10.625 8.70107 10.3616 8.23222 9.89277C7.76338 9.42392 7.49999 8.78804 7.49999 8.125C7.49999 7.46196 7.76338 6.82607 8.23222 6.35723C8.70107 5.88839 9.33695 5.625 9.99999 5.625C10.663 5.625 11.2989 5.88839 11.7678 6.35723C12.2366 6.82607 12.5 7.46196 12.5 8.125Z" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li class="text-xs text-uppercase border border-start-0 border-end-0 border-top-0 bg-light px-3 pb-1 pt-2 fw-bold"></li>
+                                
+                                
+                                <li><a class="dropdown-item i18 more-options user-preferences-title" href="#">user-preferences-title</a></li>
+
+                                <li class="border border-start-0 border-end-0 border-top-0"></li>
+                                <li><a class="dropdown-item i18 chng-pwd" href="#"></a></li>
+                                <li><a class="dropdown-item i18 login logout-usr" href="#"></a></li>
+                            </ul>
+                        </div>
+                        <a class="h-44px  px-2 px-md-2 px-lg-2 d-flex align-items-center border border-end-0 border-top-0 border-bottom-0  btn-container btn  bg-none text-nowrap text-xxxs text-uppercase text-dark  dark-theme-toggle light-theme-item" href="#">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-stars-fill" viewBox="0 0 16 16">
+                                <path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278" />
+                                <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.73 1.73 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.73 1.73 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.73 1.73 0 0 0 1.097-1.097zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.16 1.16 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.16 1.16 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732z" />
+                            </svg>
+                        </a>
+                        <a class="h-44px  px-2 px-md-2 px-lg-2 d-flex align-items-center border border-end-0 border-top-0 border-bottom-0  btn-container btn  bg-none text-nowrap text-xxxs text-uppercase text-dark  light-theme-toggle dark-theme-item" href="#">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sun-fill" viewBox="0 0 16 16">
+                                <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708" />
+                            </svg>
+                        </a>
+                        <a href="#" class="lang-link h-44px d-flex  px-1 px-md-2 px-lg-3 align-items-center border border-end-0 border-top-0 border-bottom-0  btn-container btn bg-none text-xxs text-uppercase text-dark" style="display: block">
+                            <span class="is-arabic">عربي</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-9 col-md-9 col-12 h-100">
+                    <div id="market-status-container" class="status span3 p-0 m-0 h-100">
+                    </div>
+                </div>
+                <div class="col-lg-3 p-0 m-0 h-100 d-none d-lg-block d-md-block">
+                    <div class="d-flex flex-lg-nowrap flex-wrap flex-row justify-content-end h-100  align-items-stretch">
+                        <a class="h-44px  px-1 px-md-2 px-lg-2 d-flex align-items-center border border-end-0 border-top-0 border-bottom-0 btn-container btn bg-none text-nowrap text-xxxs text-uppercase text-dark esrv-link" href="https://esrv.dfm.ae" target="_blank"></a>
+                        <a class="h-44px  px-1 px-md-2 px-lg-2 d-flex align-items-center border border-end-0 border-top-0 border-bottom-0  btn-container btn  bg-none text-nowrap text-xxxs text-uppercase text-dark  insider-link" href="#"></a>
+                        <a href="#" class="d-flex login-menu px-1 px-md-2 px-lg-2 h-44px align-items-center border border-end-0 border-top-0 border-bottom-0  btn-container btn bg-none text-xxxs text-uppercase text-dark" style="display: block">
+                            <div class="wellcome-item">
+                                <div class="link-wrapper d-flex align-items-center justify-content-between">
+                                    <span id="login-menu " class="me-1 text-nowrap">Login</span>
+                                    <svg class="light-theme-item" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M14.985 15.6042C14.4027 14.8332 13.6494 14.208 12.7843 13.7778C11.9193 13.3476 10.9661 13.1241 9.99999 13.125C9.03386 13.1241 8.08073 13.3476 7.21567 13.7778C6.35062 14.208 5.59727 14.8332 5.01499 15.6042M14.985 15.6042C16.1212 14.5935 16.9226 13.2613 17.2843 11.7842C17.646 10.3072 17.5502 8.75507 17.0095 7.33373C16.4689 5.91239 15.5089 4.68898 14.257 3.82575C13.005 2.96251 11.5203 2.50024 9.99957 2.50024C8.47888 2.50024 6.9941 2.96251 5.74216 3.82575C4.49022 4.68898 3.53026 5.91239 2.9896 7.33373C2.44894 8.75507 2.35312 10.3072 2.71484 11.7842C3.07656 13.2613 3.87874 14.5935 5.01499 15.6042M14.985 15.6042C13.6133 16.8276 11.838 17.5026 9.99999 17.5C8.16168 17.5028 6.38685 16.8278 5.01499 15.6042M12.5 8.125C12.5 8.78804 12.2366 9.42392 11.7678 9.89277C11.2989 10.3616 10.663 10.625 9.99999 10.625C9.33695 10.625 8.70107 10.3616 8.23222 9.89277C7.76338 9.42392 7.49999 8.78804 7.49999 8.125C7.49999 7.46196 7.76338 6.82607 8.23222 6.35723C8.70107 5.88839 9.33695 5.625 9.99999 5.625C10.663 5.625 11.2989 5.88839 11.7678 6.35723C12.2366 6.82607 12.5 7.46196 12.5 8.125Z" stroke="#525656" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    <svg class="dark-theme-item" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M14.985 15.6042C14.4027 14.8332 13.6494 14.208 12.7843 13.7778C11.9193 13.3476 10.9661 13.1241 9.99999 13.125C9.03386 13.1241 8.08073 13.3476 7.21567 13.7778C6.35062 14.208 5.59727 14.8332 5.01499 15.6042M14.985 15.6042C16.1212 14.5935 16.9226 13.2613 17.2843 11.7842C17.646 10.3072 17.5502 8.75507 17.0095 7.33373C16.4689 5.91239 15.5089 4.68898 14.257 3.82575C13.005 2.96251 11.5203 2.50024 9.99957 2.50024C8.47888 2.50024 6.9941 2.96251 5.74216 3.82575C4.49022 4.68898 3.53026 5.91239 2.9896 7.33373C2.44894 8.75507 2.35312 10.3072 2.71484 11.7842C3.07656 13.2613 3.87874 14.5935 5.01499 15.6042M14.985 15.6042C13.6133 16.8276 11.838 17.5026 9.99999 17.5C8.16168 17.5028 6.38685 16.8278 5.01499 15.6042M12.5 8.125C12.5 8.78804 12.2366 9.42392 11.7678 9.89277C11.2989 10.3616 10.663 10.625 9.99999 10.625C9.33695 10.625 8.70107 10.3616 8.23222 9.89277C7.76338 9.42392 7.49999 8.78804 7.49999 8.125C7.49999 7.46196 7.76338 6.82607 8.23222 6.35723C8.70107 5.88839 9.33695 5.625 9.99999 5.625C10.663 5.625 11.2989 5.88839 11.7678 6.35723C12.2366 6.82607 12.5 7.46196 12.5 8.125Z" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </a>
+                        <div class="dropdown btn-container border border-end-0 border-top-0 border-bottom-0 d-none">
+                            <button class="btn me-3 dropdown-toggle h-44px d-flex align-items-center    btn  bg-none text-nowrap text-xxs text-uppercase text-dark " type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <svg class="light-theme-item" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M14.985 15.6042C14.4027 14.8332 13.6494 14.208 12.7843 13.7778C11.9193 13.3476 10.9661 13.1241 9.99999 13.125C9.03386 13.1241 8.08073 13.3476 7.21567 13.7778C6.35062 14.208 5.59727 14.8332 5.01499 15.6042M14.985 15.6042C16.1212 14.5935 16.9226 13.2613 17.2843 11.7842C17.646 10.3072 17.5502 8.75507 17.0095 7.33373C16.4689 5.91239 15.5089 4.68898 14.257 3.82575C13.005 2.96251 11.5203 2.50024 9.99957 2.50024C8.47888 2.50024 6.9941 2.96251 5.74216 3.82575C4.49022 4.68898 3.53026 5.91239 2.9896 7.33373C2.44894 8.75507 2.35312 10.3072 2.71484 11.7842C3.07656 13.2613 3.87874 14.5935 5.01499 15.6042M14.985 15.6042C13.6133 16.8276 11.838 17.5026 9.99999 17.5C8.16168 17.5028 6.38685 16.8278 5.01499 15.6042M12.5 8.125C12.5 8.78804 12.2366 9.42392 11.7678 9.89277C11.2989 10.3616 10.663 10.625 9.99999 10.625C9.33695 10.625 8.70107 10.3616 8.23222 9.89277C7.76338 9.42392 7.49999 8.78804 7.49999 8.125C7.49999 7.46196 7.76338 6.82607 8.23222 6.35723C8.70107 5.88839 9.33695 5.625 9.99999 5.625C10.663 5.625 11.2989 5.88839 11.7678 6.35723C12.2366 6.82607 12.5 7.46196 12.5 8.125Z" stroke="#525656" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <svg class="dark-theme-item" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M14.985 15.6042C14.4027 14.8332 13.6494 14.208 12.7843 13.7778C11.9193 13.3476 10.9661 13.1241 9.99999 13.125C9.03386 13.1241 8.08073 13.3476 7.21567 13.7778C6.35062 14.208 5.59727 14.8332 5.01499 15.6042M14.985 15.6042C16.1212 14.5935 16.9226 13.2613 17.2843 11.7842C17.646 10.3072 17.5502 8.75507 17.0095 7.33373C16.4689 5.91239 15.5089 4.68898 14.257 3.82575C13.005 2.96251 11.5203 2.50024 9.99957 2.50024C8.47888 2.50024 6.9941 2.96251 5.74216 3.82575C4.49022 4.68898 3.53026 5.91239 2.9896 7.33373C2.44894 8.75507 2.35312 10.3072 2.71484 11.7842C3.07656 13.2613 3.87874 14.5935 5.01499 15.6042M14.985 15.6042C13.6133 16.8276 11.838 17.5026 9.99999 17.5C8.16168 17.5028 6.38685 16.8278 5.01499 15.6042M12.5 8.125C12.5 8.78804 12.2366 9.42392 11.7678 9.89277C11.2989 10.3616 10.663 10.625 9.99999 10.625C9.33695 10.625 8.70107 10.3616 8.23222 9.89277C7.76338 9.42392 7.49999 8.78804 7.49999 8.125C7.49999 7.46196 7.76338 6.82607 8.23222 6.35723C8.70107 5.88839 9.33695 5.625 9.99999 5.625C10.663 5.625 11.2989 5.88839 11.7678 6.35723C12.2366 6.82607 12.5 7.46196 12.5 8.125Z" stroke="white" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </button>
+                            <ul class="dropdown-menu pt-0">
+                                <li class="text-xs text-uppercase border border-start-0 border-end-0 border-top-0 bg-light px-3 pb-1 pt-2 fw-bold"></li>
+                                
+                                <li><a class="dropdown-item i18 more-options user-preferences-title" href="#">User Preferences</a></li>
+
+                                
+                                <li class="border border-start-0 border-end-0 border-top-0"></li>
+                                <li><a class="dropdown-item i18 chng-pwd" href="#"></a></li>
+                                <li><a class="dropdown-item i18 login logout-usr" href="#"></a></li>
+                            </ul>
+                        </div>
+                        <a class="h-44px  px-1 px-md-2 px-lg-2 d-flex align-items-center border border-end-0 border-top-0 border-bottom-0  btn-container btn  bg-none text-nowrap text-xxxs text-uppercase text-dark  dark-theme-toggle light-theme-item" href="#">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-stars-fill" viewBox="0 0 16 16">
+                                <path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278" />
+                                <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.73 1.73 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.73 1.73 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.73 1.73 0 0 0 1.097-1.097zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.16 1.16 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.16 1.16 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732z" />
+                            </svg>
+                        </a>
+                        <a class="h-44px  px-1 px-md-2 px-lg-2 d-flex align-items-center border border-end-0 border-top-0 border-bottom-0  btn-container btn  bg-none text-nowrap text-xxxs text-uppercase text-dark  light-theme-toggle dark-theme-item" href="#">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sun-fill" viewBox="0 0 16 16">
+                                <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708" />
+                            </svg>
+                        </a>
+                        <a href="#" class="lang-link h-44px  px-1 px-md-2 px-lg-2 d-flex align-items-center border border-end-0 border-top-0 border-bottom-0  btn-container btn bg-none text-xxxs text-uppercase text-dark" style="display: block">
+                            <span class="is-arabic">عربي</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="w-100">
+            <div id="ticker-tape-container" class="statistic-data px-3 py-1 bg-white d-none d-lg-block d-md-block">
+            </div>
+        </div>
+
+        <div id="MWTopSection" class="collapsable-height w-100 d-flex px-2 flex-wrap flex-lg-nowrap">
+            <div class="index-container w-lg-30 w-md-40 w-100 ps-lg-2 ps-md-2 ps-0">
+                <div class="border border-light mt-0">
+                    <div class="span3-half index dfmgi-graph">
+                        <div class="content-block-head border border-top-0 border-start-0 border-end-0 bg-light section-header d-flex justify-content-between pe-3 ps-2">
+                            <span class="i18 header text-xs text-uppercase" id="dfmgeneralindex-caption">
+
+                            </span>
+                            <span><a class="expand-link i18 d-none d-lg-inline d-md-inline" id="expand" title="Expand" href="#expand-chart">>></a></span>
+                        </div>
+                        <div class="general-index-content">
+                            <div id="indices-graph-container" class="indices-graph-container" style="height:202px">
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="toppers-container w-lg-40 w-md-60 w-100 ps-lg-2 ps-md-2 ps-0 mt-lg-0 mt-md-0 mt-3">
+                <div class="border border-light">
+                    <div id="market-tops-container" class="span5 half-left">
+
+                    </div>
+                </div>
+            </div>
+            <div class="sectors-parent-container w-lg-40 w-md-100 w-100 ps-lg-2 ps-md-2 ps-0 pe-lg-2 pe-0  mt-lg-0 mt-md-3 mt-3  overflow-hidden">
+                <div class="border border-light">
+                    <div id="market-sectors-container" class="span4-half half-left indices indices-tops">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="TopGapSection" class="collapsable-height w-100 d-flex p-2">
+
+        </div>
+        <div id="NewsSection" class="collapsable-height w-100 d-flex px-2 flex-wrap flex-md-nowrap flex-lg-nowrap">
+            <div id="market-news-container" class="px-lg-2 px-md-2 px-0 mt-3 mt-md-0 mt-lg-0 w-100">
+            </div>
+        </div>
+        <div class="w-100">
+            <div id="MarketCollapseSection" class="market-collapse col p-0 p-lg-3 p-md-3 position-relative pb-0 pb-lg-0 pb-md-0">
+                <div class="data-delay d-none position-md-absolute position-lg-absolute position-relative top-0 end-0 mx-2 mt-2 mx-md-3 mx-lg-3 mt-md-4 mt-lg-4 border border-warning px-3 text-xs ">
+                    <a class="ps-1 cursor-pointer" id="login-message"></a>
+                </div>
+                <ul class="nav nav-tabs content-block-head border border-top-0 border-start-0 border-end-0  flex-nowrap ps-2 mt-nav nav-tabs content-block-head border border-top-0 border-start-0 border-end-0  flex-nowrap ps-2 mt-2 mt-md-0 mt-lg-0 mt-md-0 mt-lg-0" id="myTab5" role="tablist">
+                    <li class="nav-item me-1 h-100 " role="presentation">
+                        <button class="px-2 nav-link h-100  lh-lg active i18" id="marketwatch-caption" data-bs-toggle="tab" data-bs-target="#market-container" type="button" role="tab" aria-controls="market-container" aria-selected="true">
+                        </button>
+                    </li>
+                    <li class="nav-item me-1 d-none newtab-1 h-100" role="presentation">
+                        <button class="px-2 nav-link h-100  lh-lg newtab-1" id="newtab-1-caption" data-bs-toggle="tab" data-bs-target="#newtab-1" type="button" role="tab" aria-controls="newtab-1" aria-selected="false">
+                            <span class="i18"></span><sup class="new"></sup>
+                        </button>
+                    </li>
+                    <li class="nav-item me-1 d-none newtab-2 h-100" role="presentation">
+                        <button class="px-2 nav-link h-100  lh-lg newtab-2" id="newtab-2-caption" data-bs-toggle="tab" data-bs-target="#newtab-2" type="button" role="tab" aria-controls="newtab-2" aria-selected="false">
+                            <span class="i18"></span><sup class="new"></sup>
+                        </button>
+                    </li>
+                    <li class="nav-item me-1 d-none newtab-3 h-100" role="presentation">
+                        <button class="px-2 nav-link h-100  lh-lg newtab-3" id="newtab-3-caption" data-bs-toggle="tab" data-bs-target="#newtab-3" type="button" role="tab" aria-controls="newtab-3" aria-selected="false">
+                            <span class="i18"></span><sup class="new"></sup>
+                        </button>
+                    </li>
+                    <li class="nav-item me-1 d-none newtab-4 h-100" role="presentation">
+                        <button class="px-2 nav-link h-100  lh-lg newtab-4" id="newtab-4-caption" data-bs-toggle="tab" data-bs-target="#newtab-4" type="button" role="tab" aria-controls="newtab-4" aria-selected="false">
+                            <span class="i18"></span><sup class="new"></sup>
+                        </button>
+                    </li>
+                    <li class="nav-item me-1 h-100" role="presentation">
+                        <button class="px-2 nav-link h-100  lh-lg i18" id="categoryb-caption" data-bs-toggle="tab" data-bs-target="#categoryb-list-container" type="button" role="tab" aria-controls="categoryb-list-container" aria-selected="true">
+                        </button>
+                    </li>
+                    <li class="nav-item me-1 h-100" role="presentation">
+                        <button class="px-2 nav-link h-100  lh-lg i18" id="watchlist-caption" data-bs-toggle="tab" data-bs-target="#watch-list-container" type="button" role="tab" aria-controls="watch-list-container" aria-selected="true">
+                        </button>
+                    </li>
+                    <li class="nav-item me-1 h-100" role="presentation">
+                        <button class="px-2 nav-link h-100  lh-lg i18" id="heatmaps-caption" data-bs-toggle="tab" data-bs-target="#heatmaps-container" type="button" role="tab" aria-controls="heatmaps-container" aria-selected="true">
+                        </button>
+                    </li>
+                </ul>
+
+
+                <div class="tab-content market-container">
+                    <div class="busy"></div>
+
+                    <div class="tab-pane show active" id="market-container" role="tabpanel" aria-labelledby="marketwatch-caption" tabindex="0">
+
+                    </div>
+                    <div class="tab-pane" id="newtab-1" role="tabpanel" aria-labelledby="newtab-1-caption" tabindex="0">
+                    </div>
+                    <div class="tab-pane" id="newtab-2" role="tabpanel" aria-labelledby="newtab-2-caption" tabindex="0">
+                    </div>
+                    <div class="tab-pane" id="newtab-3" role="tabpanel" aria-labelledby="newtab-3-caption" tabindex="0">
+                    </div>
+                    <div class="tab-pane" id="newtab-4" role="tabpanel" aria-labelledby="newtab-4-caption" tabindex="0">
+                    </div>
+                    <div class="tab-pane" id="watch-list-container" role="tabpanel" aria-labelledby="watchlist-caption" tabindex="0">
+                    </div>
+                    <div class="tab-pane" id="heatmaps-container" role="tabpanel" aria-labelledby="heatmaps-caption" tabindex="0">
+                    </div>
+                    <div class="tab-pane" id="categoryb-list-container" role="tabpanel" aria-labelledby="categoryb-caption" tabindex="0">
+                    </div>
+                    <div class="Disclaimer mt-2 mx-2 mx-md-0 mx-lg-0 mb-3" style="clear: both; font-size: 12px; line-height: 13px; color: #777777;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <style>
+        hr.undevider.large-bottom {
+            margin: 0.5rem 0;
+        }
+    </style>
+
+
+
+
+    <script src="/artifacts/js/plugins4.min.js?v=160" type="text/javascript"></script>
+
+    <!--<script type="text/javascript" src="/artifacts/js/scriptDisclaimer.js"></script>-->
+
+
+    <script type="text/javascript">
+
+    //Change the Ads banner for smaller screens to show zone 1 instead of 30
+    var currentSize = 1;
+
+    function inIframe() {
+        try {
+            return window.self !== window.top;
+        } catch (e) {
+            return true;
+        }
+    }
+
+    $(function() {
+
+        if (!(this.dfm && this.dfm.config)) {
+            this.dfm = this.dfm || {};
+            this.dfm.config = {};
+        }
+
+        dfm.config.r = "0";
+        if (inIframe()) {
+            var redirectCaption = $("#redirectCaption").html();
+            $("body").html("");
+            $("body").html("<p>" + redirectCaption + "</p>");
+            $("body").show();
+            setTimeout(function() {
+                window.top.location.href = "/";
+            }, 2000);
+        } else {
+            $("body").show();
+        }
+        dfm.config.route = "marketwatch";
+        //$("input[placeholder], textarea[placeholder]").placeholder();
+    });
+    var container;
+
+    $(document).ready(function() {
+
+        if (localStorage.getItem("theme") == "dark") {
+            $("body").removeClass("light-theme")
+            $("body").addClass("dark-theme")
+            $("#toggleDarkTheme").prop("checked", true);
+        }
+
+        $(".footer .footer-frame li a").on("click", function() {
+            return false;
+        });
+        $(".Disclaimer").html(dfm.config.disclaimer_en + "<br>" + dfm.config.disclaimer_category_b_en);
+
+        var portal = dfm.config && dfm.config.portal + "/" + "en" || null;
+        portal && $("#dfm-web").attr("href", portal);
+
+        var sso = "true";
+        const b2cEnabled = 'true';
+        const b2cTenantName = '';
+        const clientId = '';
+        const policyName = ''; // Your policy name
+        const redirectUri = ''; // Your callback URL
+
+        const azureB2cLoginUrl = `https://${b2cTenantName}.b2clogin.com/${b2cTenantName}.onmicrosoft.com/oauth2/v2.0/authorize` +
+            `?p=${policyName}` +
+            `&client_id=${clientId}` +
+            `&nonce=defaultNonce` +
+            `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+            `&scope=openid&response_type=code&prompt=login`;             // Optional state parameter to maintain app state
+        $("#login-drop-1, #login-message, .login-menu").on("click", function (e) {
+            if (sso == "true") {
+                /* Solution 2 - directl link */
+                if ('' == 'false')
+                    window.open(dfm.config.ssoLogin + "redirect=https://marketwatch.dfm.ae/", "_self");
+                else {
+                    if (b2cEnabled == "true")
+                        window.location.href = "/util/SignUpSignIn?redirectUrl=";
+                    else
+                        window.open("/util/login", "_self");
+                }
+                e.preventDefault();
+            } else {
+                window.open(dfm.config.ssoPortal, "_blank");
+                e.preventDefault();
+            }
+        });
+
+        $(".logout-usr").on("click", function (e) {
+            if ('' == 'false') {
+                window.location.href = "/Logout.aspx?redirect_url=" + dfm.config.ssoLogout;
+            }
+            else {
+                localStorage.removeItem("onwatch");
+                localStorage.removeItem("columns");
+                localStorage.setItem("theme", "light");
+                localStorage.removeItem("ticker");
+                $.ajax({
+                    url: "/util/logout",
+                    cache: false,
+                    success: function (html) {
+                        //console.log("logout url = " + html);
+                        window.location.href = "/logout";
+                        
+                    }
+                });
+            }
+
+            return;
+
+            $("#login-modal").on("show", function() {
+                $("iframe").attr("src", "/Logout.aspx?redirect_url=" + dfm.config.ssoLogout);
+            });
+
+            var cookies = document.cookie.split(";");
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i];
+                var eqPos = cookie.indexOf("=");
+                var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+            }
+
+            $("#login-modal").on("hide", function() {
+                container.insertAfter("#login-modal");
+            });
+
+            container = $(".container").detach();
+            $("#login-modal").modal({ show: true });
+
+            e.preventDefault();
+        });
+
+        $(window).trigger("resize");
+        $("#indices-graph-container").trigger("resize");
+        $("#highcharts-20").trigger("resize");
+    });
+
+
+    function OpenDisclaimer() {
+        $("#dialog").modal({
+            show: true,
+            backdrop: "static",
+            keyboard: false
+        });
+
+
+
+    }
+
+
+    function setCookie(cName, value, exdays) {
+        var exdate = new Date();
+        exdate.setDate(exdate.getDate() + exdays);
+        var cValue = escape(value) + ((exdays == null) ? "" : "; expires=" + exdate.toUTCString());
+        document.cookie = cName + "=" + cValue + "; domain=dfm.ae; path=/";
+    }
+
+
+    function callback(value) {
+        if (value) {
+            //alert("Confirmed");
+            setCookie("disclaimer", "true", 365);
+        } else {
+            // alert("Rejected");
+            //closeWindows();
+        }
+    }
+
+    function getCookie(cName) {
+        var i, x, y, arRcookies = document.cookie.split(";");
+        for (i = 0; i < arRcookies.length; i++) {
+            x = arRcookies[i].substr(0, arRcookies[i].indexOf("="));
+            y = arRcookies[i].substr(arRcookies[i].indexOf("=") + 1);
+            x = x.replace(/^\s+|\s+$/g, "");
+            if (x == cName) {
+                return unescape(y);
+            }
+        }
+    }
+
+
+    </script>
+
+    <script src="/artifacts/js/require.min.js?v=124" data-main="/builds/main2.6.106.min"></script>
+    <div id="dialog" class="RelatedDownloads modal hide" style="display: none;" role="dialog">
+        <div class="modal-dialog" style="overflow-y: hidden; max-height: 80%; background-color: #f5f5f5;">
+            <div class="modal-header" style="background: rgb(0, 87, 158); color: #fff">
+                <h1 class="modal-title" dir="rtl"><span dir="ltr" style="float: left;">Disclaimer</span><span>إخلاء من المسئولية</span></h1>
+            </div>
+            <div class="modal-body" style="margin: 0 20px; background-color: #fff; padding: 0 25px 0 0;">
+                <div dir="rtl">
+                    <p>يعتبر دخولك لموقع سوق دبي المالي و/أو اطلاعك على إحدى نشرات السوق أو مطبوعاته و/أو استخدامك لإحدى برامج السوق و/أو اشتراكك في إحدى خدماته بمثابة إقرار بفهمك لمحتوى هذا الإقرار بالإخلاء من المسئولية وقبولك بالبنود المذكورة أدناه:</p>
+                    <ol style="list-style-type: decimal;">
+                        <li>
+                            يرجى الملاحظة أن هذه نسخة تجريبية من شاشة الاسعار الفورية لسوق دبي المالي ("شاشة الاسعار ")والموقع الجديد لسوق دبي المالي ("الموقع الإلكتروني") وهي لا تزال قيد الاختبار النهائي قبل إطلاقها رسميا. بمجرد الضغط على الرابط لشاشة الاسعار و/أو الموقع الإلكتروني على جهازك الشخصي ، سوف تعتبر أنك قد قبلت جميع الشروط أدناه،جميع الشروط والاحكام وسياسة إخلاء المسؤولية المتوفرة على موقع سوق دبي المالي www.dfm.ae وتكون مستخدما مسجلا خاصاً.
+                            يتم توفير شاشة الاسعار و/أو الموقع الإلكتروني والتطبيقات البرمجيات ، وجميع المحتويات " كما هي" و على أساس "ما هو متوفر من بيانات. لا يعطي سوق دبي المالي أي ضمانات ، سواء كانت صريحة أو ضمنية ، عن ملائمة أو استخدام شاشة الاسعار/و/أو الموقع الإلكتروني/التطبيقات أو أي من محتوياتها .لن يكون سوق دبي المالي مسؤولا عن أي خسارة ، سواء كانت هذه الخسارة هي مباشرة أو غير مباشرة أو خاصة أو تبعية ، من قبل أي طرف كان نتيجة لاستخدام هذه التطبيقات، البرمجيات، الاسعار والاشعارات أو المحتوى. إن الوصول إلى أي محتويات من شاشة الاسعار /و/أو الموقع الإلكتروني/التطبيقات ، البيانات ، البرمجيات أو اي وظيفة معينة من شاشة الاسعار /و/أو الموقع الإلكتروني/التطبيقات هو على مسؤوليتك الشخصية و سوف يكون المستخدم هو المسؤول الوحيد عن أي ضرر قد يحصل إلى أي جهاز، نظام الحاسب الالي أو فقدان البيانات التي قد تنتج عن مثل هذه الأنشطة . إذا واجهت أي مشاكل فنية ، ثغرات برمجية ، أوعدم وجود وظيفة معينة أو غيرها من المشاكل على التطبيقات ، يرجى إرسالها إلينا حتى نتمكن من تصحيح هذه الملاحظات حسب الامكانية.
+                            <br> <br>
+                        </li>
+                        <li>يعمل سوق دبي المالي على توفير وعرض البيانات والمعلومات الصحيحة متزامنة في وقتها قدر الإمكان، على أن حداثة تلك البيانات ودقتها غير مؤكدة بل هي للعلم والاسترشاد فقط. ويخلي السوق مسئوليته عن أي نقص أو خطأ أو تأخر في نشر البيانات والمعلومات، وبالتالي عن أية مطالبات و/أو خسائر من أي نوع تنشأ سواء بشكل مباشر أو غير مباشر عن استخدام تلك البيانات والمعلومات المتاحة في موقع السوق أو في إحدى نشراته أو مطبوعاته أو استخدام أحد البرامج أو الأنظمة الإلكترونية التي يوفرها السوق.&nbsp;<br> <br> </li>
+                        <li>القوانين والأنظمة واللوائح المنشورة في موقع سوق دبي المالي هي للعلم فقط وحداثتها غير مؤكدة، واللغة العربية هي اللغة الرسمية والمعتمدة في إصدار تلك القوانين والأنظمة واللوائح، وبالتالي فإن قيام سوق دبي المالي بترجمتها وعرضها باللغة الإنجليزية هو لسهولة توفير المعلومات الرئيسية لمن ليست اللغة العربية لغتهم الأصلية، ولا يتحمل سوق دبي المالي أو هيئة الإمارات للأوراق المالية والسلع مسئولية عما ينتج عن فهم خاطئ لترجمة تلك القوانين والأنظمة واللوائح، أو استخدام النصوص الإلكترونية المعروضة على الموقع باللغتين العربية والإنجليزية، ويمكن للجهات المهتمة مراجعة مصادر تلك القوانين والأنظمة واللوائح للحصول على الأصول المعتمدة منها، وتعديلاتها.&nbsp;<br> <br> </li>
+                        <li>لن يكون سوق دبي المالي مسؤولاً عن صحة أية معلومات أو تقارير أو أخبار أو تحليلات ينشرها السوق على موقعه الإلكتروني أو في إحدى نشراته أو مطبوعاته سواء أصدرتها جهات أخرى أو أصدرها سوق دبي المالي بطلب من تلك الجهات. ولا يعتبر نشر سوق دبي المالي لها بمثابة إقرار منه بصحة محتوياتها أو بقانونية التصرفات التي يجريها أي شخص بناء عليها، كما وأنها لا تعبر بأي حال من الأحوال عن وجهة نظر السوق، ويرجى مراجعة المصدر في حالة وجود أي ملاحظات على صلة بالموضوع.&nbsp;<br> <br> </li>
+                        <li>يحتفظ سوق دبي المالي بحقوق الملكية الفكرية للموقع الخاص به والنشرات والمطبوعات الصادرة منه وما تتضمنه من معلومات، وبيانات، وشعارات، وصور، ومؤثرات صوتية ومواد وبرامج مستخدمة في الموقع، وبالتالي يحظر تعديلها أو نسخها أو عرضها أو توزيعها أو إعادة استخدامها أو نقلها أو اشتقاق مواد أخرى منها أو بيعها أو الارتباط بموقع السوق الإلكتروني دون إذن خطي مسبق من إدارة السوق. ويتعرض للمسائلة القانونية كل من يخالف ذلك.&nbsp;<br> <br> </li>
+                        <li>يحظر استخدام موقع سوق دبي المالي أو البرامج التي يوفرها السوق أو أي من خدمات السوق بطريقة قد تسبب تلف، أو عطل، أو إجهاد، أو تخريب موقع السوق أو أي من برامج السوق، أو أنظمته الإلكترونية أو خدماته أو الشبكات التي ترتبط بها، ويجب الامتناع عن أي محاولة للدخول بدون تصريح لأي من برامج السوق، أو أنظمته الالكترونية أو خدماته أو الشبكات التي ترتبط بها، أو حساب مستخدم أخر من خلال القرصنة أو سرقة الرمز السري أو غيرها من الأساليب. كما يجب الامتناع عن القيام بأي محاولة للحصول على مواد أو معلومات لا يتيحها السوق من خلال موقعه، أو برامجه أو أنظمته الالكترونية أو خدماته، وللحصول على مثل هذه المعلومات يرجى مراجعة سوق دبي المالي، الذي سيقوم بتوفيرها لك في حالة عدم مخالفة ذلك لمتطلبات سرية المعلومات والإفصاح.&nbsp;<br> <br> </li>
+                        <li>لسوق دبي المالي الحق المطلق في إلغاء اشتراكك أو استخدامك لأي من برامج السوق، أو أنظمته الإلكترونية أو خدماته أو أي جزء منها دون سابق إنذار، وللسوق الحق أيضًا في إلغاء أو إيقاف أي اشتراك أو استخدام لبرامج السوق، أو أنظمته الالكترونية أو خدماته أو أي جزء منها لفترة محددة بغرض التحديث أو التغيير.&nbsp;<br> <br> </li>
+                        <li>إن ربط موقع السوق الإلكتروني بمواقع أخرى هو لتسهيل الوصول إليها، ولن يكون السوق مسئولاً عما يترتب على الدخول لتلك المواقع والبيانات المذكورة فيها.</li>
+                    </ol>
+                </div>
+                <div dir="ltr">
+                    <p>
+                        Access to DFM Web Site and/or receive of any of DFM
+                        Publications or Bulletins and/or subscription to any of DFM services or
+                        programs is a confirmation that you have understood and accepted this
+                        disclaimer and its terms mentioned below:
+                    </p>
+                    <ol dir="ltr" style="list-style-type: decimal;">
+                        <li>
+                            <div style="text-align: justify;">
+                                Please note that this is a beta version of the DFM enhanced market watch (the "Market Watch") and DFM new website (the "WebSite") which is still
+
+                                undergoing final testing before its official release. By accessing the Market Watch link marketwatch.dfm.ae or/and DFM new website www4.dfm.ae on your
+
+                                device, you will be deemed to have read and agreed the below terms, the Terms &amp; Conditions and Disclaimer available at www.dfm.ae, and are registered online
+
+                                as a private user.
+                                The Market Watch or/and the WebSite, its software and all content found on it are provided on an "as is" and "as available" basis. DFM does not give any
+
+                                warranties, whether explicit or implied, as to the suitability or usability of the Market Watch or/and WebSite or any of its content. DFM will not be liable
+
+                                for any loss, whether such loss is direct, indirect, special or consequential, suffered by any party as a result of your/their use of the Market Watch,
+
+                                WebSite its software or content. Any access to the Market Watch contents,or/and WebSite contents materials or modules is done at the user's own risk and the
+
+                                user will be solely responsible for any damage to any device, computer system or loss of data that results from such activities. Should you encounter any
+
+                                bugs, glitches, lack of functionality or other problems on the Market Watch, please let us know immediately so we can rectify these accordingly.
+                                <br> <br>
+                            </div>
+                        </li>
+                        <li>
+                            <div style="text-align: justify;">
+                                Dubai
+                                Financial Market endeavors to offer and display correct real and time
+                                data and information; however they are not guaranteed to be timely or
+                                accurate and are for informational purposes only. DFM shall not assume
+                                any responsibility for any diminution, error and/or delay of data and
+                                information display. Consequently, DFM will not be liable for any claim
+                                or loss of any nature that may occur directly or indirectly, from the
+                                use of the data and information available in DFM site or in any of DFM
+                                publications or bulletins or the use of a DFM software or program.<br>
+                                &nbsp;
+                            </div>
+                        </li>
+                        <li>
+                            <div style="text-align: justify;">
+                                Laws,
+                                rules and regulations displayed in DFM site are for informational
+                                purposes only and may not be up to date. The Arabic text of the rules
+                                and regulations is the official text. The English translation is made to
+                                the best knowledge of the DFM and is meant to provide basic information
+                                to those whose mother tongue is not Arabic. Consequently ESCA &amp; DFM
+                                will not be held responsible for any misinterpretation arising from the
+                                English translation or from using the electronic versions of the text
+                                (Arabic &amp; English). Interested parties may obtain the up-to-date
+                                original texts and its amendments from the original sources of those
+                                laws, rules and regulations.<br>
+                                &nbsp;
+                            </div>
+                        </li>
+                        <li>
+                            <div style="text-align: justify;">
+                                DFM does
+                                not assume any responsibility for the accuracy of the information,
+                                reports, news or financial researches issued directly by other parties
+                                or issued by DFM upon their request and displayed in DFM site or issued
+                                in any of DFM publications and bulletins. The display or publishing or
+                                endorsement by the DFM of such information shall not imply a declaration
+                                that the contents thereof are true or that actions carried out by any
+                                party based thereon are legal and it does not reflect DFM view. For any
+                                remarks, please contact the original source.<br> <br>
+                            </div>
+                        </li>
+                        <li>
+                            <div style="text-align: justify;">
+                                DFM
+                                site, publications, bulletins are owned by and copyrighted works of
+                                Dubai Financial Market. All contents included in the site, publications
+                                and bulletins such as text, data, graphics, logos, button icons, images,
+                                audio clips, programs and software, are the property of Dubai Financial
+                                Market and/or its suppliers. Modification, copy, display,
+                                redistribution, reproduction, transmission, creation of derivative works
+                                there from, or sale any of them or linking to the DFM site without
+                                advance written permission of DFM is strictly prohibited and may result
+                                in criminal penalties.<br> <br>
+                            </div>
+                        </li>
+                        <li>
+                            <div style="text-align: justify;">
+                                DFM
+                                site, software, programs and services shall not be used in any manner
+                                that could damage, disable, overburden or impair DFM site, or any of DFM
+                                software, programs and services, or the networks connected to them. You
+                                shall not attempt to gain unauthorized access to any DFM software,
+                                programs, services, or other accounts, computer systems or networks
+                                connected to them, through hacking, password larceny or any other means.
+                                You shall not obtain or attempt to obtain any materials or information
+                                through any means not intentionally made available through the DFM site,
+                                software, programs and services. If you require unavailable
+                                information, contact the DFM and it will provide you with the
+                                information if it does not contradict its Privacy and Disclosure
+                                requirements.<br>
+                                &nbsp;
+                            </div>
+                        </li>
+                        <li>
+                            <div style="text-align: justify;">
+                                DFM
+                                reserves the right, at its sole discretion, to terminate your access to
+                                any or all DFM software, programs and the related services or any
+                                portion thereof at any time, without advanced notice. DFM may also
+                                terminate or suspend your access to DFM software, programs and the
+                                related services for an extended period of time for updating purposes or
+                                otherwise.<br>
+                                &nbsp;
+                            </div>
+                        </li>
+                        <li>
+                            <div style="text-align: justify;">
+                                DFM
+                                provides links to other websites only as a convenience. Those linked
+                                sites are not under the control of DFM and DFM is not responsible for
+                                their contents and whatever may occur as a result of accessing them.
+                            </div>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Agree to Continue - موافق للمتابعة</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <style>
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #progress-container {
+            width: 80%;
+            height: 30px;
+            background: #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        #progress-bar {
+            width: 0;
+            height: 100%;
+            background: #4caf50;
+            transition: width 0.4s ease;
+        }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const loader = document.getElementById('StartLoader');
+            const progressBar = document.getElementById('loader-progress-bar');
+            const content = document.getElementById('dfm-marketwatch');
+
+            // Select only external scripts and styles
+            let resources = document.querySelectorAll('link[rel="stylesheet"], script[src]');
+            let totalResources = resources.length;
+            let loadedResources = 0;
+
+            function updateProgressBar() {
+                loadedResources++;
+                let progress = (loadedResources / totalResources) * 100;
+                progressBar.style.width = progress + '%';
+                //console.log(loadedResources);
+                if (loadedResources >= totalResources) {
+                    loader.style.opacity = '0.8';
+                    content.style.display = 'block';
+                }
+            }
+
+            resources.forEach(resource => {
+                if (resource.tagName.toLowerCase() === 'link') {
+                    resource.addEventListener('load', updateProgressBar);
+                    resource.addEventListener('error', updateProgressBar);
+                } else if (resource.tagName.toLowerCase() === 'script') {
+                    resource.addEventListener('load', updateProgressBar);
+                    resource.addEventListener('error', updateProgressBar);
+                }
+            });
+
+            // Fallback to ensure the progress bar completes if some events don't trigger
+            window.addEventListener('load', () => {
+                if (loadedResources < totalResources) {
+                    loadedResources = totalResources;
+                    updateProgressBar();
+                }
+            });
+
+        });
+        //let lastPosition = 0;
+        //let bufferTop = 25;
+        //window.addEventListener('scroll', function () {
+        //    var scrollPosition = window.scrollY;
+        //    var headerHeight = $("#MWHeader").height();
+        //    var indexTop = $('.index-container').offset().top - headerHeight;
+        //    var toppersTop = $('.toppers-container').offset().top - headerHeight;
+        //    var sectorsTop = $('.sectors-parent-container').offset().top - headerHeight;
+        //    var marketTop = $('#market-container').offset().top - headerHeight;
+        //    console.log(`${indexTop}, ${toppersTop}, ${sectorsTop}, ${marketTop}`);
+        //    if (lastPosition < scrollPosition) {
+        //        if (scrollPosition > 0 + bufferTop && scrollPosition < indexTop)
+        //            window.scrollTo({ top: indexTop, behavior: 'smooth' });
+
+        //        if (scrollPosition > indexTop + bufferTop && scrollPosition < toppersTop)
+        //            window.scrollTo({ top: toppersTop, behavior: 'smooth' });
+
+        //        if (scrollPosition > toppersTop + bufferTop && scrollPosition < sectorsTop)
+        //            window.scrollTo({ top: sectorsTop, behavior: 'smooth' });
+
+        //        if (scrollPosition > sectorsTop + bufferTop && scrollPosition < marketTop)
+        //            window.scrollTo({ top: marketTop, behavior: 'smooth' });
+        //    }
+        //    else {
+        //        if (scrollPosition > sectorsTop && scrollPosition < marketTop - bufferTop)
+        //            window.scrollTo({ top: sectorsTop, behavior: 'smooth' });
+        //        if (scrollPosition > toppersTop && scrollPosition < sectorsTop - bufferTop)
+        //            window.scrollTo({ top: toppersTop, behavior: 'smooth' });
+        //        if (scrollPosition > indexTop && scrollPosition < toppersTop - bufferTop)
+        //            window.scrollTo({ top: indexTop, behavior: 'smooth' });
+        //        if (scrollPosition > 0 && scrollPosition < indexTop - bufferTop)
+        //            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        //    }
+        //    lastPosition = scrollPosition;
+        //});
+
+    </script>
+</body>
+
+
+
+</html>

@@ -5,6 +5,7 @@ import { QUEUES, startQueueConsumer, type QueueConsumer } from "./consumer.js";
 import { createHeartbeatWriter } from "./heartbeat.js";
 import { createHealthcheckPinger } from "./healthcheck.js";
 import { registeredHandlers } from "./handlers/index.js";
+import { createIngestionRuntime, registerIngestionHandlers } from "./handlers.js";
 
 /**
  * marsad-worker entrypoint (06 §3): the single resident Node process on the
@@ -34,6 +35,17 @@ async function main(): Promise<void> {
     { current_user: string; db: string }[]
   >`select current_user, current_database() as db`;
   log.info("database connected", { role: rows[0]?.current_user, database: rows[0]?.db });
+
+  // Build the P1 ingestion runtime (marsad-ingestion package) and register the
+  // five ingestion handlers BEFORE the consumers start, so quote_poll/eod_sweep/
+  // filings_poll/cross_check/key_ratios_recompute messages resolve to a handler
+  // the moment they arrive (CONTRACT §9). createIngestionRuntime fails loudly
+  // here if the package or its Storage/transport env is missing — systemd
+  // Restart=always turns that into a visible retry loop rather than silent
+  // per-message failures landing in ops.incidents.
+  const runtime = await createIngestionRuntime({ sql, config });
+  const ingestionHandlers = registerIngestionHandlers(runtime);
+  log.info("ingestion handlers registered", { handlers: ingestionHandlers });
 
   const jobNames = QUEUES.map((q) => `worker:${q}`);
   heartbeat.start(["worker:alive", ...jobNames]);

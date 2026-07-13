@@ -1,0 +1,595 @@
+[     682ms] Unexpected identifier 'captchaResponse'
+[     811ms] [INFO] INF [FC] Loaded script 'https://chat.tadawul.com.sa/scripts/chat/TabSyncer.js?nc=0.02647516029578978'. @ https://chat.tadawul.com.sa/scripts/floatingChat.js?1238859:7
+[     951ms] [INFO] INF [FC/ChatButton] Browser supported. @ https://chat.tadawul.com.sa/scripts/floatingChat.js?1238859:727
+[    1095ms] TypeError: Cannot read properties of null (reading 'style')
+    at showFeedbackButton (https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:11709:47)
+    at https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:11713:1
+[    1099ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:0
+[    1099ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:0
+[    1101ms] [LOG] Hiding no portlet session text.. @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:574
+[    1103ms] [LOG] URL does not contain 'issuer-announcements-details' @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:6691
+[    1103ms] [LOG] URL does not contain 'news-detail-wcm' @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:6711
+[    1142ms] [LOG] [Marquee] Total items in jsonData: 399 @ https://www.saudiexchange.sa/wps/contenthandler/!ut/p/digest!cZ7U0tQHBBbocM4xM43feg/war/tadawul.portal.theme.static.v2/themes/Tadawul/assets/js/marquee.js:141
+[    1143ms] [LOG] [Marquee] Rendered items 1 to 100 (chunk size: 100) @ https://www.saudiexchange.sa/wps/contenthandler/!ut/p/digest!cZ7U0tQHBBbocM4xM43feg/war/tadawul.portal.theme.static.v2/themes/Tadawul/assets/js/marquee.js:162
+[    1143ms] [LOG] Marquee initialized @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:6253
+[    1169ms] [LOG] [Marquee] Rendered items 101 to 200 (chunk size: 100) @ https://www.saudiexchange.sa/wps/contenthandler/!ut/p/digest!cZ7U0tQHBBbocM4xM43feg/war/tadawul.portal.theme.static.v2/themes/Tadawul/assets/js/marquee.js:162
+[    1306ms] Error: Syntax error, unrecognized expression: #
+    at se.error (https://www.saudiexchange.sa/wps/contenthandler/!ut/p/digest!cZ7U0tQHBBbocM4xM43feg/mashup/ra:collection?themeID=ZJ_I0C0HOC0LG7SA0A1FJ1U7L1006&locale=en&mime-type=text%2Fjavascript&lm=1720468242000&entry=wp_client_main__0.0%3Ahead_js&entry=wp_client_ext__0.0%3Ahead_js&entry=wp_client_logging__0.0%3Ahead_js&entry=wp_client_tracing__0.0%3Ahead_js&entry=wp_modules__0.0%3Ahead_js&entry=wp_photon_dom__0.0%3Ahead_js&entry=wp_toolbar_common__0.0%3Ahead_js&entry=wp_dialog_util__0.0%3Ahead_js&entry=wp_dialog_draggable__0.0%3Ahead_js&entry=wp_dialog_main__0.0%3Ahead_js&entry=wp_a11y__0.0%3Ahead_js&entry=wp_state_page__0.0%3Ahead_js&entry=wp_theme_portal_85__0.0%3Ahead_js&entry=wp_theme_utils__0.0%3Ahead_js&entry=wp_toolbar_viewframe_validator__0.0%3Ahead_js&entry=tadawul_jQuery__3.6%3Ahead_js&entry=tadawul_tokenfield__0.12.1%3Ahead_js&entry=tadawul_video__4.12.1%3Ahead_js&entry=tadawul_reskin_highchart__9.2.2%3Ahead_js&entry=tadawul_jQueryUI__1.11.2%3Ahead_js&entry=tadawul_reject__1.1.0%3Ahead_js&entry=tadawul_non_home_css_js__1.10.1%3Ahead_js&entry=tadawul_reskin_js__1.12.1%3Ahead_js&entry=tadawul_datatables__1.0.4%3Ahead_js:3094:13639)
+    at se.tokenize (https://www.saudiexchange.sa/wps/contenthandler/!ut/p/digest!cZ7U0tQHBBbocM4xM43feg/mashup/ra:collection?themeID=ZJ_I0C0HOC0LG7SA0A1FJ1U7L1006&locale=en&mime-type=text%2Fjavascript&lm=1720468242000&entry=wp_client_main__0.0%3Ahead_js&entry=wp_client_ext__0.0%3Ahead_js&entry=wp_client_logging__0.0%3Ahead_js&entry=wp_client_tracing__0.0%3Ahead_js&entry=wp_modules__0.0%3Ahead_js&entry=wp_photon_dom__0.0%3Ahead_js&entry=wp_toolbar_common__0.0%3Ahead_js&entry=wp_dialog_util__0.0%3Ahead_js&entry=wp_dialog_draggable__0.0%3Ahead_js&entry=wp_dialog_main__0.0%3Ahead_js&entry=wp_a11y__0.0%3Ahead_js&entry=wp_state_page__0.0%3Ahead_js&entry=wp_theme_portal_85__0.0%3Ahead_js&entry=wp_theme_utils__0.0%3Ahead_js&entry=wp_toolbar_viewframe_validator__0.0%3Ahead_js&entry=tadawul_jQuery__3.6%3Ahead_js&entry=tadawul_tokenfield__0.12.1%3Ahead_js&entry=tadawul_video__4.12.1%3Ahead_js&entry=tadawul_reskin_highchart__9.2.2%3Ahead_js&entry=tadawul_jQueryUI__1.11.2%3Ahead_js&entry=tadawul_reject__1.1.0%3Ahead_js&entry=tadawul_non_home_css_js__1.10.1%3Ahead_js&entry=tadawul_reskin_js__1.12.1%3Ahead_js&entry=tadawul_datatables__1.0.4%3Ahead_js:3094:21650)
+    at se.select (https://www.saudiexchange.sa/wps/contenthandler/!ut/p/digest!cZ7U0tQHBBbocM4xM43feg/mashup/ra:collection?themeID=ZJ_I0C0HOC0LG7SA0A1FJ1U7L1006&locale=en&mime-type=text%2Fjavascript&lm=1720468242000&entry=wp_client_main__0.0%3Ahead_js&entry=wp_client_ext__0.0%3Ahead_js&entry=wp_client_logging__0.0%3Ahead_js&entry=wp_client_tracing__0.0%3Ahead_js&entry=wp_modules__0.0%3Ahead_js&entry=wp_photon_dom__0.0%3Ahead_js&entry=wp_toolbar_common__0.0%3Ahead_js&entry=wp_dialog_util__0.0%3Ahead_js&entry=wp_dialog_draggable__0.0%3Ahead_js&entry=wp_dialog_main__0.0%3Ahead_js&entry=wp_a11y__0.0%3Ahead_js&entry=wp_state_page__0.0%3Ahead_js&entry=wp_theme_portal_85__0.0%3Ahead_js&entry=wp_theme_utils__0.0%3Ahead_js&entry=wp_toolbar_viewframe_validator__0.0%3Ahead_js&entry=tadawul_jQuery__3.6%3Ahead_js&entry=tadawul_tokenfield__0.12.1%3Ahead_js&entry=tadawul_video__4.12.1%3Ahead_js&entry=tadawul_reskin_highchart__9.2.2%3Ahead_js&entry=tadawul_jQueryUI__1.11.2%3Ahead_js&entry=tadawul_reject__1.1.0%3Ahead_js&entry=tadawul_non_home_css_js__1.10.1%3Ahead_js&entry=tadawul_reskin_js__1.12.1%3Ahead_js&entry=tadawul_datatables__1.0.4%3Ahead_js:3094:22477)
+    at S.se [as find] (https://www.saudiexchange.sa/wps/contenthandler/!ut/p/digest!cZ7U0tQHBBbocM4xM43feg/mashup/ra:collection?themeID=ZJ_I0C0HOC0LG7SA0A1FJ1U7L1006&locale=en&mime-type=text%2Fjavascript&lm=1720468242000&entry=wp_client_main__0.0%3Ahead_js&entry=wp_client_ext__0.0%3Ahead_js&entry=wp_client_logging__0.0%3Ahead_js&entry=wp_client_tracing__0.0%3Ahead_js&entry=wp_modules__0.0%3Ahead_js&entry=wp_photon_dom__0.0%3Ahead_js&entry=wp_toolbar_common__0.0%3Ahead_js&entry=wp_dialog_util__0.0%3Ahead_js&entry=wp_dialog_draggable__0.0%3Ahead_js&entry=wp_dialog_main__0.0%3Ahead_js&entry=wp_a11y__0.0%3Ahead_js&entry=wp_state_page__0.0%3Ahead_js&entry=wp_theme_portal_85__0.0%3Ahead_js&entry=wp_theme_utils__0.0%3Ahead_js&entry=wp_toolbar_viewframe_validator__0.0%3Ahead_js&entry=tadawul_jQuery__3.6%3Ahead_js&entry=tadawul_tokenfield__0.12.1%3Ahead_js&entry=tadawul_video__4.12.1%3Ahead_js&entry=tadawul_reskin_highchart__9.2.2%3Ahead_js&entry=tadawul_jQueryUI__1.11.2%3Ahead_js&entry=tadawul_reject__1.1.0%3Ahead_js&entry=tadawul_non_home_css_js__1.10.1%3Ahead_js&entry=tadawul_reskin_js__1.12.1%3Ahead_js&entry=tadawul_datatables__1.0.4%3Ahead_js:3094:7116)
+    at S.fn.init.find (https://www.saudiexchange.sa/wps/contenthandler/!ut/p/digest!cZ7U0tQHBBbocM4xM43feg/mashup/ra:collection?themeID=ZJ_I0C0HOC0LG7SA0A1FJ1U7L1006&locale=en&mime-type=text%2Fjavascript&lm=1720468242000&entry=wp_client_main__0.0%3Ahead_js&entry=wp_client_ext__0.0%3Ahead_js&entry=wp_client_logging__0.0%3Ahead_js&entry=wp_client_tracing__0.0%3Ahead_js&entry=wp_modules__0.0%3Ahead_js&entry=wp_photon_dom__0.0%3Ahead_js&entry=wp_toolbar_common__0.0%3Ahead_js&entry=wp_dialog_util__0.0%3Ahead_js&entry=wp_dialog_draggable__0.0%3Ahead_js&entry=wp_dialog_main__0.0%3Ahead_js&entry=wp_a11y__0.0%3Ahead_js&entry=wp_state_page__0.0%3Ahead_js&entry=wp_theme_portal_85__0.0%3Ahead_js&entry=wp_theme_utils__0.0%3Ahead_js&entry=wp_toolbar_viewframe_validator__0.0%3Ahead_js&entry=tadawul_jQuery__3.6%3Ahead_js&entry=tadawul_tokenfield__0.12.1%3Ahead_js&entry=tadawul_video__4.12.1%3Ahead_js&entry=tadawul_reskin_highchart__9.2.2%3Ahead_js&entry=tadawul_jQueryUI__1.11.2%3Ahead_js&entry=tadawul_reject__1.1.0%3Ahead_js&entry=tadawul_non_home_css_js__1.10.1%3Ahead_js&entry=tadawul_reskin_js__1.12.1%3Ahead_js&entry=tadawul_datatables__1.0.4%3Ahead_js:3094:25047)
+    at S.fn.init (https://www.saudiexchange.sa/wps/contenthandler/!ut/p/digest!cZ7U0tQHBBbocM4xM43feg/mashup/ra:collection?themeID=ZJ_I0C0HOC0LG7SA0A1FJ1U7L1006&locale=en&mime-type=text%2Fjavascript&lm=1720468242000&entry=wp_client_main__0.0%3Ahead_js&entry=wp_client_ext__0.0%3Ahead_js&entry=wp_client_logging__0.0%3Ahead_js&entry=wp_client_tracing__0.0%3Ahead_js&entry=wp_modules__0.0%3Ahead_js&entry=wp_photon_dom__0.0%3Ahead_js&entry=wp_toolbar_common__0.0%3Ahead_js&entry=wp_dialog_util__0.0%3Ahead_js&entry=wp_dialog_draggable__0.0%3Ahead_js&entry=wp_dialog_main__0.0%3Ahead_js&entry=wp_a11y__0.0%3Ahead_js&entry=wp_state_page__0.0%3Ahead_js&entry=wp_theme_portal_85__0.0%3Ahead_js&entry=wp_theme_utils__0.0%3Ahead_js&entry=wp_toolbar_viewframe_validator__0.0%3Ahead_js&entry=tadawul_jQuery__3.6%3Ahead_js&entry=tadawul_tokenfield__0.12.1%3Ahead_js&entry=tadawul_video__4.12.1%3Ahead_js&entry=tadawul_reskin_highchart__9.2.2%3Ahead_js&entry=tadawul_jQueryUI__1.11.2%3Ahead_js&entry=tadawul_reject__1.1.0%3Ahead_js&entry=tadawul_non_home_css_js__1.10.1%3Ahead_js&entry=tadawul_reskin_js__1.12.1%3Ahead_js&entry=tadawul_datatables__1.0.4%3Ahead_js:3094:25536)
+    at S (https://www.saudiexchange.sa/wps/contenthandler/!ut/p/digest!cZ7U0tQHBBbocM4xM43feg/mashup/ra:collection?themeID=ZJ_I0C0HOC0LG7SA0A1FJ1U7L1006&locale=en&mime-type=text%2Fjavascript&lm=1720468242000&entry=wp_client_main__0.0%3Ahead_js&entry=wp_client_ext__0.0%3Ahead_js&entry=wp_client_logging__0.0%3Ahead_js&entry=wp_client_tracing__0.0%3Ahead_js&entry=wp_modules__0.0%3Ahead_js&entry=wp_photon_dom__0.0%3Ahead_js&entry=wp_toolbar_common__0.0%3Ahead_js&entry=wp_dialog_util__0.0%3Ahead_js&entry=wp_dialog_draggable__0.0%3Ahead_js&entry=wp_dialog_main__0.0%3Ahead_js&entry=wp_a11y__0.0%3Ahead_js&entry=wp_state_page__0.0%3Ahead_js&entry=wp_theme_portal_85__0.0%3Ahead_js&entry=wp_theme_utils__0.0%3Ahead_js&entry=wp_toolbar_viewframe_validator__0.0%3Ahead_js&entry=tadawul_jQuery__3.6%3Ahead_js&entry=tadawul_tokenfield__0.12.1%3Ahead_js&entry=tadawul_video__4.12.1%3Ahead_js&entry=tadawul_reskin_highchart__9.2.2%3Ahead_js&entry=tadawul_jQueryUI__1.11.2%3Ahead_js&entry=tadawul_reject__1.1.0%3Ahead_js&entry=tadawul_non_home_css_js__1.10.1%3Ahead_js&entry=tadawul_reskin_js__1.12.1%3Ahead_js&entry=tadawul_datatables__1.0.4%3Ahead_js:3094:1051)
+    at https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:6277:13
+    at Array.forEach (<anonymous>)
+    at Object.success (https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:6271:32)
+[    1219ms] [LOG] [Marquee] Rendered items 201 to 300 (chunk size: 100) @ https://www.saudiexchange.sa/wps/contenthandler/!ut/p/digest!cZ7U0tQHBBbocM4xM43feg/war/tadawul.portal.theme.static.v2/themes/Tadawul/assets/js/marquee.js:162
+[    1294ms] [INFO] Browser support check passed. @ https://chat.tadawul.com.sa/Scripts/customerChat-helper.js?nc=38a25fd2-8c19-42ca-be4e-e1e035960c06:193
+[    1386ms] [INFO] [ProactiveChat] Initializing. @ https://chat.tadawul.com.sa/Scripts/ProactiveChat/main.a22f002af11a5363b55c.js:0
+[    1497ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1497ms] [LOG] currentValue 51.68 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1498ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1498ms] [LOG] currentValue 26.04 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1498ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1498ms] [LOG] currentValue 14.26 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1498ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1498ms] [LOG] currentValue 92.15 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1498ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1498ms] [LOG] currentValue 18.42 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1498ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1498ms] [LOG] currentValue 32.08 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1498ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1498ms] [LOG] currentValue 4.77 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1498ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1498ms] [LOG] currentValue 17.7 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1498ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1498ms] [LOG] currentValue 23.8 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1498ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1498ms] [LOG] currentValue 57.78 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1498ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1498ms] [LOG] currentValue 17.1 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1498ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1498ms] [LOG] currentValue 41.18 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1498ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1498ms] [LOG] currentValue 50.8 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1498ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1499ms] [LOG] currentValue 218.9 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1499ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1499ms] [LOG] currentValue 68.3 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1499ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1499ms] [LOG] currentValue 26 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1499ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1499ms] [LOG] currentValue 42 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1499ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1499ms] [LOG] currentValue 8.88 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1499ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1499ms] [LOG] currentValue 52.2 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1499ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1499ms] [LOG] currentValue 125.3 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1499ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1499ms] [LOG] currentValue 9.05 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1499ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1499ms] [LOG] currentValue 14 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1499ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1499ms] [LOG] currentValue 36 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1499ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1499ms] [LOG] currentValue 27.41 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1499ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1499ms] [LOG] currentValue 32.1 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1499ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1499ms] [LOG] currentValue 7.26 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1499ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1499ms] [LOG] currentValue 18.56 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1500ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1500ms] [LOG] currentValue 12.7 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1500ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1500ms] [LOG] currentValue 136.3 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1500ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1500ms] [LOG] currentValue 32.68 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1500ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1500ms] [LOG] currentValue 13.41 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1500ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1500ms] [LOG] currentValue 31 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1500ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1500ms] [LOG] currentValue 64 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1500ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1500ms] [LOG] currentValue 14.13 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1500ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1500ms] [LOG] currentValue 23.55 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1500ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1500ms] [LOG] currentValue 5.48 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1500ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1500ms] [LOG] currentValue 16.94 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1500ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1500ms] [LOG] currentValue 5.64 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1500ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1500ms] [LOG] currentValue 10.75 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1500ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1500ms] [LOG] currentValue 6.56 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1500ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1500ms] [LOG] currentValue 14.08 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1500ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1501ms] [LOG] currentValue 2.09 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1501ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1501ms] [LOG] currentValue 1.45 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1501ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1501ms] [LOG] currentValue 23.43 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1501ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1501ms] [LOG] currentValue 24.59 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1501ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1501ms] [LOG] currentValue 30.74 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1501ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1501ms] [LOG] currentValue 45.5 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1501ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1501ms] [LOG] currentValue 18.98 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1501ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1501ms] [LOG] currentValue 14.87 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1501ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1501ms] [LOG] currentValue 26.95 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1501ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1501ms] [LOG] currentValue 7.7 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1501ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1501ms] [LOG] currentValue 4.68 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1501ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1501ms] [LOG] currentValue 23.01 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1501ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1501ms] [LOG] currentValue 32 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1501ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1501ms] [LOG] currentValue 129.3 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1501ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1501ms] [LOG] currentValue 13.34 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1502ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1502ms] [LOG] currentValue 38.64 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1502ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1502ms] [LOG] currentValue 14.5 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1502ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1502ms] [LOG] currentValue 26.1 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1502ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1502ms] [LOG] currentValue 164.8 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1502ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1502ms] [LOG] currentValue 13.01 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1502ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1502ms] [LOG] currentValue 62 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1502ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1502ms] [LOG] currentValue 33.21 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1502ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1502ms] [LOG] currentValue 1.87 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1502ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1502ms] [LOG] currentValue 2.77 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1502ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1502ms] [LOG] currentValue 21.34 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1502ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1502ms] [LOG] currentValue 114.1 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1502ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1502ms] [LOG] currentValue 73 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1502ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1502ms] [LOG] currentValue 24.9 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1502ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1502ms] [LOG] currentValue 17.02 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1502ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1503ms] [LOG] currentValue 6.39 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1503ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1503ms] [LOG] currentValue 2.48 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1503ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1503ms] [LOG] currentValue 5.48 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1503ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1503ms] [LOG] currentValue 2.36 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1503ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1503ms] [LOG] currentValue 109 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1503ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1503ms] [LOG] currentValue 5.89 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1503ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1503ms] [LOG] currentValue 46.2 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1503ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1503ms] [LOG] currentValue 7.19 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1503ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1503ms] [LOG] currentValue 75.5 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1503ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1503ms] [LOG] currentValue 37.3 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1503ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1503ms] [LOG] currentValue 28.78 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1503ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1503ms] [LOG] currentValue 11 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1503ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1503ms] [LOG] currentValue 29.64 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1503ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1503ms] [LOG] currentValue 23 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1503ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1503ms] [LOG] currentValue 31.7 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1504ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1504ms] [LOG] currentValue 175.2 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1504ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1504ms] [LOG] currentValue 52.2 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1504ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1504ms] [LOG] currentValue 23.42 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1504ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1504ms] [LOG] currentValue 26 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1504ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1504ms] [LOG] currentValue 17.16 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1504ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1504ms] [LOG] currentValue 12.01 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1504ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1504ms] [LOG] currentValue 10.9 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1504ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1504ms] [LOG] currentValue 3.18 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1504ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1504ms] [LOG] currentValue 2.28 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1504ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1504ms] [LOG] currentValue 21.05 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1504ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1504ms] [LOG] currentValue 1.64 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1504ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1504ms] [LOG] currentValue 73.8 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1504ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1504ms] [LOG] currentValue 16.5 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1504ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1504ms] [LOG] currentValue 14.99 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1505ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1505ms] [LOG] currentValue 128.8 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1505ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1505ms] [LOG] currentValue 47.68 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1505ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1505ms] [LOG] currentValue 13.9 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1505ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1505ms] [LOG] currentValue 15 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1505ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1505ms] [LOG] currentValue 99.1 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1505ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1505ms] [LOG] currentValue 38.68 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1505ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1505ms] [LOG] currentValue 1.62 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1505ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1505ms] [LOG] currentValue 7.1 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1505ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1505ms] [LOG] currentValue 12.72 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1505ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1505ms] [LOG] currentValue 7.33 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1505ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1505ms] [LOG] currentValue 24.33 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1505ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1506ms] [LOG] currentValue 16.9 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1506ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1506ms] [LOG] currentValue 88.7 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1506ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1506ms] [LOG] currentValue 21.88 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1506ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1506ms] [LOG] currentValue 69.2 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1506ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1506ms] [LOG] currentValue 68.5 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1506ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1506ms] [LOG] currentValue 23.01 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1506ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1506ms] [LOG] currentValue 43.74 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1506ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1506ms] [LOG] currentValue 5.9 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1506ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1506ms] [LOG] currentValue 17.26 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1506ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1506ms] [LOG] currentValue 42.24 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1506ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1506ms] [LOG] currentValue 7.11 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1506ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1506ms] [LOG] currentValue 13.43 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1506ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1506ms] [LOG] currentValue 44.48 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1506ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1506ms] [LOG] currentValue 114.7 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1507ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1507ms] [LOG] currentValue 13.24 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1507ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1507ms] [LOG] currentValue 5.35 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1507ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1507ms] [LOG] currentValue 13.82 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1507ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1507ms] [LOG] currentValue 12.31 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1507ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1507ms] [LOG] currentValue 37.9 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1507ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1507ms] [LOG] currentValue 5.1 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1507ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1507ms] [LOG] currentValue 61 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1507ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1507ms] [LOG] currentValue 42.32 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1507ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1507ms] [LOG] currentValue 92 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1507ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1507ms] [LOG] currentValue 27.45 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1507ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1507ms] [LOG] currentValue 23.22 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1507ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1507ms] [LOG] currentValue 219 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1507ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1507ms] [LOG] currentValue 46.18 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1507ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1507ms] [LOG] currentValue 61.6 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1507ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1507ms] [LOG] currentValue 58.06 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1508ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1508ms] [LOG] currentValue 53.1 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1508ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1508ms] [LOG] currentValue 28.9 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1508ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1508ms] [LOG] currentValue 46.6 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1508ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1508ms] [LOG] currentValue 3.45 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1508ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1508ms] [LOG] currentValue 26.4 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1508ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1508ms] [LOG] currentValue 6.96 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1508ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1508ms] [LOG] currentValue 8.58 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1508ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1508ms] [LOG] currentValue 33 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1508ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1508ms] [LOG] currentValue 15.54 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1508ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1508ms] [LOG] currentValue 12.68 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1508ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1508ms] [LOG] currentValue 7.8 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1508ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1508ms] [LOG] currentValue 68.16 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1508ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1508ms] [LOG] currentValue 15.5 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1508ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1508ms] [LOG] currentValue 41.74 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1508ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1508ms] [LOG] currentValue 8.55 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1509ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1509ms] [LOG] currentValue 128.4 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1509ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1509ms] [LOG] currentValue 11.15 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1509ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1509ms] [LOG] currentValue 8.06 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1509ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1509ms] [LOG] currentValue 62.65 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1509ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1509ms] [LOG] currentValue 109 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1509ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1509ms] [LOG] currentValue 111.9 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1509ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1509ms] [LOG] currentValue 27.42 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1509ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1509ms] [LOG] currentValue 32.66 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1509ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1509ms] [LOG] currentValue 215.1 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1509ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1509ms] [LOG] currentValue 29 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1509ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1509ms] [LOG] currentValue 36.2 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1509ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1509ms] [LOG] currentValue 120 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1509ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1509ms] [LOG] currentValue 16.05 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1509ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1509ms] [LOG] currentValue 5.18 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1510ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1510ms] [LOG] currentValue 30 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1510ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1510ms] [LOG] currentValue 147 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1510ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1510ms] [LOG] currentValue 62.88 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1510ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1510ms] [LOG] currentValue 20.98 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1510ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1510ms] [LOG] currentValue 11.81 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1510ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1510ms] [LOG] currentValue 13.26 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1510ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1510ms] [LOG] currentValue 19.49 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1510ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1510ms] [LOG] currentValue 31.9 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1510ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1510ms] [LOG] currentValue 21.6 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1510ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1510ms] [LOG] currentValue 65.1 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1510ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1510ms] [LOG] currentValue 24.72 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1510ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1510ms] [LOG] currentValue 23.95 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1510ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1510ms] [LOG] currentValue 38.3 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1510ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1510ms] [LOG] currentValue 128 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1510ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1511ms] [LOG] currentValue 8.41 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1511ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1511ms] [LOG] currentValue 15.3 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1511ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1511ms] [LOG] currentValue 17.5 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1511ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1511ms] [LOG] currentValue 9.68 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1511ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1511ms] [LOG] currentValue 7.36 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1511ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1511ms] [LOG] currentValue 31.04 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1511ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1511ms] [LOG] currentValue 21.81 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1511ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1511ms] [LOG] currentValue 1.87 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1511ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1511ms] [LOG] currentValue 12.03 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1511ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1511ms] [LOG] currentValue 136.8 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1511ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1511ms] [LOG] currentValue 12.36 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1511ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1511ms] [LOG] currentValue 10.14 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1511ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1511ms] [LOG] currentValue 16.04 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1511ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1511ms] [LOG] currentValue 13.2 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1511ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1511ms] [LOG] currentValue 9.2 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1511ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1512ms] [LOG] currentValue 10.73 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1512ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1512ms] [LOG] currentValue 12.45 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1512ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1512ms] [LOG] currentValue 11.3 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1512ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1512ms] [LOG] currentValue 15 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1512ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1512ms] [LOG] currentValue 7.65 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1512ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1512ms] [LOG] currentValue 8.96 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1512ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1512ms] [LOG] currentValue 7.68 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1512ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1512ms] [LOG] currentValue 11.56 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1512ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1512ms] [LOG] currentValue 3.67 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1512ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1512ms] [LOG] currentValue 27.1 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1512ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1512ms] [LOG] currentValue 160.4 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1512ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1512ms] [LOG] currentValue 51.75 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1512ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1512ms] [LOG] currentValue 18.7 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1512ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1512ms] [LOG] currentValue 30.84 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1512ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1512ms] [LOG] currentValue 3.51 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1512ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1513ms] [LOG] currentValue 15.37 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1513ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1513ms] [LOG] currentValue 13.37 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1513ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1513ms] [LOG] currentValue 8 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1513ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1513ms] [LOG] currentValue 8.4 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1513ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1513ms] [LOG] currentValue 135.2 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1513ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1513ms] [LOG] currentValue 234.7 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1513ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1513ms] [LOG] currentValue 3.2 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1513ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1513ms] [LOG] currentValue 205.1 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1513ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1513ms] [LOG] currentValue 656.5 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1513ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1513ms] [LOG] currentValue 6.21 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1513ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1513ms] [LOG] currentValue 10.09 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1513ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1513ms] [LOG] currentValue 20.5 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1513ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1513ms] [LOG] currentValue 43.2 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1513ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1513ms] [LOG] currentValue 61.9 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1513ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1513ms] [LOG] currentValue 10.1 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1513ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1514ms] [LOG] currentValue 88.5 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1514ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1514ms] [LOG] currentValue 70.05 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1514ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1514ms] [LOG] currentValue 109 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1514ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1514ms] [LOG] currentValue 188.4 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1514ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1514ms] [LOG] currentValue 37.42 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1514ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1514ms] [LOG] currentValue 14.84 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1514ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1514ms] [LOG] currentValue 18 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1514ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1514ms] [LOG] currentValue 4.7 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1514ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1514ms] [LOG] currentValue 10.92 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1515ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1515ms] [LOG] currentValue 4.75 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1515ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1515ms] [LOG] currentValue 10.32 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1515ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1515ms] [LOG] currentValue 9.51 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1515ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1515ms] [LOG] currentValue 3.61 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1515ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1515ms] [LOG] currentValue 4.3 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1515ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1515ms] [LOG] currentValue 4.72 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1515ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1515ms] [LOG] currentValue 6.8 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1515ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1515ms] [LOG] currentValue 4.97 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1515ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1515ms] [LOG] currentValue 7.7 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1515ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1515ms] [LOG] currentValue 10.08 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1515ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1515ms] [LOG] currentValue 8.14 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1515ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1515ms] [LOG] currentValue 4.32 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1515ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1515ms] [LOG] currentValue 3.34 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1515ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1515ms] [LOG] currentValue 10 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1515ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1515ms] [LOG] currentValue 5.5 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1516ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1516ms] [LOG] currentValue 7.9 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1516ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1516ms] [LOG] currentValue 6.79 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1516ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1516ms] [LOG] currentValue 15.3 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1516ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1516ms] [LOG] currentValue 18.84 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1516ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1516ms] [LOG] currentValue 86.95 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1516ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1516ms] [LOG] currentValue 19.02 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1516ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1516ms] [LOG] currentValue 9.96 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1516ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1516ms] [LOG] currentValue 25.3 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1516ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1516ms] [LOG] currentValue 15.88 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1516ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1516ms] [LOG] currentValue 18.58 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1516ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1516ms] [LOG] currentValue 12.03 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1516ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1516ms] [LOG] currentValue 14.53 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1516ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1516ms] [LOG] currentValue 16.85 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1516ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1516ms] [LOG] currentValue 11.57 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1517ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1517ms] [LOG] currentValue 27.22 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1517ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1517ms] [LOG] currentValue 3 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1517ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1517ms] [LOG] currentValue 17.54 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1517ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1517ms] [LOG] currentValue 6.99 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1517ms] [LOG] slider :[object Object] @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10912
+[    1517ms] [LOG] currentValue 53.4 @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:10917
+[    1533ms] [INFO] INF [FC/ChatClient] Loading internal form. @ https://chat.tadawul.com.sa/scripts/floatingChat.js?1238859:577
+[    1534ms] [INFO] INF [FC/ChatClient] Loading chat frame started: https://chat.tadawul.com.sa/Home/PreChat?displaySettingId=1&userLanguage=&targetSkillAddress=tadawul_chat_en&referrer=https%3A%2F%2Fwww.saudiexchange.sa&clearChatId= @ https://chat.tadawul.com.sa/scripts/floatingChat.js?1238859:560
+[    1536ms] [LOG] [Marquee] Rendered items 301 to 399 (chunk size: 99) @ https://www.saudiexchange.sa/wps/contenthandler/!ut/p/digest!cZ7U0tQHBBbocM4xM43feg/war/tadawul.portal.theme.static.v2/themes/Tadawul/assets/js/marquee.js:162
+[    1561ms] [LOG] [Marquee] All items rendered. Track length: 138737px @ https://www.saudiexchange.sa/wps/contenthandler/!ut/p/digest!cZ7U0tQHBBbocM4xM43feg/war/tadawul.portal.theme.static.v2/themes/Tadawul/assets/js/marquee.js:148
+[    1561ms] [LOG] Marquee started @ https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch:6254
+[    1813ms] [LOG] Module is loaded: ./pre-chat/pre-chat-app.module#PreChatAppModule. @ https://chat.tadawul.com.sa/Scripts/PreChat/main.b367e87f4a7c80acca4c.js:0
+[    1886ms] [INFO] Browser support check passed. @ https://chat.tadawul.com.sa/bundles/prechat?nc=38a25fd2-8c19-42ca-be4e-e1e035960c06:0
+[    1889ms] [INFO] [PreChatComponent] Initializing. @ https://chat.tadawul.com.sa/Scripts/PreChat/2.f2bd6016cca7eacc2a33.js:0
+[    1889ms] [LOG] no chatId in session data! @ https://chat.tadawul.com.sa/bundles/prechat?nc=38a25fd2-8c19-42ca-be4e-e1e035960c06:0
+[    1913ms] [INFO] INF [FC/ChatClient] Loading chat frame finished: https://chat.tadawul.com.sa/Home/PreChat?displaySettingId=1&userLanguage=&targetSkillAddress=tadawul_chat_en&referrer=https%3A%2F%2Fwww.saudiexchange.sa&clearChatId= @ https://chat.tadawul.com.sa/scripts/floatingChat.js?1238859:546
+[    1913ms] [INFO] [PreChatComponent] Loading form {type: REACTIVE, tag: tadawulChat} @ https://chat.tadawul.com.sa/Scripts/PreChat/2.f2bd6016cca7eacc2a33.js:0
+[    1922ms] [LOG] Page enter @ https://www.saudiexchange.sa/wps/contenthandler/!ut/p/digest!cZ7U0tQHBBbocM4xM43feg/mashup/ra:collection?themeID=ZJ_I0C0HOC0LG7SA0A1FJ1U7L1006&locale=en&mime-type=text%2Fjavascript&lm=1772946184000&entry=wp_dialog_main__0.0%3Aconfig_js&entry=wp_toolbar_utils__0.0%3Aconfig_js&entry=wp_state_page_modes__0.0%3Aconfig_js&entry=wp_simple_contextmenu_ext__0.0%3Aconfig_js&entry=wp_simple_contextmenu_js__0.0%3Aconfig_js&entry=wp_toolbar_actionbar__0.0%3Aconfig_js&entry=wp_toolbar_menuactions__0.0%3Aconfig_js&entry=wp_toolbar_sitepreview_menuactions__0.0%3Aconfig_js&entry=wp_toolbar_projectmenu__0.0%3Aconfig_js&entry=tadawul_js_loadatbottom__1.0%3Aconfig_js&entry=wp_toolbar_contextmenu__0.0%3Aconfig_js&entry=wp_toolbar_sitepreview__0.0%3Aconfig_js:3241
+[    1923ms] [LOG] https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch @ https://www.saudiexchange.sa/wps/contenthandler/!ut/p/digest!cZ7U0tQHBBbocM4xM43feg/mashup/ra:collection?themeID=ZJ_I0C0HOC0LG7SA0A1FJ1U7L1006&locale=en&mime-type=text%2Fjavascript&lm=1772946184000&entry=wp_dialog_main__0.0%3Aconfig_js&entry=wp_toolbar_utils__0.0%3Aconfig_js&entry=wp_state_page_modes__0.0%3Aconfig_js&entry=wp_simple_contextmenu_ext__0.0%3Aconfig_js&entry=wp_simple_contextmenu_js__0.0%3Aconfig_js&entry=wp_toolbar_actionbar__0.0%3Aconfig_js&entry=wp_toolbar_menuactions__0.0%3Aconfig_js&entry=wp_toolbar_sitepreview_menuactions__0.0%3Aconfig_js&entry=wp_toolbar_projectmenu__0.0%3Aconfig_js&entry=tadawul_js_loadatbottom__1.0%3Aconfig_js&entry=wp_toolbar_contextmenu__0.0%3Aconfig_js&entry=wp_toolbar_sitepreview__0.0%3Aconfig_js:3496
+[    1958ms] [INFO] [FormComponent] Initializing. @ https://chat.tadawul.com.sa/Scripts/PreChat/2.f2bd6016cca7eacc2a33.js:0
+[    1958ms] [LOG] isValid  true control name   @ https://chat.tadawul.com.sa/Scripts/PreChat/2.f2bd6016cca7eacc2a33.js:0
+[    1959ms] [LOG] isValid  true control name   @ https://chat.tadawul.com.sa/Scripts/PreChat/2.f2bd6016cca7eacc2a33.js:0
+[    1960ms] [LOG] isValid  true control name   @ https://chat.tadawul.com.sa/Scripts/PreChat/2.f2bd6016cca7eacc2a33.js:0
+[    1966ms] [LOG] isValid  true control name   @ https://chat.tadawul.com.sa/Scripts/PreChat/2.f2bd6016cca7eacc2a33.js:0
+[    1967ms] [LOG] isValid  false control name  undefined @ https://chat.tadawul.com.sa/Scripts/PreChat/2.f2bd6016cca7eacc2a33.js:0
+[    1967ms] [LOG] isValid  true control name   @ https://chat.tadawul.com.sa/Scripts/PreChat/2.f2bd6016cca7eacc2a33.js:0
+[    1967ms] [LOG] isValid  true control name   @ https://chat.tadawul.com.sa/Scripts/PreChat/2.f2bd6016cca7eacc2a33.js:0
+[    1968ms] [LOG] isValid  true control name   @ https://chat.tadawul.com.sa/Scripts/PreChat/2.f2bd6016cca7eacc2a33.js:0
+[    1969ms] [LOG] isValid  false control name  undefined @ https://chat.tadawul.com.sa/Scripts/PreChat/2.f2bd6016cca7eacc2a33.js:0
+[    2169ms] [INFO] [ProactiveChat] Received %c%s color:magenta uwfStartPeriodicSkillAvailabilityCheck {data: Object, origin: https://www.saudiexchange.sa} @ https://chat.tadawul.com.sa/Scripts/ProactiveChat/main.a22f002af11a5363b55c.js:0
+[    2923ms] [LOG] Nothing selected @ https://www.saudiexchange.sa/wps/contenthandler/!ut/p/digest!cZ7U0tQHBBbocM4xM43feg/mashup/ra:collection?themeID=ZJ_I0C0HOC0LG7SA0A1FJ1U7L1006&locale=en&mime-type=text%2Fjavascript&lm=1772946184000&entry=wp_dialog_main__0.0%3Aconfig_js&entry=wp_toolbar_utils__0.0%3Aconfig_js&entry=wp_state_page_modes__0.0%3Aconfig_js&entry=wp_simple_contextmenu_ext__0.0%3Aconfig_js&entry=wp_simple_contextmenu_js__0.0%3Aconfig_js&entry=wp_toolbar_actionbar__0.0%3Aconfig_js&entry=wp_toolbar_menuactions__0.0%3Aconfig_js&entry=wp_toolbar_sitepreview_menuactions__0.0%3Aconfig_js&entry=wp_toolbar_projectmenu__0.0%3Aconfig_js&entry=tadawul_js_loadatbottom__1.0%3Aconfig_js&entry=wp_toolbar_contextmenu__0.0%3Aconfig_js&entry=wp_toolbar_sitepreview__0.0%3Aconfig_js:3461
+[   16924ms] [LOG] A2 @ https://www.saudiexchange.sa/wps/contenthandler/!ut/p/digest!cZ7U0tQHBBbocM4xM43feg/mashup/ra:collection?themeID=ZJ_I0C0HOC0LG7SA0A1FJ1U7L1006&locale=en&mime-type=text%2Fjavascript&lm=1772946184000&entry=wp_dialog_main__0.0%3Aconfig_js&entry=wp_toolbar_utils__0.0%3Aconfig_js&entry=wp_state_page_modes__0.0%3Aconfig_js&entry=wp_simple_contextmenu_ext__0.0%3Aconfig_js&entry=wp_simple_contextmenu_js__0.0%3Aconfig_js&entry=wp_toolbar_actionbar__0.0%3Aconfig_js&entry=wp_toolbar_menuactions__0.0%3Aconfig_js&entry=wp_toolbar_sitepreview_menuactions__0.0%3Aconfig_js&entry=wp_toolbar_projectmenu__0.0%3Aconfig_js&entry=tadawul_js_loadatbottom__1.0%3Aconfig_js&entry=wp_toolbar_contextmenu__0.0%3Aconfig_js&entry=wp_toolbar_sitepreview__0.0%3Aconfig_js:3518
