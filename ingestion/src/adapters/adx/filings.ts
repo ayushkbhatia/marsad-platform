@@ -41,16 +41,20 @@ export interface AdxFilingFieldMap {
   formCode?: string;
 }
 
+// Real apigateway.adx.ae/adx/tradings/1.1/news shape (verified live, fixture
+// ingestion/fixtures/adx/filings-live.json): rows under response.news[], each carrying
+// exPara (stable per-filing id, e.g. '20260713174448-ALPHADHABI'), titleEn, urlEn (PDF download),
+// categoryNameEn ('Disclosures'), publishedDate ('2026-07-13 00:00:00.0'), entity (issuer symbol).
 const DEFAULT_FILING_MAP: AdxFilingFieldMap = {
-  rowsPath: "data",
-  externalId: "id",
-  title: "title",
-  filedAt: "date",
+  rowsPath: "response.news",
+  externalId: "exPara",
+  title: "titleEn",
+  filedAt: "publishedDate",
   filedAtKind: "iso",
-  detailUrl: "detailUrl",
-  pdfUrl: "attachmentUrl",
-  symbol: "symbol",
-  category: "category",
+  detailUrl: "urlEn",
+  pdfUrl: "urlEn",
+  symbol: "entity",
+  category: "subCategoryNameEn",
 };
 
 function asStr(v: unknown): string | null {
@@ -58,6 +62,9 @@ function asStr(v: unknown): string | null {
   const s = String(v).trim();
   return s === "" ? null : s;
 }
+
+// ADX (Abu Dhabi) local offset — UTC+4, no DST. Used to make naive timestamps deterministic.
+const ADX_UTC_OFFSET_MS = 4 * 60 * 60 * 1000;
 
 function asOfToUtc(v: unknown, kind: AdxFilingFieldMap["filedAtKind"]): string {
   if (v === null || v === undefined) return "";
@@ -70,6 +77,16 @@ function asOfToUtc(v: unknown, kind: AdxFilingFieldMap["filedAtKind"]): string {
   }
   const s = String(v).trim();
   if (s === "") return "";
+  // Naive 'YYYY-MM-DD HH:mm:ss[.f]' (ADX publishedDate) carries no timezone. Date.parse() would
+  // interpret it in the HOST timezone (non-deterministic across machines) — so we parse the fields
+  // explicitly and treat the wall-clock as ADX-local (UTC+4). ISO strings WITH an offset (Z / ±hh:mm)
+  // are unambiguous and handled by Date.parse().
+  const naive = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})(?:\.\d+)?$/.exec(s);
+  if (naive) {
+    const [, y, mo, d, h, mi, se] = naive.map(Number) as unknown as number[];
+    const utcMs = Date.UTC(y!, mo! - 1, d!, h!, mi!, se!) - ADX_UTC_OFFSET_MS;
+    return Number.isFinite(utcMs) ? new Date(utcMs).toISOString() : "";
+  }
   const ms = Date.parse(s);
   return Number.isNaN(ms) ? "" : new Date(ms).toISOString();
 }
@@ -167,14 +184,19 @@ export function parseAdxFilingDetail(snapshot: StoredSnapshot): ParseResult<Norm
 
 async function fetchAdxFilingsList(ctx: FetchContext): Promise<FetchResult[]> {
   const { source, browser, now } = ctx;
-  const discovery = source.endpointConfig.actionDiscovery;
+  const cfg = source.endpointConfig;
+  const discovery = cfg.actionDiscovery;
   if (!discovery) {
     throw new Error(
       `ADX filings_list fetch: source ${source.id} missing endpoint_config.actionDiscovery`,
     );
   }
+  // Bootstrap seats the Akamai cookies; the disclosures feed is the FIXED apigateway urlTemplate
+  // (verified live) fetched in-context with the seeded apikey header. Fall back to the discovered
+  // URL only if no urlTemplate was pinned.
   const boot = await browser.bootstrap(discovery);
-  const resp = await browser.get(boot.resolvedUrl, browserOpts(source.endpointConfig.headers));
+  const targetUrl = cfg.urlTemplate ?? boot.resolvedUrl;
+  const resp = await browser.get(targetUrl, browserOpts(cfg.headers));
   const filingFieldMap =
     (source.endpointConfig as unknown as { filingFieldMap?: AdxFilingFieldMap }).filingFieldMap ??
     DEFAULT_FILING_MAP;

@@ -1,0 +1,484 @@
+﻿{"root" :
+[
+{
+"id" : "8c8a918b-f0d8-410e-b774-e8bf68e20009",
+"publication_date" : "Jul 13, 2026 17:17:28",
+"headline" : " Disclosure of material information ",
+"issuer_symbol" : "IFA",
+"issuer" : "IFA - International Financial Advisors Holding Co. K.P.S.C",
+"issuer_ar" : "IFA - شركة الإستشارات المـالية الدولية القابضة ش.م.ك.ع",
+"announcement_type" : "Disclosure",
+"report_interval" : null,
+"integrated_period" : null,
+"integrated_language" : null,
+"integrated_report_type" : null,
+"dividends_payment_date" : null,
+"resources" : 
+[{
+"description" : "IFA NOT E 13 07 2026.Pdf",
+"c_date" : "Jul 13, 2026 17:17:19",
+"r_path" : "/2026/Jul/13/8c8a918b-f0d8-410e-b774-e8bf68e20009/IFA NOT E 13 07 2026.Pdf.pdf",
+"id" : "bd70c328-0db6-439c-b36d-664a7301a424",
+"category" : "cap",
+"language" : "en",
+"type" : "news"
+}]
+},
+{
+"id" : "a1994020-d039-40e2-9f8d-8a51a482c3fb",
+"publication_date" : "Jul 13, 2026 15:41:43",
+"headline" : "BOD meeting",
+"issuer_symbol" : "AJMANBANK",
+"issuer" : "AJMANBANK - Ajman Bank  PJSC",
+"issuer_ar" : "AJMANBANK - مصرف عجمان ش.م.ع",
+"announcement_type" : "Disclosure",
+"report_interval" : null,
+"integrated_period" : null,
+"integrated_language" : null,
+"integrated_report_type" : null,
+"dividends_payment_date" : null,
+"resources" : 
+[{
+"description" : "AJMANBANK BOD 13 07 2026.Pdf",
+"c_date" : "Jul 13, 2026 15:41:32",
+"r_path" : "/2026/Jul/13/a1994020-d039-40e2-9f8d-8a51a482c3fb/AJMANBANK BOD 13 07 2026.Pdf.pdf",
+"id" : "c36bf7e5-6317-454d-930c-216b7c572a74",
+"category" : "cap",
+"language" : "en",
+"type" : "news"
+}]
+},
+{
+"id" : "41f27547-a789-4551-af14-0afd8a085eaf",
+"publication_date" : "Jul 13, 2026 09:19:24",
+"headline" : "Press release",
+"issuer_symbol" : "EMPOWER",
+"issuer" : "EMPOWER - Emirates Central Cooling Systems Corporation PJSC",
+"issuer_ar" : "EMPOWER - مؤسسة الإمارات لأنظمة التبريد المركزي ش.م.ع",
+"announcement_type" : "Disclosure",
+"report_interval" : null,
+"integrated_period" : null,
+"integrated_language" : null,
+"integrated_report_type" : null,
+"dividends_payment_date" : null,
+"resources" : 
+[{
+"description" : "EMPOWER PR E 13.07.2026.Pdf",
+"c_date" : "Jul 13, 2026 09:19:17",
+"r_path" : "/2026/Jul/13/41f27547-a789-4551-af14-0afd8a085eaf/EMPOWER PR E 13.07.2026.Pdf.pdf",
+"id" : "38355a27-f2a4-4c5e-bd01-8de8fcd3d6c2",
+"category" : "cap",
+"language" : "en",
+"type" : "news"
+}]
+},
+{
+"id" : "cc114d4f-e457-4b07-9569-dc5d8b06cdb4",
+"publication_date" : "Jul 13, 2026 09:07:26",
+"headline" : "Press release",
+"issuer_symbol" : "SALIK",
+"issuer" : "SALIK - Salik Company PJSC",
+"issuer_ar" : "SALIK - شركة سالك ش.م.ع",
+"announcement_type" : "Disclosure",
+"report_interval" : null,
+"integrated_period" : null,
+"integrated_language" : null,
+"integrated_report_type" : null,
+"dividends_payment_date" : null,
+"resources" : 
+[{
+"description" : "Salik X Shamal Mou ENG.Pdf",
+"c_date" : "Jul 13, 2026 09:07:13",
+"r_path" : "/2026/Jul/13/cc114d4f-e457-4b07-9569-dc5d8b06cdb4/Salik X Shamal Mou ENG.Pdf.pdf",
+"id" : "d3bdb0b7-689a-43d5-aa0c-60d1b8f458b6",
+"category" : "cap",
+"language" : "en",
+"type" : "news"
+}]
+},
+{
+"id" : "98f75c80-a5fe-41aa-b779-6543c1f20a26",
+"publication_date" : "Jul 13, 2026 08:45:35",
+"headline" : "Notification from the company",
+"issuer_symbol" : "BHMCAPITAL",
+"issuer" : "BHMCAPITAL - BHM Capital Financial Services PSC",
+"issuer_ar" : "BHMCAPITAL - بي اتش ام كابيتال للخدمات المالية ش.م.خ",
+"announcement_type" : "Disclosure",
+"report_interval" : null,
+"integrated_period" : null,
+"integrated_language" : null,
+"integrated_report_type" : null,
+"dividends_payment_date" : null,
+"resources" : 
+[{
+"description" : "20260713 Appointment Of BHM Capital Financial Serv",
+"c_date" : "Jul 13, 2026 08:45:30",
+"r_path" : "/2026/Jul/13/98f75c80-a5fe-41aa-b779-6543c1f20a26/20260713 Appointment Of BHM Capital Financial Serv.pdf",
+"id" : "ae4fcda4-92ac-4368-b933-1277b6d13f89",
+"category" : "cap",
+"language" : "en",
+"type" : "news"
+}]
+},
+{
+"id" : "761ab0fe-3f4c-4dbd-a539-ee8eae0cc420",
+"publication_date" : "Jul 13, 2026 08:31:09",
+"headline" : "Press release",
+"issuer_symbol" : "DSI",
+"issuer" : "DSI - Drake & Scull International PJSC",
+"issuer_ar" : "DSI - دريك آند سكل إنترناشيونال ش.م.ع",
+"announcement_type" : "Disclosure",
+"report_interval" : null,
+"integrated_period" : null,
+"integrated_language" : null,
+"integrated_report_type" : null,
+"dividends_payment_date" : null,
+"resources" : 
+[{
+"description" : "DSI  PR E 13 7 2026.Pdf",
+"c_date" : "Jul 13, 2026 00:49:52",
+"r_path" : "/2026/Jul/13/761ab0fe-3f4c-4dbd-a539-ee8eae0cc420/DSI  PR E 13 7 2026.Pdf.pdf",
+"id" : "4b132eac-374e-4de1-9f23-711f96fd6ea2",
+"category" : "cap",
+"language" : "en",
+"type" : "news"
+}]
+},
+{
+"id" : "decf6f77-276f-4dbc-a9d5-ff550cf17527",
+"publication_date" : "Jul 12, 2026 15:12:01",
+"headline" : "Press release",
+"issuer_symbol" : "SALAM_BAH",
+"issuer" : "SALAM_BAH - Al Salam Bank B.S.C",
+"issuer_ar" : "SALAM_BAH - بنك السلام ش.م.ب",
+"announcement_type" : "Disclosure",
+"report_interval" : null,
+"integrated_period" : null,
+"integrated_language" : null,
+"integrated_report_type" : null,
+"dividends_payment_date" : null,
+"resources" : 
+[{
+"description" : "Tanweer Program En PR Approved.Pdf",
+"c_date" : "Jul 12, 2026 15:11:48",
+"r_path" : "/2026/Jul/12/decf6f77-276f-4dbc-a9d5-ff550cf17527/Tanweer Program En PR Approved.Pdf.pdf",
+"id" : "d0b5a221-f03c-48cc-ac4c-9ec25c287b09",
+"category" : "cap",
+"language" : "en",
+"type" : "news"
+}]
+},
+{
+"id" : "9b7d5a2b-63f9-4108-814c-49e526d817a4",
+"publication_date" : "Jul 10, 2026 17:29:04",
+"headline" : "Post share buyback announcement",
+"issuer_symbol" : "TALABAT",
+"issuer" : "TALABAT - Talabat Holding PLC",
+"issuer_ar" : "TALABAT - طلبات هولدينغ بي إل سي",
+"announcement_type" : "Disclosure",
+"report_interval" : null,
+"integrated_period" : null,
+"integrated_language" : null,
+"integrated_report_type" : null,
+"dividends_payment_date" : null,
+"resources" : 
+[{
+"description" : "DFM Notice   SBB 10072026.Pdf",
+"c_date" : "Jul 10, 2026 17:28:55",
+"r_path" : "/2026/Jul/10/9b7d5a2b-63f9-4108-814c-49e526d817a4/DFM Notice   SBB 10072026.Pdf.pdf",
+"id" : "3f1190f8-7246-434e-9103-cc645ae9e9dc",
+"category" : "cap",
+"language" : "en",
+"type" : "news"
+}]
+},
+{
+"id" : "7ae1da82-63a2-4080-b555-9c5e2eca1e1d",
+"publication_date" : "Jul 09, 2026 18:14:39",
+"headline" : "Press release regarding financial results for 9M 2025/26",
+"issuer_symbol" : "TAALEEM",
+"issuer" : "TAALEEM - Taaleem Holdings PJSC",
+"issuer_ar" : "TAALEEM - تعليم القابضة ش.م.ع",
+"announcement_type" : "Disclosure",
+"report_interval" : null,
+"integrated_period" : null,
+"integrated_language" : null,
+"integrated_report_type" : null,
+"dividends_payment_date" : null,
+"resources" : 
+[{
+"description" : "Taaleem   ER PRL   9M 2025 26   E   Vf.Pdf",
+"c_date" : "Jul 09, 2026 18:14:36",
+"r_path" : "/2026/Jul/9/7ae1da82-63a2-4080-b555-9c5e2eca1e1d/Taaleem   ER PRL   9M 2025 26   E   Vf.Pdf.pdf",
+"id" : "4f064b77-39c8-4e03-a8b6-6371596dae4c",
+"category" : "cap",
+"language" : "en",
+"type" : "news"
+}]
+},
+{
+"id" : "a03ff00a-bd5f-4dc1-abe4-9a2f260ad3a0",
+"publication_date" : "Jul 09, 2026 18:14:03",
+"headline" : "Financial statements for the 3rd QTR of 2026",
+"issuer_symbol" : "TAALEEM",
+"issuer" : "TAALEEM - Taaleem Holdings PJSC",
+"issuer_ar" : "TAALEEM - تعليم القابضة ش.م.ع",
+"announcement_type" : "Disclosure",
+"report_interval" : "Q3",
+"integrated_period" : null,
+"integrated_language" : null,
+"integrated_report_type" : null,
+"dividends_payment_date" : null,
+"resources" : 
+[{
+"description" : "Taaleem Holdings Consol 9M 2025 26 English Signed.",
+"c_date" : "Jul 09, 2026 18:13:47",
+"r_path" : "/2026/Jul/9/a03ff00a-bd5f-4dc1-abe4-9a2f260ad3a0/Taaleem Holdings Consol 9M 2025 26 English Signed..pdf",
+"id" : "fed3246b-9805-40e7-b98f-e7fcdc992094",
+"category" : "cap",
+"language" : "en",
+"type" : "financial_reports"
+}]
+},
+{
+"id" : "0de4eaa2-6bed-42f8-966d-1fabd96d44c1",
+"publication_date" : "Jul 09, 2026 18:12:59",
+"headline" : "Results of BOD Meeting",
+"issuer_symbol" : "TAALEEM",
+"issuer" : "TAALEEM - Taaleem Holdings PJSC",
+"issuer_ar" : "TAALEEM - تعليم القابضة ش.م.ع",
+"announcement_type" : "Disclosure",
+"report_interval" : null,
+"integrated_period" : null,
+"integrated_language" : null,
+"integrated_report_type" : null,
+"dividends_payment_date" : null,
+"resources" : 
+[{
+"description" : "26 7  9 Board Meeting Result Disclosure.Pdf",
+"c_date" : "Jul 09, 2026 18:12:53",
+"r_path" : "/2026/Jul/9/0de4eaa2-6bed-42f8-966d-1fabd96d44c1/26 7  9 Board Meeting Result Disclosure.Pdf.pdf",
+"id" : "3c7b14af-fe12-4f2d-a12a-e99fcaf9a09c",
+"category" : "cap",
+"language" : "en",
+"type" : "news"
+}]
+},
+{
+"id" : "6ffe2e83-e4ea-45c2-9137-4eca1aa995c5",
+"publication_date" : "Jul 09, 2026 17:32:58",
+"headline" : "Post share buyback announcement",
+"issuer_symbol" : "TALABAT",
+"issuer" : "TALABAT - Talabat Holding PLC",
+"issuer_ar" : "TALABAT - طلبات هولدينغ بي إل سي",
+"announcement_type" : "Disclosure",
+"report_interval" : null,
+"integrated_period" : null,
+"integrated_language" : null,
+"integrated_report_type" : null,
+"dividends_payment_date" : null,
+"resources" : 
+[{
+"description" : "DFM Notice   SBB 09072026.Pdf",
+"c_date" : "Jul 09, 2026 17:32:57",
+"r_path" : "/2026/Jul/9/6ffe2e83-e4ea-45c2-9137-4eca1aa995c5/DFM Notice   SBB 09072026.Pdf.pdf",
+"id" : "1d50878e-d86d-44eb-9984-d6233bd6af35",
+"category" : "cap",
+"language" : "en",
+"type" : "news"
+}]
+},
+{
+"id" : "2acf900f-c783-4032-93e8-bff953d928c3",
+"publication_date" : "Jul 09, 2026 15:07:05",
+"headline" : "Earnings Call",
+"issuer_symbol" : "DIB",
+"issuer" : "DIB - Dubai Islamic Bank PJSC",
+"issuer_ar" : "DIB - بنك دبي الإسلامي ش.م.ع",
+"announcement_type" : "Disclosure",
+"report_interval" : null,
+"integrated_period" : null,
+"integrated_language" : null,
+"integrated_report_type" : null,
+"dividends_payment_date" : null,
+"resources" : 
+[{
+"description" : "DIB ECM 09 07 2026.Pdf",
+"c_date" : "Jul 09, 2026 15:06:54",
+"r_path" : "/2026/Jul/9/2acf900f-c783-4032-93e8-bff953d928c3/DIB ECM 09 07 2026.Pdf.pdf",
+"id" : "726172a1-6957-4a33-b86b-63ad26281952",
+"category" : "cap",
+"language" : "en",
+"type" : "news"
+}]
+},
+{
+"id" : "ff7a0591-0323-47f7-b7b8-5f6532e49ce4",
+"publication_date" : "Jul 09, 2026 15:02:17",
+"headline" : "Fund Performance for the month of June 2026",
+"issuer_symbol" : "AMCUAE",
+"issuer" : "AMCUAE- AL Mal UAE Equity Fund",
+"issuer_ar" : "AMCUAE - صندوق المال للأسهم الاماراتية",
+"announcement_type" : "Disclosure",
+"report_interval" : null,
+"integrated_period" : null,
+"integrated_language" : null,
+"integrated_report_type" : null,
+"dividends_payment_date" : null,
+"resources" : 
+[{
+"description" : "Al Mal Investment Funds Fact Sheets  June 2026.Pdf",
+"c_date" : "Jul 09, 2026 10:55:58",
+"r_path" : "/2026/Jul/9/ff7a0591-0323-47f7-b7b8-5f6532e49ce4/Al Mal Investment Funds Fact Sheets  June 2026.Pdf.pdf",
+"id" : "472489de-abc2-47ed-98c0-cb08c9ee655c",
+"category" : "cap",
+"language" : "en",
+"type" : "news"
+}]
+},
+{
+"id" : "9a1b6b66-4c3c-4932-a4ac-1c70daad703f",
+"publication_date" : "Jul 09, 2026 15:02:03",
+"headline" : "Press release",
+"issuer_symbol" : "SALAM_BAH",
+"issuer" : "SALAM_BAH - Al Salam Bank B.S.C",
+"issuer_ar" : "SALAM_BAH - بنك السلام ش.م.ب",
+"announcement_type" : "Disclosure",
+"report_interval" : null,
+"integrated_period" : null,
+"integrated_language" : null,
+"integrated_report_type" : null,
+"dividends_payment_date" : null,
+"resources" : 
+[{
+"description" : "ASB Capital Alinma Bank JLM   July 2026 PR Eng.Pdf",
+"c_date" : "Jul 09, 2026 15:00:45",
+"r_path" : "/2026/Jul/9/9a1b6b66-4c3c-4932-a4ac-1c70daad703f/ASB Capital Alinma Bank JLM   July 2026 PR Eng.Pdf.pdf",
+"id" : "ea3a2221-76ed-4d00-b191-f9c7dfa2027f",
+"category" : "cap",
+"language" : "en",
+"type" : "news"
+}]
+},
+{
+"id" : "09dbf49a-909b-40ed-9cf2-75b811fbbcbd",
+"publication_date" : "Jul 09, 2026 09:02:21",
+"headline" : "Press release",
+"issuer_symbol" : "DTC",
+"issuer" : "DTC - Dubai Taxi Company PJSC",
+"issuer_ar" : "DTC - شركة تاكسي دبي ش.م.ع",
+"announcement_type" : "Disclosure",
+"report_interval" : null,
+"integrated_period" : null,
+"integrated_language" : null,
+"integrated_report_type" : null,
+"dividends_payment_date" : null,
+"resources" : 
+[{
+"description" : "DTC PR E 09 07 2026.Pdf",
+"c_date" : "Jul 09, 2026 09:02:13",
+"r_path" : "/2026/Jul/9/09dbf49a-909b-40ed-9cf2-75b811fbbcbd/DTC PR E 09 07 2026.Pdf.pdf",
+"id" : "a5fc281d-4207-4840-b4ef-9cbf15a019a1",
+"category" : "cap",
+"language" : "en",
+"type" : "news"
+}]
+},
+{
+"id" : "ec4da00a-9ec9-476d-b907-04c33684747e",
+"publication_date" : "Jul 08, 2026 18:44:36",
+"headline" : "BOD meeting",
+"issuer_symbol" : "DIB",
+"issuer" : "DIB - Dubai Islamic Bank PJSC",
+"issuer_ar" : "DIB - بنك دبي الإسلامي ش.م.ع",
+"announcement_type" : "Disclosure",
+"report_interval" : null,
+"integrated_period" : null,
+"integrated_language" : null,
+"integrated_report_type" : null,
+"dividends_payment_date" : null,
+"resources" : 
+[{
+"description" : "DIB BOD 08 07 2026.Pdf",
+"c_date" : "Jul 08, 2026 18:44:32",
+"r_path" : "/2026/Jul/8/ec4da00a-9ec9-476d-b907-04c33684747e/DIB BOD 08 07 2026.Pdf.pdf",
+"id" : "b74bc834-6174-4099-91f3-130927b9e098",
+"category" : "cap",
+"language" : "en",
+"type" : "news"
+}]
+},
+{
+"id" : "c12f1515-5e64-4912-b279-070dd7dfe23e",
+"publication_date" : "Jul 08, 2026 17:55:20",
+"headline" : "Resolutions of General Assembly",
+"issuer_symbol" : "UNIONCOOP",
+"issuer" : "UNIONCOOP - Union Coop",
+"issuer_ar" : "UNIONCOOP - تعاونية الاتحاد",
+"announcement_type" : "Disclosure",
+"report_interval" : null,
+"integrated_period" : null,
+"integrated_language" : null,
+"integrated_report_type" : null,
+"dividends_payment_date" : null,
+"resources" : 
+[{
+"description" : "UNION COOP Results  08 07 2026.Pdf",
+"c_date" : "Jul 08, 2026 17:55:13",
+"r_path" : "/2026/Jul/8/c12f1515-5e64-4912-b279-070dd7dfe23e/UNION COOP Results  08 07 2026.Pdf.pdf",
+"id" : "e178f56a-2472-48b4-bd07-e228a6ed6981",
+"category" : "cap",
+"language" : "en",
+"type" : "general_meetings"
+}]
+},
+{
+"id" : "c42d35d0-35f3-442e-b12f-285c524cbfba",
+"publication_date" : "Jul 08, 2026 17:29:57",
+"headline" : "Post share buyback announcement",
+"issuer_symbol" : "TALABAT",
+"issuer" : "TALABAT - Talabat Holding PLC",
+"issuer_ar" : "TALABAT - طلبات هولدينغ بي إل سي",
+"announcement_type" : "Disclosure",
+"report_interval" : null,
+"integrated_period" : null,
+"integrated_language" : null,
+"integrated_report_type" : null,
+"dividends_payment_date" : null,
+"resources" : 
+[{
+"description" : "DFM Notice   SBB 08072026.Pdf",
+"c_date" : "Jul 08, 2026 17:29:46",
+"r_path" : "/2026/Jul/8/c42d35d0-35f3-442e-b12f-285c524cbfba/DFM Notice   SBB 08072026.Pdf.pdf",
+"id" : "2924a0ef-8d2e-4540-959e-700e6490f8ca",
+"category" : "cap",
+"language" : "en",
+"type" : "news"
+}]
+},
+{
+"id" : "a2622650-05e9-4d62-b115-f58f7a8d8186",
+"publication_date" : "Jul 08, 2026 15:20:08",
+"headline" : "Press release",
+"issuer_symbol" : "AJMANBANK",
+"issuer" : "AJMANBANK - Ajman Bank  PJSC",
+"issuer_ar" : "AJMANBANK - مصرف عجمان ش.م.ع",
+"announcement_type" : "Disclosure",
+"report_interval" : null,
+"integrated_period" : null,
+"integrated_language" : null,
+"integrated_report_type" : null,
+"dividends_payment_date" : null,
+"resources" : 
+[{
+"description" : "AJMANBANK PR 08 07 2026.Pdf",
+"c_date" : "Jul 08, 2026 15:20:02",
+"r_path" : "/2026/Jul/8/a2622650-05e9-4d62-b115-f58f7a8d8186/AJMANBANK PR 08 07 2026.Pdf.pdf",
+"id" : "f0913edb-d3ca-488b-b965-afbfa490312f",
+"category" : "cap",
+"language" : "en",
+"type" : "news"
+}]
+}
+]
+}

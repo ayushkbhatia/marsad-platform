@@ -37,6 +37,7 @@ import {
   resolvePrincipalId,
 } from './core/registry.js';
 import { ADAPTERS } from './adapters/index.js';
+import { yahooTasks, toYahooSymbol } from './adapters/yahoo/index.js';
 import { LakeStagingEmitter } from './lake/staging.js';
 import { LakeCrossCheck } from './lake/cross-check.js';
 import { KeyRatiosRecompute } from './lake/key-ratios.js';
@@ -121,6 +122,101 @@ const consoleLogger: Logger = {
     return consoleLogger;
   },
 };
+
+/**
+ * The alt-provider discriminant seeded on ingest.sources.endpoint_config (migration 0021/0022).
+ * A source with provider='yahoo' resolves to the Yahoo TaskSpec bundle (aggregator, NOT a
+ * VenueAdapter key) instead of the primary (venue,data_type) adapter. Read via a local cast so
+ * the frozen EndpointConfig surface (core/types.ts) stays untouched — the field is optional and
+ * only Yahoo rows carry it, so primary sources are byte-identical to the pre-provider path.
+ */
+type AltProvider = 'yahoo';
+function providerOf(source: SourceRecord): AltProvider | undefined {
+  const p = (source.endpointConfig as unknown as { provider?: unknown }).provider;
+  return p === 'yahoo' ? 'yahoo' : undefined;
+}
+
+/**
+ * Provider-aware resolution (CONTRACT §8 routing extension). A source whose endpoint_config
+ * carries provider='yahoo' is served by the Yahoo aggregator TaskSpecs (yahooTasks), NOT by the
+ * (venue,data_type) ADAPTERS lookup — Yahoo/Mubasher are cross-venue aggregators and are
+ * intentionally absent from the frozen ADAPTERS map. quotes → yahooTasks.quotes (the 2nd
+ * cross-check source); ohlcv_backfill → yahooTasks.ohlcvBackfill (the ≥2y daily drain). Any other
+ * data_type on a Yahoo row yields no task (returns []) rather than mis-dispatching. Returns
+ * undefined for non-provider (primary) sources so the caller falls through to ADAPTERS unchanged.
+ */
+function tasksForProvider(source: SourceRecord): TaskSpec<unknown>[] | undefined {
+  const provider = providerOf(source);
+  if (provider !== 'yahoo') return undefined;
+  if (source.dataType === 'quotes') return [yahooTasks.quotes as TaskSpec<unknown>];
+  if (source.dataType === 'ohlcv_backfill') return [yahooTasks.ohlcvBackfill as TaskSpec<unknown>];
+  return [];
+}
+
+/**
+ * Load the venue's active securities from public.securities and project them to Yahoo chart
+ * symbols (our raw ticker + the venue suffix, via toYahooSymbol). This is the runtime side of the
+ * Yahoo symbol-list wiring the adapter flagged (adapters/yahoo/quotes.ts header): the frozen
+ * FetchContext gives fetch() no DB handle, so fetch() reads endpoint_config.symbols — and the
+ * runtime populates that list from public.securities here (config over code, CONTRACT §0.6), so
+ * the symbol universe tracks the live securities master with no redeploy. Non-Yahoo venues
+ * (toYahooSymbol → null) and blank tickers are dropped. Order is stable (ticker asc) so the
+ * per-cycle request order — and thus the ≤300 req/day/host budget rotation — is deterministic.
+ */
+export async function yahooSymbolsForVenue(sql: Sql, venue: VenueCode): Promise<string[]> {
+  const rows = await sql<{ ticker: string }[]>`
+    select ticker
+      from public.securities
+     where venue_code = ${venue}
+       and status = 'listed'
+     order by ticker asc
+  `;
+  const out: string[] = [];
+  for (const r of rows) {
+    const sym = toYahooSymbol(venue, r.ticker);
+    if (sym) out.push(sym);
+  }
+  return out;
+}
+
+/**
+ * For a Yahoo provider source, return a source whose endpoint_config.symbols is populated from
+ * public.securities (unless the row already carries an explicit symbols list — a Desk override
+ * wins, config over code). Non-Yahoo or already-listed sources are returned unchanged (no clone,
+ * no query). The clone is shallow but replaces endpointConfig with a new object so the cached
+ * SourceRecord the caller holds is never mutated.
+ */
+export async function withYahooSymbols(sql: Sql, source: SourceRecord): Promise<SourceRecord> {
+  if (providerOf(source) !== 'yahoo') return source;
+  const cfg = source.endpointConfig as unknown as { symbols?: unknown };
+  const already = Array.isArray(cfg.symbols) && cfg.symbols.length > 0;
+  if (already) return source;
+  const symbols = await yahooSymbolsForVenue(sql, source.venue);
+  if (symbols.length === 0) return source;
+  return {
+    ...source,
+    endpointConfig: { ...source.endpointConfig, symbols } as SourceRecord['endpointConfig'],
+  };
+}
+
+/**
+ * Resolve the TaskSpec(s) that serve a source — the single source of truth for
+ * IngestionRuntime.tasksForSource (the method delegates here). PURE: no I/O, so it is unit-tested
+ * directly (runtime.test.ts) without constructing the DB-backed runtime.
+ *
+ * Order matters: the provider branch is consulted FIRST. A source with endpoint_config
+ * provider='yahoo' resolves to the Yahoo aggregator task and NEVER to the primary (venue,data_type)
+ * adapter; every primary source (no provider) falls through to the unchanged ADAPTERS lookup, so
+ * DFM/MSX/QE/etc. resolution is byte-identical to the pre-provider behaviour.
+ */
+export function resolveTasksForSource(source: SourceRecord): TaskSpec<unknown>[] {
+  const provided = tasksForProvider(source);
+  if (provided !== undefined) return provided;
+
+  const adapter = ADAPTERS[source.venue];
+  if (!adapter) return [];
+  return tasksForDataType(adapter, source.dataType);
+}
 
 /**
  * Map the data_type of a source to the adapter TaskSpec(s) that serve it (CONTRACT §8:
@@ -467,9 +563,7 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
     },
 
     tasksForSource(source) {
-      const adapter = ADAPTERS[source.venue];
-      if (!adapter) return [];
-      return tasksForDataType(adapter, source.dataType);
+      return resolveTasksForSource(source);
     },
 
     async eodSourcesForVenue(venue) {
@@ -506,7 +600,12 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
       return rows.length > 0 ? Number(rows[0]!.n) : 0;
     },
 
-    async runTask({ source, task, agentPrincipalId, tradeDate }) {
+    async runTask({ source: rawSource, task, agentPrincipalId, tradeDate }) {
+      // Yahoo provider sources are per-symbol: populate endpoint_config.symbols from
+      // public.securities before fetch (the adapter's fetch() has no DB handle). No-op for
+      // primary sources and for Yahoo rows that already carry an explicit Desk-set symbol list.
+      const source = await withYahooSymbols(sql, rawSource);
+
       const client = source.transport === 'http' ? http : browser;
       const ctx: FetchContext = {
         source,

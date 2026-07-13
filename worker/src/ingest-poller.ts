@@ -40,6 +40,12 @@ import { resolveHandler, type Handler, type HandlerContext } from "./handlers/in
 const DATA_TYPE_TO_HANDLER: Record<string, string> = {
   quotes: "quote_poll",
   indices: "quote_poll", // indices are folded into the venue quotes job (CONTRACT §8)
+  // ohlcv_backfill (Yahoo ≥2y daily drain, migration 0021/0022) reuses quote_poll: that handler
+  // is source-scoped ({ sourceId }) and provider-agnostic — it loads the source, calls
+  // runtime.tasksForSource (which now returns the Yahoo ohlcvBackfill task for a provider='yahoo'
+  // source), then runTask emits NormalizedOhlcv rows through the existing OHLCV staging mapper +
+  // cross-check. No dedicated handler is needed.
+  ohlcv_backfill: "quote_poll",
   filings_list: "filings_poll",
   eod_bulletin: "eod_sweep",
 };
