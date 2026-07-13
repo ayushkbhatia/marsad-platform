@@ -234,7 +234,18 @@ export async function fetchYahooQuotes(ctx: FetchContext): Promise<FetchResult[]
   for (const symbol of targets) {
     const fetchedAt = ctx.now();
     const url = buildUrl(template, symbol, fetchedAt);
-    const res = await ctx.http.get(url, headers ? { headers } : {});
+    let res;
+    try {
+      res = await ctx.http.get(url, headers ? { headers } : {});
+    } catch (err) {
+      // Per-symbol isolation: a ticker not on Yahoo (404) or a transient failure must
+      // NOT abort the whole venue sweep — skip and continue (mirrors yahoo/ohlcv.ts).
+      ctx.logger?.warn('yahoo quotes: symbol fetch failed, skipping', {
+        symbol,
+        err: String(err).slice(0, 140),
+      });
+      continue;
+    }
     out.push({
       externalId: symbol || undefined,
       url: res.url,

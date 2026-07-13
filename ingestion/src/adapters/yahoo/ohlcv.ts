@@ -179,7 +179,19 @@ export async function fetchYahooOhlcv(ctx: FetchContext): Promise<FetchResult[]>
   for (const symbol of targets) {
     const fetchedAt = ctx.now();
     const url = buildUrl(template, symbol, fetchedAt);
-    const res = await ctx.http.get(url, headers ? { headers } : {});
+    let res;
+    try {
+      res = await ctx.http.get(url, headers ? { headers } : {});
+    } catch (err) {
+      // Per-symbol isolation: a ticker not on Yahoo (rights/warrants/funds/format
+      // mismatch → 404) or a transient failure must NOT abort the whole venue's
+      // ~50-400 symbol sweep. Skip this symbol and continue.
+      ctx.logger?.warn('yahoo ohlcv: symbol fetch failed, skipping', {
+        symbol,
+        err: String(err).slice(0, 140),
+      });
+      continue;
+    }
     out.push({
       externalId: symbol || undefined,
       url: res.url,
