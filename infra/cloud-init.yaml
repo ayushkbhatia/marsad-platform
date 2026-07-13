@@ -42,7 +42,7 @@ write_files:
     content: |
       # Filled by the owner at provision time. root:root 0600.
       # marsad_worker role, Supavisor session pooler, IPv4 (06 Revisions #1).
-      SUPABASE_DB_URL=postgresql://marsad_worker.yjsncnpbjuueaoeejrqj:CHANGE_ME@aws-0-ap-south-1.pooler.supabase.com:5432/postgres
+      SUPABASE_DB_URL=postgresql://marsad_worker.yjsncnpbjuueaoeejrqj:CHANGE_ME@aws-1-ap-south-1.pooler.supabase.com:5432/postgres
       # Storage uploads only (least-privilege exception, 06 Revisions #1).
       SUPABASE_URL=https://yjsncnpbjuueaoeejrqj.supabase.co
       SUPABASE_SERVICE_ROLE_KEY=CHANGE_ME
