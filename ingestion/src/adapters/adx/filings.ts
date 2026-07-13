@@ -196,6 +196,11 @@ async function fetchAdxFilingsList(ctx: FetchContext): Promise<FetchResult[]> {
   // URL only if no urlTemplate was pinned.
   const boot = await browser.bootstrap(discovery);
   const targetUrl = cfg.urlTemplate ?? boot.resolvedUrl;
+  if (!targetUrl) {
+    throw new Error(
+      `ADX filings_list fetch: source ${source.id} has no urlTemplate and bootstrap resolved no URL`,
+    );
+  }
   const resp = await browser.get(targetUrl, browserOpts(cfg.headers));
   const filingFieldMap =
     (source.endpointConfig as unknown as { filingFieldMap?: AdxFilingFieldMap }).filingFieldMap ??

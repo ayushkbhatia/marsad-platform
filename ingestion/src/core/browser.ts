@@ -73,7 +73,7 @@ export interface BrowserClientOptions {
 }
 
 interface BootstrapState {
-  resolvedUrl: string;
+  resolvedUrl: string | null; // null for extract:'direct' — caller fetches its own urlTemplate
   cookies: string;
 }
 
@@ -111,7 +111,7 @@ export function createBrowserClient(opts: BrowserClientOptions): BrowserClient {
 
   async function bootstrap(
     cfg: EndpointConfig['actionDiscovery'],
-  ): Promise<{ resolvedUrl: string; cookies: string }> {
+  ): Promise<{ resolvedUrl: string | null; cookies: string }> {
     if (!cfg) {
       throw new FetchError(
         'HTTP_4XX',
@@ -133,7 +133,14 @@ export function createBrowserClient(opts: BrowserClientOptions): BrowserClient {
 
     let resolvedUrl: string | null = null;
     try {
-      if (cfg.extract === 'datatable_ajax') {
+      if (cfg.extract === 'direct') {
+        // Seat cookies only. The page never auto-fires the data XHR (e.g. a fixed
+        // apigateway URL behind an apikey header, or a feed the SPA fetches only on
+        // interaction), so passive discovery would time out. The caller fetches its
+        // own endpoint_config.urlTemplate in-context — the seated cookies + matching
+        // TLS fingerprint carry it past the WAF.
+        resolvedUrl = null;
+      } else if (cfg.extract === 'datatable_ajax') {
         resolvedUrl = await page.discoverAjaxUrl(cfg.responseUrlPattern);
       } else {
         resolvedUrl = await page.captureResponseUrl(
@@ -145,7 +152,7 @@ export function createBrowserClient(opts: BrowserClientOptions): BrowserClient {
       await page.close().catch(() => {});
     }
 
-    if (!resolvedUrl) {
+    if (!resolvedUrl && cfg.extract !== 'direct') {
       throw new FetchError(
         'WAF_CHALLENGE',
         `action discovery (${cfg.extract}) found no URL on ${cfg.navigateUrl}`,

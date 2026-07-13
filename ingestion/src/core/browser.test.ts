@@ -75,6 +75,7 @@ test('BrowserClient: bootstrap seats cookies + discovers runtime action URL', as
   });
   const c = createBrowserClient({ driver: f.driver, sleep: async () => {}, ratePerSec: 100000 });
   const boot = await c.bootstrap(discovery);
+  assert(boot.resolvedUrl !== null);
   assert.match(boot.resolvedUrl, /NJgetMainNomucMarketDetails/);
   assert.match(boot.cookies, /_abck/);
   assert.deepEqual(f.navigations(), [discovery.navigateUrl]);

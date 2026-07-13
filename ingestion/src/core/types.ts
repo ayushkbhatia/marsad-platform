@@ -63,7 +63,13 @@ export interface EndpointConfig {
   pagination?: { param: string; start: number; pageSize?: number };
   actionDiscovery?: {
     navigateUrl: string; // page to load to seat cookies
-    extract: 'datatable_ajax' | 'network_capture'; // how to obtain the real XHR URL at runtime
+    // how to obtain the real XHR URL at runtime:
+    //   datatable_ajax   — scrape the datatable's ajax action URL from the page
+    //   network_capture  — passively wait for the page to fire the matching XHR
+    //   direct           — seat cookies only; the caller fetches its own known
+    //                      urlTemplate in-context (e.g. a fixed apigateway URL +
+    //                      apikey header, where the page never auto-fires it)
+    extract: 'datatable_ajax' | 'network_capture' | 'direct';
     responseUrlPattern?: string; // regex the captured response URL must match
   };
   /**
@@ -186,7 +192,7 @@ export type HttpClient = Transporter;
 export interface BrowserClient extends Transporter {
   bootstrap(
     cfg: EndpointConfig['actionDiscovery'],
-  ): Promise<{ resolvedUrl: string; cookies: string }>;
+  ): Promise<{ resolvedUrl: string | null; cookies: string }>; // resolvedUrl null for extract:'direct'
   refreshIfChallenged(status: number): Promise<void>; // 401/403/challenge ⇒ re-bootstrap, one free retry
   /** Release the singleton Chromium — called on worker drain. */
   close(): Promise<void>;

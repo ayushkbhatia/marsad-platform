@@ -193,7 +193,14 @@ async function fetchFilings(ctx: FetchContext): Promise<FetchResult[]> {
   if (useBrowser && cfg.actionDiscovery) {
     const boot = await browser.bootstrap(cfg.actionDiscovery);
     // Prefer a pinned urlTemplate; else use the runtime-captured resource URL.
-    if (!cfg.urlTemplate) url = boot.resolvedUrl;
+    if (!cfg.urlTemplate) {
+      if (!boot.resolvedUrl) {
+        throw new Error(
+          `QE filings_list fetch: source ${source.id} has no urlTemplate and bootstrap resolved no URL`,
+        );
+      }
+      url = boot.resolvedUrl;
+    }
   }
   const client = useBrowser ? browser : http;
   const res = await client.get(url, {

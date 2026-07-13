@@ -316,6 +316,12 @@ async function fetchTdwlBoard(ctx: FetchContext): Promise<FetchResult[]> {
   // resolved action URL. The action id/PUID is NEVER hardcoded — it lives only in the page + the
   // source's actionDiscovery shape.
   const boot = await browser.bootstrap(discovery);
+  if (!boot.resolvedUrl) {
+    throw new Error(
+      `TDWL quotes fetch: source ${source.id} has no urlTemplate and bootstrap resolved no URL`,
+    );
+  }
+  const url = boot.resolvedUrl;
   logger.info("TDWL board: resolved runtime action URL", {
     sourceId: source.id,
     dataType: source.dataType,
@@ -324,7 +330,7 @@ async function fetchTdwlBoard(ctx: FetchContext): Promise<FetchResult[]> {
   // Fetch the JSON through the SAME browser context (fingerprint-matched). BrowserClient.get owns
   // the WAF-challenge retry + one free re-bootstrap and THROWS a typed FetchError on a persistent
   // 401/403/5xx/4xx (CONTRACT §10) — the adapter does not inspect status codes itself.
-  const resp = await browser.get(boot.resolvedUrl, browserOpts(source.endpointConfig.headers));
+  const resp = await browser.get(url, browserOpts(source.endpointConfig.headers));
 
   // Copy the source's fieldMap onto FetchResult.meta so the PURE parser has the mapping without
   // re-reading ingest.sources. Post-VPS field-name corrections live in endpoint_config.fieldMap.

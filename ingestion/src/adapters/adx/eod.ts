@@ -109,6 +109,11 @@ async function fetchAdxEod(ctx: FetchContext): Promise<FetchResult[]> {
   let url: string;
   if (discovery) {
     const boot = await browser.bootstrap(discovery);
+    if (!boot.resolvedUrl) {
+      throw new Error(
+        `ADX eod fetch: source ${source.id} has no urlTemplate and bootstrap resolved no URL`,
+      );
+    }
     url = boot.resolvedUrl;
   } else {
     url = tmpl!.replace(/\{epochMs\}/g, String(Date.parse(now()) || 0));

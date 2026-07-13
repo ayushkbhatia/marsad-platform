@@ -107,7 +107,14 @@ async function fetchFilings(ctx: FetchContext): Promise<FetchResult[]> {
   if (useBrowser && cfg.actionDiscovery) {
     const boot = await browser.bootstrap(cfg.actionDiscovery);
     // The GetAllAnnouncements URL is captured at runtime (session/referer must be seated by the page).
-    if (!cfg.urlTemplate) url = boot.resolvedUrl;
+    if (!cfg.urlTemplate) {
+      if (!boot.resolvedUrl) {
+        throw new Error(
+          `BHB filings_list fetch: source ${source.id} has no urlTemplate and bootstrap resolved no URL`,
+        );
+      }
+      url = boot.resolvedUrl;
+    }
   }
   const client = useBrowser ? browser : http;
   const res = await client.get(url, {

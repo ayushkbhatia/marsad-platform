@@ -206,12 +206,18 @@ async function fetchTdwlFilingsList(ctx: FetchContext): Promise<FetchResult[]> {
     );
   }
   const boot = await browser.bootstrap(discovery);
+  if (!boot.resolvedUrl) {
+    throw new Error(
+      `TDWL filings_list fetch: source ${source.id} has no urlTemplate and bootstrap resolved no URL`,
+    );
+  }
+  const resolvedUrl = boot.resolvedUrl;
   const results: FetchResult[] = [];
 
   const pag = source.endpointConfig.pagination;
   const pages = pag ? [pag.start] : [0]; // first page only per poll; deeper pages on backfill runs
   for (const page of pages) {
-    const url = boot.resolvedUrl.replace(/\{page\}/g, String(page));
+    const url = resolvedUrl.replace(/\{page\}/g, String(page));
     // BrowserClient.get owns the WAF-challenge retry + typed FetchError on persistent failure.
     const resp = await browser.get(url, browserOpts(source.endpointConfig.headers));
     results.push({

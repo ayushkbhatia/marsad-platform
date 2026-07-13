@@ -220,8 +220,14 @@ async function fetchAdxBoard(ctx: FetchContext): Promise<FetchResult[]> {
   }
   const boot = await browser.bootstrap(discovery);
   logger.info("ADX board: resolved runtime board URL", { sourceId: source.id });
+  const url = boot.resolvedUrl;
+  if (!url) {
+    throw new Error(
+      `ADX quotes fetch: source ${source.id} has no urlTemplate and bootstrap resolved no URL`,
+    );
+  }
   // BrowserClient.get owns the WAF-challenge retry + typed FetchError on persistent failure.
-  const resp = await browser.get(boot.resolvedUrl, browserOpts(source.endpointConfig.headers));
+  const resp = await browser.get(url, browserOpts(source.endpointConfig.headers));
 
   const fieldMap =
     (source.endpointConfig as unknown as { fieldMap?: AdxFieldMap }).fieldMap ?? DEFAULT_FIELD_MAP;
