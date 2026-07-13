@@ -28,6 +28,7 @@ function fakeDriver(opts: {
             async captureResponseUrl() {
               return opts.discoveredUrl ?? null;
             },
+            async settle() {},
             async close() {},
           };
           return page;

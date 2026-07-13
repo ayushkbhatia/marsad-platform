@@ -121,6 +121,9 @@ export function createPlaywrightDriver(opts: PlaywrightDriverOptions = {}): Brow
                 return null;
               }
             },
+            async settle(ms: number): Promise<void> {
+              await page.waitForTimeout(ms);
+            },
             async close(): Promise<void> {
               await page.close();
             },

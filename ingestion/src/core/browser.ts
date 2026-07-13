@@ -58,6 +58,9 @@ export interface BrowserPage {
   discoverAjaxUrl(pattern?: string): Promise<string | null>;
   /** Wait for a network response whose URL matches pattern, return its URL. */
   captureResponseUrl(pattern: string, timeoutMs: number): Promise<string | null>;
+  /** Idle wait so late-firing WAF sensor JS (Akamai _abck) can finish seating
+   *  the cookie before we close the page and issue the in-context fetch. */
+  settle(ms: number): Promise<void>;
   close(): Promise<void>;
 }
 
@@ -76,6 +79,10 @@ interface BootstrapState {
   resolvedUrl: string | null; // null for extract:'direct' — caller fetches its own urlTemplate
   cookies: string;
 }
+
+/** Idle wait after navigate in extract:'direct' so Akamai's sensor JS seats a
+ *  validated _abck cookie before the in-context fetch (empirically ~4s suffices). */
+const DIRECT_SETTLE_MS = 4500;
 
 export function createBrowserClient(opts: BrowserClientOptions): BrowserClient {
   const ratePerSec = opts.ratePerSec ?? 1;
@@ -139,6 +146,10 @@ export function createBrowserClient(opts: BrowserClientOptions): BrowserClient {
         // interaction), so passive discovery would time out. The caller fetches its
         // own endpoint_config.urlTemplate in-context — the seated cookies + matching
         // TLS fingerprint carry it past the WAF.
+        // Idle-wait first: Akamai's sensor JS updates _abck a beat AFTER networkidle,
+        // and closing the page before it lands leaves an unvalidated cookie → the
+        // in-context fetch gets a 200 Akamai soft-block HTML page instead of JSON.
+        await page.settle(DIRECT_SETTLE_MS);
         resolvedUrl = null;
       } else if (cfg.extract === 'datatable_ajax') {
         resolvedUrl = await page.discoverAjaxUrl(cfg.responseUrlPattern);
