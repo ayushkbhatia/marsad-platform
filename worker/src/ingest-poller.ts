@@ -235,7 +235,7 @@ function buildPayload(
 async function claimBatch(sql: Sql, workerId: string, limit: number): Promise<ClaimedJob[]> {
   const rows = (await sql`
     with claimed as (
-      select jq.id
+      select jq.id, jq.source_id
       from ingest.job_queue jq
       where jq.status = 'queued'
         and jq.run_after <= now()
@@ -248,7 +248,7 @@ async function claimBatch(sql: Sql, workerId: string, limit: number): Promise<Cl
           claimed_by = ${workerId},
           claimed_at = now()
     from claimed c
-    join ingest.sources s on s.id = jq.source_id
+    join ingest.sources s on s.id = c.source_id
     left join public.venues v on v.code = s.venue
     where jq.id = c.id
     returning
