@@ -58,8 +58,10 @@ ssh-keygen -t ed25519 -f marsad_deploy -N "" -C "marsad-worker-vps"
    - `OWNER/Marsad-Platform` → the real GitHub path (one occurrence, in
      `runcmd`).
 8. **Name**: `marsad-worker-1` → **Create & Buy now**.
-9. Wait ~5 minutes. Check progress: `ssh deploy@<server-ip>` then
-   `cloud-init status --wait` (should end `status: done`).
+9. Wait ~10 minutes (it installs Node, both npm packages, and the Playwright
+   Chromium browser for the WAF venues — the browser download is the slow part).
+   Check progress: `ssh deploy@<server-ip>` then `cloud-init status --wait`
+   (should end `status: done`).
 
 ## 4. Fill the worker environment and start
 
@@ -124,7 +126,7 @@ then on the VPS, `journalctl -u marsad-worker -n 20` should show
 
 | Task | How |
 |---|---|
-| Deploy new worker code | Automatic: `worker-deploy.yml` on pushes to `main` touching `worker/**` (rsync + `systemctl restart`). Manual fallback: `ssh deploy@<ip>`, `cd /opt/marsad && git pull && cd worker && npm install --no-audit --no-fund && npm run build && sudo systemctl restart marsad-worker` |
+| Deploy new worker code | Automatic: `worker-deploy.yml` on pushes to `main` touching `worker/**`. Manual fallback: `ssh deploy@<ip>`, then `cd /opt/marsad && git pull && cd ingestion && npm install --no-audit --no-fund && npm run build && cd ../worker && npm install --no-audit --no-fund && npm run build && sudo systemctl restart marsad-worker` (build ingestion before worker; add `PLAYWRIGHT_BROWSERS_PATH=/opt/marsad/.playwright npx playwright install chromium` only if the ingestion deps changed) |
 | Logs | `journalctl -u marsad-worker -f` (JSON lines) |
 | Restart | `sudo systemctl restart marsad-worker` (SIGTERM drain: in-flight work gets 30s, the rest redelivers via pgmq vt) |
 | OS patching | unattended-upgrades runs daily automatically |

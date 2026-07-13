@@ -49,6 +49,9 @@ write_files:
       # Healthchecks.io worker-alive check (optional but recommended).
       HEALTHCHECK_URL=
       WORKER_ID=vps-1
+      # Playwright browser cache lives outside the deploy user's home so it stays
+      # readable under the unit's ProtectHome=read-only (installed here at boot).
+      PLAYWRIGHT_BROWSERS_PATH=/opt/marsad/.playwright
 
   # ---- systemd unit (canonical copy: infra/marsad-worker.service — keep in sync)
   - path: /etc/systemd/system/marsad-worker.service
@@ -136,12 +139,20 @@ runcmd:
 
   - systemctl enable --now fail2ban
 
-  # Clone the repo as deploy and build the worker
+  # Clone the repo as deploy and build the packages
   # -H so git/npm resolve deploy's HOME (~/.ssh/config holds the deploy key).
   - install -d -o deploy -g deploy /opt/marsad
   - sudo -Hu deploy git clone git@github.com:OWNER/Marsad-Platform.git /opt/marsad
-  # npm install (not ci): survives a missing worker/package-lock.json; --no-audit
-  # --no-fund keeps the fresh-VM build quiet and slightly faster.
+  # Build the ingestion package FIRST: the worker imports marsad-ingestion
+  # (file:../ingestion) and consumes its built dist/. It no longer auto-builds on
+  # install, so it must be built before the worker. --no-audit --no-fund keep the
+  # fresh-VM build quiet/faster.
+  - sudo -Hu deploy bash -c 'cd /opt/marsad/ingestion && npm install --no-audit --no-fund && npm run build'
+  # Playwright Chromium for the WAF venues (TDWL/ADX). install-deps needs root
+  # (apt system libraries); the browser binary downloads into deploy's ~/.cache.
+  - bash -c 'cd /opt/marsad/ingestion && npx --yes playwright install-deps chromium'
+  - sudo -Hu deploy bash -c 'cd /opt/marsad/ingestion && PLAYWRIGHT_BROWSERS_PATH=/opt/marsad/.playwright npx --yes playwright install chromium'
+  # Then build the worker.
   - sudo -Hu deploy bash -c 'cd /opt/marsad/worker && npm install --no-audit --no-fund && npm run build'
 
   # Register the unit but do NOT start it: /etc/marsad/worker.env still holds
