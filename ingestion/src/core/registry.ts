@@ -88,10 +88,13 @@ export function agentAccountFor(venue: VenueCode, dataType: DataType): AgentAcco
 
 /** Resolve an iam.principals handle → id (uuid). Cached per-process by caller if hot. */
 export async function resolvePrincipalId(sql: Sql, handle: string): Promise<string> {
+  // 'agent' for the per-venue DATA/WRITER/EDITOR accounts; 'system' for the SYSTEM
+  // principal that pipeline stages (cross-check) run as (pipelinePrincipalId → 'SYSTEM',
+  // seeded kind='system'). Both are non-human service principals.
   const rows = await sql<{ id: string }[]>`
-    select id from iam.principals where handle = ${handle} and kind = 'agent'
+    select id from iam.principals where handle = ${handle} and kind in ('agent', 'system')
   `;
-  if (rows.length === 0) throw new Error(`iam.principals agent handle '${handle}' not found`);
+  if (rows.length === 0) throw new Error(`iam.principals service handle '${handle}' not found`);
   return rows[0]!.id;
 }
 
