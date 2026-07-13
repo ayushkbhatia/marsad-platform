@@ -6,10 +6,17 @@
 // agentAccount per TASK, so filings tasks are wired under the filings account by the handler.
 
 import type { VenueAdapter } from "../../core/types.js";
-import { tdwlQuotes, tdwlNomuQuotes } from "./quotes.js";
+import {
+  tdwlQuotes,
+  tdwlNomuQuotes,
+  tdwlSaudiExchangeQuotes,
+  tdwlNomuSaudiExchangeQuotes,
+} from "./quotes.js";
 import { tdwlFilingsList, tdwlFilingDetail } from "./filings.js";
 import { tdwlEodBulletin } from "./eod.js";
 
+// quotes = the Mubasher-backed task (GROUND TRUTH #3: saudiexchange.sa is Akamai-IP-blocked, so the
+// direct WAF path is parked as tdwlSaudiExchangeQuotes and NOT mounted here).
 export const tdwlAdapter: VenueAdapter = {
   venue: "TDWL",
   agentAccount: "DATA-TDWL",
@@ -19,5 +26,13 @@ export const tdwlAdapter: VenueAdapter = {
   eodBulletin: tdwlEodBulletin,
 };
 
-export { tdwlQuotes, tdwlNomuQuotes, tdwlFilingsList, tdwlFilingDetail, tdwlEodBulletin };
+export {
+  tdwlQuotes,
+  tdwlNomuQuotes,
+  tdwlSaudiExchangeQuotes,
+  tdwlNomuSaudiExchangeQuotes,
+  tdwlFilingsList,
+  tdwlFilingDetail,
+  tdwlEodBulletin,
+};
 export default tdwlAdapter;

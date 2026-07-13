@@ -2,6 +2,7 @@ import { loadConfig } from "./config.js";
 import { createDb } from "./db.js";
 import { log } from "./log.js";
 import { QUEUES, startQueueConsumer, type QueueConsumer } from "./consumer.js";
+import { startIngestPoller, type IngestPoller } from "./ingest-poller.js";
 import { createHeartbeatWriter } from "./heartbeat.js";
 import { createHealthcheckPinger } from "./healthcheck.js";
 import { registeredHandlers } from "./handlers/index.js";
@@ -55,6 +56,12 @@ async function main(): Promise<void> {
     startQueueConsumer(q, sql, config, heartbeat),
   );
 
+  // Scheduler→worker bridge: claim + run due ingest.job_queue rows (the cadence
+  // table ingest.enqueue_due_jobs() writes; NOT a pgmq queue — CONTRACT §9 note).
+  // Runs alongside the pgmq consumers on the same DB pool. Without it, scheduled
+  // scrapes pile up as status='queued' and are never claimed (72 rows observed).
+  const ingestPoller: IngestPoller = startIngestPoller(sql, config);
+
   // --- graceful drain -------------------------------------------------------
   let shuttingDown = false;
   async function shutdown(signal: string): Promise<void> {
@@ -66,15 +73,19 @@ async function main(): Promise<void> {
     });
 
     for (const c of consumers) c.stop();
+    ingestPoller.stop();
 
     // Wait for in-flight handlers up to the grace period; anything still
-    // running is safe to abandon — pgmq's visibility timeout redelivers it.
+    // running is safe to abandon — pgmq's visibility timeout redelivers pgmq
+    // jobs, and ingest.requeue_stuck_jobs (cron queue-reaper) reclaims any
+    // job_queue row abandoned in 'running', so both surfaces are at-least-once.
     const grace = new Promise<"timeout">((resolve) =>
       setTimeout(() => resolve("timeout"), config.shutdownGraceMs).unref(),
     );
-    const drained = Promise.allSettled(consumers.map((c) => c.done)).then(
-      () => "drained" as const,
-    );
+    const drained = Promise.allSettled([
+      ...consumers.map((c) => c.done),
+      ingestPoller.done,
+    ]).then(() => "drained" as const);
     const outcome = await Promise.race([drained, grace]);
     if (outcome === "timeout") {
       log.warn("drain grace period expired; exiting with work in flight");

@@ -5,6 +5,7 @@ import {
   hostOf,
   type Clock,
 } from './rate-limit.js';
+import { proxyToUrl, type ProxyConfig } from './proxy.js';
 
 /**
  * HttpClient (undici) — §3 / §5.
@@ -34,6 +35,14 @@ export interface HttpClientOptions {
   transport?: LowLevelTransport;
   /** Injectable sleep for tests (default real setTimeout). */
   sleep?: (ms: number) => Promise<void>;
+  /**
+   * Outbound proxy for THIS client. When set, the default undici transport
+   * routes every request through a ProxyAgent dispatcher (credentials embedded,
+   * incl. the IPRoyal `_country-…` geo password). Resolved per-source by the
+   * worker via core/proxy.resolveProxyForSource — never hardcoded. Ignored when a
+   * custom `transport` is injected (tests).
+   */
+  proxy?: ProxyConfig;
 }
 
 /** The minimal shape we need from undici — injectable for tests. */
@@ -73,8 +82,14 @@ export function createHttpClient(opts: HttpClientOptions = {}): HttpClient {
   const ua = opts.userAgent ?? DEFAULT_UA;
   const clock = opts.clock ?? Date.now;
   const logger = opts.logger;
-  const transport: LowLevelTransport = opts.transport ?? defaultTransport;
+  // A configured proxy is applied only to the REAL undici transport. If a caller
+  // injects a custom transport (tests), it owns its own routing.
+  const transport: LowLevelTransport =
+    opts.transport ?? (opts.proxy ? makeProxiedTransport(opts.proxy) : defaultTransport);
   const sleep = opts.sleep ?? realSleep;
+  if (opts.proxy && !opts.transport) {
+    logger?.info('http client egressing through proxy', { server: opts.proxy.server });
+  }
 
   const limiters = new HostLimiterRegistry(ratePerSec, budget, concurrency, clock);
 
@@ -243,6 +258,48 @@ const defaultTransport: LowLevelTransport = async (url, opts) => {
     body: { arrayBuffer: () => res.body.arrayBuffer() },
   };
 };
+
+/**
+ * A LowLevelTransport that routes every request through an undici ProxyAgent.
+ * The dispatcher is created once (lazily, on first call) and reused — it holds a
+ * keep-alive pool to the proxy. Credentials (incl. the IPRoyal `_country-…` geo
+ * password) are embedded in the ProxyAgent URI. undici tunnels HTTPS origins via
+ * CONNECT and injects Proxy-Authorization itself, so we do NOT hit the
+ * ERR_PROXY_AUTH_UNSUPPORTED class of failure that Chromium does (that fallback
+ * lives in the BrowserClient path).
+ */
+export function makeProxiedTransport(proxy: ProxyConfig): LowLevelTransport {
+  let dispatcherPromise: Promise<unknown> | null = null;
+  const proxyUri = proxyToUrl(proxy);
+
+  async function dispatcher(): Promise<unknown> {
+    if (!dispatcherPromise) {
+      dispatcherPromise = (async () => {
+        const { ProxyAgent } = await import('undici');
+        return new ProxyAgent(proxyUri);
+      })();
+    }
+    return dispatcherPromise;
+  }
+
+  return async (url, opts) => {
+    const { request: undiciRequest } = await import('undici');
+    const reqOpts = {
+      method: opts.method as never,
+      headers: opts.headers,
+      ...(opts.signal ? { signal: opts.signal } : {}),
+      ...(opts.body !== undefined ? { body: opts.body } : {}),
+      dispatcher: await dispatcher(),
+      maxRedirections: 5,
+    };
+    const res = await undiciRequest(url, reqOpts as Parameters<typeof undiciRequest>[1]);
+    return {
+      statusCode: res.statusCode,
+      headers: res.headers as Record<string, string | string[] | undefined>,
+      body: { arrayBuffer: () => res.body.arrayBuffer() },
+    };
+  };
+}
 
 function classifyNetworkError(err: unknown): FetchError {
   if (err instanceof FetchError) return err;

@@ -1,4 +1,5 @@
 import type { BrowserDriver, BrowserSession, BrowserPage } from './browser.js';
+import { proxyBasicAuth, type ProxyConfig } from './proxy.js';
 
 /**
  * Real Playwright BrowserDriver (§3). Kept in its own module and lazy-importing
@@ -16,6 +17,17 @@ export interface PlaywrightDriverOptions {
   locale?: string;
   userAgent?: string;
   navigationTimeoutMs?: number;
+  /**
+   * Outbound proxy for this Chromium session (resolved per-source by the worker
+   * via core/proxy — never hardcoded). Playwright's native launch proxy
+   * {server, username, password} is the PRIMARY path and handles authenticated
+   * proxies correctly. If Chromium raises ERR_PROXY_AUTH_UNSUPPORTED (its
+   * command-line proxy auth is flaky), we fall back to a native-proxy launch
+   * with NO inline creds and instead inject `Proxy-Authorization` as an
+   * extra HTTP header on the context (proxy-chain style, but in-process — no new
+   * dependency). See the `proxy` handling below.
+   */
+  proxy?: ProxyConfig;
 }
 
 export function createPlaywrightDriver(opts: PlaywrightDriverOptions = {}): BrowserDriver {
@@ -23,13 +35,58 @@ export function createPlaywrightDriver(opts: PlaywrightDriverOptions = {}): Brow
     async launch(): Promise<BrowserSession> {
       // Lazy import — only paid when a WAF venue actually runs.
       const { chromium } = await import('playwright');
-      const browser = await chromium.launch({
-        headless: true,
-        args: opts.launchArgs ?? [],
-      });
+
+      // Proxy: Playwright's native {server,username,password} is the primary path.
+      // We attempt it first; on the ERR_PROXY_AUTH_UNSUPPORTED class of failure we
+      // relaunch with the proxy server only (no inline creds) and inject
+      // Proxy-Authorization as an extra header (in-process proxy-chain style).
+      let browser: import('playwright').Browser;
+      let authHeaderFallback: Record<string, string> | undefined;
+
+      const launchWithNativeAuth = async () => {
+        const launchOpts: Parameters<typeof chromium.launch>[0] = {
+          headless: true,
+          args: opts.launchArgs ?? [],
+        };
+        if (opts.proxy) {
+          launchOpts.proxy = {
+            server: opts.proxy.server,
+            ...(opts.proxy.username ? { username: opts.proxy.username } : {}),
+            ...(opts.proxy.password ? { password: opts.proxy.password } : {}),
+          };
+        }
+        return chromium.launch(launchOpts);
+      };
+
+      const launchWithHeaderAuth = async () => {
+        const launchOpts: Parameters<typeof chromium.launch>[0] = {
+          headless: true,
+          args: opts.launchArgs ?? [],
+        };
+        if (opts.proxy) launchOpts.proxy = { server: opts.proxy.server };
+        const b = await chromium.launch(launchOpts);
+        if (opts.proxy) authHeaderFallback = proxyAuthHeader(opts.proxy);
+        return b;
+      };
+
+      if (opts.proxy) {
+        try {
+          browser = await launchWithNativeAuth();
+        } catch (err) {
+          if (isProxyAuthUnsupported(err)) {
+            browser = await launchWithHeaderAuth();
+          } else {
+            throw err;
+          }
+        }
+      } else {
+        browser = await launchWithNativeAuth();
+      }
+
       const context = await browser.newContext({
         locale: opts.locale ?? 'en-US',
         ...(opts.userAgent ? { userAgent: opts.userAgent } : {}),
+        ...(authHeaderFallback ? { extraHTTPHeaders: authHeaderFallback } : {}),
       });
       const navTimeout = opts.navigationTimeoutMs ?? 30_000;
 
@@ -103,4 +160,21 @@ export function createPlaywrightDriver(opts: PlaywrightDriverOptions = {}): Brow
       return session;
     },
   };
+}
+
+/**
+ * True when a launch error is the Chromium authenticated-proxy failure class.
+ * Chromium's command-line proxy cannot always negotiate Basic auth and surfaces
+ * ERR_PROXY_AUTH_UNSUPPORTED (or an ERR_PROXY_CONNECTION_FAILED / net::ERR_… with
+ * proxy-auth context). We match defensively on the message.
+ */
+function isProxyAuthUnsupported(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return /ERR_PROXY_AUTH_UNSUPPORTED|PROXY_AUTH|ERR_PROXY_CONNECTION_FAILED/i.test(msg);
+}
+
+/** Build the extraHTTPHeaders map carrying Proxy-Authorization for the fallback. */
+function proxyAuthHeader(proxy: ProxyConfig): Record<string, string> | undefined {
+  const basic = proxyBasicAuth(proxy);
+  return basic ? { 'Proxy-Authorization': basic } : undefined;
 }

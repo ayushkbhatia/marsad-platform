@@ -14,8 +14,11 @@ import {
   mapTdwlRow,
   tdwlQuotes,
   tdwlNomuQuotes,
+  tdwlSaudiExchangeQuotes,
+  tdwlNomuSaudiExchangeQuotes,
   TDWL_QUOTES_PARSER_VERSION,
 } from "../quotes.js";
+import { mubasherTdwlQuotes } from "../../mubasher/tdwl-quotes.js";
 import { makeSnapshot, makeSource, makeCtx, FakeBrowserClient, rawResponse } from "./support.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -104,13 +107,22 @@ test("empty board is valid (zero rows, no throw) — PARSE_DRIFT is the harness'
   assert.equal(rows.length, 0);
 });
 
-test("Nomu task shares the same pure parser (identical output on same bytes)", () => {
-  const body = readFileSync(FIXTURE);
-  const snap = makeSnapshot({ venue: "TDWL", dataType: "quotes", body });
-  assert.deepEqual(tdwlNomuQuotes.parse(snap), tdwlQuotes.parse(snap));
+test("production tdwlQuotes IS the Mubasher-backed task (GROUND TRUTH #3: saudiexchange.sa parked)", () => {
+  // The TDWL adapter's `quotes` slot must resolve to Mubasher — saudiexchange.sa is Akamai-blocked.
+  assert.equal(tdwlQuotes, mubasherTdwlQuotes);
+  assert.equal(tdwlNomuQuotes, mubasherTdwlQuotes);
 });
 
-test("fetch: uses browser (not http), bootstraps, snapshots raw bytes verbatim", async () => {
+test("PARKED Nomu task shares the same pure parser (identical output on same bytes)", () => {
+  const body = readFileSync(FIXTURE);
+  const snap = makeSnapshot({ venue: "TDWL", dataType: "quotes", body });
+  assert.deepEqual(
+    tdwlNomuSaudiExchangeQuotes.parse(snap),
+    tdwlSaudiExchangeQuotes.parse(snap),
+  );
+});
+
+test("PARKED fetch: uses browser (not http), bootstraps, snapshots raw bytes verbatim", async () => {
   const jsonBody = readFileSync(FIXTURE);
   const browser = new FakeBrowserClient("https://tdwl.test/action/NJ...=/?_={epochMs}", [
     rawResponse({ url: "https://tdwl.test/action/resolved", body: jsonBody, contentType: "text/html" }),
@@ -128,7 +140,7 @@ test("fetch: uses browser (not http), bootstraps, snapshots raw bytes verbatim",
     },
   });
   const ctx = makeCtx({ source, browser });
-  const results = await tdwlQuotes.fetch(ctx);
+  const results = await tdwlSaudiExchangeQuotes.fetch(ctx);
 
   assert.equal(browser.bootstrapCalls, 1);
   assert.equal(results.length, 1);
@@ -140,7 +152,7 @@ test("fetch: uses browser (not http), bootstraps, snapshots raw bytes verbatim",
   assert.equal(parseTdwlQuotes(snap).rows.length, 2);
 });
 
-test("fetch: a persistent WAF challenge propagates as a WAF_CHALLENGE FetchError", async () => {
+test("PARKED fetch: a persistent WAF challenge propagates as a WAF_CHALLENGE FetchError", async () => {
   // The real BrowserClient.get already does the one-free-retry + re-bootstrap internally and throws
   // WAF_CHALLENGE if still blocked; the adapter must NOT swallow it (the harness maps the class).
   const browser = new FakeBrowserClient("https://tdwl.test/resolved", [
@@ -155,14 +167,14 @@ test("fetch: a persistent WAF challenge propagates as a WAF_CHALLENGE FetchError
       actionDiscovery: { navigateUrl: "https://x.test", extract: "datatable_ajax" },
     },
   });
-  await assert.rejects(() => tdwlQuotes.fetch(makeCtx({ source, browser })), (err: unknown) => {
+  await assert.rejects(() => tdwlSaudiExchangeQuotes.fetch(makeCtx({ source, browser })), (err: unknown) => {
     assert.equal((err as { errorClass?: string }).errorClass, "WAF_CHALLENGE");
     return true;
   });
 });
 
-test("fetch: throws when source lacks actionDiscovery config", async () => {
+test("PARKED fetch: throws when source lacks actionDiscovery config", async () => {
   const browser = new FakeBrowserClient("https://x", []);
   const source = makeSource({ id: 12, venue: "TDWL", dataType: "quotes", endpointConfig: { responseKind: "json" } });
-  await assert.rejects(() => tdwlQuotes.fetch(makeCtx({ source, browser })), /no endpoint_config.actionDiscovery/);
+  await assert.rejects(() => tdwlSaudiExchangeQuotes.fetch(makeCtx({ source, browser })), /no endpoint_config.actionDiscovery/);
 });

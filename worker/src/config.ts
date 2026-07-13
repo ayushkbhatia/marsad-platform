@@ -22,6 +22,19 @@ export interface WorkerConfig {
   healthcheckPingIntervalMs: number;
   /** Max time to wait for in-flight handlers on SIGTERM before forcing exit. */
   shutdownGraceMs: number;
+  /**
+   * ingest.job_queue poller (scheduler→worker bridge, 01 §4.1):
+   *  - ingestPollIntervalMs: how long to wait between claim cycles when the last
+   *    cycle did NOT fill a full batch (idle). ~15s per 01 §4.1.
+   *  - ingestBatchSize: rows claimed per cycle. A full batch loops again with no
+   *    wait so a backlog clears promptly.
+   *  - ingestConcurrency: max jobs run in parallel per batch. Caps at the
+   *    framework's global fetch concurrency ceiling (CONTRACT §5, ≤4); the
+   *    per-host ≤1 req/s budget is enforced inside the ingestion fetcher.
+   */
+  ingestPollIntervalMs: number;
+  ingestBatchSize: number;
+  ingestConcurrency: number;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): WorkerConfig {
@@ -40,6 +53,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): WorkerConfig {
     heartbeatIntervalMs: intFromEnv(env.HEARTBEAT_INTERVAL_MS, 30_000),
     healthcheckPingIntervalMs: intFromEnv(env.HEALTHCHECK_PING_INTERVAL_MS, 300_000),
     shutdownGraceMs: intFromEnv(env.SHUTDOWN_GRACE_MS, 30_000),
+    ingestPollIntervalMs: intFromEnv(env.INGEST_POLL_INTERVAL_MS, 15_000),
+    ingestBatchSize: intFromEnv(env.INGEST_BATCH_SIZE, 20),
+    ingestConcurrency: intFromEnv(env.INGEST_CONCURRENCY, 4),
   };
 }
 

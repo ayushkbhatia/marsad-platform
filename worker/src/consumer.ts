@@ -90,19 +90,34 @@ export function startQueueConsumer(
 
   async function processMessage(msg: PgmqMessage): Promise<void> {
     const msgLog = log.child({ msgId: msg.msg_id, readCt: msg.read_ct });
-    const handlerName =
-      typeof msg.message?.handler === "string" ? (msg.message.handler as string) : undefined;
+    const handlerName = resolveHandlerName(msg.message);
 
     const handler = handlerName ? resolveHandler(handlerName) : undefined;
 
+    // Poison handling (P1 fix): a message with no matching registered handler —
+    // whether it names an unknown handler, uses the `task` alias for a stage we
+    // have not built yet (pg_cron enqueues {"task":"notify_drain"} for future
+    // phases), or carries no handler/task key at all — must NOT throw. Throwing
+    // leaves the message invisible and pgmq redelivers it every vt (600s) until
+    // it hits MAX_READ_CT, i.e. an infinite-redelivery poison loop (180+ failures
+    // observed on q_dispatch). Instead we ARCHIVE it immediately with a WARN, so
+    // an unrecognized envelope is parked in the archive ledger for the Desk to
+    // inspect rather than poisoning the queue. This is deliberately NOT an
+    // ops.incidents error — a not-yet-built handler is expected, not a fault.
+    if (!handler) {
+      await ignoreErrors(msgLog, "archive unhandled message", async () => {
+        await sql`select pgmq.archive(${queue}, ${msg.msg_id}::bigint)`;
+      });
+      msgLog.warn("archived message with no registered handler", {
+        handler: handlerName,
+        // A tiny, bounded fingerprint of the body so the log explains WHAT was
+        // archived without dumping an arbitrarily large payload.
+        envelope: describeEnvelope(msg.message),
+      });
+      return;
+    }
+
     try {
-      if (!handler) {
-        throw new Error(
-          handlerName
-            ? `no handler registered for '${handlerName}'`
-            : "message has no 'handler' key",
-        );
-      }
       const ctx: HandlerContext = {
         sql,
         log: msgLog,
@@ -111,7 +126,9 @@ export function startQueueConsumer(
         msgId: msg.msg_id,
         readCt: msg.read_ct,
       };
-      const { handler: _h, ...payload } = msg.message;
+      // Strip BOTH envelope keys (`handler` canonical, `task` alias) so the
+      // handler always receives a clean payload regardless of which key named it.
+      const { handler: _h, task: _t, ...payload } = msg.message;
       await handler(payload, ctx);
 
       // Success: archive (not delete) — the archive table is the processing
@@ -154,6 +171,30 @@ export function startQueueConsumer(
       stopping = true;
     },
   };
+}
+
+/**
+ * Resolve the handler name from a message envelope. Canonical convention is a
+ * `handler` key (CONTRACT §9); `task` is accepted as an ALIAS so that pg_cron
+ * jobs that enqueue {"task":"…"} for not-yet-built stages are recognized (and,
+ * when no handler is registered, archived rather than looped — see
+ * processMessage). `handler` wins if both are present.
+ */
+function resolveHandlerName(message: MessagePayload | undefined): string | undefined {
+  if (!message) return undefined;
+  if (typeof message.handler === "string") return message.handler;
+  if (typeof message.task === "string") return message.task;
+  return undefined;
+}
+
+/**
+ * A short, bounded description of an unrecognized envelope for the WARN log —
+ * enough to see WHAT was archived without dumping an arbitrarily large body.
+ */
+function describeEnvelope(message: MessagePayload | undefined): string {
+  if (message == null || typeof message !== "object") return String(message);
+  const keys = Object.keys(message);
+  return keys.length ? `keys: ${keys.slice(0, 12).join(",")}` : "empty object";
 }
 
 function errText(err: unknown): string {

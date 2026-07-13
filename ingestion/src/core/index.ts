@@ -7,8 +7,25 @@ export * from './types.js';
 export { loadConfig, type IngestionConfig } from './config.js';
 export { createDb, type Sql } from './db.js';
 
+// Proxy (per-source outbound proxy support)
+export {
+  parseProxyFromEnv,
+  parseProxyUrl,
+  sourceUsesProxy,
+  resolveProxyForSource,
+  resolveProxyOrThrow,
+  proxyToUrl,
+  proxyBasicAuth,
+  type ProxyConfig,
+} from './proxy.js';
+
 // Transport
-export { createHttpClient, parseRetryAfter, type HttpClientOptions } from './fetcher.js';
+export {
+  createHttpClient,
+  parseRetryAfter,
+  makeProxiedTransport,
+  type HttpClientOptions,
+} from './fetcher.js';
 export {
   createBrowserClient,
   type BrowserClientOptions,

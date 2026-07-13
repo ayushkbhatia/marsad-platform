@@ -66,6 +66,14 @@ export interface EndpointConfig {
     extract: 'datatable_ajax' | 'network_capture'; // how to obtain the real XHR URL at runtime
     responseUrlPattern?: string; // regex the captured response URL must match
   };
+  /**
+   * When true, this source egresses through the configured outbound proxy
+   * (IPRoyal GCC residential — creds read from env, NEVER hardcoded here). Set on
+   * BHB sources whose official origin is IP-geofenced/Akamai-blocked from the
+   * plain VPS IP (0020_bhb_proxy). TDWL uses the Mubasher aggregator and needs no
+   * proxy. Absent/false ⇒ direct egress. See core/proxy.ts.
+   */
+  use_proxy?: boolean;
   responseKind: 'json' | 'html' | 'txt_json' | 'xlsx' | 'pdf';
 }
 

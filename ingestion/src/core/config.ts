@@ -5,6 +5,8 @@
  * key (documented least-privilege exception, bucket-write only — 01 §3.1).
  */
 
+import { parseProxyFromEnv, type ProxyConfig } from './proxy.js';
+
 export interface IngestionConfig {
   /** marsad_worker role connection string (Supavisor session pooler, IPv4). */
   dbUrl: string;
@@ -29,6 +31,18 @@ export interface IngestionConfig {
   inlineMaxBytes: number;
   /** Storage bucket for raw scraped bytes. */
   rawBucket: string;
+  /**
+   * Outbound proxy resolved from env (IPROYAL_PROXY_URL / PROXY_URL, or split
+   * PROXY_SERVER+PROXY_USERNAME+PROXY_PASSWORD). undefined ⇒ no proxy configured.
+   * Applied ONLY to sources whose endpoint_config.use_proxy is true — the worker
+   * calls core/proxy.resolveProxyForSource(source, env) per source, so this is the
+   * pre-parsed convenience handle, not an unconditional egress override. Creds are
+   * NEVER hardcoded; the owner sets them in the VPS worker.env.
+   *
+   * Optional so pre-existing synthesized-config paths (runtime.ts worker path)
+   * that omit it stay valid — an absent field means the same as "no proxy".
+   */
+  proxy?: ProxyConfig | undefined;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): IngestionConfig {
@@ -49,6 +63,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): IngestionConfi
     defaultTimeoutMs: intFromEnv(env.INGEST_DEFAULT_TIMEOUT_MS, 20_000),
     inlineMaxBytes: intFromEnv(env.INGEST_INLINE_MAX_BYTES, 32_768),
     rawBucket: env.INGEST_RAW_BUCKET || 'lake-raw',
+    proxy: parseProxyFromEnv(env),
   };
 }
 

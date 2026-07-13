@@ -1,7 +1,21 @@
 // ingestion/src/adapters/tdwl/quotes.ts
 //
-// TDWL (Saudi Exchange / Tadawul) quotes TaskSpec — Main market + Nomu (parallel market).
+// TDWL (Saudi Exchange / Tadawul) quotes.
 //
+// ┌─ PRODUCTION PATH (owner hybrid decision, GROUND TRUTH #3) ────────────────────────────────────┐
+// │ The exported `tdwlQuotes` TaskSpec — the one the TDWL VenueAdapter's `quotes` slot mounts and  │
+// │ the worker runs for (TDWL, quotes) — is the MUBASHER-backed task (adapters/mubasher). The      │
+// │ official saudiexchange.sa portal is Akamai-IP-blocked for every IP we can reach it from, so    │
+// │ the direct WAF-bootstrap path below CANNOT run in production. We source delayed Saudi quotes    │
+// │ from the Mubasher aggregator instead (plain http, no proxy). The matching ingest.sources        │
+// │ 'quotes' row is repointed to the Mubasher endpoint by migration 20260713000019.                 │
+// └─────────────────────────────────────────────────────────────────────────────────────────────┘
+//
+// The saudiexchange.sa http_bootstrap path is PARKED (not deleted) as `tdwlSaudiExchangeQuotes` +
+// its pure parser/helpers, so it can be revived the day the Akamai block lifts (or we get an
+// allow-listed IP) with a one-line adapter change + a source repoint — no rewrite.
+//
+// ── PARKED PATH NOTES (saudiexchange.sa, Akamai-WAF'd) ──────────────────────────────────────────
 // Transport: http_bootstrap (Playwright request-context). saudiexchange.sa is Akamai-WAF'd and
 // returns 403 to any plain HTTP client (curl/undici) regardless of UA — confirmed in
 // docs/architecture/P1-recon-findings.md. It loads under a real headless Chromium even from a
@@ -40,6 +54,7 @@ import type {
   TaskSpec,
   VenueCode,
 } from "../../core/types.js";
+import { mubasherTdwlQuotes } from "../mubasher/tdwl-quotes.js";
 
 const VENUE: VenueCode = "TDWL";
 
@@ -338,13 +353,13 @@ export function browserOpts(
 }
 
 // ---------------------------------------------------------------------------
-// TaskSpec exports. Main market and Nomu share the SAME parser and fetch mechanism; they are
-// distinct ingest.sources rows (different endpoint_config.actionDiscovery action id), so the
-// adapter exposes one quotes task and the Nomu row simply points its own source at it. Both are
-// surfaced for clarity and for the adapter's `quotes` slot + a named Nomu export.
+// PARKED saudiexchange.sa TaskSpec. Kept for the day the Akamai IP block lifts; NOT wired into the
+// production TDWL adapter (see the production-path banner at the top of this file). Main market and
+// Nomu share the SAME parser + fetch mechanism (distinct ingest.sources rows differing only by
+// endpoint_config.actionDiscovery action id). Exported so a future repoint is a one-line change.
 // ---------------------------------------------------------------------------
 
-export const tdwlQuotes: TaskSpec<NormalizedQuote> = {
+export const tdwlSaudiExchangeQuotes: TaskSpec<NormalizedQuote> = {
   dataType: "quotes",
   parserVersion: TDWL_QUOTES_PARSER_VERSION,
   fetch: fetchTdwlBoard,
@@ -352,14 +367,22 @@ export const tdwlQuotes: TaskSpec<NormalizedQuote> = {
 };
 
 /**
- * Nomu (parallel market) variant. Identical shape/parser — the ONLY difference is the
- * ingest.sources row it is driven by (its endpoint_config.actionDiscovery resolves the Nomu
- * sibling action instead of the main-market action). Kept as a separate export so the seed /
- * worker can wire a Nomu source to a clearly-named task.
+ * Nomu (parallel market) variant of the PARKED saudiexchange.sa path. Identical shape/parser — the
+ * ONLY difference is the ingest.sources row it is driven by. Also parked (Akamai-blocked).
  */
-export const tdwlNomuQuotes: TaskSpec<NormalizedQuote> = {
+export const tdwlNomuSaudiExchangeQuotes: TaskSpec<NormalizedQuote> = {
   dataType: "quotes",
   parserVersion: TDWL_QUOTES_PARSER_VERSION,
   fetch: fetchTdwlBoard,
   parse: parseTdwlQuotes,
 };
+
+// ---------------------------------------------------------------------------
+// PRODUCTION TaskSpec exports. `tdwlQuotes` is the Mubasher-backed task (GROUND TRUTH #3) — this is
+// what the TDWL VenueAdapter mounts and the worker runs for (TDWL, quotes). `tdwlNomuQuotes` aliases
+// it too: Mubasher's country=sa board already includes Nomu (parallel-market) tickers, so there is
+// no separate Nomu fetch. The saudiexchange.sa path stays parked above.
+// ---------------------------------------------------------------------------
+
+export const tdwlQuotes: TaskSpec<NormalizedQuote> = mubasherTdwlQuotes;
+export const tdwlNomuQuotes: TaskSpec<NormalizedQuote> = mubasherTdwlQuotes;
