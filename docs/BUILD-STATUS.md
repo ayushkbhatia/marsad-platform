@@ -68,12 +68,12 @@ The scariest unknown — reaching the exchanges — is resolved. Findings:
 
 ## 5. Next-phase roadmap
 
-### ▶ NEXT: P1.5 — Activate & Tune (short)
-- Provider-aware ingestion routing → flip Yahoo sources `active=true`
-- Fix QE/ADX/BHB/TDWL filings endpoints
-- Verify snapshot → VERIFIED lake object flow end-to-end
-- Market-open validation (all venue quotes, freshness state machine over 5 trading days)
-- Kick off ≥2y OHLCV backfill via Yahoo
+### P1.5 — Activate & Tune (~80% done)
+- ✅ Provider-aware routing → Yahoo activated (2nd cross-check source + backfill)
+- ✅ ADX endpoint discovered + filings working end-to-end (fetch → cross-check → lake.objects)
+- ✅ Cross-check wired (pg_cron sweep, migration 0026) — staged rows → VERIFIED/PENDING lake objects
+- ✅ BrowserClient `direct` mode (reusable WAF-venue capability)
+- ⏳ Remaining: `public.filings` publish path (detail-fetch + single-source publish rule); QE/BHB/DFM/MSX filings tuning; Tue market-open live-quote validation (2-source VERIFIED path); ≥2y backfill kickoff. See `memory/marsad-next-session.md`.
 
 ### P2 — Reader core on real data (~4 wks)
 Ledger, 812 stock pages, newswire, screener, heatmap, search, SEO — all from the live lake, CDN-cached anonymous browsing. (Master plan P2.)
