@@ -1,0 +1,57 @@
+# Supabase CLI local-dev config for Marsad (linked project: yjsncnpbjuueaoeejrqj).
+# Minimal on purpose — production settings live in the Supabase dashboard.
+
+project_id = "marsad-platform"
+
+[api]
+enabled = true
+port = 54321
+# Only public/graphql_public are ever exposed through PostgREST (02 §1).
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[studio]
+enabled = true
+port = 54323
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000"]
+jwt_expiry = 3600
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+
+# Stamps plan_tier / desk_role / principal_id into every JWT (02 §19 D9, 05 §2.2).
+# On hosted: enable the same function under Auth → Hooks in the dashboard.
+[auth.hook.custom_access_token]
+enabled = true
+uri = "pg-functions://postgres/public/custom_access_token_hook"
+
+[realtime]
+enabled = true
+
+[analytics]
+enabled = false
+
+[edge_runtime]
+# No Edge Functions by architecture decision (06 §5 / 02 Revisions) — the VPS
+# worker consumes pgmq; keep the runtime off locally.
+enabled = false

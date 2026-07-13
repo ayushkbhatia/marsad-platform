@@ -1,0 +1,40 @@
+# /etc/systemd/system/marsad-worker.service
+# The single resident worker process (06-infra-cost.md §3). Also embedded in
+# infra/cloud-init.yaml — keep the two copies in sync.
+
+[Unit]
+Description=Marsad worker (pgmq consumers, scrapers, agent pipeline)
+Documentation=https://github.com/OWNER/Marsad-Platform/tree/main/worker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=deploy
+Group=deploy
+WorkingDirectory=/opt/marsad/worker
+EnvironmentFile=/etc/marsad/worker.env
+ExecStart=/usr/bin/node dist/index.js
+Restart=always
+RestartSec=5
+
+# Graceful drain: SIGTERM, then up to 45s (worker's own grace is 30s) before SIGKILL.
+KillSignal=SIGTERM
+TimeoutStopSec=45
+
+# journald captures the worker's JSON stdout logs.
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=marsad-worker
+
+# Hardening (kept light — Playwright/Chromium will need /tmp and network).
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+
+# 4 GB box: cap the worker below the point where the OOM killer picks Chromium's parent.
+MemoryMax=3G
+
+[Install]
+WantedBy=multi-user.target

@@ -1,26 +1,166 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+ * Marsad design tokens — source of truth: src/styles/design-tokens.json
+ * (v1.0, checked in from the design handoff bundle, 135-screen extraction).
+ * The JSON is reference-only — nothing consumes it at build time — but this
+ * @theme block MUST be kept in sync with it; diff against it when editing.
+ *
+ * System: near-monochrome ink-and-paper editorial. Color is reserved for
+ * price direction (positive/negative), one caution amber for data freshness
+ * (never price), and structural black. Square corners everywhere; only
+ * avatars/toggle-knobs/dots may be circular (rounded-full still works — the
+ * utilities layer beats the base-layer radius reset).
+ */
 
+/* Font tokens live in `@theme inline` so Tailwind inlines the var() chain
+   into each font-* utility instead of resolving it on :root. The
+   --font-newsreader / --font-libre-franklin / --font-plex-mono vars are
+   injected by src/lib/fonts.ts (next/font) on whatever element carries the
+   font classes — <html> once the orchestrator wires layout.tsx, <main> on
+   /styleguide today. Resolving on :root (a plain @theme) would compute to
+   guaranteed-invalid there and poison the entire font-family declaration. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-newsreader), "Newsreader", Georgia, "Times New Roman", serif;
+  --font-ui: var(--font-libre-franklin), "Libre Franklin", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: var(--font-libre-franklin), "Libre Franklin", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@theme {
+  /* Ink scale (light surfaces) */
+  --color-ink: #14120e;
+  --color-ink-soft: #26241f;
+  --color-ink-mid: #33302a;
+  --color-ink-muted: #57534a;
+  --color-ink-faint: #8a857a;
+
+  /* Hairlines (light surfaces) */
+  --color-hairline-strong: #cfcabe;
+  --color-hairline: #dcd8cc;
+  --color-hairline-soft: #e3dfd4;
+  --color-hairline-faint: #efece3;
+
+  /* Paper */
+  --color-paper: #fdfcf9;
+  --color-paper-tint: #f6f4ee;
+
+  /* Direction — light surfaces */
+  --color-positive: #0a7a3c;
+  --color-negative: #c0342b;
+  /* Direction — dark data-room surfaces */
+  --color-positive-dark: #4fc47f;
+  --color-negative-dark: #e8685f;
+  /* Solid fill behind Buy-family badges (DC specimens use a deeper green
+     than --color-positive so light text stays AA on the fill) */
+  --color-positive-fill: #0f5f31;
+
+  /* Caution amber — freshness/degraded states ONLY, never price */
+  --color-caution: #c9a227;
+  --color-caution-text: #8a6d12;
+
+  /* Dark-room surfaces (heatmap, screener — always dark by surface, not by
+     user preference) */
+  --color-dark-bg: #131311;
+  --color-dark-panel: #1b1b18;
+  --color-dark-panel-alt: #1f1e1a;
+  --color-dark-hairline: #26261f;
+  --color-dark-hairline-soft: #2a2a24;
+  --color-dark-hairline-strong: #3a382f;
+  --color-dark-text: #f0ede2;
+  --color-dark-text-mid: #d8d4c8;
+  --color-dark-text-faint: #a8a396;
+
+  /* Heatmap sequential scale, −3% … +3%, dark data-room only */
+  --color-heatmap-1: #7a291f;
+  --color-heatmap-2: #5c261f;
+  --color-heatmap-3: #32241e;
+  --color-heatmap-4: #232e22;
+  --color-heatmap-5: #203a27;
+  --color-heatmap-6: #1a5c32;
+  --color-heatmap-7: #1c6b38;
+  --color-heatmap-8: #1f7a3f;
+  --color-heatmap-9: #1f8a45;
+
+  /* Type scale — representative steps of the handoff ranges */
+  --text-micro: 8px;
+  --text-micro--line-height: 1.3;
+  --text-micro--letter-spacing: 0.1em;
+  --text-caption: 10px;
+  --text-caption--line-height: 1.4;
+  --text-body-sm: 12px;
+  --text-body-sm--line-height: 1.5;
+  --text-body: 13.5px;
+  --text-body--line-height: 1.55;
+  --text-body-lg: 16px;
+  --text-body-lg--line-height: 1.65;
+  --text-heading-sm: 18px;
+  --text-heading-sm--line-height: 1.35;
+  --text-heading-sm--font-weight: 600;
+  --text-heading: 24px;
+  --text-heading--line-height: 1.25;
+  --text-heading--font-weight: 700;
+  --text-heading-lg: 34px;
+  --text-heading-lg--line-height: 1.15;
+  --text-heading-lg--letter-spacing: -0.01em;
+  --text-heading-lg--font-weight: 700;
+  --text-display: 46px;
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.015em;
+  --text-display--font-weight: 700;
+
+  /* Elevation */
+  --shadow-card-raised: 0 2px 14px rgba(20, 18, 14, 0.08);
+  --shadow-dropdown: 0 20px 50px rgba(20, 18, 14, 0.28);
+  --shadow-modal: 0 30px 80px rgba(20, 18, 14, 0.42);
+  --shadow-sheet-dark: -24px 0 60px rgba(20, 18, 14, 0.3);
+
+  /* Sharp-cornered system: remove the default radius scale so no builder
+     can reach for rounded-md by accident. rounded-full remains available
+     (it is not derived from this namespace). */
+  --radius-*: initial;
+}
+
+@layer base {
+  /* Square corners are the system default; circular elements opt back in
+     with rounded-full (utilities layer wins over base). */
+  *,
+  ::before,
+  ::after {
+    border-radius: 0;
+  }
+
+  body {
+    background-color: var(--color-paper-tint);
+    color: var(--color-ink);
+    /* Written out (not var(--font-ui)) so the static fallbacks apply even
+       where the next/font variable is not in scope; --font-libre-franklin
+       activates once layout.tsx carries the font classes. */
+    font-family:
+      var(--font-libre-franklin, "Libre Franklin"), "Libre Franklin",
+      "Helvetica Neue", Arial, sans-serif;
+  }
+
+  a {
+    text-underline-offset: 2px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Surface alias classes (04-reader-app.md §9.2): surface is a property of
+     the region a component sits on — data rooms are always dark, editorial
+     always light. No dark: variants, no ThemeProvider. */
+  .surface-light {
+    --c-bg: var(--color-paper);
+    --c-text: var(--color-ink);
+    background-color: var(--c-bg);
+    color: var(--c-text);
+  }
+
+  .surface-dark {
+    --c-bg: var(--color-dark-bg);
+    --c-text: var(--color-dark-text);
+    background-color: var(--c-bg);
+    color: var(--c-text);
+  }
 }

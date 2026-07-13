@@ -1,0 +1,232 @@
+{
+  "meta": {
+    "system": "Marsad — Gulf Markets Intelligence",
+    "principle": "Near-monochrome ink-and-paper editorial system. Color is reserved for price direction (green/red), one caution amber for data-freshness, and structural black. No rounded corners except circular avatars/pills/toggles.",
+    "version": "1.0 — extracted from 135-screen design system",
+    "note": "REFERENCE ONLY — checked in as the in-repo source of truth for the hand-maintained @theme block in src/app/globals.css. Not consumed at build time (no generator per P0 brief); diff globals.css against this file to detect drift."
+  },
+  "color": {
+    "ink": {
+      "value": "#14120e",
+      "usage": "Primary text, primary buttons/fills, rules, headlines"
+    },
+    "ink.soft": {
+      "value": "#26241f",
+      "usage": "Dark-surface secondary fills, hover backgrounds on dark"
+    },
+    "ink.mid": {
+      "value": "#33302a",
+      "usage": "Body copy on light surfaces, button hover fill"
+    },
+    "ink.muted": {
+      "value": "#57534a",
+      "usage": "Secondary text, meta labels, deks/subheads"
+    },
+    "ink.faint": {
+      "value": "#8a857a",
+      "usage": "Tertiary/mono labels, timestamps, placeholder-adjacent text"
+    },
+    "ink.hairline.strong": {
+      "value": "#cfcabe",
+      "usage": "Input borders, chip borders, disabled fills"
+    },
+    "ink.hairline": {
+      "value": "#dcd8cc",
+      "usage": "Standard dividing rules, card borders"
+    },
+    "ink.hairline.soft": {
+      "value": "#e3dfd4",
+      "usage": "Row dividers within dense tables"
+    },
+    "ink.hairline.faint": {
+      "value": "#efece3",
+      "usage": "Lightest row dividers, list separators"
+    },
+    "paper": {
+      "value": "#fdfcf9",
+      "usage": "Card/content background, input fill"
+    },
+    "paper.tint": {
+      "value": "#f6f4ee",
+      "usage": "Page background, tinted panels/callouts, hover row fill"
+    },
+    "positive": {
+      "value": "#0a7a3c",
+      "usage": "Price up, gains, buy ratings, positive deltas (light surfaces)"
+    },
+    "negative": {
+      "value": "#c0342b",
+      "usage": "Price down, losses, sell/halt, negative deltas (light surfaces)"
+    },
+    "positive.dark": {
+      "value": "#4fc47f",
+      "usage": "Positive values on dark data-room surfaces"
+    },
+    "negative.dark": {
+      "value": "#e8685f",
+      "usage": "Negative values on dark data-room surfaces"
+    },
+    "caution": {
+      "value": "#c9a227",
+      "usage": "Freshness/degraded states only — reconnecting, delayed, auction, stale, halted-adjacent. Never used for price."
+    },
+    "caution.text": {
+      "value": "#8a6d12",
+      "usage": "Caution text on light backgrounds (AA contrast)"
+    },
+    "dark.bg": {
+      "value": "#131311",
+      "usage": "Data-room background (heatmap, screener)"
+    },
+    "dark.panel": {
+      "value": "#1b1b18",
+      "usage": "Data-room raised panel / bottom sheet"
+    },
+    "dark.panel.alt": {
+      "value": "#1f1e1a",
+      "usage": "Data-room row background alt"
+    },
+    "dark.hairline": {
+      "value": "#26261f",
+      "usage": "Data-room dividers"
+    },
+    "dark.hairline.soft": {
+      "value": "#2a2a24",
+      "usage": "Data-room secondary dividers, track backgrounds"
+    },
+    "dark.hairline.strong": {
+      "value": "#3a382f",
+      "usage": "Data-room borders, input borders"
+    },
+    "dark.text": {
+      "value": "#f0ede2",
+      "usage": "Primary text on dark"
+    },
+    "dark.text.mid": {
+      "value": "#d8d4c8",
+      "usage": "Secondary text on dark"
+    },
+    "dark.text.faint": {
+      "value": "#a8a396",
+      "usage": "Tertiary text on dark"
+    },
+    "heatmap.scale": {
+      "value": [
+        "#7a291f",
+        "#5c261f",
+        "#32241e",
+        "#232e22",
+        "#203a27",
+        "#1a5c32",
+        "#1c6b38",
+        "#1f7a3f",
+        "#1f8a45"
+      ],
+      "usage": "Sequential −3%…+3% intensity scale, dark data-room only"
+    }
+  },
+  "typography": {
+    "family.display": {
+      "value": "'Newsreader', serif",
+      "usage": "Headlines, hero numerals (Score), editorial pull-quotes. Weights 400–800, optical sizing on."
+    },
+    "family.ui": {
+      "value": "'Libre Franklin', sans-serif",
+      "usage": "Body copy, UI labels, buttons, form fields. Weights 300–800."
+    },
+    "family.mono": {
+      "value": "'IBM Plex Mono', monospace",
+      "usage": "Tickers, prices, timestamps, eyebrow labels, data tables. Weights 400–600."
+    },
+    "scale": {
+      "micro": {
+        "size": "7.5–8.5px",
+        "family": "mono",
+        "letterSpacing": "0.06–0.14em",
+        "usage": "Eyebrow labels, column headers, badges"
+      },
+      "caption": {
+        "size": "9–10.5px",
+        "family": "mono or ui",
+        "usage": "Meta text, timestamps, secondary labels"
+      },
+      "body.sm": {
+        "size": "11–12.5px",
+        "family": "ui",
+        "lineHeight": 1.5,
+        "usage": "Table cells, dense copy, card body"
+      },
+      "body": {
+        "size": "13–14px",
+        "family": "ui or display",
+        "lineHeight": 1.55,
+        "usage": "Standard paragraph copy"
+      },
+      "body.lg": {
+        "size": "15–17px",
+        "family": "display",
+        "lineHeight": 1.65,
+        "usage": "Article body, lead deks"
+      },
+      "heading.sm": {
+        "size": "16–19px",
+        "family": "display",
+        "weight": 600,
+        "usage": "Card titles, section subheads"
+      },
+      "heading": {
+        "size": "21–27px",
+        "family": "display",
+        "weight": 700,
+        "usage": "Page/section titles"
+      },
+      "heading.lg": {
+        "size": "30–38px",
+        "family": "display",
+        "weight": 700,
+        "letterSpacing": "-0.01 to -0.015em",
+        "usage": "Front-page headlines, hero numbers"
+      },
+      "display": {
+        "size": "41–52px",
+        "family": "display",
+        "weight": 700,
+        "letterSpacing": "-0.015em",
+        "usage": "Lead story headline, splash wordmark"
+      }
+    }
+  },
+  "spacing": {
+    "scale": [
+      4,
+      8,
+      12,
+      16,
+      20,
+      24,
+      28,
+      32,
+      40,
+      48,
+      60
+    ],
+    "note": "Recommended 4px-base scale for new engineering work. Existing screens use organic intermediate values (e.g. 6, 7, 9, 14, 18, 22, 26, 30, 34) as micro-adjustments — treat those as acceptable one-off refinements, not new scale steps."
+  },
+  "radius": {
+    "default": "0px",
+    "circular": "50% — avatars, toggle knobs, bullet dots, radio buttons",
+    "note": "Deliberately sharp-cornered system (newspaper aesthetic). Do not introduce card/button border-radius."
+  },
+  "shadow": {
+    "card.rest": "none",
+    "card.raised": "0 2px 14px rgba(20,18,14,.08)",
+    "dropdown": "0 20px 50px rgba(20,18,14,.28)",
+    "modal": "0 30px 80px rgba(20,18,14,.42)",
+    "sheet.dark": "-24px 0 60px rgba(20,18,14,.3)"
+  },
+  "motion": {
+    "hover.transition": "background/border/transform, ~120–160ms ease (implicit — not currently time-coded in specimens)",
+    "shimmer": "1.4s ease-in-out infinite, opacity .5→1→.5 (loading skeleton)",
+    "flash.tick": "brief highlight (~600ms suggested) on live value update — not yet time-coded"
+  }
+}

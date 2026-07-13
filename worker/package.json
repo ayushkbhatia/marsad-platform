@@ -1,0 +1,24 @@
+{
+  "name": "marsad-worker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Marsad VPS worker: pgmq consumers, scrapers, agent pipeline, dispatch (06-infra-cost.md section 3)",
+  "type": "module",
+  "engines": {
+    "node": ">=22.9"
+  },
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=.env src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "postgres": "^3.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

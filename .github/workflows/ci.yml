@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Cancel superseded runs on the same branch — CI minutes are part of the
+# cheapest-possible budget (06-infra-cost.md §7.2).
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Detects what changed / what exists so expensive jobs only run when needed.
+  # Per 06-infra-cost.md Revisions #11, the Supabase local-stack job runs only
+  # when supabase/** (or the RLS assertion script) is touched, to stay inside
+  # the 2,000 free Actions minutes.
+  changes:
+    name: detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      db: ${{ steps.filter.outputs.db }}
+      worker-exists: ${{ steps.exists.outputs.worker }}
+      supabase-exists: ${{ steps.exists.outputs.supabase }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            db:
+              - 'supabase/**'
+              - 'scripts/assert-rls.sql'
+              - '.github/workflows/ci.yml'
+      # Existence guards keep CI green while sibling modules (worker/, supabase/)
+      # are still being bootstrapped by other builders. The worker gate keys on
+      # the lockfile (not package.json) because both `npm ci` and the
+      # setup-node npm cache hard-fail without worker/package-lock.json.
+      - id: exists
+        run: |
+          echo "worker=$([[ -f worker/package-lock.json ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "supabase=$([[ -f supabase/config.toml ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+  web:
+    name: web (tsc + lint + next build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run lint
+      - name: next build
+        # Dummy values (same names as .env.example) — the build must never
+        # require real secrets; runtime values come from Vercel env vars.
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://dummy-project.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key-for-ci-build-only
+        run: npm run build
+
+  worker:
+    name: worker (tsc)
+    needs: changes
+    if: needs.changes.outputs.worker-exists == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: worker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: worker/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+
+  db:
+    name: db (migrations from scratch + RLS assertions)
+    needs: changes
+    if: needs.changes.outputs.db == 'true' && needs.changes.outputs.supabase-exists == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start local Postgres
+        run: supabase db start
+      - name: Apply every migration + seed from scratch
+        # Catches broken/reordered migrations before they ever meet prod
+        # (06-infra-cost.md §10.1 step 3).
+        run: supabase db reset
+      - name: Assert RLS coverage
+        # assert-rls.sql RAISEs on any public table without RLS; ON_ERROR_STOP
+        # turns that exception into a non-zero exit and fails the job.
+        env:
+          LOCAL_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+        run: psql "$LOCAL_DB_URL" -v ON_ERROR_STOP=1 -f scripts/assert-rls.sql

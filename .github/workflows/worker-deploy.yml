@@ -1,0 +1,93 @@
+name: Worker Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "worker/**"
+      # Shared TS (LLM gateway, entity types) is compiled into the worker
+      # (06-infra-cost.md §3.1), so changes there must redeploy it too.
+      - "src/lib/shared/**"
+      - "src/lib/llm/**"
+      - ".github/workflows/worker-deploy.yml"
+
+# One deploy at a time; never cancel a restart mid-flight.
+concurrency:
+  group: worker-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  # Secrets are not readable inside job-level `if:` expressions, so a tiny
+  # preflight job exports "configured" as an output. Until the owner provisions
+  # the VPS and sets VPS_HOST / VPS_SSH_KEY, the workflow skips gracefully
+  # instead of failing every push to main.
+  preflight:
+    name: check VPS secrets
+    runs-on: ubuntu-latest
+    outputs:
+      configured: ${{ steps.check.outputs.configured }}
+    steps:
+      - id: check
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          if [[ -n "$VPS_HOST" && -n "$VPS_SSH_KEY" ]]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::VPS_HOST / VPS_SSH_KEY secrets not set — VPS not provisioned yet; skipping worker deploy."
+          fi
+
+  deploy:
+    name: deploy to VPS
+    needs: preflight
+    if: needs.preflight.outputs.configured == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install SSH key
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/marsad_deploy
+          chmod 600 ~/.ssh/marsad_deploy
+
+      - name: Build and restart marsad-worker on VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          # Optional overrides; defaults match the cloud-init recipe.
+          VPS_USER: ${{ secrets.VPS_USER || 'root' }}
+          APP_DIR: ${{ vars.VPS_APP_DIR || '/opt/marsad-platform' }}
+          DEPLOY_SHA: ${{ github.sha }}
+        # Deploys the exact workflow SHA (not branch tip) so "rollback =
+        # re-run this workflow on the previous commit" holds.
+        # Full `npm ci` first because the TypeScript build needs devDependencies;
+        # `npm prune --omit=dev` afterwards leaves a production-only node_modules.
+        run: |
+          ssh -i ~/.ssh/marsad_deploy \
+              -o StrictHostKeyChecking=accept-new \
+              -o ConnectTimeout=15 \
+              "$VPS_USER@$VPS_HOST" \
+              APP_DIR="$APP_DIR" DEPLOY_SHA="$DEPLOY_SHA" 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          cd "$APP_DIR"
+          git fetch origin
+          git reset --hard "$DEPLOY_SHA"
+          cd worker
+          npm ci
+          npm run build
+          npm prune --omit=dev
+          systemctl restart marsad-worker
+          sleep 5
+          systemctl is-active --quiet marsad-worker || {
+            echo "marsad-worker failed to start; recent logs:" >&2
+            journalctl -u marsad-worker -n 50 --no-pager >&2
+            exit 1
+          }
+          echo "marsad-worker restarted OK at $DEPLOY_SHA"
+          REMOTE

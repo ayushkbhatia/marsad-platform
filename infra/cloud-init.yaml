@@ -1,0 +1,152 @@
+#cloud-config
+# Marsad worker VPS — Hetzner CX22, Ubuntu 24.04 (06-infra-cost.md §3).
+# Paste this file into the Hetzner console "Cloud config" box at server create
+# time, AFTER replacing the three placeholders:
+#   1. REPLACE_WITH_OWNER_SSH_PUBLIC_KEY   (your personal public key)
+#   2. REPLACE_WITH_DEPLOY_PRIVATE_KEY     (read-only GitHub deploy key, see infra/README.md)
+#   3. OWNER/Marsad-Platform               (the actual GitHub org/repo path, 1 place, in runcmd)
+# The box is stateless by design: this file + /etc/marsad/worker.env rebuild it
+# from zero in ~10 minutes with no data loss.
+
+hostname: marsad-worker-1
+
+users:
+  - name: deploy
+    shell: /bin/bash
+    groups: [sudo]
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    lock_passwd: true
+    ssh_authorized_keys:
+      - "REPLACE_WITH_OWNER_SSH_PUBLIC_KEY"
+
+ssh_pwauth: false
+package_update: true
+package_upgrade: true
+
+packages:
+  - git
+  - curl
+  - ca-certificates
+  - gnupg
+  - ufw
+  - fail2ban
+  - unattended-upgrades
+  # poppler-utils: pdftotext for filing parsing (01-ingestion.md); cheap to preinstall.
+  - poppler-utils
+
+write_files:
+  # ---- worker environment (owner fills real values post-boot; see infra/README.md §4)
+  - path: /etc/marsad/worker.env
+    owner: root:root
+    permissions: "0600"
+    content: |
+      # Filled by the owner at provision time. root:root 0600.
+      # marsad_worker role, Supavisor session pooler, IPv4 (06 Revisions #1).
+      SUPABASE_DB_URL=postgresql://marsad_worker.yjsncnpbjuueaoeejrqj:CHANGE_ME@aws-0-ap-south-1.pooler.supabase.com:5432/postgres
+      # Storage uploads only (least-privilege exception, 06 Revisions #1).
+      SUPABASE_URL=https://yjsncnpbjuueaoeejrqj.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY=CHANGE_ME
+      # Healthchecks.io worker-alive check (optional but recommended).
+      HEALTHCHECK_URL=
+      WORKER_ID=vps-1
+
+  # ---- systemd unit (canonical copy: infra/marsad-worker.service — keep in sync)
+  - path: /etc/systemd/system/marsad-worker.service
+    owner: root:root
+    permissions: "0644"
+    content: |
+      [Unit]
+      Description=Marsad worker (pgmq consumers, scrapers, agent pipeline)
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      Type=simple
+      User=deploy
+      Group=deploy
+      WorkingDirectory=/opt/marsad/worker
+      EnvironmentFile=/etc/marsad/worker.env
+      ExecStart=/usr/bin/node dist/index.js
+      Restart=always
+      RestartSec=5
+      KillSignal=SIGTERM
+      TimeoutStopSec=45
+      StandardOutput=journal
+      StandardError=journal
+      SyslogIdentifier=marsad-worker
+      NoNewPrivileges=true
+      PrivateTmp=true
+      ProtectSystem=full
+      ProtectHome=read-only
+      MemoryMax=3G
+
+      [Install]
+      WantedBy=multi-user.target
+
+  # ---- GitHub deploy key (read-only; generation steps in infra/README.md §2)
+  - path: /home/deploy/.ssh/marsad_deploy
+    owner: deploy:deploy
+    permissions: "0600"
+    defer: true
+    content: |
+      REPLACE_WITH_DEPLOY_PRIVATE_KEY
+
+  - path: /home/deploy/.ssh/config
+    owner: deploy:deploy
+    permissions: "0600"
+    defer: true
+    content: |
+      Host github.com
+        User git
+        IdentityFile ~/.ssh/marsad_deploy
+        IdentitiesOnly yes
+        StrictHostKeyChecking accept-new
+
+  # ---- fail2ban: default sshd jail is enough; just make it explicit
+  - path: /etc/fail2ban/jail.local
+    owner: root:root
+    permissions: "0644"
+    content: |
+      [sshd]
+      enabled = true
+      maxretry = 5
+      bantime = 1h
+
+  # ---- unattended-upgrades on (systemd Restart=always covers worker restarts)
+  - path: /etc/apt/apt.conf.d/20auto-upgrades
+    owner: root:root
+    permissions: "0644"
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+
+runcmd:
+  # Node 22 via nodesource
+  - mkdir -p /etc/apt/keyrings
+  - curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+  - echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
+  - apt-get update
+  - apt-get install -y nodejs
+
+  # Firewall: SSH only. Everything the worker does is outbound.
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow OpenSSH
+  - ufw --force enable
+
+  - systemctl enable --now fail2ban
+
+  # Clone the repo as deploy and build the worker
+  # -H so git/npm resolve deploy's HOME (~/.ssh/config holds the deploy key).
+  - install -d -o deploy -g deploy /opt/marsad
+  - sudo -Hu deploy git clone git@github.com:OWNER/Marsad-Platform.git /opt/marsad
+  # npm install (not ci): survives a missing worker/package-lock.json; --no-audit
+  # --no-fund keeps the fresh-VM build quiet and slightly faster.
+  - sudo -Hu deploy bash -c 'cd /opt/marsad/worker && npm install --no-audit --no-fund && npm run build'
+
+  # Register the unit but do NOT start it: /etc/marsad/worker.env still holds
+  # CHANGE_ME placeholders. The runbook's step 4 fills it and starts the unit.
+  - systemctl daemon-reload
+  - systemctl enable marsad-worker
+
+final_message: "marsad-worker VPS provisioned. Next: fill /etc/marsad/worker.env, then 'systemctl start marsad-worker' (infra/README.md section 4)."

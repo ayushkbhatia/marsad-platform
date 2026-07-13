@@ -1,0 +1,5 @@
+node_modules/
+dist/
+# Load-bearing even while the root .gitignore has `.env*`: keeps local secrets
+# out of git if that root pattern is ever loosened to un-ignore env.example files.
+.env

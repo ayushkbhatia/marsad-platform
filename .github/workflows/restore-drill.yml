@@ -1,0 +1,96 @@
+name: Restore Drill
+
+# "A backup that is never restored is a rumor" (06-infra-cost.md §8).
+# Monthly: pull the latest backup of prod via the Supabase CLI, restore it
+# into a scratch local Postgres, and assert sentinel row counts. Opens a
+# GitHub issue on failure so it lands in the owner's queue.
+
+on:
+  schedule:
+    - cron: "0 3 1 * *" # 1st of each month, 03:00 UTC (07:00 GST)
+  workflow_dispatch:
+
+concurrency:
+  group: restore-drill
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  SUPABASE_PROJECT_REF: yjsncnpbjuueaoeejrqj
+
+jobs:
+  # Skip gracefully until the owner sets the Supabase secrets — secrets are
+  # not readable in job-level `if:`, hence the output hop.
+  preflight:
+    name: check Supabase secrets
+    runs-on: ubuntu-latest
+    outputs:
+      configured: ${{ steps.check.outputs.configured }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          if [[ -n "$SUPABASE_ACCESS_TOKEN" && -n "$SUPABASE_DB_PASSWORD" && -f supabase/config.toml ]]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::SUPABASE_ACCESS_TOKEN / SUPABASE_DB_PASSWORD not set (or supabase/ not initialized) — skipping restore drill."
+          fi
+
+  drill:
+    name: restore + sanity counts
+    needs: preflight
+    if: needs.preflight.outputs.configured == 'true'
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      LOCAL_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link to prod project
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+
+      # Placeholder backup source: a fresh logical dump over the CLI. Once the
+      # nightly age-encrypted R2 dumps exist (worker/ops/backup.sh), switch this
+      # to downloading the newest object from the marsad-backups R2 bucket so
+      # the drill exercises the artifact we would actually restore in anger.
+      - name: Download latest backup (schema + data)
+        run: |
+          supabase db dump --linked -f "$RUNNER_TEMP/schema.sql"
+          supabase db dump --linked --data-only --use-copy -f "$RUNNER_TEMP/data.sql"
+
+      - name: Start scratch Postgres
+        run: supabase db start
+
+      - name: Restore backup into scratch instance
+        run: |
+          psql "$LOCAL_DB_URL" -v ON_ERROR_STOP=1 -f "$RUNNER_TEMP/schema.sql"
+          psql "$LOCAL_DB_URL" -v ON_ERROR_STOP=1 -f "$RUNNER_TEMP/data.sql"
+
+      - name: Row-count sanity checks
+        run: psql "$LOCAL_DB_URL" -v ON_ERROR_STOP=1 -f scripts/sanity-counts.sql
+
+      - name: Open issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Restore drill FAILED — $(date -u +%Y-%m-%d)" \
+            --body "The monthly backup restore drill failed. The last known-good backup may not be restorable.
+
+          Run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+
+          Investigate before the next backup cycle — RPO guarantees (06-infra-cost.md §8) depend on restorable dumps."
