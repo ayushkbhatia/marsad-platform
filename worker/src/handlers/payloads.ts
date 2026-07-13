@@ -12,7 +12,8 @@ export type HandlerName =
   | 'eod_sweep'
   | 'filings_poll'
   | 'cross_check'
-  | 'key_ratios_recompute';
+  | 'key_ratios_recompute'
+  | 'ohlcv_accrual';
 
 export interface QuotePollPayload {
   handler: 'quote_poll';
@@ -39,4 +40,15 @@ export interface CrossCheckPayload {
 export interface KeyRatiosPayload {
   handler: 'key_ratios_recompute';
   securityIds?: number[];
+}
+
+/**
+ * P1.7a EOD accrual (07-lake-enrichment.md family B): project the day's delayed
+ * quote-board close into one public.ohlcv_daily bar per listed security for all 6
+ * venues. tradeDate omitted ⇒ current UTC date (the enqueuer should pass the
+ * venue-local trade date at close+).
+ */
+export interface OhlcvAccrualPayload {
+  handler: 'ohlcv_accrual';
+  tradeDate?: string;
 }

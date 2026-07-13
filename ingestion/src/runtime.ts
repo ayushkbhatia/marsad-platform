@@ -38,6 +38,7 @@ import {
 } from './core/registry.js';
 import { ADAPTERS } from './adapters/index.js';
 import { yahooTasks, toYahooSymbol } from './adapters/yahoo/index.js';
+import { resolveProxyForSource, proxyToUrl, type ProxyConfig } from './core/proxy.js';
 import { LakeStagingEmitter } from './lake/staging.js';
 import { LakeCrossCheck } from './lake/cross-check.js';
 import { KeyRatiosRecompute } from './lake/key-ratios.js';
@@ -509,6 +510,7 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
   const logger = consoleLogger;
 
   // Transport clients (shared across tasks; both honor the per-host ≤1 req/s bucket).
+  // The DIRECT (no-proxy) http client — the common case (most venues need no proxy).
   const http: HttpClient = createHttpClient({
     ratePerSec: base.perHostRateLimitPerSec,
     budgetPerHostPerDay: base.requestBudgetPerHostPerDay,
@@ -516,6 +518,51 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
     defaultTimeoutMs: base.defaultTimeoutMs,
     logger,
   });
+
+  // Per-source PROXIED http clients (P1.7a). A source whose endpoint_config.use_proxy
+  // is true (Yahoo 429-rotation, BHB WAF) must egress through the IPRoyal proxy —
+  // otherwise 0027/0020 are inert and the request leaks from the bare VPS IP (Yahoo
+  // 429 / BHB 403). resolveProxyForSource reads use_proxy + proxy_mode and encodes the
+  // rotate/sticky policy into the returned config; makeProxiedTransport (inside
+  // createHttpClient) then opens a fresh tunnel/request for 'rotate' or reuses one for
+  // 'sticky'. Cached by the resolved proxy URI so 'rotate' and 'sticky' variants (and
+  // distinct geo passwords) each get their own client + rate-limit buckets. A flagged
+  // source with NO proxy configured in env falls back to the direct client and logs a
+  // loud warning rather than silently leaking — the worker treats a missing-but-required
+  // proxy as non-fatal here (the eventual 429/403 surfaces via the normal failure path).
+  const proxiedHttpByUri = new Map<string, HttpClient>();
+  function httpClientForSource(source: SourceRecord): HttpClient {
+    let proxy: ProxyConfig | undefined;
+    try {
+      proxy = resolveProxyForSource(source);
+    } catch {
+      proxy = undefined;
+    }
+    if (!proxy) {
+      if ((source.endpointConfig as { use_proxy?: unknown }).use_proxy === true) {
+        logger.warn('source flagged use_proxy but no proxy resolved — egressing DIRECT', {
+          venue: source.venue,
+          dataType: source.dataType,
+          sourceId: source.id,
+        });
+      }
+      return http;
+    }
+    const key = `${proxyToUrl(proxy)}|${proxy.mode ?? 'rotate'}`;
+    let client = proxiedHttpByUri.get(key);
+    if (!client) {
+      client = createHttpClient({
+        ratePerSec: base.perHostRateLimitPerSec,
+        budgetPerHostPerDay: base.requestBudgetPerHostPerDay,
+        globalConcurrency: base.globalConcurrency,
+        defaultTimeoutMs: base.defaultTimeoutMs,
+        logger,
+        proxy,
+      });
+      proxiedHttpByUri.set(key, client);
+    }
+    return client;
+  }
 
   const browser: BrowserClient = createBrowserClient({
     driver: createPlaywrightDriver(),
@@ -606,15 +653,18 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
       // primary sources and for Yahoo rows that already carry an explicit Desk-set symbol list.
       const source = await withYahooSymbols(sql, rawSource);
 
-      const client = source.transport === 'http' ? http : browser;
+      // Per-source egress: a use_proxy source (Yahoo 429-rotation via 0027, BHB WAF via
+      // 0020) gets the IPRoyal-proxied http client; everything else the direct one. This
+      // is the seam that makes 0027/0020 actually take effect — without it the proxy
+      // policy in endpoint_config is inert and Yahoo/BHB egress the bare VPS IP.
+      const sourceHttp = httpClientForSource(source);
       const ctx: FetchContext = {
         source,
-        http,
+        http: sourceHttp,
         browser,
         logger,
         now: () => new Date().toISOString(),
       };
-      void client; // transport is picked inside the adapter via ctx.http/ctx.browser
 
       const fetched: FetchResult[] = await task.fetch(ctx);
 

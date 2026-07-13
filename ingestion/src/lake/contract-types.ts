@@ -20,6 +20,21 @@ export type VenueCode = 'TDWL' | 'DFM' | 'ADX' | 'QE' | 'MSX' | 'BHB';
 // §6 normalized row shapes — only the fields the lake pipeline handles are
 // re-declared; the payload is carried opaquely as StagingRow<T>.payload.
 
+// §6.3 — EOD OHLCV bar → public.ohlcv_daily. Mirrors core/types.ts NormalizedOhlcv
+// exactly (structural). Re-declared here so the OHLCV projection (ohlcv-project.ts)
+// type-checks inside this module's assigned path.
+export interface NormalizedOhlcv {
+  venue: VenueCode;
+  ticker: string; // → security_id
+  tradeDate: string; // 'YYYY-MM-DD' → ohlcv_daily.trade_date (PK part)
+  open?: number | null;
+  high?: number | null;
+  low?: number | null;
+  close: number; // → ohlcv_daily.close  numeric(18,6) NOT NULL
+  volume?: number | null;
+  valueTraded?: number | null;
+}
+
 // §6.5 — the ingestion→lake handoff row.
 export interface StagingRow<T> {
   /** 'QUOTE.LAST','DISCLOSURE.DPS','DIVIDEND.EXDATE','FILING.FINANCIALS',… */

@@ -37,6 +37,13 @@ export type Transport = 'http' | 'http_bootstrap' | 'headless';
 /** ingest.sources.robots_status CHECK. */
 export type RobotsStatus = 'allowed' | 'disallowed' | 'override';
 
+/**
+ * Per-source proxy IP policy (P1.7a framework practice). See EndpointConfig.proxy_mode.
+ *   'rotate' — fresh exit IP per request (default; defeats per-IP rate limits like Yahoo 429).
+ *   'sticky' — same exit IP for a bounded burst (cookie/IP-affinity flows, e.g. BHB WAF).
+ */
+export type ProxyMode = 'rotate' | 'sticky';
+
 /** One ingest.sources row, loaded by core/registry.loadSource(). Columns EXACT (0005). */
 export interface SourceRecord {
   id: number; // ingest.sources.id (bigint)
@@ -76,10 +83,24 @@ export interface EndpointConfig {
    * When true, this source egresses through the configured outbound proxy
    * (IPRoyal GCC residential — creds read from env, NEVER hardcoded here). Set on
    * BHB sources whose official origin is IP-geofenced/Akamai-blocked from the
-   * plain VPS IP (0020_bhb_proxy). TDWL uses the Mubasher aggregator and needs no
-   * proxy. Absent/false ⇒ direct egress. See core/proxy.ts.
+   * plain VPS IP (0020_bhb_proxy) and on Yahoo sources that are 429 rate-blocked
+   * from the VPS IP under volume (0027_yahoo_proxy_rotate). TDWL uses the Mubasher
+   * aggregator and needs no proxy. Absent/false ⇒ direct egress. See core/proxy.ts.
    */
   use_proxy?: boolean;
+  /**
+   * Per-source proxy IP policy (framework practice, P1.7a). Only consulted when
+   * use_proxy is true. Defaults to 'rotate' when absent.
+   *   - 'rotate' — a FRESH exit IP per request (IPRoyal's default residential
+   *      rotation). This defeats per-IP rate counters (Yahoo 429): each request in
+   *      a ~200-symbol backfill sweep exits a different IP so the counter never
+   *      accumulates. Use for high-volume, stateless fetch (Yahoo quotes/backfill).
+   *   - 'sticky' — the SAME exit IP for a bounded burst, via an IPRoyal
+   *      `_session-<id>_lifetime-<n>m` selector appended to the password. Use only
+   *      for stateful flows needing cookie/IP affinity across requests (e.g. a WAF
+   *      challenge cookie that is IP-bound, as on BHB's Radware path).
+   */
+  proxy_mode?: ProxyMode;
   responseKind: 'json' | 'html' | 'txt_json' | 'xlsx' | 'pdf';
 }
 

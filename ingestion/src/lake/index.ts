@@ -15,6 +15,12 @@ export { LakeStagingEmitter } from './staging.js';
 export { LakeCrossCheck, type CrossCheckOptions } from './cross-check.js';
 export { KeyRatiosRecompute, type KeyRatiosOptions, type RecomputeSummary } from './key-ratios.js';
 export { computeKeyRatios, hasAnyRatio, type RatioInputs, type KeyRatios } from './ratios-compute.js';
+export {
+  normalizedOhlcvToDailyRow,
+  mapOhlcvBatch,
+  projectOhlcvDaily,
+  type OhlcvDailyRow,
+} from './ohlcv-project.js';
 export { decide, candidatesAgree, pricesAgree, primaryOf, PRICE_TOLERANCE, type Candidate, type Decision } from './agreement.js';
 export { canonicalJson, contentHash } from './canonical.js';
 export { STAGING_ROWS_DDL } from './staging-schema.js';

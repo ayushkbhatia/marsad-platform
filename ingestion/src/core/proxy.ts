@@ -25,7 +25,15 @@
  * PROXY_USERNAME/PROXY_PASSWORD vars, so the owner can set whichever is cleaner.
  */
 
-import type { SourceRecord } from './types.js';
+import type { SourceRecord, ProxyMode } from './types.js';
+
+export type { ProxyMode } from './types.js';
+
+/** Default IP policy when a source is flagged use_proxy but sets no proxy_mode. */
+export const DEFAULT_PROXY_MODE: ProxyMode = 'rotate';
+
+/** Sticky-session lifetime (minutes) baked into the IPRoyal `_lifetime-…` selector. */
+export const STICKY_SESSION_LIFETIME_MIN = 10;
 
 /** A resolved proxy in the shape both clients want. `server` is scheme+host+port
  *  only (no userinfo) — Playwright's launch proxy and undici's ProxyAgent both
@@ -35,8 +43,13 @@ export interface ProxyConfig {
   server: string;
   /** May be undefined for an unauthenticated proxy. */
   username?: string;
-  /** Verbatim, including any IPRoyal `_country-…` geo suffix. */
+  /** Verbatim, including any IPRoyal `_country-…` geo suffix (+ a `_session-…`
+   *  suffix when mode === 'sticky'). */
   password?: string;
+  /** The IP policy this proxy was resolved under (rotate = fresh IP/request,
+   *  sticky = same IP for a bounded burst). Advisory for the caller; the actual
+   *  rotate/sticky behaviour is already encoded in `password`. */
+  mode?: ProxyMode;
 }
 
 /**
@@ -106,6 +119,42 @@ export function sourceUsesProxy(source: Pick<SourceRecord, 'endpointConfig'>): b
 }
 
 /**
+ * The IP policy for THIS source. Reads endpoint_config.proxy_mode; anything other
+ * than the two valid literals (including absent, null, or a typo) falls back to
+ * DEFAULT_PROXY_MODE ('rotate') — the safe default that defeats per-IP rate limits
+ * and never accidentally pins a burst to one IP. Independent of use_proxy: the
+ * mode only matters when a proxy is actually applied.
+ */
+export function sourceProxyMode(source: Pick<SourceRecord, 'endpointConfig'>): ProxyMode {
+  const ec = source.endpointConfig as unknown as { proxy_mode?: unknown } | null | undefined;
+  return ec?.proxy_mode === 'sticky' ? 'sticky' : DEFAULT_PROXY_MODE;
+}
+
+/**
+ * Append an IPRoyal sticky-session selector to a proxy password so a bounded burst
+ * exits the SAME residential IP. IPRoyal chains selectors on the password
+ * (`…_country-ae,sa_session-<id>_lifetime-10m`); the gateway parses them, we only
+ * concatenate. A session id is generated per call (random, url-safe) — callers that
+ * want one IP across N requests must resolve ONCE and reuse the returned config.
+ * `rotate` mode returns the proxy untouched (the base creds already rotate per
+ * request). If the proxy carries no password (unauthenticated), there is nothing to
+ * pin a session on, so it is returned untouched.
+ */
+export function applyProxyMode(
+  proxy: ProxyConfig,
+  mode: ProxyMode,
+  sessionId: string = randomSessionId(),
+): ProxyConfig {
+  if (mode !== 'sticky') return { ...proxy, mode: 'rotate' };
+  if (!proxy.password) return { ...proxy, mode: 'sticky' };
+  // Do not double-append if a session selector is already present (idempotent).
+  const password = /_session-/.test(proxy.password)
+    ? proxy.password
+    : `${proxy.password}_session-${sessionId}_lifetime-${STICKY_SESSION_LIFETIME_MIN}m`;
+  return { ...proxy, password, mode: 'sticky' };
+}
+
+/**
  * The single decision point the worker/transport layer calls: given a source and
  * the environment, return the proxy to use for THIS source, or undefined.
  *
@@ -119,7 +168,9 @@ export function resolveProxyForSource(
   env: NodeJS.ProcessEnv = process.env,
 ): ProxyConfig | undefined {
   if (!sourceUsesProxy(source)) return undefined;
-  return parseProxyFromEnv(env);
+  const proxy = parseProxyFromEnv(env);
+  if (!proxy) return undefined;
+  return applyProxyMode(proxy, sourceProxyMode(source));
 }
 
 /**
@@ -140,7 +191,7 @@ export function resolveProxyOrThrow(
         '(set IPROYAL_PROXY_URL or PROXY_URL / PROXY_SERVER+PROXY_USERNAME+PROXY_PASSWORD in worker.env)',
     );
   }
-  return proxy;
+  return applyProxyMode(proxy, sourceProxyMode(source));
 }
 
 /**
@@ -162,6 +213,17 @@ export function proxyBasicAuth(proxy: ProxyConfig): string | undefined {
   if (!proxy.username && !proxy.password) return undefined;
   const raw = `${proxy.username ?? ''}:${proxy.password ?? ''}`;
   return `Basic ${Buffer.from(raw, 'utf8').toString('base64')}`;
+}
+
+/** A short, url-safe random id for an IPRoyal sticky-session selector. Uses the
+ *  Web Crypto RNG when available, else Math.random (id is not security-sensitive —
+ *  it only groups a burst of requests onto one exit IP). */
+function randomSessionId(): string {
+  const g = globalThis as { crypto?: { randomUUID?: () => string } };
+  if (typeof g.crypto?.randomUUID === 'function') {
+    return g.crypto.randomUUID().replace(/-/g, '').slice(0, 12);
+  }
+  return Math.random().toString(36).slice(2, 14);
 }
 
 function firstNonEmpty(...vals: Array<string | undefined>): string | undefined {

@@ -38,8 +38,12 @@ export interface HttpClientOptions {
   /**
    * Outbound proxy for THIS client. When set, the default undici transport
    * routes every request through a ProxyAgent dispatcher (credentials embedded,
-   * incl. the IPRoyal `_country-…` geo password). Resolved per-source by the
-   * worker via core/proxy.resolveProxyForSource — never hardcoded. Ignored when a
+   * incl. the IPRoyal `_country-…` geo password and, for proxy.mode==='sticky',
+   * the `_session-…` selector). Resolved per-source by the worker via
+   * core/proxy.resolveProxyForSource — never hardcoded. The rotate-vs-sticky IP
+   * policy is already encoded in proxy.password; proxy.mode is advisory (logged).
+   * For a 'rotate' source, every request through this ProxyAgent still gets a
+   * fresh exit IP because the base creds carry no session selector. Ignored when a
    * custom `transport` is injected (tests).
    */
   proxy?: ProxyConfig;
@@ -88,7 +92,11 @@ export function createHttpClient(opts: HttpClientOptions = {}): HttpClient {
     opts.transport ?? (opts.proxy ? makeProxiedTransport(opts.proxy) : defaultTransport);
   const sleep = opts.sleep ?? realSleep;
   if (opts.proxy && !opts.transport) {
-    logger?.info('http client egressing through proxy', { server: opts.proxy.server });
+    logger?.info('http client egressing through proxy', {
+      server: opts.proxy.server,
+      // rotate = fresh exit IP/request (defeats per-IP 429); sticky = IP-pinned burst.
+      mode: opts.proxy.mode ?? 'rotate',
+    });
   }
 
   const limiters = new HostLimiterRegistry(ratePerSec, budget, concurrency, clock);
@@ -261,43 +269,81 @@ const defaultTransport: LowLevelTransport = async (url, opts) => {
 
 /**
  * A LowLevelTransport that routes every request through an undici ProxyAgent.
- * The dispatcher is created once (lazily, on first call) and reused — it holds a
- * keep-alive pool to the proxy. Credentials (incl. the IPRoyal `_country-…` geo
- * password) are embedded in the ProxyAgent URI. undici tunnels HTTPS origins via
- * CONNECT and injects Proxy-Authorization itself, so we do NOT hit the
- * ERR_PROXY_AUTH_UNSUPPORTED class of failure that Chromium does (that fallback
- * lives in the BrowserClient path).
+ *
+ * IP-ROTATION SEMANTICS (verified live against IPRoyal, P1.7a): the residential
+ * gateway rotates the exit IP per NEW upstream TCP tunnel, NOT per HTTP request
+ * over a reused keep-alive tunnel. So the dispatcher lifecycle is mode-dependent:
+ *
+ *   - 'rotate' (default): a FRESH ProxyAgent (connections:1, pipelining:0) is
+ *     created and CONNECT-tunnelled per request, then closed. Each request opens a
+ *     new tunnel ⇒ a fresh exit IP ⇒ the per-IP rate counter never accumulates ⇒
+ *     defeats Yahoo's 429. The HttpClient's ≥1 req/s per-host bucket already spaces
+ *     these so we never burst the proxy into a 407 (proven live).
+ *   - 'sticky': ONE shared keep-alive ProxyAgent is created lazily and reused, so a
+ *     bounded burst exits the SAME IP (cookie/IP-affinity flows, e.g. BHB WAF). The
+ *     `_session-…` selector on the password (added by core/proxy.applyProxyMode)
+ *     additionally pins the IP at the gateway across tunnels within the lifetime.
+ *
+ * Credentials (incl. the IPRoyal `_country-…` / `_session-…` password) are embedded
+ * in the ProxyAgent URI. undici tunnels HTTPS origins via CONNECT and injects
+ * Proxy-Authorization itself, so we do NOT hit the ERR_PROXY_AUTH_UNSUPPORTED class
+ * of failure that Chromium does (that fallback lives in the BrowserClient path).
  */
 export function makeProxiedTransport(proxy: ProxyConfig): LowLevelTransport {
-  let dispatcherPromise: Promise<unknown> | null = null;
   const proxyUri = proxyToUrl(proxy);
+  // Absent mode ⇒ rotate (matches core/proxy.DEFAULT_PROXY_MODE).
+  const sticky = proxy.mode === 'sticky';
 
-  async function dispatcher(): Promise<unknown> {
-    if (!dispatcherPromise) {
-      dispatcherPromise = (async () => {
+  // Sticky: one shared keep-alive dispatcher (same exit IP for the burst).
+  let sharedDispatcherPromise: Promise<unknown> | null = null;
+  async function sharedDispatcher(): Promise<unknown> {
+    if (!sharedDispatcherPromise) {
+      sharedDispatcherPromise = (async () => {
         const { ProxyAgent } = await import('undici');
         return new ProxyAgent(proxyUri);
       })();
     }
-    return dispatcherPromise;
+    return sharedDispatcherPromise;
+  }
+
+  // Rotate: a fresh single-connection dispatcher per request (new tunnel ⇒ new IP).
+  async function freshDispatcher(): Promise<{ dispatcher: unknown; close(): Promise<void> }> {
+    const { ProxyAgent } = await import('undici');
+    const agent = new ProxyAgent({ uri: proxyUri, connections: 1, pipelining: 0 });
+    return {
+      dispatcher: agent,
+      close: () => (agent as { close(): Promise<void> }).close(),
+    };
   }
 
   return async (url, opts) => {
     const { request: undiciRequest } = await import('undici');
+    const chosen = sticky ? null : await freshDispatcher();
+    const dispatcher = sticky ? await sharedDispatcher() : chosen!.dispatcher;
     const reqOpts = {
       method: opts.method as never,
       headers: opts.headers,
       ...(opts.signal ? { signal: opts.signal } : {}),
       ...(opts.body !== undefined ? { body: opts.body } : {}),
-      dispatcher: await dispatcher(),
+      dispatcher,
       maxRedirections: 5,
     };
-    const res = await undiciRequest(url, reqOpts as Parameters<typeof undiciRequest>[1]);
-    return {
-      statusCode: res.statusCode,
-      headers: res.headers as Record<string, string | string[] | undefined>,
-      body: { arrayBuffer: () => res.body.arrayBuffer() },
-    };
+    try {
+      const res = await undiciRequest(url, reqOpts as Parameters<typeof undiciRequest>[1]);
+      // Read the body BEFORE closing the fresh dispatcher, so the stream is fully
+      // drained while its tunnel is still open (rotate mode closes the agent after).
+      const ab: ArrayBuffer = await res.body.arrayBuffer();
+      return {
+        statusCode: res.statusCode,
+        headers: res.headers as Record<string, string | string[] | undefined>,
+        body: { arrayBuffer: async () => ab },
+        ...(typeof (res as { url?: string }).url === 'string'
+          ? { url: (res as { url?: string }).url }
+          : {}),
+      };
+    } finally {
+      if (chosen) await chosen.close().catch(() => {});
+    }
   };
 }
 

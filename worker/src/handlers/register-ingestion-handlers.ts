@@ -6,6 +6,7 @@ import { makeEodSweep } from './eod-sweep.js';
 import { makeFilingsPoll } from './filings-poll.js';
 import { makeCrossCheck } from './cross-check.js';
 import { makeKeyRatiosRecompute } from './key-ratios-recompute.js';
+import { makeOhlcvAccrual } from './ohlcv-accrual.js';
 
 /**
  * Register the five P1 ingestion handlers (CONTRACT §9) against a live
@@ -19,6 +20,7 @@ import { makeKeyRatiosRecompute } from './key-ratios-recompute.js';
  *   filings_poll           q_ingest    filings list-diff → filing_detail enqueue
  *   cross_check            q_pipeline  2-source rule → VERIFIED lake.objects
  *   key_ratios_recompute   q_pipeline  nightly public.key_ratios rebuild
+ *   ohlcv_accrual          q_pipeline  daily quote-board close → ohlcv_daily (P1.7a)
  */
 export function registerIngestionHandlers(runtime: IngestionRuntime): HandlerName[] {
   const registrations: Array<[HandlerName, ReturnType<typeof makeQuotePoll>]> = [
@@ -27,6 +29,7 @@ export function registerIngestionHandlers(runtime: IngestionRuntime): HandlerNam
     ['filings_poll', makeFilingsPoll(runtime)],
     ['cross_check', makeCrossCheck(runtime)],
     ['key_ratios_recompute', makeKeyRatiosRecompute(runtime)],
+    ['ohlcv_accrual', makeOhlcvAccrual()],
   ];
 
   for (const [name, handler] of registrations) {

@@ -4,10 +4,14 @@ import {
   parseProxyFromEnv,
   parseProxyUrl,
   sourceUsesProxy,
+  sourceProxyMode,
+  applyProxyMode,
   resolveProxyForSource,
   resolveProxyOrThrow,
   proxyToUrl,
   proxyBasicAuth,
+  DEFAULT_PROXY_MODE,
+  STICKY_SESSION_LIFETIME_MIN,
   type ProxyConfig,
 } from './proxy.js';
 import type { SourceRecord } from './types.js';
@@ -167,4 +171,101 @@ test('proxyBasicAuth: builds a Basic header value; undefined when no creds', () 
   });
   assert.equal(h, `Basic ${Buffer.from('user:pass').toString('base64')}`);
   assert.equal(proxyBasicAuth({ server: 'http://p:1' }), undefined);
+});
+
+// ---------------------------------------------------------------------------
+// P1.7a — per-source rotate-vs-sticky IP policy
+// ---------------------------------------------------------------------------
+
+const IPROYAL_BASE: ProxyConfig = {
+  server: 'http://geo.iproyal.com:12321',
+  username: 'ZTfyHFmrsJ9Yerwa',
+  password: 'aR5AzVF0J4kjnpZ3_country-ae,sa',
+};
+
+test('DEFAULT_PROXY_MODE is rotate (safe default that defeats per-IP rate limits)', () => {
+  assert.equal(DEFAULT_PROXY_MODE, 'rotate');
+});
+
+test('sourceProxyMode: absent ⇒ rotate; explicit sticky ⇒ sticky; junk ⇒ rotate', () => {
+  assert.equal(sourceProxyMode(src(true)), 'rotate', 'absent proxy_mode ⇒ rotate');
+  assert.equal(sourceProxyMode(src(true, { proxy_mode: 'sticky' })), 'sticky');
+  assert.equal(sourceProxyMode(src(true, { proxy_mode: 'rotate' })), 'rotate');
+  assert.equal(sourceProxyMode(src(true, { proxy_mode: 'STICKY' })), 'rotate', 'typo ⇒ safe rotate');
+  assert.equal(sourceProxyMode(src(true, { proxy_mode: null })), 'rotate');
+  // Mode is independent of use_proxy — it only matters once a proxy is applied.
+  assert.equal(sourceProxyMode(src(false, { proxy_mode: 'sticky' })), 'sticky');
+});
+
+test('applyProxyMode: rotate leaves the base password untouched (fresh IP/request)', () => {
+  const p = applyProxyMode(IPROYAL_BASE, 'rotate');
+  assert.equal(p.password, IPROYAL_BASE.password, 'no session selector appended');
+  assert.equal(p.mode, 'rotate');
+  assert.equal(p.server, IPROYAL_BASE.server);
+  assert.equal(p.username, IPROYAL_BASE.username);
+});
+
+test('applyProxyMode: sticky appends an IPRoyal _session-…_lifetime-… selector', () => {
+  const p = applyProxyMode(IPROYAL_BASE, 'sticky', 'abc123');
+  assert.equal(
+    p.password,
+    `aR5AzVF0J4kjnpZ3_country-ae,sa_session-abc123_lifetime-${STICKY_SESSION_LIFETIME_MIN}m`,
+    'session selector chained after the existing _country- selector',
+  );
+  assert.equal(p.mode, 'sticky');
+});
+
+test('applyProxyMode: sticky is idempotent — never double-appends a session selector', () => {
+  const once = applyProxyMode(IPROYAL_BASE, 'sticky', 'abc123');
+  const twice = applyProxyMode(once, 'sticky', 'zzz999');
+  assert.equal(twice.password, once.password, 'second sticky pass is a no-op on the password');
+});
+
+test('applyProxyMode: sticky on an unauthenticated proxy has no password to pin ⇒ untouched', () => {
+  const p = applyProxyMode({ server: 'http://plain.proxy:8080' }, 'sticky');
+  assert.equal(p.password, undefined);
+  assert.equal(p.mode, 'sticky');
+});
+
+test('applyProxyMode: distinct session ids ⇒ distinct pinned passwords (different IP bursts)', () => {
+  const a = applyProxyMode(IPROYAL_BASE, 'sticky');
+  const b = applyProxyMode(IPROYAL_BASE, 'sticky');
+  assert.notEqual(a.password, b.password, 'auto-generated session ids differ');
+});
+
+test('resolveProxyForSource: YAHOO-shaped source ⇒ rotate proxy (fresh IP/request)', () => {
+  // A Yahoo source as flipped by migration 0027: use_proxy=true + proxy_mode=rotate.
+  const yahoo = src(true, { provider: 'yahoo', proxy_mode: 'rotate' });
+  const p = resolveProxyForSource(yahoo, { IPROYAL_PROXY_URL: IPROYAL_URL });
+  assert.ok(p);
+  assert.equal(p.mode, 'rotate');
+  assert.equal(p.server, 'http://geo.iproyal.com:12321');
+  assert.equal(p.password, 'aR5AzVF0J4kjnpZ3_country-ae,sa', 'no session selector — rotates per request');
+});
+
+test('resolveProxyForSource: WAF-shaped source (sticky) ⇒ IP-pinned proxy', () => {
+  const waf = src(true, { proxy_mode: 'sticky' });
+  const p = resolveProxyForSource(waf, { IPROYAL_PROXY_URL: IPROYAL_URL });
+  assert.ok(p);
+  assert.equal(p.mode, 'sticky');
+  assert.match(p.password ?? '', /_session-[^_]+_lifetime-\d+m$/, 'session selector appended for affinity');
+});
+
+test('resolveProxyForSource: unflagged source ⇒ direct (undefined), no proxy regardless of mode', () => {
+  const none = src(false, { proxy_mode: 'sticky' });
+  assert.equal(resolveProxyForSource(none, { IPROYAL_PROXY_URL: IPROYAL_URL }), undefined);
+});
+
+test('resolveProxyForSource: flagged, mode absent ⇒ rotate (BHB default would be sticky via its own config)', () => {
+  const p = resolveProxyForSource(src(true), { IPROYAL_PROXY_URL: IPROYAL_URL });
+  assert.equal(p?.mode, 'rotate', 'no proxy_mode ⇒ DEFAULT_PROXY_MODE');
+});
+
+test('resolveProxyOrThrow: carries the resolved mode through', () => {
+  const rotate = resolveProxyOrThrow(src(true, { provider: 'yahoo', proxy_mode: 'rotate' }), {
+    PROXY_URL: IPROYAL_URL,
+  });
+  assert.equal(rotate?.mode, 'rotate');
+  const sticky = resolveProxyOrThrow(src(true, { proxy_mode: 'sticky' }), { PROXY_URL: IPROYAL_URL });
+  assert.equal(sticky?.mode, 'sticky');
 });
