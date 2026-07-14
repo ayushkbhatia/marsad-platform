@@ -1,6 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createHttpClient, parseRetryAfter, type LowLevelTransport, type LowLevelResponse } from './fetcher.js';
+import { gzipSync, deflateSync, deflateRawSync, brotliCompressSync } from 'node:zlib';
+import {
+  createHttpClient,
+  decodeContentEncoding,
+  parseRetryAfter,
+  type LowLevelTransport,
+  type LowLevelResponse,
+} from './fetcher.js';
 import { FetchError } from './types.js';
 
 function jsonResponse(status: number, body: string, headers: Record<string, string> = {}): LowLevelResponse {
@@ -136,4 +143,60 @@ test('parseRetryAfter: seconds and HTTP-date forms', () => {
   const future = new Date(Date.now() + 10_000).toUTCString();
   const ms = parseRetryAfter(future);
   assert.ok(ms !== undefined && ms > 5000 && ms <= 11000);
+});
+
+// ── content-encoding decode (the OHLCV-backfill 0-bars root cause) ────────────────────────────────
+// undici.request does not auto-decompress; we advertise accept-encoding: gzip, so a compliant origin
+// (Yahoo) returns compressed bytes. Without decode the raw parser JSON.parse's gzip → zero rows.
+
+test('decodeContentEncoding: gzip → plaintext', () => {
+  const plain = '{"chart":{"result":[{"meta":{"symbol":"2222.SR"}}]}}';
+  const out = decodeContentEncoding(gzipSync(Buffer.from(plain)), 'gzip');
+  assert.equal(out.toString('utf8'), plain);
+});
+
+test('decodeContentEncoding: deflate (zlib-wrapped) and raw deflate both decode', () => {
+  const plain = 'hello deflate';
+  assert.equal(decodeContentEncoding(deflateSync(Buffer.from(plain)), 'deflate').toString(), plain);
+  assert.equal(decodeContentEncoding(deflateRawSync(Buffer.from(plain)), 'deflate').toString(), plain);
+});
+
+test('decodeContentEncoding: br → plaintext', () => {
+  const plain = 'hello brotli';
+  assert.equal(decodeContentEncoding(brotliCompressSync(Buffer.from(plain)), 'br').toString(), plain);
+});
+
+test('decodeContentEncoding: identity / absent / unknown pass through untouched', () => {
+  const raw = Buffer.from('{"a":1}');
+  assert.equal(decodeContentEncoding(raw, undefined), raw);
+  assert.equal(decodeContentEncoding(raw, 'identity'), raw);
+  assert.equal(decodeContentEncoding(raw, 'weird-codec'), raw);
+});
+
+test('decodeContentEncoding: multi-codec list uses the outermost (last) codec', () => {
+  const plain = 'stacked';
+  // Sent as "identity, gzip" ⇒ gzip is outermost.
+  const out = decodeContentEncoding(gzipSync(Buffer.from(plain)), 'identity, gzip');
+  assert.equal(out.toString(), plain);
+});
+
+test('decodeContentEncoding: corrupt/mislabeled body returns RAW, never throws', () => {
+  const notGzip = Buffer.from('plain text, definitely not gzip');
+  assert.equal(decodeContentEncoding(notGzip, 'gzip'), notGzip);
+});
+
+test('HttpClient: a gzip-encoded response is decoded before it reaches the caller', async () => {
+  const plain = '{"chart":{"result":[{"meta":{"symbol":"2222.SR"},"timestamp":[1]}]}}';
+  const gz = gzipSync(Buffer.from(plain));
+  const t: LowLevelTransport = async () => ({
+    statusCode: 200,
+    headers: { 'content-type': 'application/json', 'content-encoding': 'gzip' },
+    body: { arrayBuffer: async () => gz.buffer.slice(gz.byteOffset, gz.byteOffset + gz.byteLength) },
+  });
+  const c = createHttpClient({ transport: t, sleep: noSleep, ...FAST });
+  const res = await c.get('https://query1.finance.yahoo.com/v8/finance/chart/2222.SR');
+  assert.equal(res.body.toString('utf8'), plain, 'body handed to the parser is plaintext, not gzip');
+  assert.equal(res.headers['content-encoding'], undefined, 'stale content-encoding header dropped');
+  // Proves the real bug is gone: JSON.parse now succeeds on the returned body.
+  assert.equal(JSON.parse(res.body.toString('utf8')).chart.result[0].meta.symbol, '2222.SR');
 });

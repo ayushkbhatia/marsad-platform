@@ -1,3 +1,4 @@
+import { gunzipSync, inflateSync, inflateRawSync, brotliDecompressSync } from 'node:zlib';
 import type { HttpClient, FetchOptions, RawResponse, Logger } from './types.js';
 import { FetchError } from './types.js';
 import {
@@ -206,12 +207,22 @@ export function createHttpClient(opts: HttpClientOptions = {}): HttpClient {
           throw new FetchError('HTTP_4XX', `${status} client error for ${url}`, { status });
         }
 
-        const buf = Buffer.from(await res.body.arrayBuffer());
+        const raw = Buffer.from(await res.body.arrayBuffer());
+        const respHeaders = flattenHeaders(res.headers);
+        // undici.request does NOT auto-decompress. We advertise `accept-encoding:
+        // gzip, deflate`, so an origin that honours it (Yahoo does; most venue APIs
+        // ignore it and send identity) returns COMPRESSED bytes. Decode here — the
+        // single choke point both transports flow through — so the snapshot store and
+        // every parser see plaintext. Without this, gzip bytes get JSON.parse'd to
+        // zero rows silently (the OHLCV-backfill 0-bars bug). Drop the now-stale
+        // content-encoding header so nothing downstream thinks the body is still coded.
+        const body = decodeContentEncoding(raw, respHeaders['content-encoding'], logger);
+        delete respHeaders['content-encoding'];
         return {
           url: res.url ?? url,
           status,
-          headers: flattenHeaders(res.headers),
-          body: buf,
+          headers: respHeaders,
+          body,
           fromCache304: false,
         };
       } catch (err) {
@@ -366,6 +377,54 @@ function flattenHeaders(
     out[k.toLowerCase()] = Array.isArray(v) ? v.join(', ') : v;
   }
   return out;
+}
+
+/**
+ * Decode an HTTP response body per its Content-Encoding. undici.request does not
+ * auto-decompress, and we advertise `accept-encoding: gzip, deflate`, so a compliant
+ * origin (Yahoo) returns compressed bytes. Handles gzip / deflate (zlib-wrapped and
+ * raw) / br; identity, absent, or unknown encodings pass through unchanged. If the
+ * declared codec fails to decode (corrupt / mislabeled), the RAW bytes are returned so
+ * the parser can still try rather than the request hard-failing. Exported for testing.
+ */
+export function decodeContentEncoding(
+  body: Buffer,
+  contentEncoding: string | undefined,
+  logger?: Logger,
+): Buffer {
+  if (!contentEncoding || body.length === 0) return body;
+  // Content-Encoding may list several codecs; the LAST one is outermost (applied last).
+  const enc = contentEncoding
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean)
+    .pop();
+  if (!enc || enc === 'identity') return body;
+  try {
+    switch (enc) {
+      case 'gzip':
+      case 'x-gzip':
+        return gunzipSync(body);
+      case 'deflate':
+        // Prefer zlib-wrapped deflate; fall back to raw deflate (some servers omit the header).
+        try {
+          return inflateSync(body);
+        } catch {
+          return inflateRawSync(body);
+        }
+      case 'br':
+        return brotliDecompressSync(body);
+      default:
+        logger?.warn('unknown content-encoding, passing body through undecoded', { contentEncoding });
+        return body;
+    }
+  } catch (err) {
+    logger?.warn('content-encoding decode failed, using raw body', {
+      contentEncoding,
+      err: String(err).slice(0, 120),
+    });
+    return body;
+  }
 }
 
 /** Retry-After may be seconds (int) or an HTTP-date. Returns ms or undefined. */
