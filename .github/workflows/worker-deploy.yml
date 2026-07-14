@@ -6,6 +6,11 @@ on:
     branches: [main]
     paths:
       - "worker/**"
+      # The worker bundles the ingestion package (worker/package.json:
+      # "marsad-ingestion": "file:../ingestion") and runs it compiled
+      # (`node dist/index.js` → ingestion/dist). So an ingestion-only change
+      # MUST redeploy the worker — without this path the fix ships nowhere.
+      - "ingestion/**"
       # Shared TS (LLM gateway, entity types) is compiled into the worker
       # (06-infra-cost.md §3.1), so changes there must redeploy it too.
       - "src/lib/shared/**"
@@ -78,7 +83,18 @@ jobs:
           cd "$APP_DIR"
           git fetch origin
           git reset --hard "$DEPLOY_SHA"
-          cd worker
+          # Build the ingestion package FIRST. The worker depends on it via
+          # `marsad-ingestion: file:../ingestion` and runs compiled
+          # (`node dist/index.js`), so at runtime it resolves marsad-ingestion to
+          # ingestion/dist (the package's `default` export). There is no prepare
+          # hook, so `git reset` refreshes ingestion/src but NOT ingestion/dist —
+          # without this explicit build the worker would keep running stale
+          # ingestion JS (and the worker's own tsc build would fail on the missing
+          # ingestion .d.ts). Build ingestion, then the worker copies the fresh dist.
+          cd ingestion
+          npm ci
+          npm run build
+          cd ../worker
           npm ci
           npm run build
           npm prune --omit=dev
