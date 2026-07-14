@@ -2,7 +2,7 @@ import type { Sql } from '../db.js';
 import type { Handler, HandlerContext } from './index.js';
 import type { IngestionRuntime, RunTaskResult, SourceRecord, VenueCode } from './ingestion-runtime.js';
 import type { EodSweepPayload } from './payloads.js';
-import { runAsAgent, AgentPausedError } from './identity.js';
+import { resolveActiveAgent, AgentPausedError } from './identity.js';
 import { logFetchFailure, logFetchSkipped } from './fetch-log.js';
 import { enqueueCrossCheckForKeys } from './quote-poll.js';
 import { heartbeatRun, heartbeatOk, heartbeatError } from './job-heartbeat.js';
@@ -170,22 +170,24 @@ export function makeEodSweep(runtime: IngestionRuntime): Handler {
 
     let results: RunTaskResult[];
     try {
-      results = await runAsAgent(ctx.sql, agentAccount, async (tx, identity) => {
-        const out: RunTaskResult[] = [];
-        for (const source of active) {
-          for (const task of runtime.tasksForSource(source)) {
-            out.push(
-              await runtime.runTask({
-                source,
-                task,
-                agentPrincipalId: identity.principalId,
-                tradeDate,
-              }),
-            );
-          }
+      // Kill-switch check only — NO transaction. Like quote_poll, the body is pure runtime.runTask
+      // (runs on the runtime's own connection + sets its own identity), so a held handler tx just
+      // deadlocks the pool under concurrency. resolveActiveAgent = same kill-switch check, no tx.
+      const identity = await resolveActiveAgent(ctx.sql, agentAccount);
+      const out: RunTaskResult[] = [];
+      for (const source of active) {
+        for (const task of runtime.tasksForSource(source)) {
+          out.push(
+            await runtime.runTask({
+              source,
+              task,
+              agentPrincipalId: identity.principalId,
+              tradeDate,
+            }),
+          );
         }
-        return out;
-      });
+      }
+      results = out;
     } catch (err) {
       if (err instanceof AgentPausedError) {
         log.info('eod_sweep skipped: agent paused', { agentAccount });

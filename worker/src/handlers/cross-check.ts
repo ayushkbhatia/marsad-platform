@@ -1,7 +1,7 @@
 import type { Handler, HandlerContext } from './index.js';
 import type { IngestionRuntime } from './ingestion-runtime.js';
 import type { CrossCheckPayload } from './payloads.js';
-import { runAsPrincipalId, AgentPausedError } from './identity.js';
+import { assertAgentsNotGloballyPaused, AgentPausedError } from './identity.js';
 
 /**
  * cross_check (CONTRACT §7, §9) — q_pipeline.
@@ -24,13 +24,16 @@ export function makeCrossCheck(runtime: IngestionRuntime): Handler {
     }
 
     const log = ctx.log.child({ handler: 'cross_check', naturalKey, objectType });
-    const principalId = await runtime.pipelinePrincipalId();
 
     let result;
     try {
-      result = await runAsPrincipalId(ctx.sql, principalId, async () => {
-        return runtime.crossCheck.resolve({ naturalKey, objectType });
-      });
+      // Global kill-switch check only — NO transaction. crossCheck.resolve() opens its OWN tx on
+      // the runtime's pooled connection (lake/cross-check.ts) and resolves its own verifier, so the
+      // handler's tx GUC never reached it — the wrapper just held a connection idle-in-transaction
+      // while resolve() ran, and N concurrent copies (pipelineConcurrency) exhausted the pool and
+      // deadlocked. assertAgentsNotGloballyPaused does the same global-pause check, no tx held.
+      await assertAgentsNotGloballyPaused(ctx.sql);
+      result = await runtime.crossCheck.resolve({ naturalKey, objectType });
     } catch (err) {
       if (err instanceof AgentPausedError) {
         log.info('cross_check skipped: agents globally paused');

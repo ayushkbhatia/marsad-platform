@@ -4,7 +4,7 @@ import { makeCrossCheck } from '../cross-check.js';
 import { makeKeyRatiosRecompute } from '../key-ratios-recompute.js';
 import { makeFakeSql, makeCtx, makeFakeRuntime } from './fakes.js';
 
-test('cross_check: resolves under the pipeline principal', async () => {
+test('cross_check: resolves after the global kill-switch check, with no held identity tx', async () => {
   const fakeSql = makeFakeSql();
   fakeSql.on('pause_all_agents', [{ globally_paused: false }]);
 
@@ -16,11 +16,11 @@ test('cross_check: resolves under the pipeline principal', async () => {
 
   assert.equal(runtime.calls.crossCheckResolve.length, 1);
   assert.equal(runtime.calls.crossCheckResolve[0]!.objectType, 'DIVIDEND.EXDATE');
-  // GUCs set to the pipeline principal
+  // No handler-side identity tx — resolve() opens its OWN tx + resolves its own verifier on the
+  // runtime connection, so the old runAsPrincipalId wrapper only held a connection idle (deadlock).
   assert.ok(
-    fakeSql.queries.some(
-      (q) => q.text.includes('set_config') && q.values.includes('00000000-0000-0000-0000-000000000001'),
-    ),
+    !fakeSql.queries.some((q) => q.text.includes('set_config')),
+    'no handler-side identity tx / set_config',
   );
 });
 

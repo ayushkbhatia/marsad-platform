@@ -1,7 +1,7 @@
 import type { Handler, HandlerContext } from './index.js';
 import type { IngestionRuntime } from './ingestion-runtime.js';
 import type { KeyRatiosPayload } from './payloads.js';
-import { runAsPrincipalId, AgentPausedError } from './identity.js';
+import { assertAgentsNotGloballyPaused, AgentPausedError } from './identity.js';
 
 /**
  * key_ratios_recompute (CONTRACT §9) — q_pipeline.
@@ -21,13 +21,13 @@ export function makeKeyRatiosRecompute(runtime: IngestionRuntime): Handler {
       scope: securityIds ? `${securityIds.length} securities` : 'full',
     });
 
-    const principalId = await runtime.pipelinePrincipalId();
-
     let result: { rowsWritten: number };
     try {
-      result = await runAsPrincipalId(ctx.sql, principalId, async () => {
-        return runtime.recomputeKeyRatios(securityIds);
-      });
+      // Global kill-switch check only — no transaction (see cross_check + handlers/identity.ts
+      // IDENTITY SEAM). recomputeKeyRatios runs on the runtime's own connection and sets its own
+      // identity; the old runAsPrincipalId wrapper just held a connection idle.
+      await assertAgentsNotGloballyPaused(ctx.sql);
+      result = await runtime.recomputeKeyRatios(securityIds);
     } catch (err) {
       if (err instanceof AgentPausedError) {
         log.info('key_ratios_recompute skipped: agents globally paused');

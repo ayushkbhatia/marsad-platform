@@ -1,7 +1,7 @@
 import type { Handler, HandlerContext } from './index.js';
 import type { IngestionRuntime, RunTaskResult } from './ingestion-runtime.js';
 import type { FilingsPollPayload } from './payloads.js';
-import { runAsAgent, AgentPausedError } from './identity.js';
+import { resolveActiveAgent, runAsPrincipalId, AgentPausedError } from './identity.js';
 import { logFetchFailure, logFetchSkipped } from './fetch-log.js';
 import { enqueueFilingDetails } from './enqueue.js';
 import { heartbeatRun, heartbeatOk, heartbeatError } from './job-heartbeat.js';
@@ -79,32 +79,29 @@ export function makeFilingsPoll(runtime: IngestionRuntime): Handler {
 
     let result: { results: RunTaskResult[]; detailsEnqueued: number };
     try {
-      result = await runAsAgent(ctx.sql, agentAccount, async (tx, identity) => {
-        const results: RunTaskResult[] = [];
-        for (const task of tasks) {
-          results.push(
-            await runtime.runTask({
-              source,
-              task,
-              agentPrincipalId: identity.principalId,
-            }),
-          );
-        }
-
-        // Collect newly-seen external ids across the run and record them as
-        // pending seen_items + one filing_detail wake-up. This runs in the
-        // handler tx (so seen_items + wake-up are mutually atomic), but is NOT
-        // atomic with runTask's staging (runTask has its own connection — see
-        // the handler doc); crash-safety is by idempotency, not this tx.
-        const newIds = dedupeStrings(results.flatMap((r) => r.newExternalIds));
-        const detailsEnqueued = await enqueueFilingDetails(
-          tx,
-          source.id,
-          detailSourceId,
-          newIds,
+      // Kill-switch check (no tx). runTask runs on the runtime's OWN connection, so it must not be
+      // wrapped in a held handler tx — that idle-tx-across-runTask is the pool-deadlock pattern.
+      const identity = await resolveActiveAgent(ctx.sql, agentAccount);
+      const results: RunTaskResult[] = [];
+      for (const task of tasks) {
+        results.push(
+          await runtime.runTask({ source, task, agentPrincipalId: identity.principalId }),
         );
-        return { results, detailsEnqueued };
-      });
+      }
+
+      // Collect newly-seen external ids and record them as pending seen_items + one filing_detail
+      // wake-up in a NARROW tx (milliseconds; principal GUC set for the lake triggers). The tx wraps
+      // ONLY the enqueue — NOT the multi-second runTask above — and is skipped when there are no new
+      // ids. Not atomic with runTask's staging (separate connection); crash-safety is by idempotency
+      // (seen_items ON CONFLICT; idempotent staging; harmless wake-up re-enqueue), not this tx.
+      const newIds = dedupeStrings(results.flatMap((r) => r.newExternalIds));
+      let detailsEnqueued = 0;
+      if (newIds.length > 0) {
+        detailsEnqueued = await runAsPrincipalId(ctx.sql, identity.principalId, async (tx) =>
+          enqueueFilingDetails(tx, source.id, detailSourceId, newIds),
+        );
+      }
+      result = { results, detailsEnqueued };
     } catch (err) {
       if (err instanceof AgentPausedError) {
         log.info('filings_poll skipped: agent paused', { agentAccount });

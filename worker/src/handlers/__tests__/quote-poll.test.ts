@@ -10,7 +10,7 @@ import {
   activeAgentRows,
 } from './fakes.js';
 
-test('quote_poll: runs the task as the venue DATA agent and sets identity GUCs', async () => {
+test('quote_poll: runs the task under the resolved agent principal, with no held identity tx', async () => {
   const fakeSql = makeFakeSql();
   fakeSql.on('iam.agent_accounts', activeAgentRows('pid-QE'));
 
@@ -21,19 +21,17 @@ test('quote_poll: runs the task as the venue DATA agent and sets identity GUCs',
   const handler = makeQuotePoll(runtime);
   await handler({ handler: 'quote_poll', sourceId: 101 }, makeCtx(fakeSql.sql));
 
-  // runTask was invoked for the source.
+  // runTask was invoked for the source, and the resolved agent principal is threaded to it as a
+  // VALUE (the runtime sets its own identity from it — the handler no longer holds an identity tx).
   assert.equal(runtime.calls.runTask.length, 1);
   assert.equal(runtime.calls.runTask[0]!.sourceId, 101);
+  assert.equal(runtime.calls.runTask[0]!.agentPrincipalId, 'pid-QE');
 
-  // identity GUCs were set inside the tx.
-  const gucCalls = fakeSql.queries.filter((q) => q.text.includes('set_config'));
+  // No handler-side set_config: the old runAsAgent tx held a connection idle across the WHOLE
+  // runTask (pool-deadlock under concurrency), and its GUC never reached runTask's own connection.
   assert.ok(
-    gucCalls.some((q) => q.values.includes('pid-QE')),
-    'app.principal_id set to the agent principal',
-  );
-  assert.ok(
-    gucCalls.some((q) => q.values.includes('agent')),
-    'app.principal_kind set to agent',
+    !fakeSql.queries.some((q) => q.text.includes('set_config')),
+    'no handler-side identity tx / set_config',
   );
 });
 

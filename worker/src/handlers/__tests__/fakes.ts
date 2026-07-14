@@ -126,7 +126,7 @@ const NOOP_TASK: TaskSpec = {
  */
 export interface FakeRuntime extends IngestionRuntime {
   readonly calls: {
-    runTask: Array<{ sourceId: number; tradeDate: string | undefined }>;
+    runTask: Array<{ sourceId: number; tradeDate: string | undefined; agentPrincipalId: string }>;
     countStagingSources: Array<{ naturalKey: string; objectType: string }>;
     crossCheckResolve: Array<{ naturalKey: string; objectType: string }>;
     recomputeKeyRatios: Array<number[] | undefined>;
@@ -145,7 +145,7 @@ export function makeFakeRuntime(over: Partial<IngestionRuntime> = {}): FakeRunti
     loadSource: async (id) => makeSource({ id }),
     agentAccountForSource: (s) => (`DATA-${s.venue}` as AgentAccount),
     runTask: async (input) => {
-      calls.runTask.push({ sourceId: input.source.id, tradeDate: input.tradeDate });
+      calls.runTask.push({ sourceId: input.source.id, tradeDate: input.tradeDate, agentPrincipalId: input.agentPrincipalId });
       return makeRunResult();
     },
     tasksForSource: () => [NOOP_TASK],

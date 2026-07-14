@@ -78,14 +78,12 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): WorkerConfig {
     // + pipeline batch + poller + backfill sink fit with headroom. Env-overridable.
     dbPoolMax: intFromEnv(env.DB_POOL_MAX, 20),
     pipelineReadQty: intFromEnv(env.PIPELINE_READ_QTY, 25),
-    // Deadlock-safe under the nested-connection pattern: each handler holds a
-    // runAsAgent transaction connection AND acquires more pool connections for its
-    // sub-queries (~2/handler). So total concurrent handlers × 2 must stay under
-    // dbPoolMax or the pool deadlocks (every tx waits for a connection the others hold).
-    // 4 pipeline + backfill sink + 5 consumers + poller ≈ 18 < 20. The real fix is to
-    // thread the tx connection through runTask/cross_check so handlers stop acquiring
-    // nested pool connections — then this can go much higher (tracked for next session).
-    pipelineConcurrency: intFromEnv(env.PIPELINE_CONCURRENCY, 4),
+    // The nested-connection deadlock is fixed: handlers no longer wrap their pool work in a
+    // held runAsAgent/runAsPrincipalId identity tx (see handlers/quote-poll, cross-check, etc.),
+    // so a handler now uses ~1 ACTIVE pool connection at a time instead of holding an idle tx +
+    // nesting more. Concurrency can run high again; 8 keeps well within dbPoolMax with the 5
+    // consumers + poller. Raise further via PIPELINE_CONCURRENCY if the pooler ceiling allows.
+    pipelineConcurrency: intFromEnv(env.PIPELINE_CONCURRENCY, 8),
   };
 }
 
