@@ -184,17 +184,57 @@ function tasksForProvider(source: SourceRecord): TaskSpec<unknown>[] | undefined
  * (toYahooSymbol → null) and blank tickers are dropped. Order is stable (ticker asc) so the
  * per-cycle request order — and thus the ≤300 req/day/host budget rotation — is deterministic.
  */
-export async function yahooSymbolsForVenue(sql: Sql, venue: VenueCode): Promise<string[]> {
-  const rows = await sql<{ ticker: string }[]>`
-    select ticker
-      from public.securities
-     where venue_code = ${venue}
-       and status = 'listed'
-     order by ticker asc
-  `;
+/**
+ * Listed raw tickers for a venue, ticker-asc. When `unbackfilledOnly`, EXCLUDE securities already
+ * backfilled (securities.ohlcv_backfilled_at is set) — this is the coverage guard that lets the ≥2y
+ * backfill GRACEFULLY STOP: once every listed security is stamped the list is empty, which runTask
+ * reads as "coverage complete → skip the fetch".
+ *
+ * WHY a sticky flag, not a bar-depth/day threshold: the backfill fetch is ATOMIC — one range=2y GET
+ * returns the provider's ENTIRE available window (≈2y for a mature stock, or a young listing's full
+ * short history). So a security that has been backfilled ONCE already holds as much history as the
+ * provider (Yahoo/Mubasher/MSX) will ever give — "as feasible per provider". The objectifier stamps
+ * ohlcv_backfilled_at the moment it lands a security's backfill bars (migration 0041), so no arbitrary
+ * day-count is needed and a genuinely young stock is not re-fetched forever.
+ *
+ * `unbackfilledOnly` is false for live sources (quotes) so those are NEVER coverage-filtered — they
+ * must poll the whole universe every cycle. Only the ohlcv_backfill data_type passes true.
+ */
+async function listedTickersForVenue(
+  sql: Sql,
+  venue: VenueCode,
+  unbackfilledOnly: boolean,
+): Promise<string[]> {
+  const rows: Array<{ ticker: string }> = unbackfilledOnly
+    ? await sql<{ ticker: string }[]>`
+        select s.ticker
+          from public.securities s
+         where s.venue_code = ${venue}
+           and s.status = 'listed'
+           and s.ohlcv_backfilled_at is null
+         order by s.ticker asc
+      `
+    : await sql<{ ticker: string }[]>`
+        select s.ticker
+          from public.securities s
+         where s.venue_code = ${venue}
+           and s.status = 'listed'
+         order by s.ticker asc
+      `;
+  return rows
+    .map((r) => r.ticker)
+    .filter((t): t is string => typeof t === 'string' && t.trim() !== '');
+}
+
+export async function yahooSymbolsForVenue(
+  sql: Sql,
+  venue: VenueCode,
+  unbackfilledOnly = false,
+): Promise<string[]> {
+  const tickers = await listedTickersForVenue(sql, venue, unbackfilledOnly);
   const out: string[] = [];
-  for (const r of rows) {
-    const sym = toYahooSymbol(venue, r.ticker);
+  for (const ticker of tickers) {
+    const sym = toYahooSymbol(venue, ticker);
     if (sym) out.push(sym);
   }
   return out;
@@ -212,8 +252,10 @@ export async function withYahooSymbols(sql: Sql, source: SourceRecord): Promise<
   const cfg = source.endpointConfig as unknown as { symbols?: unknown };
   const already = Array.isArray(cfg.symbols) && cfg.symbols.length > 0;
   if (already) return source;
-  const symbols = await yahooSymbolsForVenue(sql, source.venue);
-  if (symbols.length === 0) return source;
+  const symbols = await yahooSymbolsForVenue(sql, source.venue, source.dataType === 'ohlcv_backfill');
+  // ALWAYS set the (possibly empty) list — an empty ohlcv_backfill list is the "coverage complete"
+  // signal runTask skips on. A quotes list is never coverage-filtered, so it is empty only when the
+  // venue has no Yahoo-mapped securities (the pre-existing base-URL fallback, unchanged).
   return {
     ...source,
     endpointConfig: { ...source.endpointConfig, symbols } as SourceRecord['endpointConfig'],
@@ -235,15 +277,9 @@ export async function withMubasherCsvSymbols(sql: Sql, source: SourceRecord): Pr
   const cfg = source.endpointConfig as unknown as { symbols?: unknown };
   const already = Array.isArray(cfg.symbols) && cfg.symbols.length > 0;
   if (already) return source;
-  const rows = await sql<{ ticker: string }[]>`
-    select ticker
-      from public.securities
-     where venue_code = ${source.venue}
-       and status = 'listed'
-     order by ticker asc
-  `;
-  const symbols = rows.map((r) => r.ticker).filter((t): t is string => typeof t === 'string' && t.trim() !== '');
-  if (symbols.length === 0) return source;
+  const symbols = await listedTickersForVenue(sql, source.venue, source.dataType === 'ohlcv_backfill');
+  // ALWAYS set the (possibly empty) list — an empty ohlcv_backfill list is the "coverage complete"
+  // signal runTask skips on (graceful backfill stop once the venue is fully seeded).
   return {
     ...source,
     endpointConfig: { ...source.endpointConfig, symbols } as SourceRecord['endpointConfig'],
@@ -265,15 +301,9 @@ export async function withMsxHistorySymbols(sql: Sql, source: SourceRecord): Pro
   const cfg = source.endpointConfig as unknown as { symbols?: unknown };
   const already = Array.isArray(cfg.symbols) && cfg.symbols.length > 0;
   if (already) return source;
-  const rows = await sql<{ ticker: string }[]>`
-    select ticker
-      from public.securities
-     where venue_code = ${source.venue}
-       and status = 'listed'
-     order by ticker asc
-  `;
-  const symbols = rows.map((r) => r.ticker).filter((t): t is string => typeof t === 'string' && t.trim() !== '');
-  if (symbols.length === 0) return source;
+  const symbols = await listedTickersForVenue(sql, source.venue, source.dataType === 'ohlcv_backfill');
+  // ALWAYS set the (possibly empty) list — an empty ohlcv_backfill list is the "coverage complete"
+  // signal runTask skips on (graceful backfill stop once the venue is fully seeded).
   return {
     ...source,
     endpointConfig: { ...source.endpointConfig, symbols } as SourceRecord['endpointConfig'],
@@ -777,6 +807,27 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
       // routes Yahoo → suffixed chart symbols, Mubasher-CSV → RAW listed tickers. No-op for primary
       // sources and for aggregator rows that already carry an explicit Desk-set symbol list.
       const source = await withInjectedSymbols(sql, rawSource);
+
+      // Graceful backfill stop (coverage guard): an ohlcv_backfill aggregator whose injected symbol
+      // set came back EMPTY means every listed security for the venue is already backfilled to target
+      // depth (listedTickersForVenue filtered them all out). Skip the fetch entirely — the daily
+      // schedule keeps ticking and heart-beating, but does no work until a new listing or a gap drops
+      // a security back below coverage. EOD accrual (0028) + intraday quotes carry the lake forward.
+      // Scoped to ohlcv_backfill + provider sources so live quote polling is never affected.
+      if (rawSource.dataType === 'ohlcv_backfill' && providerOf(rawSource) !== undefined) {
+        const injected = (source.endpointConfig as unknown as { symbols?: unknown }).symbols;
+        if (Array.isArray(injected) && injected.length === 0) {
+          logger?.info?.('ohlcv_backfill coverage complete — skipping fetch', { venue: source.venue });
+          return {
+            changed: false,
+            snapshotId: null,
+            rowsEmitted: 0,
+            stagedKeys: [],
+            newExternalIds: [],
+            parserVersion: task.parserVersion,
+          };
+        }
+      }
 
       // Per-source egress: a use_proxy source (Yahoo 429-rotation via 0027, BHB WAF via
       // 0020) gets the IPRoyal-proxied http client; everything else the direct one. This

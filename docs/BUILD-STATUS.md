@@ -90,6 +90,15 @@ Two feeds fill `ohlcv_daily` — **both required, different cadences, do not con
   `company-chart-data.aspx` JSON** (0034, provider `msx-company-chart`, `adapters/msx/history.ts` —
   ≥2y daily **close-only**, intraday ticks filtered). Both seeded `active=false` pending the
   post-deploy activation flip. **BHB remains the one price-history GAP** (needs proxy — see DEF-BHB-OHLCV).
+  **"one-time" is now enforced (migration 0041):** the daily-cadence backfill schedule used to re-fetch
+  the FULL listed universe every run (the injectors inject all `status='listed'` tickers); a sticky
+  `securities.ohlcv_backfilled_at` flag — stamped by the objectifier the moment a security's backfill
+  bars land — makes `listedTickersForVenue` inject only un-backfilled securities, so once a venue is
+  fully seeded the injected list is empty and `runTask` skips the fetch (graceful stop; EOD accrual +
+  intraday quotes carry the lake forward). A one-shot `range=2y` GET returns the provider's full feasible
+  window, so "backfilled once" = "as deep as the provider offers" — no day-count threshold needed. Live
+  after apply: QE 49/49 stamped → 0 to re-fetch; TDWL 374/387 (finishing); ADX/MSX/BHB still 0 (their
+  backfill sources have not produced — separate issue).
 - **EOD accrual (ongoing, +1 bar/security/trading-day):** rolls the intraday `quotes_latest` ticks
   into that day's O/H/L/C/volume **at close** (cadence is DAILY, not the ~10-min quote cadence).
   ⏳ **wired but NOT YET VALIDATED** — migration 0028 (`accrue_ohlcv_from_quotes` + `ohlcv_accrual`

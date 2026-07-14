@@ -176,3 +176,18 @@ test('withYahooSymbols is a no-op for a non-yahoo (primary) source', async () =>
   assert.equal(resolved, src);
   assert.equal(queried, false, 'primary sources never trigger the securities query');
 });
+
+// ── coverage guard: a fully-backfilled ohlcv_backfill source emits an EXPLICIT empty symbols list ──
+// (the "coverage complete" signal runTask skips on — graceful backfill stop). An empty list must be
+// SET, not omitted, so it is distinguishable from a never-injected source.
+test('withYahooSymbols sets symbols:[] for a fully-backfilled ohlcv_backfill source (graceful stop)', async () => {
+  const sql = fakeSql([]); // listedTickersForVenue coverage-filtered everything out
+  const src = makeSource({
+    venue: 'TDWL',
+    dataType: 'ohlcv_backfill' as DataType,
+    endpointConfig: { responseKind: 'json', provider: 'yahoo', suffix: '.SR' },
+  });
+  const resolved = await withYahooSymbols(sql, src);
+  const cfg = resolved.endpointConfig as unknown as { symbols?: unknown };
+  assert.deepEqual(cfg.symbols, [], 'empty symbols must be set explicitly (coverage-complete signal)');
+});
