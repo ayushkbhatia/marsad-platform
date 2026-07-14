@@ -5,6 +5,13 @@
 > The authoritative spec is **`docs/architecture/07-lake-enrichment.md`** — this plan distils it into an
 > executable, phased build. Read 07 §3 (derived pipeline + ratio catalog + Score methodology) and §4/§5
 > alongside. Written 2026-07-14.
+>
+> **Companion (the operating architecture):** the code spine from this plan landed 2026-07-14 (commit
+> `329bfa7`). The *continuous* operating side — the researcher-agent fleet + derived-refresh agents that
+> keep each data family (statements/ratios/filings/earnings/dividends/people/ownership) current on the
+> existing scheduler, generalizing P1.7a's backfill+refresh two-feed pattern — is
+> **`docs/plans/p17-continuous-enrichment-researchers.md`**. This plan = *what to compute*; that plan =
+> *how the lake stays fed*.
 
 ---
 

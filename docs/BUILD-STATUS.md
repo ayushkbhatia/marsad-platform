@@ -140,6 +140,16 @@ The **derived data path is built + tested**; it goes live the moment `financial_
   independence, seat count) with public-read RLS + worker grants.
 - ⏳ **Deferred**: ADX-native cross-check, `ownership_snapshots`, the board/people scrape, BHB egress (§7).
 
+### P1.7 — Continuous enrichment (the researcher-agent operating architecture)
+The live-data completion of P1.7b–e: a **researcher-agent fleet** (per-venue `DATA-*` ingest) + **derived-
+refresh agents** (`nightly`/`score_batch`) that keep each data family current on the **existing** scheduler
+(`ingest.schedules` → `enqueue_due_jobs` → `job_queue` → worker) — generalizing P1.7a's backfill+refresh
+two-feed pattern to statements/ratios/filings/earnings/dividends/people/ownership. **No new scheduler/queue/
+pipeline** — a researcher = a config row + a parse adapter; a refresh agent = a `q_maintenance` handler.
+Full spec, per-family gap matrix, cadence table, and build sequence: **`docs/plans/p17-continuous-enrichment-researchers.md`**.
+It is the consolidated **home** for the DEF-STMT-INGEST / DEF-SECTOR-DATA / DEF-VENUE-FILINGS /
+DEF-FILING-FACTS / DEF-SCORE-EVENTS-TRIGGER / DEF-ESTIMATES-AGG / DEF-STMT-LLM-PDF cluster (§7).
+
 ### P2 — Reader core on real data (~4 wks)
 Ledger, 812 stock pages, newswire, screener, heatmap, search, SEO — all from the live lake, CDN-cached anonymous browsing. (Master plan P2.)
 
