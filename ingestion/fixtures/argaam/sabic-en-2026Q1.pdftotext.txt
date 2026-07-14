@@ -1,0 +1,785 @@
+SAUDI BASIC INDUSTRIES
+CORPORATION (SABIC)
+(A SAUDI JOINT STOCK COMPANY)
+
+
+CONDENSED CONSOLIDATED INTERIM FINANCIAL STATEMENTS
+FOR THE THREE-MONTH PERIOD ENDED 31 MARCH 2026 AND
+INDEPENDENT AUDITOR’S REVIEW REPORT
+CONTENTS
+Independent auditor’s review report ............................................................................................... 3
+Condensed consolidated interim statement of financial position ................................................ 4
+Condensed consolidated interim statement of income ................................................................. 5
+Condensed consolidated interim statement of comprehensive income ...................................... 6
+Condensed consolidated interim statement of changes in equity ............................................... 7
+
+Condensed consolidated interim statement of cash flows............................................................ 8
+
+Notes to the condensed consolidated interim financial statements .......................................... 10
+  1.    Corporate information ........................................................................................................... 10
+  2. Basis of preparation .............................................................................................................. 10
+
+  3. New standards, interpretations and amendments adopted by the Group ...................... 10
+  4. Discontinued operations ........................................................................................................ 11
+
+  5. Significant matters during the period ................................................................................... 14
+
+  6. Fair value measurement ......................................................................................................... 15
+
+  7. Revenue ................................................................................................................................... 16
+  8. Related party transactions and balances ............................................................................. 16
+  9. Segment information.............................................................................................................. 17
+
+  10. Appropriations ....................................................................................................................... 20
+  11. Subsequent events ................................................................................................................ 20
+
+
+
+
+                                                                                                                                                      SABIC | 2
+Report on review of condensed consolidated interim financial statements
+To the shareholders of Saudi Basic Industries Corporation
+(A Saudi Joint Stock Company)
+Introduction
+We have reviewed the accompanying condensed consolidated interim statement of financial position of Saudi Basic Industries Corporation and its
+subsidiaries (the “Group”) as of 31 March 2026 and the related condensed consolidated interim statements of income, comprehensive income, changes in
+equity and cash flows for the three-month period then ended and other explanatory notes. Management is responsible for the preparation and
+presentation of these condensed consolidated interim financial statements in accordance with International Accounting Standard 34 - “Interim Financial
+Reporting” (IAS 34), as endorsed in the Kingdom of Saudi Arabia. Our responsibility is to express a conclusion on these condensed consolidated interim
+financial statements based on our review.
+Scope of review
+We conducted our review in accordance with International Standard on Review Engagements 2410, “Review of interim financial information performed
+by the independent auditor of the entity”, as endorsed in the Kingdom of Saudi Arabia. A review of interim financial information consists of making
+inquiries, primarily of persons responsible for financial and accounting matters, and applying analytical and other review procedures. A review is
+substantially less in scope than an audit conducted in accordance with International Standards on Auditing, as endorsed in the Kingdom of Saudi Arabia,
+and consequently does not enable us to obtain assurance that we would become aware of all significant matters that might be identified in an audit.
+Accordingly, we do not express an audit opinion.
+Conclusion
+Based on our review, nothing has come to our attention that causes us to believe that the accompanying condensed consolidated interim financial
+statements are not prepared, in all material respects, in accordance with IAS 34, as endorsed in the Kingdom of Saudi Arabia.
+PricewaterhouseCoopers
+
+
+
+Bader I. Benmohareb
+License No. 471
+28 April 2026
+                                                               PricewaterhouseCoopers Public Accountants (Professional Limited Liability Company)
+                                                               Laysen Valley Tower 12 & 13, King Khaled Road
+                                                               T: +966 (11) 211 0400, F: +966 (11) 211 0401
+                                                               CR no. 1010371622, UN No.7000928734, Capital of 500,000 SAR National address: 2537 Mohammad Ibn Fuhayd St secondary no.
+www.pwc.com                                                    7912, West Umm Al Hamam Dist, postal code 12329 Riyadh, Kingdom of Saudi Arabia
+CONDENSED CONSOLIDATED INTERIM STATEMENT OF FINANCIAL POSITION
+All amounts in thousands of Saudi Riyals unless otherwise stated
+   As at                                                       Note   31 March 2026     31 December 2025       As at                                                       Note   31 March 2026    31 December 2025
+  Assets                                                                                                       Equity and liabilities
+  Non-current assets                                                                                           Equity
+  Property, plant and equipment                                           91,847,462           93,069,696      Equity attributable to equity holders of the Parent                  123,946,142         128,718,634
+  Right-of-use assets                                                       3,311,895            3,412,073     Non-controlling interests                                             25,133,570          26,100,907
+  Intangible assets                                                      18,250,940             18,279,953     Total equity                                                         149,079,712         154,819,541
+  Investments in associates and joint ventures                           33,229,934             33,326,389
+  Investments in debt and equity instruments                                  697,461              636,718     Non-current liabilities
+  Deferred tax assets                                                        377,495               367,773     Debt and lease liabilities                                            25,301,247           24,335,922
+  Derivative financial instruments                                         2,421,664             2,421,604     Employee benefits                                                      13,131,582          12,514,849
+  Other assets and receivables                                             5,039,674             5,204,351     Deferred tax liabilities                                                  351,783             364,718
+  Total non-current assets                                               155,176,525           156,718,557     Derivative financial instruments                                       1,870,894            1,870,894
+                                                                                                               Provisions and other liabilities                                        1,729,911            1,751,021
+  Current assets                                                                                               Total non-current liabilities                                         42,385,417          40,837,404
+  Inventories                                                            13,144,469             12,847,432
+  Trade receivables                                                       16,965,591            16,675,007     Current liabilities
+  Other assets and receivables                                             7,757,737              8,425,796    Short-term borrowings, current portion of debt and
+  Short-term investments                                                   11,361,166            12,917,548     current portion of lease liabilities                                 13,381,540           12,719,305
+  Cash and cash equivalents                                              24,553,896             27,746,328     Trade payables, provisions and other liabilities                     26,781,078           28,928,587
+                                                                         73,782,859               78,612,111                                                                        40,162,618            41,647,892
+  Assets held for sale                                          4         8,946,720               8,961,521    Liabilities directly associated with assets held for sale    4         6,278,357            6,987,352
+  Total current assets                                                   82,729,579             87,573,632     Total current liabilities                                            46,440,975            48,635,244
+  Total assets                                                          237,906,104            244,292,189     Total liabilities                                                    88,826,392           89,472,648
+                                                                                                               Total equity and liabilities                                        237,906,104           244,292,189
+
+
+
+
+     EVP Corporate Finance           Chief Executive Officer            Authorised Board of
+                                                                         Directors Member
+
+ The accompanying notes from 1 to 11 form an integral part of these condensed consolidated interim
+ financial statements.
+
+
+
+
+                                                                                                                                                                                                      SABIC | 4
+CONDENSED CONSOLIDATED INTERIM STATEMENT OF INCOME
+All amounts in thousands of Saudi Riyals unless otherwise stated
+
+ For the three-month period ended 31 March                                          2026                 2025     For the three-month period ended 31 March                          2026            2025
+ Revenue (Note 7)                                                             26,151,935        29,266,658        Net income (loss) from continuing operations
+ Cost of sales                                                              (21,023,696)       (24,222,976)       Attributable to:
+ Gross profit                                                                  5,128,239             5,043,682      • Equity holders of the Parent                                816,478       (138,484)
+ General and administrative expenses                                         (1,634,429)            (1,947,335)     • Non-controlling interests                                   270,896          47,136
+ Research and development expenses                                             (393,790)           (465,165)                                                                     1,087,374        (91,348)
+ Selling and distribution expenses                                           (1,845,127)        (1,592,595)       Net income (loss)
+ Results from integral joint ventures                                             59,778             74,901       Attributable to:
+ Other operating income                                                          161,635            264,525         • Equity holders of the Parent                                  13,195     (1,210,795)
+ Other operating expenses                                                       (29,975)        (1,078,595)         • Non-controlling interests                                   270,896           47,136
+ Income from operations                                                        1,446,331               299,418                                                                    284,091      (1,163,659)
+
+ Results from associates and non-integral joint ventures                         185,791               107,592    Basic and diluted earnings per share from net income (loss)
+ Finance income                                                                 493,290                769,234     attributable to equity holders of the Parent (Saudi Riyals)
+ Finance costs                                                                 (677,832)             (709,538)      • Net income (loss) from continuing operations                    0.27         (0.05)
+ Income before zakat and income tax                                            1,447,580              466,706       • Net income (loss)                                             0.004          (0.40)
+
+
+ Zakat expense                                                                 (256,760)              (410,171)
+ Income tax expense                                                            (103,446)             (147,883)
+ Net income (loss) from continuing operations                                  1,087,374               (91,348)
+ Net loss from discontinued operations                                         (803,283)            (1,072,311)
+ Net income (loss)                                                               284,091            (1,163,659)
+
+
+
+
+     EVP Corporate Finance                Chief Executive Officer                Authorised Board of
+                                                                                  Directors Member
+The accompanying notes from 1 to 11 form an integral part of these condensed consolidated interim
+financial statements.
+
+
+
+
+                                                                                                                                                                                             SABIC | 5
+CONDENSED CONSOLIDATED INTERIM STATEMENT OF COMPREHENSIVE INCOME
+All amounts in thousands of Saudi Riyals unless otherwise stated
+
+ For the three-month period ended 31 March                                          2026                2025    For the three-month period ended 31 March                              2026            2025
+ Net income (loss)                                                               284,091        (1,163,659)     Total comprehensive (loss) income
+                                                                                                                Attributable to:
+ Other comprehensive income                                                                                       • Equity holders of the Parent                                   (272,492)      (246,789)
+ Items that will not be reclassified subsequently to the                                                          • Non-controlling interests                                        226,576         60,240
+   consolidated statement of income                                                                                                                                                 (45,916)       (186,549)
+  • Re-measurement loss on defined benefit plans and                                                            Total comprehensive income (loss) attributable to equity holders
+    others, net of tax                                                         (282,938)            (381,689)
+                                                                                                                 of the Parent
+  • Share of other comprehensive (loss) income of
+                                                                                                                Attributable to:
+    associates and joint ventures                                               (97,986)             128,295
+                                                                                                                  • Continuing operations                                            423,510        410,067
+                                                                               (380,924)            (253,394)
+                                                                                                                  • Discontinued operations                                        (696,002)      (656,856)
+ Items that may be reclassified subsequently to the
+   consolidated statement of income                                                                                                                                                (272,492)      (246,789)
+  • Exchange difference on translation                                           136,371            1,012,238
+  • Share of other comprehensive (loss) income of
+    associates and joint ventures                                               (85,454)             249,221
+                                                                                  50,917            1,261,459
+ Reclassification of other comprehensive income related to
+  assets held for sale
+  • Share of other comprehensive loss of an associate                                 -              (30,955)
+                                                                                      -              (30,955)
+
+
+ Net movement of other comprehensive income                                    (330,007)              977,110
+ Total comprehensive loss                                                        (45,916)           (186,549)
+
+
+
+
+      EVP Corporate Finance                Chief Executive Officer               Authorised Board of
+                                                                                  Directors Member
+
+The accompanying notes from 1 to 11 form an integral part of these condensed consolidated interim
+financial statements.
+
+
+
+
+                                                                                                                                                                                               SABIC | 6
+CONDENSED CONSOLIDATED INTERIM STATEMENT OF CHANGES IN EQUITY
+All amounts in thousands of Saudi Riyals unless otherwise stated
+
+                                                                                                            Attributable to the equity holders of the Parent
+                                                                                             Share              General               Other           Retained                    Non-controlling         Total
+                                                                           Note             capital             reserve            reserves           earnings           Total          interests        equity
+ Balance as at 1 January 2025                                                           30,000,000          110,889,032          (4,112,475)         19,581,626    156,358,183        27,085,026    183,443,209
+ Net (loss) income                                                                                -                   -                 -            (1,210,795)    )1,210,795)           47,136     (1,163,659)
+ Other comprehensive income                                                                       -                   -            964,006                   -         964,006            13,104         977,110
+ Total comprehensive (loss) income                                                                -                   -            964,006           (1,210,795)     (246,789)            60,240       (186,549)
+ Dividends and others                                                       10                    -                   -                 -                    -              -            (33,974)       (33,974)
+ Balance as at 31 March 2025                                                            30,000,000          110,889,032         (3,148,469)          18,370,831     156,111,394        27,111,292   183,222,686
+
+
+ Balance as at 1 January 2026                                                           30,000,000                    -          (1,472,793)        100,191,427    128,718,634        26,100,907     154,819,541
+ Net income                                                                                     -                     -                   -              13,195         13,195          270,896         284,091
+ Other comprehensive loss                                                                         -                   -           (285,687)                    -     (285,687)          (44,320)      (330,007)
+ Total comprehensive (loss) income                                                                -                   -           (285,687)              13,195       (272,492)          226,576        (45,916)
+ Dividends and others                                                       10                    -                   -                  -         (4,500,000)     (4,500,000)        (1,193,913)    (5,693,913)
+ Balance as at 31 March 2026                                                            30,000,000                    -         (1,758,480)         95,704,622     123,946,142        25,133,570    149,079,712
+
+
+
+
+     EVP Corporate Finance                  Chief Executive Officer                  Authorised Board of
+                                                                                      Directors Member
+
+The accompanying notes from 1 to 11 form an integral part of these condensed consolidated interim financial statements.
+
+
+
+
+                                                                                                                                                                                                    SABIC | 7
+CONDENSED CONSOLIDATED INTERIM STATEMENT OF CASH FLOWS
+All amounts in thousands of Saudi Riyals unless otherwise stated
+
+ For the three-month period ended 31 March                               2026         2025     For the three-month period ended 31 March                                2026             2025
+ Operating activities                                                                          Investing activities
+ Income (loss) before zakat and income tax                                                     Purchase of property, plant and equipment and intangible assets     (1,145,074)     (1,500,908)
+   • from continuing operations                                     1,447,580       466,706
+                                                                                               Investments in associates and non-integral joint ventures            (256,458)        (237,090)
+   • from discontinued operation                                    (794,958)    (1,077,461)
+                                                                                               Dividend received from associates and non-integral joint ventures     168,750          393,750
+                                                                                               Short-term investments, net                                          1,524,229      (4,441,339)
+ Adjustments to reconcile income (loss) before zakat and income
+  tax to net cash from operating activities:                                                   Changes in other assets                                                 77,979           4,061
+   • Depreciation, amortisation and impairment                      2,701,493     3,276,459    Net cash flow from disposal of discontinued operation                      -           173,005
+   • Fair value re-measurement on assets held for sale                175,603           -      Net cash flow from sale of assets held for sale                            -         3,605,726
+   • Results of associates and non-integral joint ventures           (185,791)    (130,365)
+                                                                                               Net cash from (used in) investing activities                          369,426       (2,002,795)
+   • Finance income                                                 (494,429)     (774,066)
+   • Finance costs                                                    689,451       741,783
+   • Other movements                                                  (53,015)        8,729
+
+
+ Change in operating assets and liabilities:
+  Changes in inventories, trade receivables and payables           (3,220,150)   (1,240,948)
+  Increase (decrease) in employee benefits                            140,268    (1,200,353)
+  Changes in other operating assets and liabilities                   648,618        67,877
+                                                                    1,054,670       138,361
+ Interest received                                                    441,361       690,941
+ Interest paid                                                      (499,615)      (557,611)
+ Zakat and income tax paid                                          (125,550)      (120,913)
+ Net cash from operating activities                                  870,866        150,778
+
+
+
+
+                                                                                                                                                                                 SABIC | 8
+CONDENSED CONSOLIDATED INTERIM STATEMENT OF CASH FLOWS (CONTINUED)
+All amounts in thousands of Saudi Riyals unless otherwise stated
+
+ For the three-month period ended 31 March                                        2026                    2025
+ Financing activities
+ Proceeds from debt                                                          1,461,953               15,161,250
+ Debt and lease repayments                                                   (277,923)          (13,318,853)
+ Dividends paid to shareholders                                            (4,465,014)              (5,101,975)
+ Dividends paid to non-controlling interests                                (1,194,609)             (1,215,198)
+ Net cash used in financing activities                                     (4,475,593)              (4,474,776)
+
+
+ Decrease in cash and cash equivalents                                      (3,235,301)             (6,326,793)
+ Net foreign exchange (loss) gain on cash and cash equivalents                  (5,317)                 17,706
+ Cash and cash equivalents at the beginning of the period                  27,950,605           30,536,409
+ Cash and cash equivalents at the end of the period                        24,709,987               24,227,322
+
+
+ Cash and cash equivalents                                                 24,553,896               24,659,305
+ Cash and cash equivalents (included in assets held for sale)                  432,591                     -
+ Less: Short-term borrowings (bank overdrafts)                               (276,500)               (431,983)
+ Cash and cash equivalents at the end of the period                        24,709,987               24,227,322
+
+
+
+
+     EVP Corporate Finance               Chief Executive Officer                Authorised Board of
+                                                                                 Directors Member
+
+The accompanying notes from 1 to 11 form an integral part of these condensed consolidated interim
+financial statements.
+
+
+
+
+                                                                                                                  SABIC | 9
+NOTES TO THE CONDENSED CONSOLIDATED INTERIM FINANCIAL STATEMENTS
+All amounts in thousands of Saudi Riyals unless otherwise stated
+
+1.   CORPORATE INFORMATION                                         2.   BASIS OF PREPARATION                                        3.   NEW STANDARDS, INTERPRETATIONS AND
+                                                                                                                                         AMENDMENTS ADOPTED BY THE GROUP
+Saudi Basic Industries Corporation (“SABIC” or “the                These condensed consolidated interim financial
+Parent”) is a Saudi Joint Stock Company established                statements have been prepared in accordance with                 The accounting policies adopted in the preparation of the
+pursuant to Royal Decree Number M/66 dated 13 Ramadan              International Accounting Standard 34 ‘Interim Financial          condensed consolidated interim financial statements are
+1396H (corresponding to 6 September 1976) registered in            Reporting’ (“IAS 34”) as endorsed in KSA and other               consistent with those followed in preparing the Group’s
+Riyadh under commercial registration No. 1010010813                standards and pronouncements that are issued by the              annual consolidated financial statements for the year
+dated 14 Muharram 1397H (corresponding to 4 January                Saudi Organization for Chartered and Professional                ended 31 December 2025.
+1977). The registered office is located at Qurtubah district,      Accountants (“SOCPA”) (collectively referred to as “IFRS as
+                                                                                                                                    There are no new standards, amendments or
+P.O. Box 5101, Riyadh 11422, Kingdom of Saudi Arabia               endorsed in KSA”).
+                                                                                                                                    interpretations that are effective for annual periods
+(“KSA”).
+                                                                   These condensed consolidated interim financial                   beginning on or after 1 January 2026 that have a material
+Saudi Arabian Oil Company (“Saudi Aramco”) owns 70% of             statements do not include all information and disclosures        impact on the condensed consolidated interim financial
+SABIC through one of its subsidiaries, Aramco Downstream           required in the annual consolidated financial statements         statements.
+Company (formerly, Aramco Chemicals Company). The                  and should therefore be read in conjunction with the
+                                                                                                                                    The Group has not early adopted any new accounting
+Saudi Arabian Government is the largest shareholder by             Group’s annual consolidated financial statements for the
+                                                                                                                                    standards, interpretations or amendments that are issued
+81.48% direct shareholding in Saudi Aramco. The                    year ended 31 December 2025.
+                                                                                                                                    but which are not yet effective.
+remaining 30% of SABIC shares are held by the private
+sector.                                                            An interim period is considered an integral part of the
+                                                                   whole fiscal year. However, the results of operations for
+SABIC and its subsidiaries (collectively the “Group”) are          interim periods may not be a fair indication of the results of
+engaged in the manufacturing, marketing and distribution           the full year operations.
+of chemicals, polymers, plastics and agri-nutrients
+products in global markets.
+
+The condensed consolidated interim financial statements
+of the Group for the three-month period ended 31 March
+2026 were authorised for issue in accordance with a
+resolution of the Board of Directors on 28 April 2026.
+
+
+
+
+                                                                                                                                                                                    SABIC | 10
+NOTES TO THE CONDENSED CONSOLIDATED INTERIM FINANCIAL STATEMENTS (CONTINUED)
+All amounts in thousands of Saudi Riyals unless otherwise stated
+
+4.   DISCONTINUED OPERATIONS
+
+4.1 DISPOSAL OF SABIC EUROPE B.V.
+On 16 December 2025, SABIC Board authorized the divestiture of its entire European                 4.1.1 FINANCIAL PERFORMANCE AND CASH FLOW INFORMATION
+Petrochemicals business (“EP”) engaged in the production and sales of ethylene, propylene,
+low-density polyethylene (LDPE) and high-density polyethylene (HDPE), polypropylene (PP),          Following table presents the financial performance of discontinued operation after capturing
+and value-added polymer compounds, which was part of its Petrochemicals segment. The               the effects of fair value re-measurement at initial recognition:
+sale forms part of management’s strategic repositioning to divest structurally challenged           For the three-month period ended 31 March                                      2026                   2025
+assets, rationalize the Group’s geographic footprint, and redeploy capital to core growth           Revenue                                                                   3,114,960              3,605,714
+areas.                                                                                              Depreciation, amortisation and impairment                                     (633)               (333,109)
+                                                                                                    Cost of sales and other expenses, net                                   (3,420,335)             (3,714,965)
+Following the SABIC Board’s approval, EP business is classified as a disposal group held for
+                                                                                                    Finance income and expenses, net                                              (958)                (18,260)
+sale and presented as a ‘discontinued operation’ under IFRS 5 ‘Non-current Assets Held for
+Sale and Discontinued Operations’. The classification date reflects the point when                  Results from non-integral joint ventures and associates                         -                    22,773
+management formally committed to a disposal plan. The assets and liabilities pertaining to          Loss before income tax                                                    (306,966)              (437,847)
+this disposal group are segregated and disclosed separately as ‘held for sale’ within these         Income tax (expense) benefit                                                   (971)                20,553
+condensed consolidated interim financial statements. These items are measured at the lower          Loss from discontinued operation                                          (307,937)               (417,294)
+of the carrying amount and fair value less costs to sell. Accordingly, depreciation and             OCI items (i)                                                               (13,041)               442,395
+amortisation of assets within the disposal group have ceased from the date of classification.       Total comprehensive loss from discontinued operation                      (320,978)                  25,101
+
+The results of EP business are reported as discontinued operation in the condensed                 (i) OCI items include re-measurement on defined benefit plans and foreign currency translation
+consolidated interim statement of income and condensed consolidated interim statement of               adjustments.
+cash flows for all periods presented.
+                                                                                                   Following table presents the cash flow information of discontinued operation for the following
+In determining fair value, the risk-adjusted forecasted cash flows remain consistent with          periods:
+year-end 2025 assumptions. The primary significant unobservable input used in this Level 3
+                                                                                                    For the three-month period ended 31 March                                     2026                     2025
+fair value measurement was discount rate. A discount rate of 12% was applied in determining
+                                                                                                    Net cash generated from (used in) operating activities                      43,509              (1,995,348)
+the fair value of the EP business. A 100 basis point change in the discount rate would alter the
+                                                                                                    Net cash used in investing activities                                           -                 (231,087)
+fair value by around 34 million.
+                                                                                                    Net cash used in financing activities                                      (37,920)                 (52,184)
+As at 31 March 2026, the completion of the transaction remains contingent upon the fulfilment       Net increase (decrease) in cash and cash equivalents                          5,589             (2,278,619)
+of standard conditions and receipt of necessary approvals. It is anticipated that the closing
+will occur prior to the conclusion of the fourth quarter of 2026.                                  Loss before zakat and income tax from discontinued operation, as presented in the
+                                                                                                   condensed consolidated interim statement of cash flows, amounted to 307 million (31
+                                                                                                   March 2025: 438 million).
+
+
+
+
+                                                                                                                                                                                               SABIC | 11
+NOTES TO THE CONDENSED CONSOLIDATED INTERIM FINANCIAL STATEMENTS (CONTINUED)
+All amounts in thousands of Saudi Riyals unless otherwise stated
+
+4. DISCONTINUED OPERATIONS (CONTINUED)
+
+4.1 DISPOSAL OF SABIC EUROPE B.V. (CONTINUED)                                                          4.2 DISPOSAL OF ENGINEERING THERMOPLASTICS BUSINESS IN THE AMERICAS
+                                                                                                           AND EUROPE
+4.1.2 ASSETS AND LIABILITIES OF DISPOSAL GROUP CLASSIFIED AS HELD FOR
+      SALE                                                                                             On 16 December 2025, SABIC Board authorized the divestiture of its entire Engineering
+The carrying amounts of assets and liabilities of disposal group classified as held for sale           Thermoplastics business in the Americas and Europe (“ETP in Americas and Europe”)
+were:                                                                                                  including major production sites and related activities, which was part of its Petrochemicals
+ As at                                                             31 March 2026   31 December 2025    segment. The sale forms part of management’s strategic repositioning to divest structurally
+ Assets held for sale                                                                                  challenged assets, rationalize the Group’s geographic footprint, and redeploy capital to core
+ Inventories                                                           1,621,341          2,190,427
+                                                                                                       growth areas.
+ Trade receivables                                                     1,754,533          1,500,400    Following the SABIC Board’s approval, ETP in Americas and Europe is classified as a disposal
+ Other assets                                                           379,700              115,491   group held for sale and presented as a ‘discontinued operation’ under IFRS 5 ‘Non-current
+ Cash and cash equivalents                                                16,255             10,666    Assets Held for Sale and Discontinued Operations’ as at 31 December 2025. The assets and
+                                                                       3,771,829          3,816,984    liabilities pertaining to this disposal group are segregated and disclosed separately as ‘held
+                                                                                                       for sale’ within these condensed consolidated interim financial statements. These items are
+ Liabilities directly associated with assets held for sale                                             measured at lower of the carrying amount and fair value less costs to sell. Accordingly,
+ Employee benefits                                                      331,300            353,000     depreciation and amortisation of assets within the disposal group have ceased from the date
+ Other liabilities                                                     2,639,592          2,516,435    of classification.
+ Trade payables                                                         833,782            1,482,961
+                                                                                                       The results of ETP in Americas and Europe are reported as discontinued operation in the
+                                                                      3,804,674           4,352,396
+                                                                                                       condensed consolidated interim statement of income and condensed consolidated interim
+ Net assets                                                             (32,845)           (535,412)
+                                                                                                       statement of cash flows for all periods presented.
+
+                                                                                                       In determining fair value, the used risk-adjusted forecasted cash flows remain consistent with
+                                                                                                       year-end 2025 assumptions. The primary significant unobservable inputs used in this Level 3
+                                                                                                       fair value measurement were discount rate and valuation multiples. The discount rates
+                                                                                                       utilised in the assessment were 11% and 14%, and a change in the discount rate by 100 basis
+                                                                                                       points would result in a corresponding change in fair value of around 132 million. The
+                                                                                                       valuation multiple applied for anticipated monetization was 8x; a change in multiple by 1x
+                                                                                                       would cause the fair value to change by around 232 million.
+
+                                                                                                       As at 31 March 2026, the completion of the transaction remains contingent upon the fulfilment
+                                                                                                       of standard conditions and receipt of requisite regulatory approvals. It is anticipated that the
+                                                                                                       closing will occur prior to the conclusion of the third quarter of 2026.
+
+
+
+
+                                                                                                                                                                                           SABIC | 12
+NOTES TO THE CONDENSED CONSOLIDATED INTERIM FINANCIAL STATEMENTS (CONTINUED)
+All amounts in thousands of Saudi Riyals unless otherwise stated
+
+4. DISCONTINUED OPERATIONS (CONTINUED)                                                                         4.2.2 ASSETS AND LIABILITIES OF DISPOSAL GROUP CLASSIFIED AS HELD FOR
+                                                                                                                     SALE
+4.2 DISPOSAL OF ENGINEERING THERMOPLASTICS BUSINESS IN THE AMERICAS
+    AND EUROPE (CONTINUED)                                                                                     The carrying amounts of assets and liabilities of disposal group classified as held for sale
+                                                                                                               were:
+4.2.1 FINANCIAL PERFORMANCE AND CASH FLOW INFORMATION
+                                                                                                                As at                                                       31 March 2026    31 December 2025
+Following table presents the financial performance of discontinued operation capturing the                      Assets held for sale
+effects of fair value re-measurement at initial recognition:                                                    Property, plant and equipment, right-of-use assets
+                                                                                                                and intangible assets                                           1,463,766            1,703,045
+ For the three-month period ended 31 March                                      2026                   2025     Inventories                                                     2,134,598            2,234,950
+ Revenue                                                                    1,802,581             1,721,873     Trade receivables                                                 905,602              714,876
+ Depreciation, amortisation and impairment                                        (80)           (227,686)      Other assets                                                      254,589              297,456
+ Cost of sales and other expenses, net                                    (2,105,368)          (2,124,648)      Cash and cash equivalents                                         416,336               194,210
+ Finance income and expenses                                                   (9,522)               (9,153)
+                                                                                                                                                                                 5,174,891            5,144,537
+ Loss before income tax                                                     (312,389)              (639,614)
+ Income tax expense                                                           (7,354)               (15,403)
+                                                                                                                Liabilities directly associated with assets held for sale
+ Loss after income tax                                                      (319,743)              (655,017)
+                                                                                                                Employee benefits                                                 659,359              678,269
+ Fair value re-measurement loss                                             (175,603)                    -
+                                                                                                                Other liabilities                                                 942,354             1,053,718
+ Loss from discontinued operation                                          (495,346)               (655,017)
+                                                                                                                Trade payables                                                    871,970              902,969
+ OCI items (i)                                                               120,322                (26,940)
+                                                                                                                                                                                2,473,683            2,634,956
+ Total comprehensive loss from discontinued operation                       (375,024)              (681,957)
+                                                                                                                Net assets                                                      2,701,208            2,509,581
+(i)   OCI items include re-measurement on defined benefit plans and foreign currency translation
+      adjustments.
+
+Following table presents the cash flow information of discontinued operation for the following
+periods:
+
+ For the three-month period ended 31 March                                      2026                   2025
+ Net cash generated from operating activities                                228,345                 307,517
+ Net cash used in investing activities                                            -                (106,738)
+ Net cash used in financing activities                                        (6,219)                (8,560)
+ Net increase in cash and cash equivalents                                    222,126                192,219
+
+Loss before zakat and income tax from discontinued operation, as presented in the
+condensed consolidated interim statement of cash flows, amounted to 488 million
+including the fair value re-measurement on assets held for sale (31 March 2025: 640 million).
+
+                                                                                                                                                                                                    SABIC | 13
+NOTES TO THE CONDENSED CONSOLIDATED INTERIM FINANCIAL STATEMENTS (CONTINUED)
+All amounts in thousands of Saudi Riyals unless otherwise stated
+
+5.   SIGNIFICANT MATTERS DURING THE PERIOD
+
+5.1 CONFLICT IN THE MIDDLE EAST                                                                        5.2 BORROWING
+
+The sustained geopolitical conflict in the Middle East has created widespread disturbances in          On 24 February 2026, the Group signed an agreement with Bank of China Limited to obtain a
+economic conditions and business environments. SABIC is monitoring risks and uncertainties             revolving loan amounting to CNY 2,086 million (equivalent to 1,125 million). The revolving loan
+related to its operations, including disruptions of transport routes to customers, plant               facility is available for three years at a fixed rate of 2.11% per annum. The revolving loan amount
+underutilizations or shutdowns, asset conditions, elevated logistical cost as well as feedstock        has been drawn in full to meet the working capital requirements and is presented as a non-current
+supply dynamics, besides upward price movements of certain finished products. In response to           liability in these condensed consolidated interim financial statements.
+the geopolitical tensions, SABIC continues to leverage its global operating model, operational
+flexibility, resilient supply chain network, and integration with Saudi Aramco to manage these risks
+and uncertainties.
+
+SABIC has assessed its significant accounting estimates and judgments mainly related to asset
+impairments, recoverability of trade receivables, inventory valuation and gross margin forecast.
+As of 31 March 2026, Management concluded that these factors have not had a material impact on
+these condensed consolidated interim financial statements.
+
+As of the date of approval of these condensed consolidated interim financial statements, the
+geopolitical situation continues to remain volatile and uncertain. Based on current assessments,
+implications on SABIC’s future financial performance and position are likely with the prospect of a
+continuous closure of the Strait of Hormuz, potential threats to SABIC’s manufacturing facilities
+and unstable feedstock supply. While SABIC will continue to monitor the developments and will
+actively manage any exposures, the potential financial impact cannot be reliably estimated at this
+time in light of the prevailing uncertainties.
+
+
+
+
+                                                                                                                                                                                          SABIC | 14
+NOTES TO THE CONDENSED CONSOLIDATED INTERIM FINANCIAL STATEMENTS (CONTINUED)
+All amounts in thousands of Saudi Riyals unless otherwise stated
+
+6. FAIR VALUE MEASUREMENT
+                                                                                                                                                                         The fair values of trade receivables, short-term
+The table below presents the assets and liabilities which are measured at fair value on a recurring basis:                                                               investments, cash and cash equivalents, trade payables
+                                                               As at 31 March 2026                                    As at 31 December 2025                             and other financial assets and financial liabilities
+                                                 Level I         Level II       Level III       Total      Level I          Level II      Level III          Total       approximate their carrying amounts largely due to the
+ Financial assets                                                                                                                                                        short-term maturities of these instruments.
+ Investment in equity instruments                   -            36,644         328,359      365,003            -           36,582        267,678         304,260
+                                                                                                                                                                         SABIC accounts for a number of financial instruments,
+ Derivative financial instruments                   -                -      2,421,664       2,421,664           -               -       2,421,604        2,421,604
+                                                                                                                                                                         which are measured at amortised cost. The fair value of
+ Certificates of deposits and equity
+ instruments                                    233,548         561,162              -       794,710      310,199          592,608               -        902,807        the majority of these instruments approximates their
+                                                233,548        597,806      2,750,023       3,581,377     310,199          629,190      2,689,282        3,628,671       carrying values, except for debt which has a carrying value
+                                                                                                                                                                         amounting to 35,250 million and fair value amounting to
+                                                                                                                                                                           34,297 million as at 31 March 2026 (31 December 2025:
+ Financial liabilities
+ Derivative financial instruments                   -                -          911,250       911,250          -                 -        911,250          911,250
+                                                                                                                                                                         carrying value amounting to 33,546 million and fair value
+ Obligations to acquire the remaining
+                                                                                                                                                                         amounting to 32,766 million).
+ shares of certain subsidiaries                     -                -          959,644      959,644           -                 -        959,644         959,644
+                                                                                                                                                                         There is no material unquoted equity instrument to be
+                                                    -                -      1,870,894       1,870,894          -                 -      1,870,894       1,870,894
+                                                                                                                                                                         disclosed separately.
+There were no assets or liabilities measured on a non-recurring basis. The valuation methods, assumptions and classification
+methodology used in this disclosure are in line with the annual consolidated financial statements for the year ended 31 December
+2025. No transfers were recorded between Level I, Level II or Level III during the period ended 31 March 2026 and 2025.
+The following table summarises information about the significant non-observable inputs used in level III fair value measurements:
+                             Fair value as at                                                                          Range
+                          31 March     31 December                                                          31 March            31 December
+  Description                 2026            2025           Significant non-observable input                   2026                   2025           Relationship of unobservable inputs to fair value
+ Derivative               2,421,664       2,421,604        Call option valuation:                                                                     +/- 10% change would result in change in fair value by   497,936 /   (454,409)
+ financial assets                                          Equity value to EBITDA multiple                           7.0                   7.0        (2025: 497,936 / (454,409))
+                                                                                                                                                      +/- 10% change would result in change in fair value by   377,861 /   (280,675)
+                                                           Implied volatility                                      25%                    25%         (2025: 377,861 / (280,675))
+                                                                                                                                                      +/- 10% change would result in change in fair value by   226,641 /   (206,379)
+                                                           Assumed dividend yield                        0% to 9.5%                 0% to 9.5%        (2025: 226,641 / (206,379))
+                                                           Risk free rate                               3.6% to 4.9%           3.6% to 4.9%           +/- 10% change would result in change in fair value by   42,777 (2025:     42,777)
+ Derivative                 911,250         911,250        Put options and forward contracts:
+ financial                                                 Equity value to EBITDA multiple                         6.50                   6.50        +/- 10% change would result in change in fair value by   131,220 (2025:    131,220)
+ liabilities                                               Dividend to EBITDA %                                33.1%                    33.1%         +/- 10% change would result in change in fair value by   48,296 (2025:     48,296)
+                                                                                                                                                      +/-100 bps change in discount rate would result in change in fair value by    13,669
+                                                           Discount rate                                      10.6%                     10.6%         (2025: 13,669)
+
+
+                                                                                                                                                                                                                                SABIC | 15
+NOTES TO THE CONDENSED CONSOLIDATED INTERIM FINANCIAL STATEMENTS (CONTINUED)
+All amounts in thousands of Saudi Riyals unless otherwise stated
+
+7.   REVENUE                                                                                                                                     For the three-month period                   As at
+                                                                                                                                                    ended 31 March 2025                31 December 2025
+Revenue can be broken down as follows:                                                                                                                             Purchases     Amounts owed     Amounts owed
+                                                                                                                                                     Sales to    from related       by related        to related
+ For the three-month period ended 31 March                                      2026             2025
+                                                                                                                                              related parties         parties          parties           parties
+ Sales of goods                                                            25,566,119       28,314,704
+                                                                                                             Associates                              22,408        1,340,034             37,159           719,429
+ Logistic services                                                           454,561           837,925
+                                                                                                             Joint ventures                        1,671,783        5,142,121         3,603,302          5,520,211
+ Other revenue                                                                131,255          114,029
+                                                                                                             Saudi Aramco                              4,697       5,932,849              15,317        3,655,683
+                                                                           26,151,935       29,266,658
+                                                                                                             Saudi Aramco’s subsidiaries,
+                                                                                                              joint ventures and associates       2,820,934         5,397,531         1,304,334          2,401,573
+Refer Note 9 for the segment and geographical distribution of revenue.
+
+8.   RELATED PARTY TRANSACTIONS AND BALANCES
+                                                                                                                                                             As at                               As at
+Significant related party transactions and balances can be broken down as follows:                                                                      31 March 2026                     31 December 2025
+                                                                                                                                                     Loans to       Loan from            Loans to       Loan from
+                                        For the three-month period                    As at
+                                                                                                                                               related parties related parties     related parties related parties
+                                           ended 31 March 2026                   31 March 2026
+                                                          Purchases      Amounts owed     Amounts owed       Associates                                28,216               -            28,908                 -
+                                            Sales to    from related        by related         to related    Joint ventures                          338,943               -            423,409                -
+                                     related parties          parties           parties           parties    Saudi Aramco’s subsidiary                    -        10,693,427                 -        10,397,249
+ Associates                                  18,497         948,464             17,678            95,550
+ Joint ventures                           1,423,628        4,442,461         1,520,295        3,209,336     During the three-month period ended 31 March 2026, finance income from loans owed by related
+ Saudi Aramco                                 27,527         5,321,501           45,792        3,534,988    parties and finance expense from loans owed to related parties amounted to 74 million and
+ Saudi Aramco’s subsidiaries,                                                                                318 million respectively (31 March 2025: finance income and finance expense amounted to 66
+  joint ventures and associates           2,876,433         3,365,001         1,508,715        1,228,399    million and 130 million respectively).
+                                                                                                            Composition of key management personnel and their compensation policies remain consistent
+                                                                                                            with 2025.
+
+
+
+
+                                                                                                                                                                                                   SABIC | 16
+NOTES TO THE CONDENSED CONSOLIDATED INTERIM FINANCIAL STATEMENTS (CONTINUED)
+All amounts in thousands of Saudi Riyals unless otherwise stated
+
+8.     RELATED PARTY TRANSACTIONS AND BALANCES (CONTINUED)                                              9.    SEGMENT INFORMATION
+
+GOVERNMENT, SEMI-GOVERNMENT AND OTHER ENTITIES WITH GOVERNMENT                                          For internal reporting and management performance purposes, the Group is structured into
+                                                                                                        following business segments:
+OWNERSHIP OR CONTROL
+                                                                                                        The Petrochemicals segment is comprised of two primary product categories: Chemicals and
+Transactions and balances with entities controlled by the Saudi government can be shown as
+                                                                                                        Polymers.
+follows:
+                                                                                                        •    Chemicals products are manufactured from a variety of hydrocarbon feedstock, including
+  For the three-month period ended 31 March                                 2026                2025
+                                                                                                             Methane, Ethane, Propane, Butane, and light Naphtha. The product range includes
+  Purchases of goods and services                                       490,072              442,457
+                                                                                                             Olefins, Methanol, Aromatics, Glycols, Carbon Dioxide, Methyl Tert-Butyl Ether (MTBE).
+  Sales of goods and services                                            29,455                52,721
+                                                                                                        •    Polymers products include Polyethylene (PE), Polypropylene (PP), Polycarbonate (PC),
+                                                                                                             specialities products and other Polymers:
+  As at                                                            31 March 2026    31 December 2025
+  Payables                                                                101,969             164,584        o   The PE product range encompasses linear low-density polyethylene (LLDPE), low-
+  Receivables (i)                                                       1,951,486           1,959,968            density polyethylene (LDPE), and high-density polyethylene (HDPE).
+  Short-term investments with banks                                    8,666,238            4,177,078
+                                                                                                             o   The PP product lines include homo, random, and impact Polypropylene, as well as
+  Cash and cash equivalents held with banks                           18,007,459            5,745,786
+  Borrowings                                                          15,495,676           14,547,785
+                                                                                                                 Polypropylene compounds, homo polymer, random copolymer, impact copolymer,
+  Lease liabilities                                                    1,362,209            1,385,019            and specialty automotive grades.
+
+                                                                                                             o   Other notable products include Polycarbonate (PC), Polyvinyl Chloride (PVC),
+(i)    Receivables include the below balances as at 31 March 2026 with respect to sale of
+                                                                                                                 Polyethylene Terephthalate (PET), Polystyrene (PS) and Acrylonitrile Butadiene
+       Hadeed, an entity controlled by the Saudi government:
+                                                                                                                 Styrene (ABS).
+       •   receivable from PIF amounting to       1,956 million (31 December 2025:    1,929 million).
+                                                                                                        The Agri-Nutrients segment consists of a range of fertiliser products including Urea,
+       •   receivable from Hadeed against services amounting to          13 million (31 December        Ammonia, Phosphate, as well as compound fertilisers.
+           2025: 27 million).
+
+(ii)   Property, plant and equipment of certain subsidiaries in the KSA are pledged to the
+       Saudi Industrial Development Fund (“SIDF”) as security for its term loans amounting to
+         3,821 million (31 December 2025: 3,837 million).
+
+
+
+
+                                                                                                                                                                                           SABIC | 17
+NOTES TO THE CONDENSED CONSOLIDATED INTERIM FINANCIAL STATEMENTS (CONTINUED)
+All amounts in thousands of Saudi Riyals unless otherwise stated
+
+9.   SEGMENT INFORMATION (CONTINUED)
+
+Subsequent to year ended 31 December 2025, management has introduced following new
+reporting changes in segment information in addition to the above which are in line with
+business operating model and the internal management reporting framework:
+
+•    Specialties segment, which formerly was part of ‘Polymers – Petrochemicals’ operation
+     segment – comprises resins branded under NORYL™, ULTEM™, EXTEM™, and SILTEM™,
+     a range of LNP™ compounds and copolymers, and a variety of thermosets and additives.
+
+•    Corporate segment includes corporate functions such as corporate manufacturing,
+     finance, information technology, human resources, technology and innovations. The
+     Corporate segment generates revenues and income primarily from providing enabling
+     services internally based on the demand of the operating segments. Cost for Group’s
+     steering by corporate headquarters and for central or strategic activities, are not
+     charged or allocated to the operating segments and remain within the Corporate
+     segment.
+
+•    Eliminations cover consolidation effects of inter-segment transactions between the
+     above segments.
+
+Based on above changes, the segment information for prior period of all reporting segments
+has been restated in line with current period’s presentation.
+
+Intersegment revenue may generally be recorded either at values that approximate third-
+party selling prices or at prices mutually agreed by management of the segments.
+
+The Chief Executive Officer continues to monitor the results of above segments for the
+purpose of making decisions about resource allocation and performance assessment.
+Segment performance is evaluated based on income from operations in the condensed
+consolidated interim financial statements.
+
+
+
+
+                                                                                             SABIC | 18
+NOTES TO THE CONDENSED CONSOLIDATED INTERIM FINANCIAL STATEMENTS (CONTINUED)
+All amounts in thousands of Saudi Riyals unless otherwise stated
+
+9.   SEGMENT INFORMATION (CONTINUED)
+
+The segments’ financial details are shown below:
+
+                                                                                                               For the three-month period ended 31 March 2026
+                                                                                                                                                                                Continuing
+                                                                                  Petrochemicals    Agri-nutrients       Specialities        Corporate          Eliminations    operations
+ External revenue                                                                      21,764,127       2,710,035         1,677,773                 -                     -     26,151,935
+ Intersegment revenue                                                                    348,900           14,025            74,081          1,044,000           (1,481,006)            -
+ Income (loss) before interest, taxes and zakat, depreciation, amortisation and
+ impairment                                                                            2,362,894        1,374,566           442,496           (131,220)              99,088      4,147,824
+ Depreciation, amortisation and impairment                                           (2,265,267)        (200,921)           (194,115)          (41,190)                  -      (2,701,493)
+ Income (loss) from operations                                                            97,627        1,173,645            248,381          (172,410)              99,088       1,446,331
+ Share of results of associates and non-integral joint ventures                          139,490           46,301                 -                  -                   -          185,791
+
+
+ Purchase of property, plant and equipment and intangible assets                       1,108,804         108,068             32,280            120,349                    -      1,369,501
+
+
+
+                                                                                                              For the three-month period ended 31 March 2025
+                                                                                                                                                                                Continuing
+                                                                                  Petrochemicals    Agri-nutrients       Specialities        Corporate          Eliminations    operations
+ External revenue                                                                     24,585,236        3,087,139         1,594,283                  -                    -     29,266,658
+ Intersegment revenue                                                                    487,332           10,864            42,075           1,166,250           (1,706,521)           -
+ Income (loss) before interest, taxes and zakat, depreciation, amortisation and
+ impairment                                                                             1,772,355       1,082,225            201,364           (37,470)              (3,392)     3,015,082
+ Depreciation, amortisation and impairment                                            (2,313,342)        (215,174)          (146,614)          (40,534)                   -     (2,715,664)
+ (Loss) income from operations                                                         (540,987)          867,051             54,750           (78,004)              (3,392)       299,418
+ Share of results of associates and non-integral joint ventures                         (151,059)         258,651                 -                  -                    -        107,592
+
+
+ Purchase of property, plant and equipment and intangible assets                       1,506,980          105,657             27,553            119,653                   -      1,759,843
+
+
+
+
+                                                                                                                                                                                SABIC | 19
+NOTES TO THE CONDENSED CONSOLIDATED INTERIM FINANCIAL STATEMENTS (CONTINUED)
+All amounts in thousands of Saudi Riyals unless otherwise stated
+
+9. SEGMENT INFORMATION (CONTINUED)                                                                              GEOGRAPHICAL DISTRIBUTION FOR NON-CURRENT ASSETS EXCLUDING
+                                                                                                                FINANCIAL ASSETS AND DEFERRED TAX ASSETS
+INVESTMENTS IN ASSOCIATES AND JOINT VENTURES
+                                                                                                                                                                         As at                    As at
+ As at                                                              31 March 2026       31 December 2025                                                             31 March 2026          31 December 2025
+ Petrochemicals                                                          23,938,727            24,213,212                                                                             %                        %
+ Agri-nutrients                                                           9,291,207             9,113,177        KSA                                                 76,301,056      66       77,004,852        74
+                                                                         33,229,934            33,326,389        Americas                                           19,000,877        16       20,515,301       14
+                                                                                                                 Europe                                              18,479,147       16       17,625,393       10
+GEOGRAPHICAL DISTRIBUTION FOR INVESTMENTS IN ASSOCIATES AND JOINT                                                Asia                                                 2,577,245        2        2,659,930        2
+VENTURES                                                                                                         Others                                                   12,191       -           14,709        -
+                                                               As at                        As at                                                                   116,370,516      100      117,820,185      100
+                                                           31 March 2026              31 December 2025
+                                                                            %                            %
+ KSA                                                      27,606,753        83          27,619,752       83     10.     APPROPRIATIONS
+ Europe                                                    5,080,288        15           5,175,491       15
+                                                                                                                On 12 of Shawwal 1447H (corresponding to 31 March 2026), SABIC distributed interim cash
+ Americas                                                    542,893         2             531,146        2
+                                                                                                                dividends amounting to 4,500 million (at 1.50 per share) for the second half of financial
+                                                          33,229,934       100          33,326,389    100
+                                                                                                                year 2025, resulting in a full year cash dividend distribution of 9,000 million (at 3.00 per
+                                                                                                                share).
+GEOGRAPHICAL DISTRIBUTION OF REVENUE
+                                                                                                                On 4 Ramadan 1446H (corresponding to 4 March 2025), SABIC distributed interim cash
+                                                       For the three-month            For the three-month
+                                                                                                                dividends amounting to 5,100 million (at 1.70 per share) for the second half of 2024.
+                                                          period ended                   period ended
+                                                         31 March 2026                  31 March 2025
+                                                                                                                11. SUBSEQUENT EVENTS
+                                                                             %                           %
+ KSA                                                        4,210,376       16           4,370,901       15     There have been no further significant subsequent events since the period ended 31 March
+ China                                                     4,940,882        19          6,088,866        21     2026, which would have a material impact on the financial position of the Group as reflected in
+ Rest of Asia                                              6,557,709        25           8,166,597       28     these condensed consolidated interim financial statements.
+ Europe                                                      2,412,111       9           2,523,403          9
+ Americas                                                  3,490,956        13           3,073,445       10
+ Africa                                                     2,210,442        9           2,386,752          8
+ Others                                                    2,329,459         9           2,656,694          9
+                                                           26,151,935      100         29,266,658      100
+
+The revenue information above is based on the locations of the customers.
+
+
+
+                                                                                                                                                                                                   SABIC | 20
+
