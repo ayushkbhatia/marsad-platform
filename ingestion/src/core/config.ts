@@ -21,6 +21,24 @@ export interface IngestionConfig {
   perHostRateLimitPerSec: number;
   /** Global fetch concurrency ceiling (§5). */
   globalConcurrency: number;
+  /**
+   * Concurrency ceiling for the OHLCV BACKFILL client only (P1.7a tuning). The
+   * backfill egresses through the rotating proxy — every request gets a fresh exit
+   * IP — so the per-IP rate Yahoo sees stays ~1 even at high local concurrency. The
+   * polite ≤1 req/s quote client is unaffected; this knob lifts only the one-time
+   * ≥2y drain out of its 3-hours-serial floor. Default 10.
+   */
+  backfillConcurrency: number;
+  /** Per-host token-bucket rate (req/s) for the backfill client only. Default 8. */
+  backfillRatePerSec: number;
+  /**
+   * Per-host daily request budget for the backfill client only. The ≤300/day/host
+   * ceiling is origin-politeness for DIRECT venue scraping; the backfill rotates a
+   * fresh residential exit IP per request, so the origin never attributes them to one
+   * client and the whole ≥2y universe (~660 symbols) must clear in a single sweep.
+   * Default 5000.
+   */
+  backfillBudgetPerHostPerDay: number;
   /** Default per-fetch timeout (ms). */
   defaultTimeoutMs: number;
   /**
@@ -60,6 +78,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): IngestionConfi
     requestBudgetPerHostPerDay: intFromEnv(env.INGEST_REQ_BUDGET_PER_HOST_DAY, 300),
     perHostRateLimitPerSec: floatFromEnv(env.INGEST_PER_HOST_RPS, 1),
     globalConcurrency: intFromEnv(env.INGEST_GLOBAL_CONCURRENCY, 4),
+    backfillConcurrency: intFromEnv(env.INGEST_BACKFILL_CONCURRENCY, 10),
+    backfillRatePerSec: floatFromEnv(env.INGEST_BACKFILL_RPS, 8),
+    backfillBudgetPerHostPerDay: intFromEnv(env.INGEST_BACKFILL_REQ_BUDGET, 5_000),
     defaultTimeoutMs: intFromEnv(env.INGEST_DEFAULT_TIMEOUT_MS, 20_000),
     inlineMaxBytes: intFromEnv(env.INGEST_INLINE_MAX_BYTES, 32_768),
     rawBucket: env.INGEST_RAW_BUCKET || 'lake-raw',

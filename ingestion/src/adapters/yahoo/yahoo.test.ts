@@ -14,7 +14,15 @@ import assert from 'node:assert/strict';
 import { toYahooSymbol, fromYahooSymbol, isYahooVenue } from './symbols.js';
 import { yahooQuotes } from './quotes.js';
 import { yahooOhlcv } from './ohlcv.js';
-import type { StoredSnapshot } from '../../core/types.js';
+import type {
+  FetchContext,
+  FetchOptions,
+  FetchResult,
+  HttpClient,
+  RawResponse,
+  SourceRecord,
+  StoredSnapshot,
+} from '../../core/types.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixDir = resolve(here, '../../../fixtures/yahoo');
@@ -171,4 +179,118 @@ test('yahoo ohlcv: tradeDates are strictly increasing and unique', () => {
   for (let i = 1; i < rows.length; i++) {
     assert.ok(rows[i]!.tradeDate > rows[i - 1]!.tradeDate, `non-increasing at ${i}: ${rows[i - 1]!.tradeDate} → ${rows[i]!.tradeDate}`);
   }
+});
+
+// ── OHLCV backfill FETCH: streaming sink + bounded pool + per-symbol isolation (P1.7a) ────────────
+//
+// The backfill drain must (1) hand each symbol's bytes to the runtime sink the moment it lands — so
+// bars accrue progressively and a mid-sweep crash keeps what already staged — and (2) fetch at
+// bounded concurrency, and (3) never let one bad ticker (404 / throw) abort the venue sweep. These
+// assert all three off the exported fetch(), zero network.
+
+const browserBoom = () => {
+  throw new Error('yahoo ohlcv backfill is plain http — must not touch ctx.browser');
+};
+
+/**
+ * HttpClient double for the pool tests. Records every URL, tracks max observed in-flight (proves the
+ * lane cap AND that it actually parallelized), yields a macrotask so lanes interleave, and throws for
+ * any URL containing `failSubstr` (simulates a 404 / rights-warrant ticker not on Yahoo).
+ */
+class PoolHttpClient implements HttpClient {
+  public readonly gets: string[] = [];
+  public inFlight = 0;
+  public maxInFlight = 0;
+  constructor(private readonly failSubstr?: string) {}
+  async get(url: string, _opts?: FetchOptions): Promise<RawResponse> {
+    this.gets.push(url);
+    this.inFlight += 1;
+    this.maxInFlight = Math.max(this.maxInFlight, this.inFlight);
+    await new Promise((r) => setImmediate(r)); // yield so concurrent lanes overlap
+    this.inFlight -= 1;
+    if (this.failSubstr && url.includes(this.failSubstr)) {
+      throw new Error(`simulated fetch failure for ${url}`);
+    }
+    return { url, status: 200, headers: { 'content-type': 'application/json' }, body: Buffer.from(url), fromCache304: false };
+  }
+  async request(url: string, opts: FetchOptions): Promise<RawResponse> {
+    return this.get(url, opts);
+  }
+}
+
+function makeOhlcvSource(symbols: string[], fetchConcurrency?: number): SourceRecord {
+  const endpointConfig: Record<string, unknown> = {
+    urlTemplate: 'https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?interval=1d&range=2y',
+    provider: 'yahoo',
+    symbols,
+  };
+  if (fetchConcurrency !== undefined) endpointConfig.fetch_concurrency = fetchConcurrency;
+  return {
+    id: 1,
+    venue: 'TDWL',
+    dataType: 'ohlcv_backfill',
+    entryUrl: 'https://query1.finance.yahoo.com/v8/finance/chart/{symbol}',
+    endpointConfig: endpointConfig as unknown as SourceRecord['endpointConfig'],
+    normalizeRules: [],
+    transport: 'http',
+    robotsStatus: 'allowed',
+    active: true,
+    lastContentHash: null,
+  };
+}
+
+function makeCtx(source: SourceRecord, http: HttpClient, onFetched?: (f: FetchResult) => Promise<void>): FetchContext {
+  const ctx: FetchContext = {
+    source,
+    http,
+    browser: {
+      bootstrap: browserBoom as never,
+      refreshIfChallenged: browserBoom as never,
+      get: browserBoom as never,
+      request: browserBoom as never,
+      close: async () => {},
+    } as unknown as FetchContext['browser'],
+    logger: { info() {}, warn() {}, error() {}, child() { return this; } },
+    now: () => '2026-07-14T00:00:00.000Z',
+  };
+  if (onFetched) ctx.onFetched = onFetched;
+  return ctx;
+}
+
+test('yahoo ohlcv fetch: streaming sink stages each symbol, isolates a failure, bounds concurrency', async () => {
+  const http = new PoolHttpClient('BADSYM');
+  const source = makeOhlcvSource(['2222.SR', 'EMAAR.AE', 'BADSYM.SR', 'QNBK.QA', '1010.SR'], 2);
+  const staged: FetchResult[] = [];
+  const returned = await yahooOhlcv.fetch(makeCtx(source, http, async (f) => { staged.push(f); }));
+
+  assert.deepEqual(returned, [], 'streaming path drains via the sink and returns nothing');
+  assert.equal(http.gets.length, 5, 'every symbol attempted — the bad one did not abort the sweep');
+  assert.equal(staged.length, 4, 'BADSYM.SR skipped (isolation); the other four staged');
+  assert.equal(http.maxInFlight, 2, 'pool ran exactly fetch_concurrency=2 in parallel (bounded AND concurrent)');
+  assert.deepEqual(staged.map((f) => f.externalId).sort(), ['1010.SR', '2222.SR', 'EMAAR.AE', 'QNBK.QA']);
+  for (const f of staged) {
+    assert.equal(f.httpStatus, 200);
+    assert.equal(f.meta!.source, 'yahoo');
+    assert.equal(f.meta!.dataType, 'ohlcv_backfill');
+  }
+});
+
+test('yahoo ohlcv fetch: no sink → serial array (back-compat), failures skipped', async () => {
+  const http = new PoolHttpClient('BADSYM');
+  const source = makeOhlcvSource(['2222.SR', 'BADSYM.SR', 'EMAAR.AE'], 8);
+  const returned = await yahooOhlcv.fetch(makeCtx(source, http)); // no onFetched
+
+  assert.equal(returned.length, 2, 'array path returns the survivors');
+  assert.equal(http.maxInFlight, 1, 'no sink ⇒ strictly serial, never overlaps');
+  assert.deepEqual(returned.map((f) => f.externalId).sort(), ['2222.SR', 'EMAAR.AE']);
+});
+
+test('yahoo ohlcv fetch: absent fetch_concurrency defaults the pool to 8', async () => {
+  const http = new PoolHttpClient();
+  const source = makeOhlcvSource(['2222.SR', 'EMAAR.AE', 'QNBK.QA']); // no fetch_concurrency set
+  const staged: FetchResult[] = [];
+  await yahooOhlcv.fetch(makeCtx(source, http, async (f) => { staged.push(f); }));
+
+  assert.equal(staged.length, 3);
+  assert.equal(http.maxInFlight, 3, 'default 8 > 3 symbols ⇒ all three run concurrently');
 });

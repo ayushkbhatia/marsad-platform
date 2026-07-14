@@ -525,13 +525,23 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
   // 429 / BHB 403). resolveProxyForSource reads use_proxy + proxy_mode and encodes the
   // rotate/sticky policy into the returned config; makeProxiedTransport (inside
   // createHttpClient) then opens a fresh tunnel/request for 'rotate' or reuses one for
-  // 'sticky'. Cached by the resolved proxy URI so 'rotate' and 'sticky' variants (and
-  // distinct geo passwords) each get their own client + rate-limit buckets. A flagged
+  // 'sticky'. Cached by proxy URI + throttle profile so 'rotate' and 'sticky' variants,
+  // distinct geo passwords, AND the high-throughput ohlcv_backfill profile each get their
+  // own client + rate-limit buckets. A flagged
   // source with NO proxy configured in env falls back to the direct client and logs a
   // loud warning rather than silently leaking — the worker treats a missing-but-required
   // proxy as non-fatal here (the eventual 429/403 surfaces via the normal failure path).
-  const proxiedHttpByUri = new Map<string, HttpClient>();
+  const httpClientCache = new Map<string, HttpClient>();
   function httpClientForSource(source: SourceRecord): HttpClient {
+    // The ohlcv_backfill drain gets its own throttle profile (P1.7a): high concurrency +
+    // rate + per-host budget, because it rotates a fresh exit IP per request (the origin
+    // never attributes the burst to one client) and the whole ≥2y universe must clear in
+    // one sweep. Every other data_type keeps the polite ≤1 req/s, 300/day profile.
+    const isBackfill = source.dataType === 'ohlcv_backfill';
+    const concurrency = isBackfill ? base.backfillConcurrency : base.globalConcurrency;
+    const ratePerSec = isBackfill ? base.backfillRatePerSec : base.perHostRateLimitPerSec;
+    const budget = isBackfill ? base.backfillBudgetPerHostPerDay : base.requestBudgetPerHostPerDay;
+
     let proxy: ProxyConfig | undefined;
     try {
       proxy = resolveProxyForSource(source);
@@ -546,20 +556,29 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
           sourceId: source.id,
         });
       }
-      return http;
+      // Common case: a non-backfill DIRECT source reuses the shared polite client. A
+      // DIRECT backfill (unflagged / misconfigured) still gets its own high-throughput
+      // client so behaviour is predictable — it will 429 against the bare IP, but that is
+      // an operator misconfig the warning above already surfaces, not a silent throttle.
+      if (!isBackfill) return http;
     }
-    const key = `${proxyToUrl(proxy)}|${proxy.mode ?? 'rotate'}`;
-    let client = proxiedHttpByUri.get(key);
+    // Cache key carries the throttle profile so the backfill client is never conflated
+    // with the quote client for the same proxy URI (both rotate through the same IPRoyal
+    // gateway but must not share one rate-limit bucket).
+    const key = proxy
+      ? `${proxyToUrl(proxy)}|${proxy.mode ?? 'rotate'}|c${concurrency}|r${ratePerSec}`
+      : `direct|c${concurrency}|r${ratePerSec}`;
+    let client = httpClientCache.get(key);
     if (!client) {
       client = createHttpClient({
-        ratePerSec: base.perHostRateLimitPerSec,
-        budgetPerHostPerDay: base.requestBudgetPerHostPerDay,
-        globalConcurrency: base.globalConcurrency,
+        ratePerSec,
+        budgetPerHostPerDay: budget,
+        globalConcurrency: concurrency,
         defaultTimeoutMs: base.defaultTimeoutMs,
         logger,
-        proxy,
+        ...(proxy ? { proxy } : {}),
       });
-      proxiedHttpByUri.set(key, client);
+      httpClientCache.set(key, client);
     }
     return client;
   }
@@ -658,15 +677,6 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
       // is the seam that makes 0027/0020 actually take effect — without it the proxy
       // policy in endpoint_config is inert and Yahoo/BHB egress the bare VPS IP.
       const sourceHttp = httpClientForSource(source);
-      const ctx: FetchContext = {
-        source,
-        http: sourceHttp,
-        browser,
-        logger,
-        now: () => new Date().toISOString(),
-      };
-
-      const fetched: FetchResult[] = await task.fetch(ctx);
 
       let changed = false;
       let lastSnapshotId: number | null = null;
@@ -675,10 +685,17 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
       const newExternalIds: string[] = [];
       let parserVersion = task.parserVersion;
 
-      for (const f of fetched) {
+      // Process ONE fetched result end-to-end: snapshot-first → pure parse → map → stage.
+      // Shared by BOTH the streaming sink (ctx.onFetched, per-symbol as it lands — the Yahoo
+      // backfill) and the classic returned-array loop below, so staging + cross-check
+      // semantics are byte-identical whichever path a task takes. Idempotent: snapshot dedup
+      // skips unchanged bytes and staging upserts on (source_id, external_id, content_hash),
+      // so a re-run or a crash mid-sweep is safe. Accumulator mutations are single-statement
+      // (no await between read and write) so they are safe under the sink's bounded concurrency.
+      const processOne = async (f: FetchResult): Promise<void> => {
         // 1. Snapshot-first: store raw bytes (dedup on normalized hash).
         const put = await snapshotStore.put({ source, fetched: f, agentPrincipalId });
-        if (put.deduped) continue; // unchanged: heartbeat only, no parse.
+        if (put.deduped) return; // unchanged: heartbeat only, no parse.
         changed = true;
         lastSnapshotId = put.snapshotId;
         if (f.externalId) newExternalIds.push(f.externalId);
@@ -687,7 +704,7 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
         const stored = await snapshotStore.load(put.snapshotId);
         const parsed = await runParse(task, stored, { recorder: parseRecorder, logger });
         parserVersion = parsed.parserVersion;
-        if (parsed.status !== 'ok') continue; // error / drift_zero_rows: no staging.
+        if (parsed.status !== 'ok') return; // error / drift_zero_rows: no staging.
 
         // 3. Map → lake staging (CONTRACT §6.5). Self-timestamped rows (quotes/OHLCV/filings)
         //    stamp extractedAt from their own business time; rows without one fall back to the
@@ -698,6 +715,24 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
           rowsEmitted += staging.length;
           for (const r of staging) stagedKeys.push({ naturalKey: r.naturalKey, objectType: r.objectType });
         }
+      };
+
+      const ctx: FetchContext = {
+        source,
+        http: sourceHttp,
+        browser,
+        logger,
+        now: () => new Date().toISOString(),
+        // Streaming seam (P1.7a): a many-result fetch (the ≥2y OHLCV backfill: one GET per
+        // symbol) pushes each result here as it lands so bars accrue progressively and a
+        // mid-sweep crash keeps everything already staged. It then returns [] (nothing left
+        // to process). Every other adapter ignores this and returns its array, processed below.
+        onFetched: processOne,
+      };
+
+      const fetched: FetchResult[] = await task.fetch(ctx);
+      for (const f of fetched) {
+        await processOne(f);
       }
 
       void tradeDate; // consumed by the staging mapper (EOD trade_date stamping) once wired.
@@ -734,6 +769,9 @@ function safeLoadConfig(deps: CreateIngestionRuntimeDeps): IngestionConfig {
       requestBudgetPerHostPerDay: intFromEnv(env.INGEST_REQ_BUDGET_PER_HOST_DAY, 300),
       perHostRateLimitPerSec: floatFromEnv(env.INGEST_PER_HOST_RPS, 1),
       globalConcurrency: intFromEnv(env.INGEST_GLOBAL_CONCURRENCY, 4),
+      backfillConcurrency: intFromEnv(env.INGEST_BACKFILL_CONCURRENCY, 10),
+      backfillRatePerSec: floatFromEnv(env.INGEST_BACKFILL_RPS, 8),
+      backfillBudgetPerHostPerDay: intFromEnv(env.INGEST_BACKFILL_REQ_BUDGET, 5_000),
       defaultTimeoutMs: intFromEnv(env.INGEST_DEFAULT_TIMEOUT_MS, 20_000),
       inlineMaxBytes: intFromEnv(env.INGEST_INLINE_MAX_BYTES, 32_768),
       rawBucket: env.INGEST_RAW_BUCKET || 'lake-raw',

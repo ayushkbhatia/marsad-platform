@@ -162,45 +162,95 @@ function symbolsFromConfig(ctx: FetchContext): string[] {
   return [];
 }
 
+/** Bounded-fetch pool size from endpoint_config.fetch_concurrency (default 8, clamped ≥1). */
+function fetchConcurrency(ctx: FetchContext): number {
+  const raw = (ctx.source.endpointConfig as unknown as { fetch_concurrency?: unknown }).fetch_concurrency;
+  const n = typeof raw === 'number' ? raw : Number.parseInt(String(raw ?? ''), 10);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 8;
+}
+
 /**
- * fetch(): impure/transport. One GET per symbol of the range=Ny&interval=1d chart. Backfill is a
- * one-time-per-security drain — the migration schedules it low-priority (session_only=false, coarse
- * cadence) so it does not eat the live-quote ≤300 req/day/host budget (CONTRACT §5). URL template +
- * symbol list + headers come from source.endpointConfig (config over code).
+ * Run `worker` over `items` with at most `size` outstanding at once (worker-pool, same shape as the
+ * worker's ingest-poller drain loop). A worker that throws propagates; fetchOneSymbol never throws
+ * (per-symbol isolation is inside it), so in practice a lane only ends by exhausting the cursor.
  */
-export async function fetchYahooOhlcv(ctx: FetchContext): Promise<FetchResult[]> {
+async function runPool<T>(items: T[], size: number, worker: (item: T) => Promise<void>): Promise<void> {
+  let cursor = 0;
+  async function lane(): Promise<void> {
+    for (;;) {
+      const i = cursor++;
+      if (i >= items.length) return;
+      await worker(items[i]!);
+    }
+  }
+  const lanes = Math.max(1, Math.min(size, items.length));
+  await Promise.all(Array.from({ length: lanes }, () => lane()));
+}
+
+/**
+ * One symbol's GET → FetchResult, or null on any failure. PER-SYMBOL ISOLATION: a ticker not on
+ * Yahoo (rights/warrants/funds/format mismatch → 404) or a transient failure returns null (logged,
+ * skipped) rather than throwing, so it never aborts the ~50-400 symbol venue sweep.
+ */
+async function fetchOneSymbol(ctx: FetchContext, symbol: string): Promise<FetchResult | null> {
   const cfg = ctx.source.endpointConfig;
   const template = cfg.urlTemplate ?? ctx.source.entryUrl;
   const headers = cfg.headers;
+  const fetchedAt = ctx.now();
+  const url = buildUrl(template, symbol, fetchedAt);
+  let res;
+  try {
+    res = await ctx.http.get(url, headers ? { headers } : {});
+  } catch (err) {
+    ctx.logger?.warn('yahoo ohlcv: symbol fetch failed, skipping', {
+      symbol,
+      err: String(err).slice(0, 140),
+    });
+    return null;
+  }
+  return {
+    externalId: symbol || undefined,
+    url: res.url,
+    contentType: res.headers['content-type'] ?? 'application/json',
+    httpStatus: res.status,
+    body: res.body,
+    fetchedAt,
+    meta: { dataType: 'ohlcv_backfill', lang: 'en', source: 'yahoo', delayed: true, symbol: symbol || null },
+  };
+}
+
+/**
+ * fetch(): impure/transport. One GET per symbol of the range=Ny&interval=1d chart. Backfill is a
+ * one-time-per-security drain routed to a dedicated high-throughput http client (runtime
+ * httpClientForSource: high concurrency + rate + per-host budget, since every request rotates a
+ * fresh exit IP). URL template + symbol list + headers come from source.endpointConfig (config
+ * over code).
+ *
+ * TWO PATHS:
+ *   - STREAMING (ctx.onFetched supplied by the runtime): fetch symbols at bounded concurrency
+ *     (endpoint_config.fetch_concurrency, default 8) and push each result to the sink the moment it
+ *     lands — the runtime snapshots + parses + stages it immediately. Bars accrue progressively and
+ *     a mid-sweep crash keeps everything already staged (fetch is idempotent). Returns [] (drained).
+ *   - ARRAY (no sink — unit tests / any direct caller): serial fetch → array, byte-for-byte the
+ *     original behaviour and per-symbol isolation.
+ */
+export async function fetchYahooOhlcv(ctx: FetchContext): Promise<FetchResult[]> {
   const symbols = symbolsFromConfig(ctx);
   const targets = symbols.length > 0 ? symbols : [''];
 
+  if (ctx.onFetched) {
+    const sink = ctx.onFetched;
+    await runPool(targets, fetchConcurrency(ctx), async (symbol) => {
+      const fr = await fetchOneSymbol(ctx, symbol);
+      if (fr) await sink(fr);
+    });
+    return [];
+  }
+
   const out: FetchResult[] = [];
   for (const symbol of targets) {
-    const fetchedAt = ctx.now();
-    const url = buildUrl(template, symbol, fetchedAt);
-    let res;
-    try {
-      res = await ctx.http.get(url, headers ? { headers } : {});
-    } catch (err) {
-      // Per-symbol isolation: a ticker not on Yahoo (rights/warrants/funds/format
-      // mismatch → 404) or a transient failure must NOT abort the whole venue's
-      // ~50-400 symbol sweep. Skip this symbol and continue.
-      ctx.logger?.warn('yahoo ohlcv: symbol fetch failed, skipping', {
-        symbol,
-        err: String(err).slice(0, 140),
-      });
-      continue;
-    }
-    out.push({
-      externalId: symbol || undefined,
-      url: res.url,
-      contentType: res.headers['content-type'] ?? 'application/json',
-      httpStatus: res.status,
-      body: res.body,
-      fetchedAt,
-      meta: { dataType: 'ohlcv_backfill', lang: 'en', source: 'yahoo', delayed: true, symbol: symbol || null },
-    });
+    const fr = await fetchOneSymbol(ctx, symbol);
+    if (fr) out.push(fr);
   }
   return out;
 }

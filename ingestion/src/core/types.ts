@@ -233,6 +233,18 @@ export interface FetchContext {
   browser: BrowserClient; // use when transport === 'http_bootstrap' | 'headless'
   logger: Logger;
   now(): string; // ISO UTC — injected so fetch is testable; parse NEVER calls this
+  /**
+   * Optional STREAMING sink (P1.7a). When the runtime provides it, a fetch() that
+   * produces many independent results (the Yahoo ≥2y OHLCV backfill: one GET per
+   * symbol) may push each FetchResult here AS IT LANDS instead of buffering the whole
+   * venue sweep into the returned array. The runtime snapshots + parses + stages each
+   * pushed result immediately, so bars accrue progressively and a mid-sweep crash
+   * keeps everything already persisted (fetch is idempotent — snapshot dedup + staging
+   * upsert make a re-run safe). A streaming fetch pushes here and returns [] (nothing
+   * left to process); a non-streaming fetch ignores this and returns its array as
+   * before. PURE parse is unaffected — this is a transport-side seam only.
+   */
+  onFetched?(f: FetchResult): Promise<void>;
 }
 
 // ---------------------------------------------------------------------------
