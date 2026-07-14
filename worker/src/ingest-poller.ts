@@ -72,56 +72,58 @@ export function startIngestPoller(
   config: WorkerConfig,
 ): IngestPoller {
   const log = rootLog.child({ poller: "ingest.job_queue", workerId: config.workerId });
-  const batchSize = config.ingestBatchSize;
   const concurrency = config.ingestConcurrency;
   const pollIntervalMs = config.ingestPollIntervalMs;
   let stopping = false;
 
   async function loop(): Promise<void> {
     log.info("ingest poller started", {
-      batchSize,
       concurrency,
       pollIntervalMs,
     });
-    while (!stopping) {
-      let claimed = 0;
-      try {
-        claimed = await drainOnce();
-      } catch (err) {
-        if (stopping) break;
-        log.error("ingest claim cycle failed", { err });
-        await sleep(pollIntervalMs);
-        continue;
-      }
-      if (stopping) break;
-      // If we drained a full batch there may be more due work right now — loop
-      // again immediately (bounded by the batch) instead of sleeping, so a large
-      // backlog (e.g. the 72 piled rows) clears fast. Otherwise wait a tick.
-      if (claimed < batchSize) {
-        await sleep(pollIntervalMs);
-      }
-    }
+    // N PERSISTENT LANES, each independently claiming and running ONE job at a
+    // time. This replaces the previous "claim a batch → Promise.all the whole
+    // batch → claim the next batch" design, whose barrier let a single
+    // long-running job (e.g. a deep OHLCV backfill streaming an entire venue) HOLD
+    // the poller: no new work could be claimed until that marathon finished, so
+    // every other due job — quotes, filings, other venues' backfills — piled up
+    // as `queued` behind it (observed: 173 due rows stalled for 66 min behind one
+    // ADX backfill). With independent lanes, a marathon occupies only its own lane
+    // and the others keep claiming + running due work. Each `claimBatch(…, 1)` uses
+    // FOR UPDATE SKIP LOCKED, so lanes never claim the same row. Backfill jobs are
+    // separately kept short (chunked in the runtime), so no single job monopolises
+    // a lane for long nor outlives the 15-min stuck-job reaper.
+    const lanes = Array.from({ length: concurrency }, (_unused, i) => lane(i));
+    await Promise.all(lanes);
     log.info("ingest poller drained");
   }
 
-  /** Claim one batch and run it with the concurrency cap. Returns jobs claimed. */
-  async function drainOnce(): Promise<number> {
-    const jobs = await claimBatch(sql, config.workerId, batchSize);
-    if (jobs.length === 0) return 0;
-    log.info("claimed ingest jobs", { count: jobs.length });
-
-    let cursor = 0;
-    async function worker(): Promise<void> {
-      while (true) {
+  /** One persistent worker lane: claim a single due job and run it, repeat. Idle-sleeps
+   *  a tick when nothing is due; backs off on a claim error without dying. Claims with
+   *  limit 1 (FOR UPDATE SKIP LOCKED) so lanes never collide; runs every row the claim
+   *  returns (≤1 from the DB, but robust if a claim yields several) before re-claiming. */
+  async function lane(laneId: number): Promise<void> {
+    const laneLog = log.child({ lane: laneId });
+    while (!stopping) {
+      let jobs: ClaimedJob[];
+      try {
+        jobs = await claimBatch(sql, config.workerId, 1);
+      } catch (err) {
         if (stopping) return;
-        const idx = cursor++;
-        if (idx >= jobs.length) return;
-        await runClaimedJob(jobs[idx]!);
+        laneLog.error("ingest claim failed", { err });
+        await sleep(pollIntervalMs);
+        continue;
+      }
+      if (stopping) return;
+      if (jobs.length === 0) {
+        await sleep(pollIntervalMs); // nothing due — wait a tick
+        continue;
+      }
+      for (const job of jobs) {
+        if (stopping) return;
+        await runClaimedJob(job);
       }
     }
-    const lanes = Math.min(concurrency, jobs.length);
-    await Promise.all(Array.from({ length: lanes }, () => worker()));
-    return jobs.length;
   }
 
   /** Run one claimed job through its handler and mark the row terminal. */

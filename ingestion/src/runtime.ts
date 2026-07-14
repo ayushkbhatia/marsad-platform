@@ -200,6 +200,17 @@ function tasksForProvider(source: SourceRecord): TaskSpec<unknown>[] | undefined
  * `unbackfilledOnly` is false for live sources (quotes) so those are NEVER coverage-filtered — they
  * must poll the whole universe every cycle. Only the ohlcv_backfill data_type passes true.
  */
+/**
+ * Max securities an ohlcv_backfill run injects per pass. Deep history (Mubasher gives 20–33y for
+ * TDWL/DFM/QE, decades for ADX) means one venue's full sweep is a MARATHON runTask — which, before
+ * chunking, held the ingest poller (its Promise.all barrier) and outlived the 15-min stuck-job reaper
+ * (double-runs). Capping the injected set makes each backfill job SHORT (finishes in a few minutes);
+ * the coverage guard stamps the chunk done, so the next scheduled pass picks up the next chunk, and
+ * once a venue is fully seeded the injected set is empty and runTask skips. Frequent backfill cadence
+ * (migration) churns the chunks; the continuous-lane poller interleaves them with quotes/filings.
+ */
+const BACKFILL_CHUNK_SIZE = 25;
+
 async function listedTickersForVenue(
   sql: Sql,
   venue: VenueCode,
@@ -213,6 +224,7 @@ async function listedTickersForVenue(
            and s.status = 'listed'
            and s.ohlcv_backfilled_at is null
          order by s.ticker asc
+         limit ${BACKFILL_CHUNK_SIZE}
       `
     : await sql<{ ticker: string }[]>`
         select s.ticker
@@ -890,6 +902,24 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
       const fetched: FetchResult[] = await task.fetch(ctx);
       for (const f of fetched) {
         await processOne(f);
+      }
+
+      // Self-chained chunking for the deep OHLCV backfill. listedTickersForVenue caps the injected set
+      // to BACKFILL_CHUNK_SIZE, so a FULL chunk means more un-backfilled securities remain for this
+      // venue. Enqueue the NEXT chunk ~3 min out — long enough for the objectifier (0041) to stamp this
+      // chunk's securities so the next injection is fresh (no re-fetch race), and self-limiting: a short
+      // chunk (venue nearly done) does not chain, and a fully-seeded venue never injects at all (the
+      // coverage-complete skip above returns first). This churns a deep backfill fast WITHOUT a permanent
+      // fast schedule cadence or the idle no-op jobs it would spawn, and each chunk job stays short so it
+      // never head-of-line-blocks the (now continuous-lane) poller nor outlives the 15-min stuck reaper.
+      if (rawSource.dataType === 'ohlcv_backfill' && providerOf(rawSource) !== undefined) {
+        const injected = (source.endpointConfig as unknown as { symbols?: unknown }).symbols;
+        if (Array.isArray(injected) && injected.length >= BACKFILL_CHUNK_SIZE) {
+          await sql`
+            insert into ingest.job_queue (source_id, run_after, priority, status)
+            values (${rawSource.id}, now() + interval '3 minutes', 5, 'queued')
+          `;
+        }
       }
 
       void tradeDate; // consumed by the staging mapper (EOD trade_date stamping) once wired.
