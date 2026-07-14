@@ -90,7 +90,7 @@ async function runOneMessage(message: unknown) {
 }
 
 test('consumer: unknown handler name is archived, not errored or looped', async () => {
-  const { fakeSql, failures } = await runOneMessage({ handler: 'does_not_exist', x: 1 });
+  const { fakeSql, successes, failures } = await runOneMessage({ handler: 'does_not_exist', x: 1 });
 
   assert.ok(
     fakeSql.queries.some((q) => q.text.includes(ARCHIVE_SUBSTR) && q.values.includes('42')),
@@ -101,10 +101,14 @@ test('consumer: unknown handler name is archived, not errored or looped', async 
     'unknown handler is not an ops.incidents error',
   );
   assert.equal(failures.length, 0, 'no handler-failure heartbeat recorded');
+  // Archiving a poison message is a HEALTHY consumer cycle → record a success, so a queue that
+  // only ever receives poison (q_dispatch/q_maintenance/q_email) does not sit permanently
+  // unhealthy (stuck consecutive_failures + null last_ok_at → false sentinel alarms).
+  assert.ok(successes.includes('worker:q_dispatch'), 'poison archive records a heartbeat success');
 });
 
 test('consumer: {"task":X} future-phase envelope with no handler is archived (not looped)', async () => {
-  const { fakeSql } = await runOneMessage({ task: 'notify_drain', payload: {} });
+  const { fakeSql, successes } = await runOneMessage({ task: 'notify_drain', payload: {} });
   assert.ok(
     fakeSql.queries.some((q) => q.text.includes(ARCHIVE_SUBSTR) && q.values.includes('42')),
     'task-alias poison message archived',
@@ -113,6 +117,9 @@ test('consumer: {"task":X} future-phase envelope with no handler is archived (no
     !fakeSql.queries.some((q) => q.text.includes(INCIDENTS_SUBSTR)),
     'not an incident',
   );
+  // The exact live q_dispatch case (pg_cron notify_drain poke). Must record a success so the
+  // heartbeat stays healthy — this queue only ever receives these pokes.
+  assert.ok(successes.includes('worker:q_dispatch'), 'notify_drain archive records a heartbeat success');
 });
 
 test('consumer: message with no handler/task key is archived', async () => {

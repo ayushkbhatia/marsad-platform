@@ -147,6 +147,13 @@ export function startQueueConsumer(
         // archived without dumping an arbitrarily large payload.
         envelope: describeEnvelope(msg.message),
       });
+      // Archiving a not-yet-built-stage poke ({"task":"notify_drain"} etc.) per policy IS a
+      // healthy consumer cycle — the consumer is alive and correctly parking the message. Record
+      // a heartbeat SUCCESS: without it, a queue that ONLY ever receives poison (q_dispatch /
+      // q_maintenance / q_email get pg_cron pokes for stages not built yet) never calls
+      // recordSuccess, so consecutive_failures never resets and last_ok_at stays null — a
+      // permanently-unhealthy heartbeat that trips the sentinel forever (observed stuck at 336).
+      await heartbeat.recordSuccess(jobName);
       return;
     }
 
