@@ -58,6 +58,40 @@ PATHS TO DEPTH (owner decision):
   FILING.FINANCIALS → projection. Seed source + weekly cron (incremental via uuid list-diff).
 - Once depth lands (proxy/subscription/accrual): real ROE/margins → multi-factor Score.
 
+## BREAKTHROUGH 2026-07-15 — Akamai (Tadawul) CRACKED + Yahoo unblocked via proxy
+
+Owner supplied an IPRoyal residential proxy (GCC geo `ae,sa`). Two unlocks:
+
+### Yahoo fundamentals via proxy (clean multi-year DATA — no PDF, no LLM)
+`fundamentals-timeseries` for `.SR/.AE/.QA` returns **5 years of standardized annual statements in actual
+currency units**, and the committed `normalizeYahooTimeseries` maps them straight to §3.1 primitives.
+Verified live for SABIC (2010.SR): revenue/net-income/assets/equity/gross/EPS/ebit/debt/cash/dep-amort/
+current-liabilities for FY2022–FY2025, `capital_employed` derived. This is the fastest path to real
+ratios (net_margin/ROE/growth/CAGR) — but it's DATA only, no source PDF to own. `shares_outstanding`
+needs Yahoo's crumb flow (401 without it) — solvable. Proxy egress = IPRoyal, per migration 0027 pattern.
+
+### Tadawul Akamai Bot Manager — BEATEN (the authoritative PDF source)
+`saudiexchange.sa` 403s plain curl AND headless Chromium even through the residential proxy (Akamai edge-
+denies before setting `_abck`). The combination that WORKS (verified: `200`, full 914KB announcements page
+rendered):
+- **Headful Chromium** (`headless:false`) under **`xvfb-run`** on the VPS (headless tells fail Akamai).
+- **Sticky residential GCC IP**: IPRoyal password `…_country-ae,sa_session-<id>_lifetime-30m` — the SAME
+  IP for the whole session (Akamai `_abck` is IP+session-locked; rotating-per-request fails).
+- **geoip-aligned context**: `timezoneId:'Asia/Riyadh'`, `locale:'en-US'`, real Chrome UA, +
+  `--disable-blink-features=AutomationControlled`, `navigator.webdriver=undefined`.
+- **Warm then navigate** same session: goto homepage (`domcontentloaded`, 80s, RETRY 3×), let the sensor
+  run, then the target. Residential exits vary in latency → retries + fresh-session IP rotation on failure
+  are mandatory.
+This matches the deep-research verdict (`waavxrqar`): seleniumbase-UC / camoufox + geoip residential +
+same-IP warming. For heavier scale, camoufox (Firefox-engine, C++-level fingerprint patches, article-
+proven 200 vs Akamai) is the upgrade; a commercial Web Unlocker only if intraday-at-scale.
+
+**Remaining to own the Tadawul PDFs (unblocked):** navigate the issuer-announcements portlet → filter to
+Financial Statements → follow each announcement's detail portlet-link → the `/Resources/fsPdf/{id}_{lang}.pdf`
+→ download (warmed session) → store to the `filings` bucket → the built extraction pipeline (pdftotext →
+LLM → validation gate → `fn_financials_project`). This gives BOTH the owned PDF archive AND the extracted
+data — the owner's actual goal. Productionize as a `BrowserClient` headful task with retry + IP rotation.
+
 ## Ledger
 `DEF-WORKER-LLM-KEY` (RESOLVED — key added), `DEF-STMT-INGEST` (pipeline built; depth-gated per L2),
 `DEF-SHARES-OUTSTANDING`, `D-src-3` proxy (the L2 unlock).
