@@ -73,13 +73,12 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): WorkerConfig {
     ingestPollIntervalMs: intFromEnv(env.INGEST_POLL_INTERVAL_MS, 15_000),
     ingestBatchSize: intFromEnv(env.INGEST_BATCH_SIZE, 20),
     ingestConcurrency: intFromEnv(env.INGEST_CONCURRENCY, 4),
-    // Under the Supabase session-pooler ceiling of 15 (see db.ts). 12 pool + modest
-    // pipeline concurrency keeps total in-flight connections (5 consumers + poller +
-    // batch + backfill sink) under the cap. Raise all three once the owner lifts the
-    // pooler pool_size.
-    dbPoolMax: intFromEnv(env.DB_POOL_MAX, 12),
+    // Sized under the Supabase session-pooler ceiling (raised to 25 by the owner
+    // 2026-07-14). 20 pool leaves ~5 for external clients (dashboard/MCP); 5 consumers
+    // + pipeline batch + poller + backfill sink fit with headroom. Env-overridable.
+    dbPoolMax: intFromEnv(env.DB_POOL_MAX, 20),
     pipelineReadQty: intFromEnv(env.PIPELINE_READ_QTY, 25),
-    pipelineConcurrency: intFromEnv(env.PIPELINE_CONCURRENCY, 3),
+    pipelineConcurrency: intFromEnv(env.PIPELINE_CONCURRENCY, 6),
   };
 }
 

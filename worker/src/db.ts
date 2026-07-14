@@ -17,14 +17,12 @@ export function createDb(config: WorkerConfig): Sql {
     // starvation: cross_check crawled at ~1 msg/20s and the backfill's sink lanes
     // blocked waiting for a connection (the "fetch stalls after 8 symbols" hang).
     //
-    // HARD CEILING: the Supabase SESSION pooler caps this project at pool_size 15 —
-    // opening more throws (EMAXCONNSESSION) "max clients reached in session mode". So
-    // max must stay UNDER 15 (postgres.js queues excess requests client-side rather
-    // than erroring). Default 12 leaves ~3 for external clients (dashboard, MCP). This
-    // is a genuine ceiling on worker concurrency: the 5 always-on queue consumers alone
-    // hold ~5, so the poller + q_pipeline batch + backfill sink share the remaining ~7.
-    // Raising it requires bumping the Supabase pooler pool_size (owner, dashboard), then
-    // DB_POOL_MAX. Env-overridable.
+    // HARD CEILING: the Supabase SESSION pooler caps this project's client count —
+    // opening more throws (EMAXCONNSESSION) "max clients reached in session mode". The
+    // owner raised pool_size to 25 (2026-07-14), so max must stay under 25 (postgres.js
+    // queues excess client-side rather than erroring). Default 20 leaves ~5 for external
+    // clients (dashboard/MCP). The 5 always-on queue consumers hold ~5; the poller,
+    // q_pipeline batch, and backfill sink share the rest. Env-overridable (DB_POOL_MAX).
     max: config.dbPoolMax,
     // Supavisor session pooler tolerates prepared statements, but disabling
     // them keeps the worker safe if the owner ever points dbUrl at the
