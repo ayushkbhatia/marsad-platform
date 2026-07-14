@@ -101,7 +101,8 @@ export interface EndpointConfig {
    *      challenge cookie that is IP-bound, as on BHB's Radware path).
    */
   proxy_mode?: ProxyMode;
-  responseKind: 'json' | 'html' | 'txt_json' | 'xlsx' | 'pdf';
+  // 'csv' added for the Mubasher ADX/MSX/BHB historical OHLCV backfill (headerless daily-bar CSV).
+  responseKind: 'json' | 'html' | 'txt_json' | 'xlsx' | 'pdf' | 'csv';
 }
 
 /**

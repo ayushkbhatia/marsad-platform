@@ -38,6 +38,8 @@ import {
 } from './core/registry.js';
 import { ADAPTERS } from './adapters/index.js';
 import { yahooTasks, toYahooSymbol } from './adapters/yahoo/index.js';
+import { mubasherTasks } from './adapters/mubasher/index.js';
+import { msxHistory } from './adapters/msx/index.js';
 import { resolveProxyForSource, proxyToUrl, type ProxyConfig } from './core/proxy.js';
 import { LakeStagingEmitter } from './lake/staging.js';
 import { LakeCrossCheck } from './lake/cross-check.js';
@@ -127,32 +129,48 @@ const consoleLogger: Logger = {
 };
 
 /**
- * The alt-provider discriminant seeded on ingest.sources.endpoint_config (migration 0021/0022).
- * A source with provider='yahoo' resolves to the Yahoo TaskSpec bundle (aggregator, NOT a
- * VenueAdapter key) instead of the primary (venue,data_type) adapter. Read via a local cast so
+ * The alt-provider discriminant seeded on ingest.sources.endpoint_config. A source with an alt
+ * provider resolves to an aggregator TaskSpec bundle (aggregators own NO VenueAdapter and are NOT
+ * VenueAdapter keys) instead of the primary (venue,data_type) adapter. Read via a local cast so
  * the frozen EndpointConfig surface (core/types.ts) stays untouched — the field is optional and
- * only Yahoo rows carry it, so primary sources are byte-identical to the pre-provider path.
+ * only aggregator rows carry it, so primary sources are byte-identical to the pre-provider path.
+ *   'yahoo'             — Yahoo Finance quotes cross-check + ≥2y OHLCV backfill for TDWL/QE/DFM (0021/0022).
+ *   'mubasher_csv'      — Mubasher historical-CSV ≥2y OHLCV backfill for ADX (0033); reusable for any
+ *                         venue Mubasher publishes a per-ticker historical CSV for (e.g. TDWL later).
+ *                         BHB has NO Mubasher CSV — it stays the coverage-gap venue (07 §5 D-src-4).
+ *   'msx-company-chart' — MSX's own native company-chart-data.aspx JSON ≥2y daily-close backfill (0034).
+ *                         MSX exposes a first-class history endpoint, so it does NOT ride Mubasher.
  */
-type AltProvider = 'yahoo';
+type AltProvider = 'yahoo' | 'mubasher_csv' | 'msx-company-chart';
 function providerOf(source: SourceRecord): AltProvider | undefined {
   const p = (source.endpointConfig as unknown as { provider?: unknown }).provider;
-  return p === 'yahoo' ? 'yahoo' : undefined;
+  return p === 'yahoo' || p === 'mubasher_csv' || p === 'msx-company-chart' ? p : undefined;
 }
 
 /**
  * Provider-aware resolution (CONTRACT §8 routing extension). A source whose endpoint_config
- * carries provider='yahoo' is served by the Yahoo aggregator TaskSpecs (yahooTasks), NOT by the
- * (venue,data_type) ADAPTERS lookup — Yahoo/Mubasher are cross-venue aggregators and are
- * intentionally absent from the frozen ADAPTERS map. quotes → yahooTasks.quotes (the 2nd
- * cross-check source); ohlcv_backfill → yahooTasks.ohlcvBackfill (the ≥2y daily drain). Any other
- * data_type on a Yahoo row yields no task (returns []) rather than mis-dispatching. Returns
- * undefined for non-provider (primary) sources so the caller falls through to ADAPTERS unchanged.
+ * carries an alt provider is served by that aggregator's TaskSpecs, NOT by the (venue,data_type)
+ * ADAPTERS lookup — Yahoo/Mubasher are cross-venue aggregators and are intentionally absent from the
+ * frozen ADAPTERS map. For 'yahoo': quotes → yahooTasks.quotes (the 2nd cross-check source);
+ * ohlcv_backfill → yahooTasks.ohlcvBackfill (the ≥2y daily drain). For 'mubasher_csv':
+ * ohlcv_backfill → mubasherTasks.ohlcvCsv (the ADX/MSX/BHB ≥2y CSV drain). Any other data_type on
+ * an aggregator row yields no task (returns []) rather than mis-dispatching. Returns undefined for
+ * non-provider (primary) sources so the caller falls through to ADAPTERS unchanged.
  */
 function tasksForProvider(source: SourceRecord): TaskSpec<unknown>[] | undefined {
   const provider = providerOf(source);
-  if (provider !== 'yahoo') return undefined;
-  if (source.dataType === 'quotes') return [yahooTasks.quotes as TaskSpec<unknown>];
-  if (source.dataType === 'ohlcv_backfill') return [yahooTasks.ohlcvBackfill as TaskSpec<unknown>];
+  if (provider === undefined) return undefined;
+  if (provider === 'yahoo') {
+    if (source.dataType === 'quotes') return [yahooTasks.quotes as TaskSpec<unknown>];
+    if (source.dataType === 'ohlcv_backfill') return [yahooTasks.ohlcvBackfill as TaskSpec<unknown>];
+    return [];
+  }
+  if (provider === 'mubasher_csv') {
+    if (source.dataType === 'ohlcv_backfill') return [mubasherTasks.ohlcvCsv as TaskSpec<unknown>];
+    return [];
+  }
+  // provider === 'msx-company-chart'
+  if (source.dataType === 'ohlcv_backfill') return [msxHistory as TaskSpec<unknown>];
   return [];
 }
 
@@ -200,6 +218,81 @@ export async function withYahooSymbols(sql: Sql, source: SourceRecord): Promise<
     ...source,
     endpointConfig: { ...source.endpointConfig, symbols } as SourceRecord['endpointConfig'],
   };
+}
+
+/**
+ * For a Mubasher-CSV provider source, populate endpoint_config.symbols with the venue's RAW listed
+ * tickers from public.securities — NO Yahoo suffix (the Mubasher stock-page slug IS our raw ticker,
+ * e.g. ADX FAB/ALDAR/ADNOCGAS). This is the ADX/MSX/BHB analogue of withYahooSymbols: the frozen
+ * FetchContext gives fetch() no DB handle, so the adapter reads endpoint_config.symbols and the
+ * runtime populates it here (config over code, CONTRACT §0.6) so the symbol universe tracks the live
+ * securities master with no redeploy. Order is stable (ticker asc) for a deterministic per-cycle
+ * request order. No-op (returns source unchanged, no clone) for non-Mubasher-CSV sources, for rows
+ * that already carry an explicit Desk-set symbols list, or when the venue has no listed securities.
+ */
+export async function withMubasherCsvSymbols(sql: Sql, source: SourceRecord): Promise<SourceRecord> {
+  if (providerOf(source) !== 'mubasher_csv') return source;
+  const cfg = source.endpointConfig as unknown as { symbols?: unknown };
+  const already = Array.isArray(cfg.symbols) && cfg.symbols.length > 0;
+  if (already) return source;
+  const rows = await sql<{ ticker: string }[]>`
+    select ticker
+      from public.securities
+     where venue_code = ${source.venue}
+       and status = 'listed'
+     order by ticker asc
+  `;
+  const symbols = rows.map((r) => r.ticker).filter((t): t is string => typeof t === 'string' && t.trim() !== '');
+  if (symbols.length === 0) return source;
+  return {
+    ...source,
+    endpointConfig: { ...source.endpointConfig, symbols } as SourceRecord['endpointConfig'],
+  };
+}
+
+/**
+ * For an MSX-company-chart provider source, populate endpoint_config.symbols with the venue's RAW
+ * listed MSX tickers from public.securities — NO suffix (company-chart-data.aspx?s={symbol} takes our
+ * raw ticker, e.g. BKMB/OQGN). This is the MSX analogue of withYahooSymbols/withMubasherCsvSymbols:
+ * the frozen FetchContext gives fetch() no DB handle, so the adapter reads endpoint_config.symbols and
+ * the runtime populates it here (config over code, CONTRACT §0.6) so the symbol universe tracks the
+ * live securities master with no redeploy. Order is stable (ticker asc) for a deterministic per-cycle
+ * request order. No-op (returns source unchanged, no clone) for non-MSX-history sources, for rows that
+ * already carry an explicit Desk-set symbols list, or when the venue has no listed securities.
+ */
+export async function withMsxHistorySymbols(sql: Sql, source: SourceRecord): Promise<SourceRecord> {
+  if (providerOf(source) !== 'msx-company-chart') return source;
+  const cfg = source.endpointConfig as unknown as { symbols?: unknown };
+  const already = Array.isArray(cfg.symbols) && cfg.symbols.length > 0;
+  if (already) return source;
+  const rows = await sql<{ ticker: string }[]>`
+    select ticker
+      from public.securities
+     where venue_code = ${source.venue}
+       and status = 'listed'
+     order by ticker asc
+  `;
+  const symbols = rows.map((r) => r.ticker).filter((t): t is string => typeof t === 'string' && t.trim() !== '');
+  if (symbols.length === 0) return source;
+  return {
+    ...source,
+    endpointConfig: { ...source.endpointConfig, symbols } as SourceRecord['endpointConfig'],
+  };
+}
+
+/**
+ * Symbol-injection dispatcher. Routes a source to its provider's symbol-list populator before fetch:
+ * Yahoo sources get suffixed Yahoo chart symbols (withYahooSymbols); Mubasher-CSV and MSX-company-chart
+ * sources get RAW listed tickers (withMubasherCsvSymbols / withMsxHistorySymbols); every other (primary)
+ * source is returned unchanged. This is the single call runTask makes so a new aggregator only adds one
+ * branch here.
+ */
+export async function withInjectedSymbols(sql: Sql, source: SourceRecord): Promise<SourceRecord> {
+  const provider = providerOf(source);
+  if (provider === 'yahoo') return withYahooSymbols(sql, source);
+  if (provider === 'mubasher_csv') return withMubasherCsvSymbols(sql, source);
+  if (provider === 'msx-company-chart') return withMsxHistorySymbols(sql, source);
+  return source;
 }
 
 /**
@@ -679,10 +772,11 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
     },
 
     async runTask({ source: rawSource, task, agentPrincipalId, tradeDate }) {
-      // Yahoo provider sources are per-symbol: populate endpoint_config.symbols from
-      // public.securities before fetch (the adapter's fetch() has no DB handle). No-op for
-      // primary sources and for Yahoo rows that already carry an explicit Desk-set symbol list.
-      const source = await withYahooSymbols(sql, rawSource);
+      // Aggregator provider sources are per-symbol: populate endpoint_config.symbols from
+      // public.securities before fetch (the adapter's fetch() has no DB handle). withInjectedSymbols
+      // routes Yahoo → suffixed chart symbols, Mubasher-CSV → RAW listed tickers. No-op for primary
+      // sources and for aggregator rows that already carry an explicit Desk-set symbol list.
+      const source = await withInjectedSymbols(sql, rawSource);
 
       // Per-source egress: a use_proxy source (Yahoo 429-rotation via 0027, BHB WAF via
       // 0020) gets the IPRoyal-proxied http client; everything else the direct one. This

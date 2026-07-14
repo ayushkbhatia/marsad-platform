@@ -268,7 +268,7 @@ content-poll — the pages are shells for DFM/QE).
 
 | Data family | TDWL | DFM | ADX | QE | MSX | BHB |
 |---|---|---|---|---|---|---|
-| **Price history (daily OHLCV)** | Mubasher CSV + Yahoo `chart` | Yahoo `chart` | ADX native / Mubasher CSV | Yahoo `chart` + QE `MarketWatch.txt` | **GAP → `msx.om` scrape** | **GAP → BHB XLSX bulletin (needs proxy)** |
+| **Price history (daily OHLCV)** | Mubasher CSV + Yahoo `chart` | Yahoo `chart` | ADX native / Mubasher CSV | Yahoo `chart` + QE `MarketWatch.txt` | **`msx.om` `company-chart-data.aspx?s={symbol}` ✓ (native JSON, ≥2y daily **close-only**, 0034)** | **GAP → BHB XLSX bulletin (needs proxy)** |
 | **Fundamentals (IS/BS/CF)** | Mubasher `/financial-statements` ✓ + Yahoo `fundamentals-timeseries` | **Yahoo only** ⚠ | **ADX `financial-reports.json`** ✓ | Yahoo + QE `/financial-statements` (HTML) | **`msx.om` `Companies-Fin-Pref.aspx` + PDF** | **GAP (all) → proxy + PDF** |
 | **Ratios (P/E,P/B,ROE,ROA,margins,EPS)** | Mubasher `/ratios` ✓ + Yahoo | Yahoo | Mubasher `/ratios` ✓ | Yahoo + QE `/financial-indicators` | **derive from `msx.om` statements** | **GAP → derive from proxied statements** |
 | **Dividends / corp actions** | Mubasher `/corporate-action` ✓ + filings | Yahoo + filings | Mubasher ✓ + filings | Yahoo + QE + filings | **filings + `msx.om`** | **GAP → filings via proxy** |
@@ -585,10 +585,16 @@ time cohort snapshots for backtesting (needed to ever publish the screener's "3Y
      is live but has never run against a real session. **→ validation task V-1 below.**
 - Persist `ohlcv_daily`: **backfill** where free + **accrue** EOD everywhere.
 - TDWL/ADX: **Mubasher historical CSV** (`static.mubasher.info/…/{hash}.csv`, per-ticker hash from
-  page HTML) — cleanest artifact. **Effort: S** (fetch + parse one CSV/ticker).
+  page HTML) — cleanest artifact. **ADX DONE (0033, seeded active=false)** — 2-step page→hash→CSV,
+  `adapters/mubasher/ohlcv-csv.ts`, provider `mubasher_csv`, full daily OHLC since IPO (FAB verified
+  2000→2026). TDWL still rides Yahoo; the same adapter can add TDWL later by seeding a row. **Effort: S.**
 - DFM/QE: Yahoo `chart` — **blocked on Yahoo egress** (see cross-cutting blocker). QE `MarketWatch.txt`
   as EOD accrual fallback. **Effort: S once egress exists.**
-- MSX/BHB: **GAP** — MSX from `msx.om`; BHB needs proxy. **Effort: M (MSX) / L (BHB, proxy first).**
+- MSX: **DONE (0034, seeded active=false)** — native `www.msx.om/company-chart-data.aspx?s={symbol}`
+  returns the full ≥2y daily series in one plain-HTTP JSON GET/ticker (`ingestion/src/adapters/msx/history.ts`,
+  provider `msx-company-chart`). **Depth caveat: close-only** (LTP==Value; open/high/low null on the venue).
+  Today's intraday ticks (space-timestamped `Date`) are filtered to daily bars only. **Effort: S (shipped).**
+- BHB: **GAP** — BHB XLSX bulletin needs proxy. **Effort: L (BHB, proxy first).**
 - The daily EOD snapshot/accrual job is already wired (0028) so history accrues regardless of backfill
   depth — the open item is **proving it**, not building it (below).
 - **VALIDATION — exit criteria for P1.7a (tick ALL before P1.7b; the enrichment is not "done" until
@@ -708,8 +714,15 @@ Growth follows statements; Revisions = `NULL`.
   for **ADX/MSX/BHB exchange-native is the only path**. *Recommend this split.*
 - **D-src-3 · Fund Yahoo egress** (residential/rotating IP, blocker #1) — a real recurring cost, but
   it is the **only** fundamentals+history source for DFM+QE. *Recommend fund it; it unblocks 2 of 6 venues.*
-- **D-src-4 · BHB scope** — proxy-gated, ~40 thinnest listings, lowest ROI. *Recommend scope as a
-  P2-trailing follow-on and show BHB as an honest coverage gap; do not let it block P2.*
+- **D-src-4 · BHB price-history scope** — **DECIDED 2026-07-14: accept BHB as the coverage-gap venue.**
+  Confirmed no cheap ≥2y source exists — BHB is on no aggregator (not Yahoo, no Mubasher CSV) and
+  `bahrainbourse.com` is Radware/IP-blocked (403) from the VPS even via headless Chromium; the only
+  artifact is the per-day Daily-Trading-Summary XLSX behind an IPRoyal proxy (~500 proxied requests for
+  2y across only **8** listed securities, lowest ROI, and that proxied path is currently hard-down).
+  **Build NO 2y BHB backfill.** Once the proxied path is restored and BHB quotes flow, the wired EOD
+  accrual (0028) builds `ohlcv_daily` forward from that day; pre-restoration history stays a permanent
+  gap surfaced honestly on the reader (`SINGLE_SOURCE`, D-src-1). Revisit trigger + home: **DEF-BHB-OHLCV**
+  (BUILD-STATUS §7). Does not block P2.
 - **D-src-5 · Consensus-estimate source (OQ-10)** — the Revisions factor + the "14 ratings/avg PT"
   strip need a street-consensus source. Options: scrape Mubasher `/fair-values` (analyst *targets*,
   TDWL/ADX only, not EPS-revision breadth) / license a feed / accept **Marsad-internal estimates

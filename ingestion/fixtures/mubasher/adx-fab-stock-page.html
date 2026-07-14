@@ -1,0 +1,18 @@
+<!--
+  Faithful-but-trimmed capture of english.mubasher.info/markets/ADX/stocks/FAB (2026-07-14).
+  The full page is ~290 KB of Angular markup; this snippet preserves ONLY the load-bearing
+  fragment the ohlcv-csv fetcher scrapes: the chart component's data-url attributes. Both the
+  INTRADAY (decoy) and HISTORICAL (target) variants carry the SAME per-ticker hash, so the
+  hash-extraction regex MUST anchor on `Historical_Stock_Charts_Dir` to pick the ≥2y file.
+  Real FAB historical hash verified live: 2071fb2e203234df6dee15934e448ee88971.
+-->
+<html lang="en">
+<head><title>First Abu Dhabi Bank (FAB) — ADX | Mubasher</title></head>
+<body>
+  <div class="stock-header"><span class="market">ADX</span><span class="code">FAB</span></div>
+  <mubasher-stock-chart
+    intraday-data-url="https://static.mubasher.info/File.MubasherCharts/File.Delay_Stock_Intraday_Charts_Dir/2071fb2e203234df6dee15934e448ee88971.csv"
+    historical-data-url="https://static.mubasher.info/File.MubasherCharts/File.Historical_Stock_Charts_Dir/2071fb2e203234df6dee15934e448ee88971.csv">
+  </mubasher-stock-chart>
+</body>
+</html>
