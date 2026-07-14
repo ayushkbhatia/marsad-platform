@@ -556,7 +556,7 @@ time cohort snapshots for backtesting (needed to ever publish the screener's "3Y
 > (+ upgrade F). P1.7d–e enrich in parallel and can trail P2 launch.
 
 > **Build status (2026-07-14) — the derived code spine landed; the live scrape has not.** Shipped +
-> tested: the `key_ratios [NEW COL]` migration (0033); the **sector-aware ratio recompute** (§3.2/§3.3,
+> tested: the `key_ratios [NEW COL]` migration (0036); the **sector-aware ratio recompute** (§3.2/§3.3,
 > as **TS** `ingestion/src/lake/ratios-compute.ts`+`key-ratios.ts`, **not** a SQL `fn_recompute_key_ratios()`
 > — the code path chose TS; treat every "SQL fn"/"MV" reference in §3.2/§3.6 as satisfied by that TS service);
 > the **statement-normalizer** (§2/§3.1 primitive contract + Mubasher/Yahoo mappers + validation harness,

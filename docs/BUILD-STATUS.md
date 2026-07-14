@@ -104,7 +104,7 @@ Two feeds fill `ohlcv_daily` — **both required, different cadences, do not con
 
 ### P1.7b — Fundamentals + ratios (code spine landed 2026-07-14)
 The **derived data path is built + tested**; it goes live the moment `financial_statements` is populated.
-- ✅ **`[NEW COL]` migration** (0033) on `public.key_ratios`: `net_margin, gross_margin, rev_growth_yoy,
+- ✅ **`[NEW COL]` migration** (0036) on `public.key_ratios`: `net_margin, gross_margin, rev_growth_yoy,
   eps_growth_yoy, rev_cagr_3y, eps_cagr_3y, ret_3m, ret_6m, ret_12_1, ebitda_ttm, currency_computed`.
 - ✅ **Sector-aware ratio recompute** (`ingestion/src/lake/ratios-compute.ts` + `key-ratios.ts`): proper
   TTM assembly (trailing-4Q flows / latest balance / prior-year + 3y-ago for growth+CAGR), margins,
@@ -133,7 +133,7 @@ The **derived data path is built + tested**; it goes live the moment `financial_
 - ⏳ **Deferred**: earnings-verdict single-name recompute trigger; `estimates_agg` cron (both §7).
 
 ### P1.7d — Filings publish + dividends + earnings (publish path landed 2026-07-14)
-- ✅ **`public.filings` publish path** (0034, `lake.fn_filing_project`) — **closed DEF-FILINGS-PUBLISH**.
+- ✅ **`public.filings` publish path** (0037, `lake.fn_filing_project`) — **closed DEF-FILINGS-PUBLISH**.
   FILING.REF lake objects → `public.filings` (single-source PENDING publish rule, owner D-src-1;
   title→`filing_type` keyword classifier, venue-scoped, `security_id` NULL until detail-fetch). **86
   announcements now published** (was 0), auto-projecting on every new FILING.REF.
@@ -141,7 +141,7 @@ The **derived data path is built + tested**; it goes live the moment `financial_
   dividends/earnings-actuals parse that rides on it (§7).
 
 ### P1.7e — Exchange-native + ownership + people (table landed 2026-07-14)
-- ✅ **`company_people`** created (0035) — the `02-data-lake.md` "Missing entity" (board/management,
+- ✅ **`company_people`** created (0038) — the `02-data-lake.md` "Missing entity" (board/management,
   independence, seat count) with public-read RLS + worker grants.
 - ⏳ **Deferred**: ADX-native cross-check, `ownership_snapshots`, the board/people scrape, BHB egress (§7).
 
@@ -202,7 +202,7 @@ work lands.
 | **DEF-ADX-QUOTES** | Repoint ADX quotes (`ingest.sources` id=7) to the **direct apigateway board** `apigateway.adx.ae/adx/marketwatch/1.1/securityBoard/marketwatch` + capture its `fieldMap` | Works today via flaky `network_capture` discovery — a reliability upgrade, not a fix. Board-shape capture is **market-open-gated**. Needs an adapter change (`fetchAdxBoard` has no static-URL path). | **Next live ADX session (V-2 window)** — capture the board then; or fold into **P1.7e** (ADX-native, same adapter/pattern). ADX is not on Yahoo, so ADX quote reliability gates ADX's ongoing `ohlcv_daily` accrual. | `07 §P1.7a V-2`, `P1.7e` |
 | **DEF-STMT-INGEST** | Live statement scrape → populate `public.financial_statements` (≥8Q) so the (built) ratio + Score path has real inputs: Mubasher `/financial-statements`+`/ratios` (TDWL/ADX), Yahoo `fundamentals-timeseries` (DFM/QE), MSX `.aspx`. Route each through the **shipped** `statement-normalizer`. | The normalizer + ratio + Score engines are built + tested; only the live venue adapters (and Yahoo egress) are missing. Blocked on live sessions / egress, not on code. | **P1.7b live** — next Yahoo-egress + market-data window | `07 §P1.7b`, `plan §3a` |
 | **DEF-SECTOR-DATA** | Populate `securities.sector` (all 660 rows are `'unknown'` today) via a profile scrape (Mubasher `/profile`, ADX `overview.json`). | The §3.3 sector→valid-ratio map (D-1) + GCC-wide cohorts (D-2) are coded correct-by-design but have **no data to key on** — every name collapses to one `'unknown'` cohort + the full ratio set. | Before the Score is credibility-published (D-1/D-2 need real sectors) | `07 §3.3/§3.5`, `P1.7e-I` |
-| **DEF-FILING-FACTS** | Filing **full_text** (PDF→EN) → `extracted_facts` typing → `ai_summary` (the one bounded LLM cost), then the dividends + earnings-actuals parse that rides on the facts (`public.dividends` w/ the confirm gate; `earnings_events` verdicts). | Needs the shared **PDF-extraction pipeline**; filings **lists** now publish (0034) but carry no facts yet. | **P1.7d F/G/H** — when the PDF-LLM pipeline stands up | `07 §1.1 F/G/H`, `P1.7d` |
+| **DEF-FILING-FACTS** | Filing **full_text** (PDF→EN) → `extracted_facts` typing → `ai_summary` (the one bounded LLM cost), then the dividends + earnings-actuals parse that rides on the facts (`public.dividends` w/ the confirm gate; `earnings_events` verdicts). | Needs the shared **PDF-extraction pipeline**; filings **lists** now publish (0037) but carry no facts yet. | **P1.7d F/G/H** — when the PDF-LLM pipeline stands up | `07 §1.1 F/G/H`, `P1.7d` |
 | **DEF-SCORE-EVENTS-TRIGGER** | `earnings_events.verdict` set → single-name Score recompute into `q_maintenance` (updates the Revisions grade overnight). Engine already accepts a `securityIds` slice. | `earnings_events` is empty + Revisions ships NULL (D-8) — nothing to trigger on yet. | When 7d earnings actuals land | `07 §3.5`, `P1.7c` |
 | **DEF-ESTIMATES-AGG** | `estimates_agg` cron @ 23:00 GST (30/90d revision Δ + breadth → `revisions_features` MV) feeding the Revisions factor. | No cheap consensus-estimate source (D-src-5); Revisions = NULL until resolved — harmless-while-empty, so not scheduled to avoid a false heartbeat. | When a consensus source is chosen (OQ-10) | `07 §3.6`, `P1.7c` |
 | **DEF-STMT-LLM-PDF** | Implement `normalizeViaLlm` (the declared seam in `statement-normalizer.ts`) + the PDF-extraction pipeline for MSX/BHB statement depth + F full-text. | Shared LLM-extraction service (`01-ingestion.md §9`); the real effort sink, not buildable without the pipeline. | **P1.7d/e** — shared with DEF-FILING-FACTS | `plan §2`, `07 §P1.7b/e` |
@@ -210,4 +210,4 @@ work lands.
 | **DEF-ROTATE-N** | rotate-every-N keep-alive proxy pool (reuse tunnels instead of fresh-per-request) | Fetch is fast + stable now (pipeline 8, no deadlock); pure perf | **Only if** a full multi-venue backfill proves fetch-throughput-bound | ingestion `core/fetcher.ts` |
 | **DEF-BHB-OHLCV** | BHB ≥2y daily OHLCV backfill adapter + seed (last price-history GAP; ADX=0033 Mubasher, MSX=0034 native, both done) | BHB is IP-blocked even via headless; the XLSX bulletin needs a working proxy path recon'd first | **When a BHB-reachable proxy exists** — then mirror the ADX/MSX adapter shape (provider discriminant + `withInjectedSymbols` branch) | `07 §P1.7a`, `07-lake-enrichment.md` price-history matrix |
 
-**Cleared from this list — done + integrated 2026-07-14** (kept for one revision as an audit trail, then prune): **DEF-FILINGS-PUBLISH** (shipped as the `lake.fn_filing_project` single-source projection, 0034 — 86 filings published); plus the P1.7b/c/e code spine landed same day (key_ratios `[NEW COL]` 0033 + sector-aware ratios, the statement-normalizer, the Marsad Score engine + `score_batch`/`nightly` handlers, `company_people` 0035). Earlier: gzip content-encoding decode; concurrent + incremental OHLCV backfill; DB pool starvation (`max` 5→20); q_pipeline batch-drain; Supabase pooler-cap sizing; **sweep-dedup** (migration 0030); handler **tx-threading** deadlock; **q_dispatch** poison-heartbeat.
+**Cleared from this list — done + integrated 2026-07-14** (kept for one revision as an audit trail, then prune): **DEF-FILINGS-PUBLISH** (shipped as the `lake.fn_filing_project` single-source projection, 0037 — 86 filings published); plus the P1.7b/c/e code spine landed same day (key_ratios `[NEW COL]` 0036 + sector-aware ratios, the statement-normalizer, the Marsad Score engine + `score_batch`/`nightly` handlers, `company_people` 0038). Earlier: gzip content-encoding decode; concurrent + incremental OHLCV backfill; DB pool starvation (`max` 5→20); q_pipeline batch-drain; Supabase pooler-cap sizing; **sweep-dedup** (migration 0030); handler **tx-threading** deadlock; **q_dispatch** poison-heartbeat.

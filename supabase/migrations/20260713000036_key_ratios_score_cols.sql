@@ -1,4 +1,4 @@
--- 0033_key_ratios_score_cols — the [NEW COL] additive set on public.key_ratios
+-- 0036_key_ratios_score_cols — the [NEW COL] additive set on public.key_ratios
 -- that the Marsad Score (P1.7c) consumes (07-lake-enrichment.md §3.2). Forward-only,
 -- no destructive change: every column is nullable and defaults NULL so the nightly
 -- fn_recompute path (ingestion KeyRatiosRecompute) backfills them without a rewrite.

@@ -1,4 +1,4 @@
--- 0035_company_people — the "Missing entity" from 02-data-lake.md, required by the P2
+-- 0038_company_people — the "Missing entity" from 02-data-lake.md, required by the P2
 -- stock page's Board & Management tab (07-lake-enrichment.md §1.1 I, screen 3d) and by
 -- P1.7e. One row per (security, person, role): board members (with independence + seat
 -- count) and management. Populated by the venue-profile / filings scrape (P1.7e-I); the
