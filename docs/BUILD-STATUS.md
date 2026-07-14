@@ -85,6 +85,11 @@ The scariest unknown — reaching the exchanges — is resolved. Findings:
 Two feeds fill `ohlcv_daily` — **both required, different cadences, do not conflate**:
 - **Backfill (one-time per security):** ≥2y seed via Yahoo `chart` etc. ✅ **built + proven live
   2026-07-14** — full chain fetch→snapshot→parse→stage→cross-check→`ohlcv_daily` validated on QE.
+  **Per-venue backfill source coverage:** TDWL/QE/DFM = Yahoo `chart`; **ADX = Mubasher historical
+  CSV** (0033, provider `mubasher_csv`, `adapters/mubasher/ohlcv-csv.ts`); **MSX = native
+  `company-chart-data.aspx` JSON** (0034, provider `msx-company-chart`, `adapters/msx/history.ts` —
+  ≥2y daily **close-only**, intraday ticks filtered). Both seeded `active=false` pending the
+  post-deploy activation flip. **BHB remains the one price-history GAP** (needs proxy — see DEF-BHB-OHLCV).
 - **EOD accrual (ongoing, +1 bar/security/trading-day):** rolls the intraday `quotes_latest` ticks
   into that day's O/H/L/C/volume **at close** (cadence is DAILY, not the ~10-min quote cadence).
   ⏳ **wired but NOT YET VALIDATED** — migration 0028 (`accrue_ohlcv_from_quotes` + `ohlcv_accrual`
@@ -124,6 +129,7 @@ Backfill depth, ads, security/RLS pen pass, restore drills, runbooks.
 - $5 VPS approved (Hetzner CX23, ~$6.49/mo actual)
 - TDWL sourcing: **hybrid** — Mubasher/Yahoo aggregators now, official-via-premium-proxy later if quality demands
 - BHB: IPRoyal residential proxy (GCC geo)
+- **D-src-4 · BHB price-history (2026-07-14):** accept BHB as the **coverage-gap venue** — no cheap ≥2y source (no aggregator, IP-blocked); build **no** 2y backfill, forward-accrue once quotes flow. Ledger: DEF-BHB-OHLCV (§7); detail: `07-lake-enrichment.md` §5 D-src-4.
 
 ### Owner action items (non-blocking)
 - Enable `custom_access_token_hook` in Supabase Dashboard → Auth → Hooks (needed for P5 reader auth, not before)
@@ -144,5 +150,6 @@ work lands.
 | **DEF-FILINGS-PUBLISH** | `public.filings` publish path — detail-fetch pipeline + a single-source-PENDING publish rule | Reader-design call; better decided **with** the reader | **P2** reader build | `07 §1.1 F`, P2 |
 | **DEF-VENUE-FILINGS** | Venue filings parser tuning — QE (q-disclosure URL), BHB (webapi/proxy), DFM (eFsah drift), MSX (RSS drift), TDWL (pin Mubasher-news) | Low-volume + parsers **drift** (ongoing maintenance, never a finish line); does not gate the Score | **P1.7d** filings upgrade / when a given venue's filings become reader-needed | `P1.7d`, `01-ingestion.md` |
 | **DEF-ROTATE-N** | rotate-every-N keep-alive proxy pool (reuse tunnels instead of fresh-per-request) | Fetch is fast + stable now (pipeline 8, no deadlock); pure perf | **Only if** a full multi-venue backfill proves fetch-throughput-bound | ingestion `core/fetcher.ts` |
+| **DEF-BHB-OHLCV** | BHB ≥2y daily OHLCV backfill adapter + seed (last price-history GAP; ADX=0033 Mubasher, MSX=0034 native, both done) | BHB is IP-blocked even via headless; the XLSX bulletin needs a working proxy path recon'd first | **When a BHB-reachable proxy exists** — then mirror the ADX/MSX adapter shape (provider discriminant + `withInjectedSymbols` branch) | `07 §P1.7a`, `07-lake-enrichment.md` price-history matrix |
 
 **Cleared from this list — done + integrated 2026-07-14** (kept for one revision as an audit trail, then prune): gzip content-encoding decode; concurrent + incremental OHLCV backfill; DB pool starvation (`max` 5→20); q_pipeline batch-drain; Supabase pooler-cap sizing; **sweep-dedup** (migration 0030); handler **tx-threading** deadlock; **q_dispatch** poison-heartbeat.
