@@ -94,6 +94,45 @@ safety sweep**. This is *cheaper and more correct* than polling statement pages 
 reuses the `filing_detail` event-enqueue path that TDWL/ADX filings already use (`enqueueFilingDetails` +
 `filingDetailSourceId` in `filings-poll.ts`).
 
+### 2.1 Incremental-only — the coverage-flag invariant (LOCKED architecture rule, applies to EVERY researcher)
+
+> **No researcher does full-universe re-runs in steady state.** A run must ship **~0 rows unless something
+> genuinely new landed** — never re-fetch what it already has. This is the same choice PR#3 made for OHLCV
+> (`securities.ohlcv_backfilled_at` sticky flag → graceful per-security stop). It is now a **cross-cutting
+> rule**, not a price-only optimization: every family below must implement it before it goes live.
+
+Three layered mechanisms (use the cheapest that applies; a researcher should use the topmost that fits):
+
+1. **Don't-emit (safety net, already universal):** snapshot dedup (`ingest.raw_snapshots` unique on
+   `(source_id, content_hash, external_id)`) + staging idempotency mean an unchanged re-fetch never
+   double-writes. **This is the floor, not the goal** — it still pays the fetch.
+2. **Don't-fetch (the real target) — a coverage/freshness gate on the SYMBOL INJECTOR:** the injector that
+   feeds a source its work-list must filter to only the securities that need work, so `runTask` skips the
+   fetch entirely for the rest. Per family:
+   - **OHLCV backfill** — `securities.ohlcv_backfilled_at is null` (PR#3, `listedTickersForVenue`). ✅ live.
+   - **Financials** — inject only securities whose newest `financial_statements.period_end` is **older than
+     the latest expected fiscal period** (i.e. a new quarter/year is due), OR that a RESULTS filing just
+     fired for. A sticky `financials_fresh_through` (period) or a `period_end`-vs-calendar check. **Never
+     re-scrape all 660 weekly.**
+   - **Dividends / corporate-actions** — **list-diff on `external_id`** (mirror the filings poller's
+     `ingest.seen_items`): only emit announcements not seen before. The 2019→ history is a one-time
+     backfill; steady state ships only new/changed rows.
+   - **Sector / people** — a coverage flag (only scrape a profile not yet captured or past a staleness
+     window) + event-driven on a GOVERNANCE filing. Quarterly, not per-run.
+3. **Event-driven (the ideal for fundamentals):** don't poll at all — let the **filings poller** (already
+   list-diffing every 5 min) enqueue a single-security refresh when a relevant filing lands (a RESULTS
+   filing → refresh that name's statements; a DIVIDEND filing → refresh its corporate-actions). The
+   low-cadence sweep is only a safety backstop for missed events.
+
+**Derived tier corollary:** the nightly `key_ratios` recompute is per-security absolute math (not
+percentiles) → it too should recompute **only securities whose inputs changed** since the last run
+(`key_ratios_recompute` already accepts a `securityIds` slice — wire the changed-set to it), not all 660.
+The **Score** stays a full-universe pass (percentiles are inherently cross-sectional) but it only *reads*
+`key_ratios` (cheap), so that's fine.
+
+**Definition of done for any researcher:** a second run minutes after the first, with no new source data,
+fetches nothing new and writes zero rows. If it re-fetches or re-writes, it is not done.
+
 ---
 
 ## 3. Per-family build matrix — what exists, what's missing, exact identifiers to add

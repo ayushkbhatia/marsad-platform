@@ -3,6 +3,14 @@
 > Plan of record for the continuous-enrichment build (items #1–#6). Generated 2026-07-14 from a code-grounded
 > scoping pass (6 parallel scopers, live-probed). Companion to `p17-continuous-enrichment-researchers.md`
 > (the architecture) — this doc is the *executable* per-item ticket. Sequence + guardrails: that plan §5–6.
+>
+> **LOCKED cross-cutting rule for every ticket below — incremental-only (no full-runs)** (`p17-continuous §2.1`):
+> each researcher must gate its symbol injector to only securities that need work (coverage/freshness flag +
+> `external_id` list-diff + event-driven-on-filing), so a steady-state run fetches nothing and writes zero
+> rows unless genuinely new data landed. PR#3's `securities.ohlcv_backfilled_at` is the reference pattern.
+> Applies per ticket: #1 financials = `period_end`-vs-expected-period gate + RESULTS-filing event; #6
+> dividends = `external_id` list-diff (`ingest.seen_items`); #2 sector/people = capture/staleness flag +
+> GOVERNANCE-filing event; #5 derived = recompute only the changed-security set (`securityIds` slice).
 
 
 ## Summary
