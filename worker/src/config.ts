@@ -35,6 +35,12 @@ export interface WorkerConfig {
   ingestPollIntervalMs: number;
   ingestBatchSize: number;
   ingestConcurrency: number;
+  /**
+   * postgres.js pool size (db.ts). Must exceed the 5 always-on queue consumers plus
+   * headroom for the poller, per-handler queries, and the OHLCV backfill's concurrent
+   * sink lanes — see db.ts. Default 25; env-overridable (DB_POOL_MAX).
+   */
+  dbPoolMax: number;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): WorkerConfig {
@@ -56,6 +62,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): WorkerConfig {
     ingestPollIntervalMs: intFromEnv(env.INGEST_POLL_INTERVAL_MS, 15_000),
     ingestBatchSize: intFromEnv(env.INGEST_BATCH_SIZE, 20),
     ingestConcurrency: intFromEnv(env.INGEST_CONCURRENCY, 4),
+    dbPoolMax: intFromEnv(env.DB_POOL_MAX, 25),
   };
 }
 
