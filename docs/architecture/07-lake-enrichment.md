@@ -98,6 +98,11 @@ Legend: **R** = RAW · **D** = DERIVED · Priority **M** = must-have-before-P2 �
 > Priority **M**. Yahoo `chart`/`fundamentals-timeseries` covers `.SR/.AE/.QA` history;
 > **Mubasher historical CSV** is the standout artifact for TDWL/ADX; **ADX/MSX/BHB** need
 > exchange-native. **This family is the Score's Momentum input — it must land first.**
+> **Two feeds fill this table (see §P1.7a):** a **one-time backfill** for the ≥2y seed, then an
+> **ongoing EOD accrual** (+1 bar/security/trading-day) that rolls up the intraday `quotes_latest`
+> ticks (family **A**) at close. Backfill is proven; the EOD accrual is wired (0028) but **must be
+> validated** (§P1.7a V-1/V-2) — the reader is only correct once the daily bar keeps appearing, not
+> just once the history is seeded.
 
 #### C · KEY RATIOS — `key_ratios` (1 flat row/security, recomputed nightly) — screener scan target
 
@@ -552,13 +557,40 @@ time cohort snapshots for backtesting (needed to ever publish the screener's "3Y
 
 ### P1.7a — Price-history complete (CRITICAL PATH, unblocks Momentum + chart)
 **Value: highest** (gates Score + chart tab). **Feasibility: high** for 4 venues, gaps for 2.
+
+- **TWO FEEDS — do NOT conflate; both are required and have different cadences:**
+  1. **BACKFILL — one-time per security.** Bulk-seed ≥2y of daily bars (Yahoo `chart?range=2y`,
+     Mubasher CSV, etc.). Idempotent (snapshot dedup); re-runs only for a **new listing/IPO**, never
+     on a timer. **Status: BUILT + PROVEN live 2026-07-14** (fetch→snapshot→parse→stage→cross-check→
+     `ohlcv_daily`).
+  2. **EOD ACCRUAL — +1 bar per security per trading DAY, ongoing forever.** A daily bar finalizes
+     **once, at close** — so the cadence is **DAILY, never the ~10-min quote cadence**. Its input is
+     the **intraday `quotes_latest` feed** (family **A**): the ~10-min in-session quote poll is what
+     accumulates the day's ticks, and the EOD job rolls them into that day's O/H/L/C/volume. (Yahoo
+     backfill only covers history that predates our own quote collection.) **Status: WIRED but NOT YET
+     VALIDATED** — migration 0028 (`accrue_ohlcv_from_quotes` + `ohlcv_accrual` pg_cron @ 18:00 UTC)
+     is live but has never run against a real session. **→ validation task V-1 below.**
 - Persist `ohlcv_daily`: **backfill** where free + **accrue** EOD everywhere.
 - TDWL/ADX: **Mubasher historical CSV** (`static.mubasher.info/…/{hash}.csv`, per-ticker hash from
   page HTML) — cleanest artifact. **Effort: S** (fetch + parse one CSV/ticker).
 - DFM/QE: Yahoo `chart` — **blocked on Yahoo egress** (see cross-cutting blocker). QE `MarketWatch.txt`
   as EOD accrual fallback. **Effort: S once egress exists.**
 - MSX/BHB: **GAP** — MSX from `msx.om`; BHB needs proxy. **Effort: M (MSX) / L (BHB, proxy first).**
-- Start a **daily EOD snapshot** job now so history accrues regardless of backfill depth. **Effort: S.**
+- The daily EOD snapshot/accrual job is already wired (0028) so history accrues regardless of backfill
+  depth — the open item is **proving it**, not building it (below).
+- **VALIDATION — exit criteria for P1.7a (tick ALL before P1.7b; the enrichment is not "done" until
+  the ongoing feeds are proven, not just the one-time seed):**
+  - **V-1 · EOD accrual proven (ONGOING daily bar).** After ≥1 GCC trading session, the 18:00 UTC
+    `ohlcv_accrual` cron rolls that session's `quotes_latest` captures into **exactly one new
+    `ohlcv_daily` bar per active security** — correct O/H/L/C/volume + trade_date, no duplicate, no
+    gap vs the backfilled series. **UNPROVEN today** (wired, never run against a live session).
+  - **V-2 · Intraday quote feed proven (the accrual's INPUT).** The ~10-min in-session quote poll
+    keeps `quotes_latest` fresh through a full session (2-source VERIFIED where a 2nd source exists).
+    V-1 depends on this, so validate it first/together — a gap in intraday capture = a bad daily bar.
+  - **V-3 · Backfill completeness per venue.** TDWL `.SR` deep (505 bars proven); **QE `.QA` shallow
+    (~40 bars) → needs QE `MarketWatch.txt` for Score depth (≥126)**; DFM `.AE` to verify; ADX/MSX/BHB
+    per the source matrix. Full-universe backfill is gated on the throughput fixes (sweep-dedup +
+    handler tx-threading — see `BUILD-STATUS.md`).
 
 ### P1.7b — Fundamentals + ratios via aggregators (the Financials tab + screener)
 **Value: highest** (Financials tab, ratio strip, screener scan target, Score V/G/P inputs).

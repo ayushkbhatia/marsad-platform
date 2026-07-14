@@ -75,6 +75,22 @@ The scariest unknown — reaching the exchanges — is resolved. Findings:
 - ✅ BrowserClient `direct` mode (reusable WAF-venue capability)
 - ⏳ Remaining: `public.filings` publish path (detail-fetch + single-source publish rule); QE/BHB/DFM/MSX filings tuning; Tue market-open live-quote validation (2-source VERIFIED path); ≥2y backfill kickoff. See `memory/marsad-next-session.md`.
 
+### P1.7a — Price history (in progress)
+Two feeds fill `ohlcv_daily` — **both required, different cadences, do not conflate**:
+- **Backfill (one-time per security):** ≥2y seed via Yahoo `chart` etc. ✅ **built + proven live
+  2026-07-14** — full chain fetch→snapshot→parse→stage→cross-check→`ohlcv_daily` validated on QE.
+- **EOD accrual (ongoing, +1 bar/security/trading-day):** rolls the intraday `quotes_latest` ticks
+  into that day's O/H/L/C/volume **at close** (cadence is DAILY, not the ~10-min quote cadence).
+  ⏳ **wired but NOT YET VALIDATED** — migration 0028 (`accrue_ohlcv_from_quotes` + `ohlcv_accrual`
+  pg_cron @ 18:00 UTC) is live but has never run against a real session. **Must prove:** after ≥1 GCC
+  session → 18:00 roll-up → confirm exactly one correct new bar/security lands. **Don't skip — the
+  reader is only right once the daily bar keeps appearing, not just once history is seeded.**
+  (`07-lake-enrichment.md` §P1.7a V-1/V-2.)
+- **Throughput follow-ups before the full-universe backfill:** sweep-dedup (`crosscheck_sweep`
+  re-enqueues duplicates → queue diverges) + handler **tx-threading** (each handler holds a
+  `runAsAgent` tx *and* nests pool connections → deadlock caps concurrency). QE `.QA` history shallow
+  (~40 bars) → needs QE `MarketWatch.txt` for Score depth (≥126). Detail in `memory/marsad-next-session.md`.
+
 ### P2 — Reader core on real data (~4 wks)
 Ledger, 812 stock pages, newswire, screener, heatmap, search, SEO — all from the live lake, CDN-cached anonymous browsing. (Master plan P2.)
 
