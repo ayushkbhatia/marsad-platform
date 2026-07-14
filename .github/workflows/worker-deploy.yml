@@ -65,9 +65,11 @@ jobs:
       - name: Build and restart marsad-worker on VPS
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
-          # Optional overrides; defaults match the cloud-init recipe.
-          VPS_USER: ${{ secrets.VPS_USER || 'root' }}
-          APP_DIR: ${{ vars.VPS_APP_DIR || '/opt/marsad-platform' }}
+          # Defaults match the cloud-init recipe (infra/cloud-init.yaml): the SSH key
+          # authorizes the `deploy` user, and the repo is cloned to /opt/marsad.
+          # Both are still override-able via secret/var for a differently-laid-out box.
+          VPS_USER: ${{ secrets.VPS_USER || 'deploy' }}
+          APP_DIR: ${{ vars.VPS_APP_DIR || '/opt/marsad' }}
           DEPLOY_SHA: ${{ github.sha }}
         # Deploys the exact workflow SHA (not branch tip) so "rollback =
         # re-run this workflow on the previous commit" holds.
@@ -98,11 +100,13 @@ jobs:
           npm ci
           npm run build
           npm prune --omit=dev
-          systemctl restart marsad-worker
+          # `deploy` is a non-root user (NOPASSWD sudo per cloud-init); managing a
+          # system unit needs sudo — bare `systemctl restart` would fail non-interactively.
+          sudo systemctl restart marsad-worker
           sleep 5
-          systemctl is-active --quiet marsad-worker || {
+          sudo systemctl is-active --quiet marsad-worker || {
             echo "marsad-worker failed to start; recent logs:" >&2
-            journalctl -u marsad-worker -n 50 --no-pager >&2
+            sudo journalctl -u marsad-worker -n 50 --no-pager >&2
             exit 1
           }
           echo "marsad-worker restarted OK at $DEPLOY_SHA"
