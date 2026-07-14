@@ -41,6 +41,17 @@ export interface WorkerConfig {
    * sink lanes — see db.ts. Default 25; env-overridable (DB_POOL_MAX).
    */
   dbPoolMax: number;
+  /**
+   * q_pipeline consumer throughput (P1.7a). q_pipeline carries cross_check, which the
+   * OHLCV backfill fans out by the tens of thousands (one key per daily bar). The
+   * default READ_QTY=1 serial drain (~14 msg/min even with the pool fixed) cannot keep
+   * up with the crosscheck_sweep's re-enqueue rate, so the queue grows unboundedly.
+   * These batch the read (pipelineReadQty) and process it with bounded concurrency
+   * (pipelineConcurrency) — cross_check keys are distinct per bar so concurrent
+   * processing is safe. Other (low-volume) queues stay at qty 1 / serial.
+   */
+  pipelineReadQty: number;
+  pipelineConcurrency: number;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): WorkerConfig {
@@ -63,6 +74,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): WorkerConfig {
     ingestBatchSize: intFromEnv(env.INGEST_BATCH_SIZE, 20),
     ingestConcurrency: intFromEnv(env.INGEST_CONCURRENCY, 4),
     dbPoolMax: intFromEnv(env.DB_POOL_MAX, 25),
+    pipelineReadQty: intFromEnv(env.PIPELINE_READ_QTY, 25),
+    pipelineConcurrency: intFromEnv(env.PIPELINE_CONCURRENCY, 8),
   };
 }
 

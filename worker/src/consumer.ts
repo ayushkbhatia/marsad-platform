@@ -19,11 +19,12 @@ export const QUEUES = [
 
 export type QueueName = (typeof QUEUES)[number];
 
-// Brief-locked read semantics: visibility timeout 600s, one message per read
-// (03 Revisions #2 — LLM stages must be vt 600 / qty 1; the skeleton applies
-// it uniformly until per-queue handlers land and tune 06 §5's smaller vts).
+// Brief-locked read semantics: visibility timeout 600s. Read QTY + processing
+// concurrency are PER-QUEUE (see startQueueConsumer): q_pipeline batch-reads and
+// processes with bounded concurrency for the cross_check backfill fan-out (tens of
+// thousands of distinct-key messages); every other (low-volume) queue stays qty 1 /
+// serial (03 Revisions #2 — LLM stages must stay one-at-a-time at vt 600).
 const VISIBILITY_TIMEOUT_S = 600;
-const READ_QTY = 1;
 // read_with_poll blocks server-side up to this long, so an idle consumer costs
 // one cheap query per 5s per queue instead of a tight client loop.
 const MAX_POLL_SECONDS = 5;
@@ -56,8 +57,19 @@ export function startQueueConsumer(
   const log = rootLog.child({ queue, workerId: config.workerId });
   let stopping = false;
 
+  // Per-queue throughput: q_pipeline (cross_check, backfill fan-out) batch-reads and
+  // processes with bounded concurrency; every other queue stays qty 1 / serial. Safe
+  // because cross_check keys are distinct per bar — concurrent messages touch different
+  // natural_keys (a rare same-key duplicate just no-ops against the live object).
+  const readQty = queue === "q_pipeline" ? config.pipelineReadQty : 1;
+  const processConcurrency = queue === "q_pipeline" ? config.pipelineConcurrency : 1;
+
   async function loop(): Promise<void> {
-    log.info("consumer started", { vt: VISIBILITY_TIMEOUT_S, qty: READ_QTY });
+    log.info("consumer started", {
+      vt: VISIBILITY_TIMEOUT_S,
+      qty: readQty,
+      concurrency: processConcurrency,
+    });
     while (!stopping) {
       let messages: PgmqMessage[];
       try {
@@ -66,7 +78,7 @@ export function startQueueConsumer(
           from pgmq.read_with_poll(
             ${queue},
             ${VISIBILITY_TIMEOUT_S},
-            ${READ_QTY},
+            ${readQty},
             ${MAX_POLL_SECONDS},
             ${POLL_INTERVAL_MS}
           )
@@ -78,14 +90,35 @@ export function startQueueConsumer(
         continue;
       }
 
-      for (const msg of messages) {
-        // Kill-switch flags are re-checked between every message (03 Revisions):
-        // real handlers consult iam.global_switches here before acting.
-        await processMessage(msg);
-        if (stopping) break;
+      if (processConcurrency <= 1) {
+        for (const msg of messages) {
+          // Kill-switch flags are re-checked between every message (03 Revisions):
+          // real handlers consult iam.global_switches here before acting.
+          await processMessage(msg);
+          if (stopping) break;
+        }
+      } else {
+        await processBatch(messages, processConcurrency);
       }
     }
     log.info("consumer drained");
+  }
+
+  // Bounded-concurrency batch drain (worker-pool): at most `concurrency` messages in
+  // flight. processMessage never rejects (it archives/logs its own failures), so a lane
+  // only ends by draining the shared cursor. Ordering within the batch is not
+  // significant — pgmq visibility timeouts protect each message independently.
+  async function processBatch(messages: PgmqMessage[], concurrency: number): Promise<void> {
+    let cursor = 0;
+    async function lane(): Promise<void> {
+      while (!stopping) {
+        const i = cursor++;
+        if (i >= messages.length) return;
+        await processMessage(messages[i]!);
+      }
+    }
+    const lanes = Math.max(1, Math.min(concurrency, messages.length));
+    await Promise.all(Array.from({ length: lanes }, () => lane()));
   }
 
   async function processMessage(msg: PgmqMessage): Promise<void> {
