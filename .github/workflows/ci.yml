@@ -13,6 +13,10 @@ concurrency:
 
 permissions:
   contents: read
+  # dorny/paths-filter needs the PR files API on pull_request events (it uses
+  # git diff on push, but the API on PRs) — without this the token gets
+  # "Resource not accessible by integration" and the detect-changes job fails.
+  pull-requests: read
 
 jobs:
   # Detects what changed / what exists so expensive jobs only run when needed.
