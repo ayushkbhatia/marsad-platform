@@ -587,6 +587,14 @@ time cohort snapshots for backtesting (needed to ever publish the screener's "3Y
   - **V-2 · Intraday quote feed proven (the accrual's INPUT).** The ~10-min in-session quote poll
     keeps `quotes_latest` fresh through a full session (2-source VERIFIED where a 2nd source exists).
     V-1 depends on this, so validate it first/together — a gap in intraday capture = a bad daily bar.
+    **→ Deferred item DEF-ADX-QUOTES rides here (market-open-gated, MUST use this window):** ADX quotes
+    (source id=7) currently work via flaky `network_capture` discovery. In this live session, CAPTURE
+    the marketwatch board JSON shape (field names → `fieldMap`) and repoint id=7 to the direct apigateway
+    board `apigateway.adx.ae/adx/marketwatch/1.1/securityBoard/marketwatch` (static apikey +
+    `Accept: application/json`, direct mode — mirror the ADX *filings* adapter which already fetches its
+    apigateway URL directly). Needs an adapter change (`fetchAdxBoard` has no static-URL path today).
+    ADX is NOT on Yahoo → ADX quote reliability directly gates ADX's ongoing `ohlcv_daily` accrual.
+    **Effort: M.** Also foldable into P1.7e (ADX-native) — same adapter, same direct-fetch pattern.
   - **V-3 · Backfill completeness per venue.** TDWL `.SR` deep (505 bars proven); **QE `.QA` shallow
     (~40 bars) → needs QE `MarketWatch.txt` for Score depth (≥126)**; DFM `.AE` to verify; ADX/MSX/BHB
     per the source matrix. Full-universe backfill is gated on the throughput fixes (sweep-dedup +

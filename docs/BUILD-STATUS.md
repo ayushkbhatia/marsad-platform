@@ -1,8 +1,14 @@
 # Marsad — Build Status & Roadmap
 
-_Last updated: 2026-07-13. Living document — the source of truth for what's shipped, what's live, and what's next._
+_Last updated: 2026-07-14. Living document — the source of truth for what's shipped, what's live, and what's next._
 
 Maps against the phase plan in [`docs/architecture/00-master-plan.md`](architecture/00-master-plan.md).
+
+> **Doc-sync convention (follow this — it is also a project rule in `AGENTS.md`):** whenever work is
+> **deferred/parked**, log it in §7 (Deferred backlog) with a trigger + a home so it is never silently
+> dropped. Whenever deferred/in-flight work is **completed + integrated**, update the docs *in the same
+> change* — mark it done here, remove it from §7, and update the relevant domain doc (e.g.
+> `architecture/07-lake-enrichment.md`). Docs move with the code, not after it.
 
 ---
 
@@ -122,3 +128,21 @@ Backfill depth, ads, security/RLS pen pass, restore drills, runbooks.
 ### Owner action items (non-blocking)
 - Enable `custom_access_token_hook` in Supabase Dashboard → Auth → Hooks (needed for P5 reader auth, not before)
 - IPRoyal / proxy creds already set on the VPS; rotate anytime from the IPRoyal dashboard
+
+---
+
+## 7. Deferred / parked backlog
+
+Work **consciously deferred, not dropped.** Each item carries a **trigger** (when to pick it up) and a
+**home** (the doc/phase it belongs to). Nothing here is forgotten — it has either a scheduled home or a
+forcing condition. Per the doc-sync convention above, add rows when parking work and delete them when the
+work lands.
+
+| ID | Item | Why deferred (not now) | Trigger to pick up | Home |
+|---|---|---|---|---|
+| **DEF-ADX-QUOTES** | Repoint ADX quotes (`ingest.sources` id=7) to the **direct apigateway board** `apigateway.adx.ae/adx/marketwatch/1.1/securityBoard/marketwatch` + capture its `fieldMap` | Works today via flaky `network_capture` discovery — a reliability upgrade, not a fix. Board-shape capture is **market-open-gated**. Needs an adapter change (`fetchAdxBoard` has no static-URL path). | **Next live ADX session (V-2 window)** — capture the board then; or fold into **P1.7e** (ADX-native, same adapter/pattern). ADX is not on Yahoo, so ADX quote reliability gates ADX's ongoing `ohlcv_daily` accrual. | `07 §P1.7a V-2`, `P1.7e` |
+| **DEF-FILINGS-PUBLISH** | `public.filings` publish path — detail-fetch pipeline + a single-source-PENDING publish rule | Reader-design call; better decided **with** the reader | **P2** reader build | `07 §1.1 F`, P2 |
+| **DEF-VENUE-FILINGS** | Venue filings parser tuning — QE (q-disclosure URL), BHB (webapi/proxy), DFM (eFsah drift), MSX (RSS drift), TDWL (pin Mubasher-news) | Low-volume + parsers **drift** (ongoing maintenance, never a finish line); does not gate the Score | **P1.7d** filings upgrade / when a given venue's filings become reader-needed | `P1.7d`, `01-ingestion.md` |
+| **DEF-ROTATE-N** | rotate-every-N keep-alive proxy pool (reuse tunnels instead of fresh-per-request) | Fetch is fast + stable now (pipeline 8, no deadlock); pure perf | **Only if** a full multi-venue backfill proves fetch-throughput-bound | ingestion `core/fetcher.ts` |
+
+**Cleared from this list — done + integrated 2026-07-14** (kept for one revision as an audit trail, then prune): gzip content-encoding decode; concurrent + incremental OHLCV backfill; DB pool starvation (`max` 5→20); q_pipeline batch-drain; Supabase pooler-cap sizing; **sweep-dedup** (migration 0030); handler **tx-threading** deadlock; **q_dispatch** poison-heartbeat.
