@@ -1,0 +1,70 @@
+{
+  "timeseries": {
+    "result": [
+      {
+        "meta": { "symbol": ["2222.SR"], "type": ["annualTotalRevenue"] },
+        "timestamp": [1640908800, 1672444800, 1703980800],
+        "annualTotalRevenue": [
+          { "dataId": 20080, "asOfDate": "2021-12-31", "periodType": "12M", "currencyCode": "SAR", "reportedValue": { "raw": 1535100000, "fmt": "1.54T" } },
+          { "dataId": 20080, "asOfDate": "2022-12-31", "periodType": "12M", "currencyCode": "SAR", "reportedValue": { "raw": 2251500000, "fmt": "2.25T" } },
+          { "dataId": 20080, "asOfDate": "2023-12-31", "periodType": "12M", "currencyCode": "SAR", "reportedValue": { "raw": 1949800000, "fmt": "1.95T" } }
+        ]
+      },
+      {
+        "meta": { "symbol": ["2222.SR"], "type": ["annualNetIncome"] },
+        "timestamp": [1640908800, 1672444800, 1703980800],
+        "annualNetIncome": [
+          { "dataId": 20091, "asOfDate": "2021-12-31", "periodType": "12M", "currencyCode": "SAR", "reportedValue": { "raw": 412400000, "fmt": "412.4B" } },
+          { "dataId": 20091, "asOfDate": "2022-12-31", "periodType": "12M", "currencyCode": "SAR", "reportedValue": { "raw": 604015000, "fmt": "604.02B" } },
+          { "dataId": 20091, "asOfDate": "2023-12-31", "periodType": "12M", "currencyCode": "SAR", "reportedValue": { "raw": 454760000, "fmt": "454.76B" } }
+        ]
+      },
+      {
+        "meta": { "symbol": ["2222.SR"], "type": ["annualGrossProfit"] },
+        "timestamp": [1640908800, 1672444800, 1703980800],
+        "annualGrossProfit": [
+          { "dataId": 20064, "asOfDate": "2021-12-31", "periodType": "12M", "currencyCode": "SAR", "reportedValue": { "raw": 690300000, "fmt": "690.3B" } },
+          { "dataId": 20064, "asOfDate": "2022-12-31", "periodType": "12M", "currencyCode": "SAR", "reportedValue": { "raw": 915400000, "fmt": "915.4B" } },
+          { "dataId": 20064, "asOfDate": "2023-12-31", "periodType": "12M", "currencyCode": "SAR", "reportedValue": { "raw": 742100000, "fmt": "742.1B" } }
+        ]
+      },
+      {
+        "meta": { "symbol": ["2222.SR"], "type": ["annualDilutedEPS"] },
+        "timestamp": [1640908800, 1672444800, 1703980800],
+        "annualDilutedEPS": [
+          { "dataId": 20135, "asOfDate": "2021-12-31", "periodType": "12M", "currencyCode": "SAR", "reportedValue": { "raw": 1.72, "fmt": "1.72" } },
+          { "dataId": 20135, "asOfDate": "2022-12-31", "periodType": "12M", "currencyCode": "SAR", "reportedValue": { "raw": 2.52, "fmt": "2.52" } },
+          { "dataId": 20135, "asOfDate": "2023-12-31", "periodType": "12M", "currencyCode": "SAR", "reportedValue": { "raw": 1.99, "fmt": "1.99" } }
+        ]
+      },
+      {
+        "meta": { "symbol": ["2222.SR"], "type": ["annualTotalAssets"] },
+        "timestamp": [1640908800, 1672444800, 1703980800],
+        "annualTotalAssets": [
+          { "dataId": 23174, "asOfDate": "2021-12-31", "periodType": "12M", "currencyCode": "SAR", "reportedValue": { "raw": 1884318000, "fmt": "1.88T" } },
+          { "dataId": 23174, "asOfDate": "2022-12-31", "periodType": "12M", "currencyCode": "SAR", "reportedValue": { "raw": 2144090000, "fmt": "2.14T" } },
+          { "dataId": 23174, "asOfDate": "2023-12-31", "periodType": "12M", "currencyCode": "SAR", "reportedValue": { "raw": 2309712000, "fmt": "2.31T" } }
+        ]
+      },
+      {
+        "meta": { "symbol": ["2222.SR"], "type": ["annualStockholdersEquity"] },
+        "timestamp": [1640908800, 1672444800, 1703980800],
+        "annualStockholdersEquity": [
+          { "dataId": 23223, "asOfDate": "2021-12-31", "periodType": "12M", "currencyCode": "SAR", "reportedValue": { "raw": 1180198000, "fmt": "1.18T" } },
+          { "dataId": 23223, "asOfDate": "2022-12-31", "periodType": "12M", "currencyCode": "SAR", "reportedValue": { "raw": 1332086000, "fmt": "1.33T" } },
+          { "dataId": 23223, "asOfDate": "2023-12-31", "periodType": "12M", "currencyCode": "SAR", "reportedValue": { "raw": 1404412000, "fmt": "1.4T" } }
+        ]
+      },
+      {
+        "meta": { "symbol": ["2222.SR"], "type": ["annualCurrentLiabilities"] },
+        "timestamp": [1640908800, 1672444800, 1703980800],
+        "annualCurrentLiabilities": [
+          { "dataId": 23198, "asOfDate": "2021-12-31", "periodType": "12M", "currencyCode": "SAR", "reportedValue": { "raw": 320100000, "fmt": "320.1B" } },
+          { "dataId": 23198, "asOfDate": "2022-12-31", "periodType": "12M", "currencyCode": "SAR", "reportedValue": { "raw": 355600000, "fmt": "355.6B" } },
+          { "dataId": 23198, "asOfDate": "2023-12-31", "periodType": "12M", "currencyCode": "SAR", "reportedValue": { "raw": 372400000, "fmt": "372.4B" } }
+        ]
+      }
+    ]
+  },
+  "error": null
+}

@@ -7,20 +7,24 @@ import { makeFilingsPoll } from './filings-poll.js';
 import { makeCrossCheck } from './cross-check.js';
 import { makeKeyRatiosRecompute } from './key-ratios-recompute.js';
 import { makeOhlcvAccrual } from './ohlcv-accrual.js';
+import { makeScoreBatch } from './score-batch.js';
+import { makeNightly } from './nightly.js';
 
 /**
- * Register the five P1 ingestion handlers (CONTRACT §9) against a live
+ * Register the P1 ingestion handlers (CONTRACT §9) against a live
  * IngestionRuntime. Called once from the worker entrypoint after the runtime is
  * built. Every handler is a thin orchestrator: identity → runtime pipeline →
  * follow-up enqueues; the consumer owns pgmq archive + the queue-level
  * heartbeat around each message.
  *
- *   quote_poll             q_ingest    venue quotes (+ folded indices)
- *   eod_sweep              q_ingest    close+30 EOD bulletin + final board
- *   filings_poll           q_ingest    filings list-diff → filing_detail enqueue
- *   cross_check            q_pipeline  2-source rule → VERIFIED lake.objects
- *   key_ratios_recompute   q_pipeline  nightly public.key_ratios rebuild
- *   ohlcv_accrual          q_pipeline  daily quote-board close → ohlcv_daily (P1.7a)
+ *   quote_poll             q_ingest       venue quotes (+ folded indices)
+ *   eod_sweep              q_ingest       close+30 EOD bulletin + final board
+ *   filings_poll           q_ingest       filings list-diff → filing_detail enqueue
+ *   cross_check            q_pipeline     2-source rule → VERIFIED lake.objects
+ *   key_ratios_recompute   q_pipeline     nightly public.key_ratios rebuild
+ *   ohlcv_accrual          q_pipeline     daily quote-board close → ohlcv_daily (P1.7a)
+ *   nightly                q_maintenance  02:00 GST omnibus → key_ratios rebuild (P1.7)
+ *   score_batch            q_maintenance  04:00 GST Marsad Score re-rank (P1.7c)
  */
 export function registerIngestionHandlers(runtime: IngestionRuntime): HandlerName[] {
   const registrations: Array<[HandlerName, ReturnType<typeof makeQuotePoll>]> = [
@@ -30,6 +34,8 @@ export function registerIngestionHandlers(runtime: IngestionRuntime): HandlerNam
     ['cross_check', makeCrossCheck(runtime)],
     ['key_ratios_recompute', makeKeyRatiosRecompute(runtime)],
     ['ohlcv_accrual', makeOhlcvAccrual()],
+    ['nightly', makeNightly(runtime)],
+    ['score_batch', makeScoreBatch(runtime)],
   ];
 
   for (const [name, handler] of registrations) {

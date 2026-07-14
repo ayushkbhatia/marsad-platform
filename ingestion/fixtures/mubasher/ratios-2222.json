@@ -1,0 +1,16 @@
+{
+  "exchange": "TDWL",
+  "code": "2222",
+  "name": "SAUDI ARAMCO",
+  "statement": "ratios",
+  "ratios": {
+    "ROE %": 31.37,
+    "ROA %": 18.05,
+    "EPS": 1.99,
+    "Net Profit Growth %": 25.56,
+    "Total Assets Growth %": 5.72,
+    "Book value growth %": 3.02,
+    "EPS Growth %": 24.10,
+    "Cash from operations Growth %": -5.47
+  }
+}

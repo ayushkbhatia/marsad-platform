@@ -278,6 +278,13 @@ export interface IngestionRuntime {
   /** Nightly key_ratios rebuild off VERIFIED lake objects (CONTRACT §9). */
   recomputeKeyRatios(securityIds?: number[]): Promise<{ rowsWritten: number }>;
 
+  /**
+   * The Marsad Score batch (07 §3.6 P1.7c): re-rank the eligible universe off
+   * fresh key_ratios into public.scores / score_history / score_events. Optional
+   * securityIds narrows the batch; omitted ⇒ full universe.
+   */
+  runScoreBatch(securityIds?: number[]): Promise<{ scored: number }>;
+
   /** How many independent staging sources exist for a natural key (2-source rule). */
   countStagingSources: SourceCountByKey;
 }
