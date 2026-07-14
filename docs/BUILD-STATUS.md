@@ -98,9 +98,18 @@ Two feeds fill `ohlcv_daily` — **both required, different cadences, do not con
   reader is only right once the daily bar keeps appearing, not just once history is seeded.**
   (`07-lake-enrichment.md` §P1.7a V-1/V-2.)
 - **Throughput follow-ups before the full-universe backfill:** sweep-dedup (`crosscheck_sweep`
-  re-enqueues duplicates → queue diverges) + handler **tx-threading** (each handler holds a
-  `runAsAgent` tx *and* nests pool connections → deadlock caps concurrency). QE `.QA` history shallow
-  (~40 bars) → needs QE `MarketWatch.txt` for Score depth (≥126). Detail in `memory/marsad-next-session.md`.
+  re-enqueues duplicates → queue diverges, migration 0030) + sweep **venue-fairness** (0039 — the
+  `by natural_key` order starved every venue but the alphabetically-first; TDWL sat at 0-swept until
+  fixed with round-robin) + **OHLCV bulk-objectify** (0040 — the price backfill is ~95% of the
+  q_pipeline volume and single-source-forever, so routing it through the ~8-round-trip cross_check
+  pinned drain at ~325/min against a 500/min fill from a Mumbai DB / EU worker at ~140ms RTT; replaced
+  with a set-based `ops.objectify_ohlcv_backfill` pg_cron job that lands ~10k bars/tick in-DB and lets
+  the 0028/0032 triggers fire in-process. Drained DFM+QE to full and TDWL 0→94 secs in minutes) +
+  handler **tx-threading** (each handler holds a `runAsAgent` tx *and* nests pool connections → deadlock
+  caps concurrency). **Consumer throughput now bounded, not open:** q_pipeline carries only genuine
+  multi-source cross_check (quotes-vs-Yahoo, filings, dividends) at low volume; the price flood is off
+  it. QE `.QA` history shallow (~40 bars) → needs QE `MarketWatch.txt` for Score depth (≥126). Detail
+  in `memory/marsad-next-session.md`.
 
 ### P1.7b — Fundamentals + ratios (code spine landed 2026-07-14)
 The **derived data path is built + tested**; it goes live the moment `financial_statements` is populated.
@@ -210,4 +219,4 @@ work lands.
 | **DEF-ROTATE-N** | rotate-every-N keep-alive proxy pool (reuse tunnels instead of fresh-per-request) | Fetch is fast + stable now (pipeline 8, no deadlock); pure perf | **Only if** a full multi-venue backfill proves fetch-throughput-bound | ingestion `core/fetcher.ts` |
 | **DEF-BHB-OHLCV** | BHB ≥2y daily OHLCV backfill adapter + seed (last price-history GAP; ADX=0033 Mubasher, MSX=0034 native, both done) | BHB is IP-blocked even via headless; the XLSX bulletin needs a working proxy path recon'd first | **When a BHB-reachable proxy exists** — then mirror the ADX/MSX adapter shape (provider discriminant + `withInjectedSymbols` branch) | `07 §P1.7a`, `07-lake-enrichment.md` price-history matrix |
 
-**Cleared from this list — done + integrated 2026-07-14** (kept for one revision as an audit trail, then prune): **DEF-FILINGS-PUBLISH** (shipped as the `lake.fn_filing_project` single-source projection, 0037 — 86 filings published); plus the P1.7b/c/e code spine landed same day (key_ratios `[NEW COL]` 0036 + sector-aware ratios, the statement-normalizer, the Marsad Score engine + `score_batch`/`nightly` handlers, `company_people` 0038). Earlier: gzip content-encoding decode; concurrent + incremental OHLCV backfill; DB pool starvation (`max` 5→20); q_pipeline batch-drain; Supabase pooler-cap sizing; **sweep-dedup** (migration 0030); handler **tx-threading** deadlock; **q_dispatch** poison-heartbeat.
+**Cleared from this list — done + integrated 2026-07-14** (kept for one revision as an audit trail, then prune): **DEF-FILINGS-PUBLISH** (shipped as the `lake.fn_filing_project` single-source projection, 0037 — 86 filings published); plus the P1.7b/c/e code spine landed same day (key_ratios `[NEW COL]` 0036 + sector-aware ratios, the statement-normalizer, the Marsad Score engine + `score_batch`/`nightly` handlers, `company_people` 0038). **sweep venue-starvation** (migration 0039 — `crosscheck_sweep` ordered `by natural_key`, so the alphabetically-first venue monopolised every 500-key window and TDWL, sorting last + ingested last + largest at 125k keys, was never enqueued: swept=0/consumed=0; replaced with fair round-robin across venues, oldest-evidence-first within venue); **OHLCV bulk-objectify** (migration 0040 — bypass per-key cross_check for single-source `ohlcv_backfill` OHLCV.CLOSE with a set-based `ops.objectify_ohlcv_backfill` pg_cron job + a matching sweep exclusion; ~325/min RTT-bound drain → ~10k bars/tick in-DB; DFM/QE completed + TDWL 0→94 secs / 2yr history). Earlier: gzip content-encoding decode; concurrent + incremental OHLCV backfill; DB pool starvation (`max` 5→20); q_pipeline batch-drain; Supabase pooler-cap sizing; **sweep-dedup** (migration 0030); handler **tx-threading** deadlock; **q_dispatch** poison-heartbeat.
