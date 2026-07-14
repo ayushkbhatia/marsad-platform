@@ -78,12 +78,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): WorkerConfig {
     // + pipeline batch + poller + backfill sink fit with headroom. Env-overridable.
     dbPoolMax: intFromEnv(env.DB_POOL_MAX, 20),
     pipelineReadQty: intFromEnv(env.PIPELINE_READ_QTY, 25),
-    // The nested-connection deadlock is fixed: handlers no longer wrap their pool work in a
-    // held runAsAgent/runAsPrincipalId identity tx (see handlers/quote-poll, cross-check, etc.),
-    // so a handler now uses ~1 ACTIVE pool connection at a time instead of holding an idle tx +
-    // nesting more. Concurrency can run high again; 8 keeps well within dbPoolMax with the 5
-    // consumers + poller. Raise further via PIPELINE_CONCURRENCY if the pooler ceiling allows.
-    pipelineConcurrency: intFromEnv(env.PIPELINE_CONCURRENCY, 8),
+    // The nested-connection deadlock is fixed (handlers no longer hold an identity tx across their
+    // pool work), so a handler uses ~1 ACTIVE pool connection at a time and concurrency can run
+    // high. 12 drains the big historical-backfill materialization faster: 12 pipeline + 5 always-on
+    // consumers = 17 active, under dbPoolMax=20 (which caps the worker under the pooler ceiling and
+    // leaves ~5 pooler slots for external clients — MCP/dashboard/workflow agents). Post-fetch (when
+    // the backfill sink lanes idle) the pipeline consumer gets most of the pool. Env: PIPELINE_CONCURRENCY.
+    pipelineConcurrency: intFromEnv(env.PIPELINE_CONCURRENCY, 12),
   };
 }
 
