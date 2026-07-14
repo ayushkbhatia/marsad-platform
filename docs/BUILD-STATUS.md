@@ -98,8 +98,12 @@ Two feeds fill `ohlcv_daily` — **both required, different cadences, do not con
   reader is only right once the daily bar keeps appearing, not just once history is seeded.**
   (`07-lake-enrichment.md` §P1.7a V-1/V-2.)
 - **Throughput follow-ups before the full-universe backfill:** sweep-dedup (`crosscheck_sweep`
-  re-enqueues duplicates → queue diverges) + handler **tx-threading** (each handler holds a
-  `runAsAgent` tx *and* nests pool connections → deadlock caps concurrency). QE `.QA` history shallow
+  re-enqueues duplicates → queue diverges, migration 0030) + sweep **venue-fairness** (0036 — the
+  `by natural_key` order starved every venue but the alphabetically-first; TDWL sat at 0-swept until
+  fixed with round-robin) + handler **tx-threading** (each handler holds a `runAsAgent` tx *and* nests
+  pool connections → deadlock caps concurrency). **Still open: consumer throughput** — the sweep now
+  enqueues TDWL fairly but `q_pipeline` drains slower than it fills (21.6k backlog observed), so
+  `consumed` lags `swept`; the cross_check worker rate is the next bottleneck. QE `.QA` history shallow
   (~40 bars) → needs QE `MarketWatch.txt` for Score depth (≥126). Detail in `memory/marsad-next-session.md`.
 
 ### P2 — Reader core on real data (~4 wks)
@@ -152,4 +156,4 @@ work lands.
 | **DEF-ROTATE-N** | rotate-every-N keep-alive proxy pool (reuse tunnels instead of fresh-per-request) | Fetch is fast + stable now (pipeline 8, no deadlock); pure perf | **Only if** a full multi-venue backfill proves fetch-throughput-bound | ingestion `core/fetcher.ts` |
 | **DEF-BHB-OHLCV** | BHB ≥2y daily OHLCV backfill adapter + seed (last price-history GAP; ADX=0033 Mubasher, MSX=0034 native, both done) | BHB is IP-blocked even via headless; the XLSX bulletin needs a working proxy path recon'd first | **When a BHB-reachable proxy exists** — then mirror the ADX/MSX adapter shape (provider discriminant + `withInjectedSymbols` branch) | `07 §P1.7a`, `07-lake-enrichment.md` price-history matrix |
 
-**Cleared from this list — done + integrated 2026-07-14** (kept for one revision as an audit trail, then prune): gzip content-encoding decode; concurrent + incremental OHLCV backfill; DB pool starvation (`max` 5→20); q_pipeline batch-drain; Supabase pooler-cap sizing; **sweep-dedup** (migration 0030); handler **tx-threading** deadlock; **q_dispatch** poison-heartbeat.
+**Cleared from this list — done + integrated 2026-07-14** (kept for one revision as an audit trail, then prune): gzip content-encoding decode; concurrent + incremental OHLCV backfill; DB pool starvation (`max` 5→20); q_pipeline batch-drain; Supabase pooler-cap sizing; **sweep-dedup** (migration 0030); **sweep venue-starvation** (migration 0036 — `crosscheck_sweep` ordered `by natural_key`, so the alphabetically-first venue monopolised every 500-key window and TDWL, sorting last + ingested last + largest at 125k keys, was never enqueued: swept=0/consumed=0; replaced with fair round-robin across venues, oldest-evidence-first within venue); handler **tx-threading** deadlock; **q_dispatch** poison-heartbeat.
