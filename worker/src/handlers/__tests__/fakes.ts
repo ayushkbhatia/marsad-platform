@@ -130,6 +130,7 @@ export interface FakeRuntime extends IngestionRuntime {
     countStagingSources: Array<{ naturalKey: string; objectType: string }>;
     crossCheckResolve: Array<{ naturalKey: string; objectType: string }>;
     recomputeKeyRatios: Array<number[] | undefined>;
+    runScoreBatch: Array<number[] | undefined>;
   };
 }
 
@@ -139,6 +140,7 @@ export function makeFakeRuntime(over: Partial<IngestionRuntime> = {}): FakeRunti
     countStagingSources: [],
     crossCheckResolve: [],
     recomputeKeyRatios: [],
+    runScoreBatch: [],
   };
 
   const base: IngestionRuntime = {
@@ -161,6 +163,10 @@ export function makeFakeRuntime(over: Partial<IngestionRuntime> = {}): FakeRunti
     recomputeKeyRatios: async (ids) => {
       calls.recomputeKeyRatios.push(ids);
       return { rowsWritten: ids ? ids.length : 42 };
+    },
+    runScoreBatch: async (ids) => {
+      calls.runScoreBatch.push(ids);
+      return { scored: ids ? ids.length : 42 };
     },
     countStagingSources: async (naturalKey, objectType) => {
       calls.countStagingSources.push({ naturalKey, objectType });

@@ -555,6 +555,19 @@ time cohort snapshots for backtesting (needed to ever publish the screener's "3Y
 > the ratio strip, a price chart, dividends, ownership, and a Marsad Score. That is P1.7a–c
 > (+ upgrade F). P1.7d–e enrich in parallel and can trail P2 launch.
 
+> **Build status (2026-07-14) — the derived code spine landed; the live scrape has not.** Shipped +
+> tested: the `key_ratios [NEW COL]` migration (0033); the **sector-aware ratio recompute** (§3.2/§3.3,
+> as **TS** `ingestion/src/lake/ratios-compute.ts`+`key-ratios.ts`, **not** a SQL `fn_recompute_key_ratios()`
+> — the code path chose TS; treat every "SQL fn"/"MV" reference in §3.2/§3.6 as satisfied by that TS service);
+> the **statement-normalizer** (§2/§3.1 primitive contract + Mubasher/Yahoo mappers + validation harness,
+> golden-tested; LLM/PDF path is a declared-throwing seam); the **Marsad Score engine + `score_batch`/`nightly`
+> handlers** (§3.4/§3.5/§3.6, all owner D-1…D-10 encoded, freshness-gate abort); the **`public.filings`
+> publish path** (§1.1 F, `lake.fn_filing_project`, single-source rule — 86 filings published); and the
+> **`company_people`** table (§1.1 I). **Still gated:** `financial_statements` has no live feed yet, and
+> `securities.sector` is all `'unknown'` (so §3.3's map + §3.5's cohorts have no data to key on) — both
+> tracked in `BUILD-STATUS.md §7` (DEF-STMT-INGEST, DEF-SECTOR-DATA). Ratios/Score run correct-by-design
+> the moment those two land. Full sub-phase status: `BUILD-STATUS.md §5`.
+
 ### P1.7a — Price-history complete (CRITICAL PATH, unblocks Momentum + chart)
 **Value: highest** (gates Score + chart tab). **Feasibility: high** for 4 venues, gaps for 2.
 

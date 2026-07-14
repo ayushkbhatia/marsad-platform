@@ -42,6 +42,7 @@ import { resolveProxyForSource, proxyToUrl, type ProxyConfig } from './core/prox
 import { LakeStagingEmitter } from './lake/staging.js';
 import { LakeCrossCheck } from './lake/cross-check.js';
 import { KeyRatiosRecompute } from './lake/key-ratios.js';
+import { ScoresRecompute } from './lake/scores.js';
 import { contentHash } from './lake/canonical.js';
 import type {
   SourceRecord,
@@ -99,6 +100,7 @@ export interface IngestionRuntime {
   crossCheck: CrossCheck;
   pipelinePrincipalId(): Promise<string>;
   recomputeKeyRatios(securityIds?: number[]): Promise<{ rowsWritten: number }>;
+  runScoreBatch(securityIds?: number[]): Promise<{ scored: number }>;
   countStagingSources(naturalKey: string, objectType: string): Promise<number>;
 }
 
@@ -609,6 +611,7 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
   const stagingEmitter = new LakeStagingEmitter(sql as never, logger);
   const crossCheck = new LakeCrossCheck(sql as never, { logger });
   const keyRatios = new KeyRatiosRecompute(sql as never, { logger });
+  const scores = new ScoresRecompute(sql as never, { logger });
 
   const principalCache = new Map<string, string>();
   async function principalIdFor(handle: string): Promise<string> {
@@ -655,6 +658,15 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
     async recomputeKeyRatios(securityIds) {
       const summary = await keyRatios.run(securityIds);
       return { rowsWritten: summary.rowsWritten };
+    },
+
+    async runScoreBatch(securityIds) {
+      // The Marsad Score batch (07 §3.6): re-rank the eligible universe off fresh
+      // key_ratios into public.scores / score_history / score_events + COMPUTED.SCORE
+      // lake objects. Freshness-gate aborts (StaleKeyRatiosError) and empty-universe
+      // (scored:0) are handled inside the service; both surface honestly to the handler.
+      const summary = await scores.run(securityIds);
+      return { scored: summary.scored };
     },
 
     async countStagingSources(naturalKey, objectType) {
