@@ -1,6 +1,6 @@
 import type { Sql } from '../db.js';
 import type { CrossCheckPayload } from './payloads.js';
-import type { StagedKey } from './ingestion-runtime.js';
+import type { StagedKey, FilingDetailTarget } from './ingestion-runtime.js';
 
 /**
  * Follow-up enqueue helpers (CONTRACT §9).
@@ -64,23 +64,45 @@ export async function enqueueCrossCheck(
  * filing_detail source configured we still record the pending seen_items but
  * skip the wake-up (nothing to fetch). Returns the number of new ids staged as
  * pending (0 when detailSourceId is null and there is nothing to drain later).
+ *
+ * Each ref carries the detail-fetch TARGET (detailUrl / pdfUrl / title / filedAt) captured at
+ * list-diff time; the columns are populated on the seen_items row so filings_detail_poll can fetch
+ * the artifact without re-parsing the list. Only genuinely-new rows are stored (ON CONFLICT DO
+ * NOTHING), so a re-list neither resets 'fetched' state nor overwrites the recorded target.
  */
 export async function enqueueFilingDetails(
   sql: Sql,
   listSourceId: number,
   detailSourceId: number | null,
-  externalIds: string[],
+  refs: FilingDetailTarget[],
 ): Promise<number> {
-  if (externalIds.length === 0) return 0;
+  if (refs.length === 0) return 0;
 
-  // Record every id as seen (detail_state defaults to 'pending' per 0005 DDL)
-  // against the LIST source — the list-diff state and the per-announcement
-  // detail targets both live here. ON CONFLICT so re-listed ids are cheap and
-  // an already-'fetched' id is not reset back to 'pending'.
+  // De-dup within the batch by externalId (a parser should not, but a defensive Map keeps the
+  // jsonb payload clean and the RETURNING count honest).
+  const byId = new Map<string, FilingDetailTarget>();
+  for (const r of refs) if (r.externalId && !byId.has(r.externalId)) byId.set(r.externalId, r);
+  const payload = [...byId.values()].map((r) => ({
+    externalId: r.externalId,
+    detailUrl: r.detailUrl,
+    pdfUrl: r.pdfUrl,
+    title: r.title,
+    filedAt: r.filedAt,
+  }));
+
+  // Record every ref as seen (detail_state defaults to 'pending' per 0005 DDL) against the LIST
+  // source — the list-diff state and the per-announcement detail targets both live here. ON
+  // CONFLICT so re-listed ids are cheap and an already-'fetched' id is not reset back to 'pending'.
   const staged = (await sql`
-    insert into ingest.seen_items (source_id, external_id)
-    select ${listSourceId}::bigint, x
-    from unnest(${sql.array(externalIds)}::text[]) as t(x)
+    insert into ingest.seen_items (source_id, external_id, detail_url, pdf_url, title, filed_at)
+    select ${listSourceId}::bigint,
+           r->>'externalId',
+           r->>'detailUrl',
+           r->>'pdfUrl',
+           r->>'title',
+           nullif(r->>'filedAt','')::timestamptz
+    from jsonb_array_elements(${sql.json(payload)}::jsonb) as r
+    where coalesce(r->>'externalId','') <> ''
     on conflict (source_id, external_id) do nothing
     returning external_id
   `) as unknown as Array<{ external_id: string }>;

@@ -89,16 +89,20 @@ export function makeFilingsPoll(runtime: IngestionRuntime): Handler {
         );
       }
 
-      // Collect newly-seen external ids and record them as pending seen_items + one filing_detail
-      // wake-up in a NARROW tx (milliseconds; principal GUC set for the lake triggers). The tx wraps
-      // ONLY the enqueue — NOT the multi-second runTask above — and is skipped when there are no new
-      // ids. Not atomic with runTask's staging (separate connection); crash-safety is by idempotency
+      // Collect the parsed filing refs and record the genuinely-new ones as pending seen_items (with
+      // their detail-fetch targets) + one filing_detail wake-up, in a NARROW tx (milliseconds;
+      // principal GUC set for the lake triggers). The tx wraps ONLY the enqueue — NOT the multi-second
+      // runTask above — and is skipped when the poll parsed no refs. The list-diff (which refs are
+      // NEW) is decided by enqueueFilingDetails' ON CONFLICT DO NOTHING, so a re-listed announcement is
+      // a no-op. Gap-#3 fix: this reads r.filingRefs (parsed NormalizedFilingRef rows), NOT the old
+      // r.newExternalIds (fetch-level FetchResult.externalId, always empty for a single list page).
+      // Not atomic with runTask's staging (separate connection); crash-safety is by idempotency
       // (seen_items ON CONFLICT; idempotent staging; harmless wake-up re-enqueue), not this tx.
-      const newIds = dedupeStrings(results.flatMap((r) => r.newExternalIds));
+      const refs = results.flatMap((r) => r.filingRefs);
       let detailsEnqueued = 0;
-      if (newIds.length > 0) {
+      if (refs.length > 0) {
         detailsEnqueued = await runAsPrincipalId(ctx.sql, identity.principalId, async (tx) =>
-          enqueueFilingDetails(tx, source.id, detailSourceId, newIds),
+          enqueueFilingDetails(tx, source.id, detailSourceId, refs),
         );
       }
       result = { results, detailsEnqueued };
@@ -126,8 +130,4 @@ export function makeFilingsPoll(runtime: IngestionRuntime): Handler {
       hasDetailSource: detailSourceId !== null,
     });
   };
-}
-
-function dedupeStrings(xs: string[]): string[] {
-  return [...new Set(xs)];
 }

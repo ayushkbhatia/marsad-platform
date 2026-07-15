@@ -472,6 +472,51 @@ create table market.venue_holidays (
 (AR note per LOCKED decision 4: `market.venues.name` and future instrument tables would gain
 `name_ar` siblings later; columns intentionally not created now.)
 
+### 3.5 The filing_detail chain (list-diff → PDF → bucket → extraction seam)
+
+Built 2026-07-16 (DEF-VENUE-FILINGS). This is the concrete "a new quarterly disclosure PDF appears on
+a venue → the PDF lands in our bucket → it is queued for extraction" path. It was verified dead via
+three independent gaps, fixed as one design:
+
+1. **Handler mapping** — `filing_detail` had no `DATA_TYPE_TO_HANDLER` entry (`worker/src/ingest-poller.ts`),
+   so every detail wake-up row failed "no handler for data_type". Added `filing_detail → filings_detail_poll`.
+2. **Sources** — no `ingest.sources` rows of `data_type='filing_detail'` existed, so
+   `filingDetailSourceId(venue)` was always null and the wake-up had nowhere to enqueue. Seeded one
+   `filing_detail` source + a 60-min backstop schedule per venue (`20260716090500`).
+3. **List-diff** — the runtime surfaced new ids from the fetch-level `FetchResult.externalId`, which is
+   always empty for a single list-page fetch, so **nothing ever triggered a detail fetch — even on the
+   working DFM/ADX/MSX venues**. `RunTaskResult` now carries `filingRefs` (every parsed
+   `NormalizedFilingRef`); the handler list-diffs those against `ingest.seen_items` (the ON-CONFLICT
+   insert returns the genuinely-new ones).
+
+**Flow.** `filings_poll` parses the list → records each new announcement as a pending `seen_items` row
+carrying its `detail_url`/`pdf_url`/`title`/`filed_at` (new columns, `20260716090000`) → enqueues ONE
+priority-1 `job_queue` row against the venue's `filing_detail` source. The poller routes it to
+`filings_detail_poll`, which drains a **chunk** (≤10, oldest-first) of the venue's pending targets:
+`runtime.fetchFilingPdfs` seats WAF cookies once per chunk, downloads each PDF (direct `pdfUrl`, or the
+detail page → a per-venue resolver extracts the PDF href — only BHB needs one), and stores it in the
+public **`filings`** Storage bucket, content-addressed: `{venue}/{ticker|_unmapped}/{sha256}.{ext}`
+(mirroring the 295 objects already there; the list feed carries no security id, so the ticker segment is
+`_unmapped` pending a later resolution pass). The handler then, per stored PDF: upserts the
+`public.filings` linkage (`pdf_storage_key` + the new `pdf_sha256`) on `(venue_code, source_ref)` —
+self-sufficient whether or not the `fn_filing_project` (0037) row exists yet — enqueues an
+`ops.filing_extract_queue` placeholder (idempotent on `content_sha256`), and flips `seen_items.detail_state`
+to `fetched` (or `nopdf`/`failed`, both terminal — no poison). A full chunk **self-chains** a 2-min
+cooldown follow-up so a burst of new disclosures is worked in bounded chunks that never starve the quote
+lanes or the per-host ≤1 req/s budget.
+
+**Extraction seam.** `ops.filing_extract_queue (filing_id, venue_code, source_ref, content_sha256 UNIQUE,
+pdf_storage_key, content_type, state)` is the clean, sha256-keyed hand-off. The extraction **service**
+(PDF → `full_text`/`extracted_facts`/`ai_summary`, the one bounded LLM cost) is a later phase
+(DEF-FILING-FACTS / §9); this chain only fills the queue. Because the key is the content sha256, a
+re-announced identical PDF enqueues exactly once, and a re-fetch of the same bytes is a Storage upsert
+no-op — snapshot-first immutability holds end to end.
+
+**Per-venue transport.** DFM/MSX carry a direct `pdfUrl` on the list ref (api2.dfm.ae CDN, msx.om) →
+plain http. TDWL/ADX detail attachments sit behind Akamai → `http_bootstrap` with an `actionDiscovery`
+`direct` cookie-seat. BHB has only an HTML detail page → the `bhbExtractPdfUrl` resolver scrapes the PDF
+href. Live reactivation status is tracked in BUILD-STATUS §7 (BHB done; TDWL/QE parked — see §2.1/§2.4).
+
 ---
 
 ## 4. Scheduling strategy

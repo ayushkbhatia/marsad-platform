@@ -108,6 +108,7 @@ export function makeRunResult(over: Partial<RunTaskResult> = {}): RunTaskResult 
     rowsEmitted: 3,
     stagedKeys: [],
     newExternalIds: [],
+    filingRefs: [],
     parserVersion: 1,
     ...over,
   };
@@ -153,6 +154,8 @@ export function makeFakeRuntime(over: Partial<IngestionRuntime> = {}): FakeRunti
     tasksForSource: () => [NOOP_TASK],
     eodSourcesForVenue: async (venue: VenueCode) => [makeSource({ venue, dataType: 'eod_bulletin' })],
     filingDetailSourceId: async () => 999,
+    fetchFilingPdfs: async ({ targets }) =>
+      targets.map((t) => ({ externalId: t.externalId, ok: false, error: 'fake: no download' })),
     crossCheck: {
       resolve: async (input) => {
         calls.crossCheckResolve.push(input);
