@@ -521,6 +521,14 @@ its `filing_detail` source is deactivated and no resolver is wired (per-announce
 the BHB webapi attachment endpoint). Live reactivation status is tracked in BUILD-STATUS §7 (BHB list
 done; BHB PDF, TDWL, QE parked with precise triggers).
 
+**Live validation (2026-07-16).** The chain is proven end-to-end on **MSX**: 3 distinct per-announcement
+PDFs downloaded into the `filings` bucket, linked on `public.filings`, and queued for extraction — zero
+failures, zero poison. The chain MECHANISM is thus proven; the remaining work is per-venue PDF **resource
+URL** correctness, which varies by venue: MSX ✓; **DFM** `filing_detail` is deactivated (its eFsah
+`r_path` 404s from `api2.dfm.ae` — that host serves the list feed, not the download; DEF-VENUE-FILINGS-
+DFM-PDF); **ADX** is left active but unproven (its apigateway CDN download is WAF-gated — may pass via the
+http_bootstrap browser context; DEF-VENUE-FILINGS-ADX-PDF); **BHB** is list-only (JS attachment).
+
 ---
 
 ## 4. Scheduling strategy
