@@ -61,15 +61,16 @@ test("parseMubasherNumber: strips commas/%, keeps signs and zeros, nulls blanks"
   assert.equal(parseMubasherNumber("N/A"), null);
 });
 
-test("parseMubasherTimestampToUtc: AST (UTC+3) wall-clock → UTC", () => {
-  // 12:19:09 AST = 09:19:09 UTC
-  assert.equal(parseMubasherTimestampToUtc("2026-07-13 12:19:09"), "2026-07-13T09:19:09.000Z");
-  // 15:30:00 AST = 12:30:00 UTC
-  assert.equal(parseMubasherTimestampToUtc("2026-07-13 15:30:00"), "2026-07-13T12:30:00.000Z");
-  // Midnight boundary: 01:00 AST = previous day 22:00 UTC
-  assert.equal(parseMubasherTimestampToUtc("2026-07-13 01:00:00"), "2026-07-12T22:00:00.000Z");
-  // Missing seconds tolerated
-  assert.equal(parseMubasherTimestampToUtc("2026-07-13 09:30"), "2026-07-13T06:30:00.000Z");
+test("parseMubasherTimestampToUtc: UTC wall-clock parsed verbatim (no zone offset)", () => {
+  // REGRESSION (2026-07-15): the Mubasher /stocks/prices feed prints UTC. An earlier AST−3h subtraction
+  // backdated every TDWL quote by exactly 3h, making live (~15-min-delayed) quotes look ~3h stale. The
+  // digits must map 1:1 to UTC — hour-in == hour-out, no zone shift.
+  assert.equal(parseMubasherTimestampToUtc("2026-07-13 12:19:09"), "2026-07-13T12:19:09.000Z");
+  assert.equal(parseMubasherTimestampToUtc("2026-07-13 15:30:00"), "2026-07-13T15:30:00.000Z");
+  // No zone shift ⇒ no day rollover at low hours.
+  assert.equal(parseMubasherTimestampToUtc("2026-07-13 01:00:00"), "2026-07-13T01:00:00.000Z");
+  // Missing seconds tolerated.
+  assert.equal(parseMubasherTimestampToUtc("2026-07-13 09:30"), "2026-07-13T09:30:00.000Z");
   assert.equal(parseMubasherTimestampToUtc("garbage"), null);
   assert.equal(parseMubasherTimestampToUtc(null), null);
 });
@@ -103,8 +104,8 @@ test("golden: parses the real Mubasher TDWL board with >=1 sane Saudi quote", ()
   assert.equal(aramco!.high, 26.78);
   assert.equal(aramco!.low, 26.5);
   assert.equal(aramco!.volume, 6549051);
-  // updatedAt "2026-07-13 12:19:09" AST → 09:19:09 UTC
-  assert.equal(aramco!.asOf, "2026-07-13T09:19:09.000Z");
+  // updatedAt "2026-07-13 12:19:09" is UTC → 12:19:09 UTC (verbatim, no zone offset)
+  assert.equal(aramco!.asOf, "2026-07-13T12:19:09.000Z");
 
   // Known ticker 1120 (ALRAJHI) — spot-check comma-grouped volume + positive change.
   const rajhi = rows.find((r) => r.ticker === "1120");
