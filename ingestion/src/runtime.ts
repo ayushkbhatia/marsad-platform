@@ -40,6 +40,7 @@ import { ADAPTERS } from './adapters/index.js';
 import { yahooTasks, toYahooSymbol } from './adapters/yahoo/index.js';
 import { mubasherTasks } from './adapters/mubasher/index.js';
 import { msxHistory } from './adapters/msx/index.js';
+import { bhbOhlcvBackfill } from './adapters/bhb/index.js';
 import { resolveProxyForSource, proxyToUrl, type ProxyConfig } from './core/proxy.js';
 import { LakeStagingEmitter } from './lake/staging.js';
 import { LakeCrossCheck } from './lake/cross-check.js';
@@ -140,11 +141,15 @@ const consoleLogger: Logger = {
  *                         BHB has NO Mubasher CSV — it stays the coverage-gap venue (07 §5 D-src-4).
  *   'msx-company-chart' — MSX's own native company-chart-data.aspx JSON ≥2y daily-close backfill (0034).
  *                         MSX exposes a first-class history endpoint, so it does NOT ride Mubasher.
+ *   'bhb_webapi'        — BHB's own webapi GetTabularDataWithDateRangeFilter/DataExportCompanyProfile
+ *                         per-security EOD-CLOSE-history backfill (20260715101500). BHB has no Mubasher
+ *                         CSV; its webapi (CF-gated, IP-geoblocked → sticky proxy) is a first-class
+ *                         history endpoint. EOD CLOSE ONLY (owner requirement) — open/high/low/vol null.
  */
-type AltProvider = 'yahoo' | 'mubasher_csv' | 'msx-company-chart';
+type AltProvider = 'yahoo' | 'mubasher_csv' | 'msx-company-chart' | 'bhb_webapi';
 function providerOf(source: SourceRecord): AltProvider | undefined {
   const p = (source.endpointConfig as unknown as { provider?: unknown }).provider;
-  return p === 'yahoo' || p === 'mubasher_csv' || p === 'msx-company-chart' ? p : undefined;
+  return p === 'yahoo' || p === 'mubasher_csv' || p === 'msx-company-chart' || p === 'bhb_webapi' ? p : undefined;
 }
 
 /**
@@ -169,8 +174,12 @@ function tasksForProvider(source: SourceRecord): TaskSpec<unknown>[] | undefined
     if (source.dataType === 'ohlcv_backfill') return [mubasherTasks.ohlcvCsv as TaskSpec<unknown>];
     return [];
   }
-  // provider === 'msx-company-chart'
-  if (source.dataType === 'ohlcv_backfill') return [msxHistory as TaskSpec<unknown>];
+  if (provider === 'msx-company-chart') {
+    if (source.dataType === 'ohlcv_backfill') return [msxHistory as TaskSpec<unknown>];
+    return [];
+  }
+  // provider === 'bhb_webapi' — BHB's own webapi EOD-close-history backfill (DataExportCompanyProfile).
+  if (source.dataType === 'ohlcv_backfill') return [bhbOhlcvBackfill as TaskSpec<unknown>];
   return [];
 }
 
@@ -323,6 +332,31 @@ export async function withMsxHistorySymbols(sql: Sql, source: SourceRecord): Pro
 }
 
 /**
+ * For a BHB-webapi provider source, populate endpoint_config.symbols with the venue's RAW listed BHB
+ * tickers from public.securities — NO suffix (DataExportCompanyProfile's parameterValue={symbol} takes
+ * our raw ticker, e.g. GFH/BBK/BEYON). This is the BHB analogue of withMsxHistorySymbols /
+ * withMubasherCsvSymbols: the frozen FetchContext gives fetch() no DB handle, so the adapter reads
+ * endpoint_config.symbols and the runtime populates it here (config over code, CONTRACT §0.6) so the
+ * symbol universe tracks the live securities master with no redeploy. Order is stable (ticker asc) for a
+ * deterministic per-cycle request order. No-op (returns source unchanged, no clone) for non-BHB-webapi
+ * sources, for rows that already carry an explicit Desk-set symbols list, or when the venue has no
+ * listed securities.
+ */
+export async function withBhbWebapiSymbols(sql: Sql, source: SourceRecord): Promise<SourceRecord> {
+  if (providerOf(source) !== 'bhb_webapi') return source;
+  const cfg = source.endpointConfig as unknown as { symbols?: unknown };
+  const already = Array.isArray(cfg.symbols) && cfg.symbols.length > 0;
+  if (already) return source;
+  const symbols = await listedTickersForVenue(sql, source.venue, source.dataType === 'ohlcv_backfill');
+  // ALWAYS set the (possibly empty) list — an empty ohlcv_backfill list is the "coverage complete"
+  // signal runTask skips on (graceful backfill stop once the venue is fully seeded).
+  return {
+    ...source,
+    endpointConfig: { ...source.endpointConfig, symbols } as SourceRecord['endpointConfig'],
+  };
+}
+
+/**
  * Symbol-injection dispatcher. Routes a source to its provider's symbol-list populator before fetch:
  * Yahoo sources get suffixed Yahoo chart symbols (withYahooSymbols); Mubasher-CSV and MSX-company-chart
  * sources get RAW listed tickers (withMubasherCsvSymbols / withMsxHistorySymbols); every other (primary)
@@ -334,6 +368,7 @@ export async function withInjectedSymbols(sql: Sql, source: SourceRecord): Promi
   if (provider === 'yahoo') return withYahooSymbols(sql, source);
   if (provider === 'mubasher_csv') return withMubasherCsvSymbols(sql, source);
   if (provider === 'msx-company-chart') return withMsxHistorySymbols(sql, source);
+  if (provider === 'bhb_webapi') return withBhbWebapiSymbols(sql, source);
   return source;
 }
 
