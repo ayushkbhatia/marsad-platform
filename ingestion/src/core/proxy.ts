@@ -141,11 +141,11 @@ export function sourceProxyMode(source: Pick<SourceRecord, 'endpointConfig'>): P
  * per call — callers that want one IP across N requests must resolve ONCE and reuse the
  * returned config.
  *
- * IMPORTANT: Geonode serves sticky sessions on a SEPARATE gateway port from the rotating
- * port — the rotating port (…:9000) rejects a session selector with
- * "Can not use -session- on rotating ports range". So sticky mode only works when
- * PROXY_SERVER points at a Geonode STICKY port. Until one is configured, keep proxied
- * sources on proxy_mode='rotate'.
+ * Selector ORDER matches Geonode's gateway: `-lifetime-<min>-session-<id>` (lifetime BEFORE
+ * session; integer minutes). IMPORTANT: Geonode serves sticky sessions on a SEPARATE gateway
+ * port (…:10000) from the rotating port (…:9000); the rotating port rejects a session selector
+ * with "Can not use -session- on rotating ports range". So sticky only works when PROXY_SERVER
+ * points at the Geonode STICKY port (10000). Rotate uses 9000.
  *
  * `rotate` mode returns the proxy untouched (the base creds already rotate per request).
  * If the proxy carries no username, there is nothing to pin a session on → untouched.
@@ -160,7 +160,7 @@ export function applyProxyMode(
   // Do not double-append if a session selector is already present (idempotent).
   const username = /-session-/.test(proxy.username)
     ? proxy.username
-    : `${proxy.username}-session-${sessionId}-lifetime-${STICKY_SESSION_LIFETIME_MIN}`;
+    : `${proxy.username}-lifetime-${STICKY_SESSION_LIFETIME_MIN}-session-${sessionId}`;
   return { ...proxy, username, mode: 'sticky' };
 }
 

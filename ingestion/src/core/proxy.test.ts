@@ -229,8 +229,8 @@ test('applyProxyMode: sticky appends a Geonode -session-…-lifetime-… selecto
   const p = applyProxyMode(GEONODE_BASE, 'sticky', 'abc123');
   assert.equal(
     p.username,
-    `geonode_vT5MiZ1Lsj-type-residential-country-bh-session-abc123-lifetime-${STICKY_SESSION_LIFETIME_MIN}`,
-    'session selector chained after the existing -country- selector on the username',
+    `geonode_vT5MiZ1Lsj-type-residential-country-bh-lifetime-${STICKY_SESSION_LIFETIME_MIN}-session-abc123`,
+    'lifetime-then-session selector chained after the -country- selector on the username',
   );
   assert.equal(p.password, GEONODE_BASE.password, 'password is NOT the selector carrier for Geonode');
   assert.equal(p.mode, 'sticky');
@@ -273,7 +273,7 @@ test('resolveProxyForSource: WAF-shaped source (sticky) ⇒ IP-pinned proxy', ()
   });
   assert.ok(p);
   assert.equal(p.mode, 'sticky');
-  assert.match(p.username ?? '', /-session-[^-]+-lifetime-\d+$/, 'session selector appended to the username for affinity');
+  assert.match(p.username ?? '', /-lifetime-\d+-session-[^-]+$/, 'lifetime-then-session selector appended to the username for affinity');
 });
 
 test('resolveProxyForSource: unflagged source ⇒ direct (undefined), no proxy regardless of mode', () => {
