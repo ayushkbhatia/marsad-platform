@@ -90,3 +90,54 @@ test('DFM quotes: non-JSON body yields zero rows (PARSE_DRIFT), not a throw', ()
   const { rows } = dfmQuotes.parse(snap(Buffer.from('<html>waf challenge</html>', 'utf8')));
   assert.equal(rows.length, 0);
 });
+
+// Live board shape captured from the VPS (2026-07-15): a POST to marketwatch.dfm.ae/dapi/fetch
+// returns [{ id, command:'stocks', data:[ ...securities... ] }] with lowercase DFM keys and the
+// ticker in `id`. locateRows() must unwrap the group envelope; the pickers must read the new keys.
+const LIVE_BOARD = [
+  {
+    id: '00000000-0000-4000-8000-000000000001',
+    command: 'stocks',
+    data: [
+      {
+        id: 'EMAARDEV',
+        openingprice: 13.5,
+        previousclosingprice: 13.52,
+        lastradeprice: 13.58,
+        highestprice: 13.7,
+        lowestprice: 13.45,
+        totalvolume: 1200000,
+        netchange: 0.06,
+        changepercentage: 0.444,
+        bidprice: 13.57,
+        offerprice: 13.59,
+        highestin52weeks: 17.26,
+        lowestin52weeks: 10.16,
+      },
+      { id: 'DU', openingprice: 12.12, previousclosingprice: 12.1, lastradeprice: 12.2, totalvolume: 300 },
+    ],
+  },
+];
+
+test('DFM quotes: unwraps the live dapi/fetch group envelope + lowercase keys', () => {
+  const { rows } = dfmQuotes.parse(snap(Buffer.from(JSON.stringify(LIVE_BOARD), 'utf8')));
+  assert.equal(rows.length, 2);
+
+  const e = rows.find((r) => r.ticker === 'EMAARDEV')!;
+  assert.equal(e.venue, 'DFM');
+  assert.equal(e.last, 13.58);
+  assert.equal(e.open, 13.5);
+  assert.equal(e.high, 13.7);
+  assert.equal(e.low, 13.45);
+  assert.equal(e.volume, 1200000);
+  assert.equal(e.change, 0.06); // netchange verbatim
+  assert.equal(e.changePct, 0.444); // changepercentage verbatim
+  assert.equal(e.bid, 13.57);
+  assert.equal(e.ask, 13.59);
+  assert.equal(e.week52High, 17.26);
+  assert.equal(e.week52Low, 10.16);
+
+  // DU has no netchange ⇒ derived from lastradeprice - previousclosingprice (12.2 - 12.1).
+  const du = rows.find((r) => r.ticker === 'DU')!;
+  assert.equal(du.change, 0.1);
+});

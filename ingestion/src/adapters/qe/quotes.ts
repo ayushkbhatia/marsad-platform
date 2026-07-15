@@ -82,6 +82,9 @@ async function fetchQuotes(ctx: FetchContext): Promise<FetchResult[]> {
   const url = cfg.urlTemplate ?? ctx.source.entryUrl;
   const res = await ctx.http.get(url, {
     ...(cfg.headers ? { headers: cfg.headers } : {}),
+    // MarketWatch.txt is a slow origin (intermittently >15s); honor the source's
+    // timeout override so the native board doesn't silently time out onto Yahoo.
+    ...(cfg.timeoutMs ? { timeoutMs: cfg.timeoutMs } : {}),
   });
   return [
     {

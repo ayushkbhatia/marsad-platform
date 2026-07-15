@@ -65,6 +65,13 @@ export interface SourceRecord {
  */
 export interface EndpointConfig {
   method?: 'GET' | 'POST';
+  /** Request body for POST sources, sent verbatim (e.g. DFM's /dapi/fetch board
+   *  command envelope). Only consulted when method === 'POST'. */
+  body?: string;
+  /** Per-source fetch timeout override (ms); default 20_000 in the fetcher. Raise
+   *  for slow origins — e.g. QE's MarketWatch.txt intermittently takes >15s, which
+   *  silently timed out the native board and dropped QE onto the Yahoo fallback. */
+  timeoutMs?: number;
   urlTemplate?: string; // may contain {epochMs}, {page}, {symbol} placeholders
   headers?: Record<string, string>;
   pagination?: { param: string; start: number; pageSize?: number };
