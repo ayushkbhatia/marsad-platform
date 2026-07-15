@@ -138,13 +138,15 @@ const consoleLogger: Logger = {
  *   'mubasher_csv'      — Mubasher historical-CSV ≥2y OHLCV backfill for ADX (0033); reusable for any
  *                         venue Mubasher publishes a per-ticker historical CSV for (e.g. TDWL later).
  *                         BHB has NO Mubasher CSV — it stays the coverage-gap venue (07 §5 D-src-4).
- *   'msx-company-chart' — MSX's own native company-chart-data.aspx JSON ≥2y daily-close backfill (0034).
- *                         MSX exposes a first-class history endpoint, so it does NOT ride Mubasher.
+ *   'msx-summary'       — MSX's own native summary-report.aspx/List JSON full-OHLCV daily backfill
+ *                         (~23y, real O/H/L/C + volume). Supersedes the retired close-only
+ *                         company-chart-data.aspx source. MSX has a first-class history endpoint, so
+ *                         it does NOT ride Mubasher.
  */
-type AltProvider = 'yahoo' | 'mubasher_csv' | 'msx-company-chart';
+type AltProvider = 'yahoo' | 'mubasher_csv' | 'msx-summary';
 function providerOf(source: SourceRecord): AltProvider | undefined {
   const p = (source.endpointConfig as unknown as { provider?: unknown }).provider;
-  return p === 'yahoo' || p === 'mubasher_csv' || p === 'msx-company-chart' ? p : undefined;
+  return p === 'yahoo' || p === 'mubasher_csv' || p === 'msx-summary' ? p : undefined;
 }
 
 /**
@@ -169,7 +171,7 @@ function tasksForProvider(source: SourceRecord): TaskSpec<unknown>[] | undefined
     if (source.dataType === 'ohlcv_backfill') return [mubasherTasks.ohlcvCsv as TaskSpec<unknown>];
     return [];
   }
-  // provider === 'msx-company-chart'
+  // provider === 'msx-summary'
   if (source.dataType === 'ohlcv_backfill') return [msxHistory as TaskSpec<unknown>];
   return [];
 }
@@ -299,9 +301,9 @@ export async function withMubasherCsvSymbols(sql: Sql, source: SourceRecord): Pr
 }
 
 /**
- * For an MSX-company-chart provider source, populate endpoint_config.symbols with the venue's RAW
- * listed MSX tickers from public.securities — NO suffix (company-chart-data.aspx?s={symbol} takes our
- * raw ticker, e.g. BKMB/OQGN). This is the MSX analogue of withYahooSymbols/withMubasherCsvSymbols:
+ * For an MSX-summary provider source, populate endpoint_config.symbols with the venue's RAW listed
+ * MSX tickers from public.securities — NO suffix (the summary-report.aspx/List POST body takes our
+ * raw ticker as Symbol, e.g. BKMB/OQGN). This is the MSX analogue of withYahooSymbols/withMubasherCsvSymbols:
  * the frozen FetchContext gives fetch() no DB handle, so the adapter reads endpoint_config.symbols and
  * the runtime populates it here (config over code, CONTRACT §0.6) so the symbol universe tracks the
  * live securities master with no redeploy. Order is stable (ticker asc) for a deterministic per-cycle
@@ -309,7 +311,7 @@ export async function withMubasherCsvSymbols(sql: Sql, source: SourceRecord): Pr
  * already carry an explicit Desk-set symbols list, or when the venue has no listed securities.
  */
 export async function withMsxHistorySymbols(sql: Sql, source: SourceRecord): Promise<SourceRecord> {
-  if (providerOf(source) !== 'msx-company-chart') return source;
+  if (providerOf(source) !== 'msx-summary') return source;
   const cfg = source.endpointConfig as unknown as { symbols?: unknown };
   const already = Array.isArray(cfg.symbols) && cfg.symbols.length > 0;
   if (already) return source;
@@ -324,7 +326,7 @@ export async function withMsxHistorySymbols(sql: Sql, source: SourceRecord): Pro
 
 /**
  * Symbol-injection dispatcher. Routes a source to its provider's symbol-list populator before fetch:
- * Yahoo sources get suffixed Yahoo chart symbols (withYahooSymbols); Mubasher-CSV and MSX-company-chart
+ * Yahoo sources get suffixed Yahoo chart symbols (withYahooSymbols); Mubasher-CSV and MSX-summary
  * sources get RAW listed tickers (withMubasherCsvSymbols / withMsxHistorySymbols); every other (primary)
  * source is returned unchanged. This is the single call runTask makes so a new aggregator only adds one
  * branch here.
@@ -333,7 +335,7 @@ export async function withInjectedSymbols(sql: Sql, source: SourceRecord): Promi
   const provider = providerOf(source);
   if (provider === 'yahoo') return withYahooSymbols(sql, source);
   if (provider === 'mubasher_csv') return withMubasherCsvSymbols(sql, source);
-  if (provider === 'msx-company-chart') return withMsxHistorySymbols(sql, source);
+  if (provider === 'msx-summary') return withMsxHistorySymbols(sql, source);
   return source;
 }
 
