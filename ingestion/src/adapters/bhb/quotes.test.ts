@@ -85,3 +85,77 @@ test('BHB EOD: mapBulletinRows maps Daily-Trading-Summary rows to NormalizedOhlc
   assert.equal(gfh.close, 0.325);
   assert.equal(gfh.volume, 5000000);
 });
+
+// ── FETCH: dynamic APIKey (scrape homepage → webapi Bearer; re-scrape on rotation) ────────────────
+import { bhbQuotes as bhbQuotesFetch, __resetBhbApiKeyCache } from './quotes.js';
+import type {
+  FetchContext,
+  FetchOptions,
+  FetchResult,
+  HttpClient,
+  RawResponse,
+  SourceRecord,
+} from '../../core/types.js';
+
+const TOKEN_PAGE = 'https://www.bahrainbourse.com/en';
+const WEBAPI = 'https://webapi.bahrainbourse.com/api/data/GetTabularData?storedProcdure=Quotes';
+const BOARD = JSON.stringify({ status: 1, data: [{ symbol: 'ABC', 'Last Price': 0.3, VOLUME: 100 }] });
+
+/** Mock BHB origin: homepage serves `APIKey = '<currentKey>'`; the webapi 200s only when the request's
+ *  Bearer matches currentKey, else 401. `currentKey` can be rotated to exercise the re-scrape path. */
+class BhbHttp implements HttpClient {
+  public gets: string[] = [];
+  constructor(public currentKey: string) {}
+  async get(url: string, opts?: FetchOptions): Promise<RawResponse> {
+    this.gets.push(url);
+    if (url === TOKEN_PAGE) {
+      const html = `<script>var APIKey = '${this.currentKey}';</script>`;
+      return { url, status: 200, headers: { 'content-type': 'text/html' }, body: Buffer.from(html), fromCache304: false };
+    }
+    const auth = (opts?.headers?.['authorization'] ?? '') as string;
+    const ok = auth === `Bearer ${this.currentKey}`;
+    return {
+      url, status: ok ? 200 : 401,
+      headers: { 'content-type': 'application/json' },
+      body: Buffer.from(ok ? BOARD : ''), fromCache304: false,
+    };
+  }
+  async request(url: string, opts: FetchOptions): Promise<RawResponse> { return this.get(url, opts); }
+}
+
+function ctxFor(http: HttpClient): FetchContext {
+  const source = {
+    id: 16, venue: 'BHB', dataType: 'quotes', entryUrl: WEBAPI,
+    endpointConfig: { urlTemplate: WEBAPI, headers: { Accept: 'application/json' } } as unknown as SourceRecord['endpointConfig'],
+    normalizeRules: [], transport: 'http', robotsStatus: 'allowed', active: true, lastContentHash: null,
+  } as SourceRecord;
+  return {
+    source, http,
+    browser: { bootstrap() { throw new Error('no browser'); }, refreshIfChallenged() {}, get() { throw new Error('no browser'); }, request() { throw new Error('no browser'); }, close: async () => {} } as unknown as FetchContext['browser'],
+    logger: { info() {}, warn() {}, error() {}, child() { return this; } },
+    now: () => '2026-07-15T10:00:00.000Z',
+  };
+}
+
+test('BHB fetch: scrapes the homepage APIKey then GETs the webapi with a Bearer', async () => {
+  __resetBhbApiKeyCache();
+  const http = new BhbHttp('a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90');
+  const [fr] = await bhbQuotesFetch.fetch(ctxFor(http));
+  assert.equal(fr!.httpStatus, 200);
+  assert.equal(bhbQuotesFetch.parse({ ...snap(fr!.body), meta: {} }).rows.length, 1);
+  assert.deepEqual(http.gets, [TOKEN_PAGE, WEBAPI], 'homepage scrape precedes the webapi GET');
+});
+
+test('BHB fetch: a rotated token (webapi 401) triggers ONE re-scrape + retry', async () => {
+  __resetBhbApiKeyCache();
+  const http = new BhbHttp('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1');
+  // first poll caches v1
+  await bhbQuotesFetch.fetch(ctxFor(http));
+  // token rotates at the origin; the cached v1 now 401s → adapter must re-scrape v2 + retry
+  http.currentKey = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb2';
+  http.gets = [];
+  const [fr] = await bhbQuotesFetch.fetch(ctxFor(http));
+  assert.equal(fr!.httpStatus, 200, 'recovered after re-scraping the rotated key');
+  // sequence: webapi(401 w/ stale cached key) → homepage(rescrape) → webapi(200)
+  assert.deepEqual(http.gets, [WEBAPI, TOKEN_PAGE, WEBAPI]);
+});
