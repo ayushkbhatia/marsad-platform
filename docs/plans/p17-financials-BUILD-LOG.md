@@ -86,6 +86,36 @@ This matches the deep-research verdict (`waavxrqar`): seleniumbase-UC / camoufox
 same-IP warming. For heavier scale, camoufox (Firefox-engine, C++-level fingerprint patches, article-
 proven 200 vs Akamai) is the upgrade; a commercial Web Unlocker only if intraday-at-scale.
 
+### TADAWUL PDF ACQUISITION — PROVEN END-TO-END 2026-07-15 (real 231KB statement PDF downloaded)
+
+The COMPLETE recipe (verified live: downloaded RIYAD REIT's Q-statement, `200 application/pdf 231,852B %PDF`):
+1. **Session:** headful Chromium (xvfb) + IPRoyal STICKY residential GCC session (`_session-<id>_lifetime-30m`)
+   + geoip context (Asia/Riyadh, en-US, Chrome UA) + stealth. Warm the homepage first (`domcontentloaded`,
+   80s, retry 3×), `waitForTimeout ~7s` so Akamai sets its cookies.
+2. **Enumerate** (issuer-announcements page): after render, the announcement DataTable auto-loads into the DOM.
+   Read rows from `a[href*="anId="]` → each carries `anId` + `cs` (company code) + title. Filter titles for
+   financial statements: `/availability of the (interim|annual|quarterly|condensed).*(financial|statement)/i`.
+   (The clean JSON endpoint is `POST …=CZ6_5A602H80O0HTC060SG6UT81D26=NJgetAnnouncementListData=/` with
+   form-urlencoded `formJSON` {annoucmentType,symbol,sectorDpId,fromDate,toDate,pageNumberDb,pageSize} — but
+   the raw request-context 403s; do the POST INSIDE the page via `page.evaluate(fetch(...))` so it carries the
+   browser fingerprint, OR just read the auto-rendered rows. NJgetFormTypeList gives the form-type codes.)
+3. **Detail:** `page.goto` the row href (`…/issuer-announcements-details/?anId={anId}&anCat=1&cs={cs}&locale=en`).
+   The statement lives in an IFRAME (`page.frames().find(f=>/announcements-details/.test(f.url()))`). Inside
+   the frame, the fsPdf is: `https://www.saudiexchange.sa/Resources/fsPdf/{issuerId}_{seq}_{YYYY-MM-DD}_{HH-MM-SS}_{en|ar}.pdf`.
+   (The page's reCAPTCHA is the login widget — it does NOT gate the fsPdf.)
+4. **Download:** `page.evaluate(async u => { const r=await fetch(u); return base64(await r.arrayBuffer()); })`
+   — the IN-PAGE fetch uses the real browser fingerprint + warmed `_abck`, so it returns the PDF (raw
+   `ctx.request.get` 403s — it's a separate client). Result: real `%PDF` bytes.
+CRITICAL: every raw/request-context call 403s; ALL fetches must go through the real browser page (`page.goto`
+or `page.evaluate(fetch)`). Residential exits vary → retries + fresh-session IP rotation mandatory.
+
+**Productionize (the remaining build):** a headful `BrowserClient` acquisition task on the VPS running this
+recipe per venue-open window → store the fsPdf to the public `filings` bucket (`fn_filing_project` /
+`pdf_storage_key`) → the built extraction pipeline (pdftotext → LLM sharpened prompt → validation gate →
+`fn_financials_project`). Incremental via the `anId`/fsPdf list-diff. Cross-check the extracted numbers vs
+Yahoo timeseries → VERIFIED. Gives BOTH the owned PDF archive AND the extracted data — the owner's goal.
+OLD note below is superseded:
+
 **Remaining to own the Tadawul PDFs (unblocked):** navigate the issuer-announcements portlet → filter to
 Financial Statements → follow each announcement's detail portlet-link → the `/Resources/fsPdf/{id}_{lang}.pdf`
 → download (warmed session) → store to the `filings` bucket → the built extraction pipeline (pdftotext →
