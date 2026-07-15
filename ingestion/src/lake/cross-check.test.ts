@@ -293,3 +293,66 @@ test('unknown verifier handle throws', async () => {
   await seed(state, [stg({})]);
   await assert.rejects(() => cc.resolve({ naturalKey: NK, objectType: OT }));
 });
+
+// ── QUOTE.LAST live-latest refresh (single-source intraday feed) ─────────────
+// Regression guard: single-source QUOTE.LAST must NOT freeze at the day's first
+// print. Each poll refreshes the day-keyed live object IN PLACE with the newest
+// print (no new revision, no supersession), and its staging rows are consumed so
+// the next poll gathers only genuinely-new prints.
+const QNK = 'QUOTE.LAST:TDWL:7010:2026-07-15';
+const QOT = 'QUOTE.LAST';
+
+function qstg(over: Partial<StagingRow<Record<string, unknown>>>): StagingRow<Record<string, unknown>> {
+  return stg({
+    objectType: QOT,
+    naturalKey: QNK,
+    sourceId: 1,
+    sourceRank: 20,
+    unit: 'SAR',
+    effectiveDate: '2026-07-15',
+    priceSensitive: false,
+    ...over,
+  });
+}
+
+test('QUOTE.LAST single source ⇒ first print creates PENDING object, staging consumed', async () => {
+  const state = newState();
+  withSecurity(state);
+  await seed(state, [qstg({ numericValue: 10.0, payload: { last: 10.0, ticker: '7010' } })]);
+  const cc = new LakeCrossCheck(createFakeDb(state));
+  const res = await cc.resolve({ naturalKey: QNK, objectType: QOT });
+  assert.equal(res.state, 'PENDING');
+  assert.equal(state.objects.length, 1);
+  assert.equal(Number(state.objects[0].numeric_value), 10.0);
+  // live feed consumes each pass (no corroboration hold) so the next poll is fresh
+  assert.equal(state.staging.every((s) => s.consumed_at !== null), true);
+});
+
+test('QUOTE.LAST second poll ⇒ live object refreshed IN PLACE to NEWEST print, no new revision', async () => {
+  const state = newState();
+  withSecurity(state);
+  // Poll 1: first print of the day.
+  await seed(state, [qstg({ numericValue: 10.0, payload: { last: 10.0, ticker: '7010' } })]);
+  const cc = new LakeCrossCheck(createFakeDb(state));
+  await cc.resolve({ naturalKey: QNK, objectType: QOT });
+  const firstId = state.objects[0].id;
+
+  // Poll 2: two new prints since — the feed must land on the NEWEST (10.9), not
+  // the oldest (10.6, which primaryOf would otherwise pick).
+  await seed(state, [
+    qstg({ numericValue: 10.6, payload: { last: 10.6, ticker: '7010' } }),
+    qstg({ numericValue: 10.9, payload: { last: 10.9, ticker: '7010' } }),
+  ]);
+  const res = await cc.resolve({ naturalKey: QNK, objectType: QOT });
+
+  assert.equal(state.objects.length, 1);                    // no new object / no supersession
+  const live = state.objects[0];
+  assert.equal(live.id, firstId);                           // same object, refreshed in place
+  assert.equal(live.superseded_by, null);
+  assert.equal(live.state, 'PENDING');                      // still single-source PENDING
+  assert.equal(res.revision, 1);                            // a tick, not a correction
+  assert.equal(Number(live.numeric_value), 10.9);           // NEWEST print won
+  assert.equal((live.payload as Record<string, unknown>).last, 10.9);
+  assert.equal(state.datapointFanoutCalls.length, 0);       // PENDING ⇒ no fan-out
+  assert.equal(state.staging.every((s) => s.consumed_at !== null), true);
+});

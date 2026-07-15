@@ -344,10 +344,25 @@ function insertObject(state: FakeState, q: string, params: unknown[]): Row[] {
 
 function updateObject(state: FakeState, q: string, params: unknown[]): Row[] {
   // Cases:
+  //  set payload=$1, numeric_value=$2, unit=$3, effective_date=$4, source_rank=$5,
+  //      parse_run_id=$6 where id=$7   (live-latest in-place refresh; no state change)
   //  set state = 'VERIFIED', verified_by = $1 where id = $2
   //  set superseded_by = $1, state = 'RETIRED' where id = $2
   //  set superseded_by = $1 where id = $2
   //  set state = $1 where id = $2   (CONFLICT transition)
+  if (q.includes('payload =') && q.includes('parse_run_id =') && q.includes('numeric_value =')) {
+    const [payload, numericValue, unit, effectiveDate, sourceRank, parseRunId, id] = params as [
+      unknown, string | null, string | null, string | null, number, string, string,
+    ];
+    const obj = must(state, id);
+    obj.payload = payload;
+    obj.numeric_value = numericValue;
+    obj.unit = unit;
+    obj.effective_date = effectiveDate;
+    obj.source_rank = sourceRank;
+    obj.parse_run_id = parseRunId;
+    return [];
+  }
   if (q.includes("set state = 'verified'") || q.includes('set state = \'verified\'')) {
     const verifiedBy = params[0] as string;
     const id = params[1] as string;

@@ -66,6 +66,17 @@ interface LiveObjectRow {
   numeric_value: string | null;
 }
 
+/**
+ * Live-latest object types: single-source-authoritative time series where the
+ * venue IS the source of truth and the printed value MUST refresh on every poll.
+ * These are day-keyed (one object per security per day) and updated IN PLACE, so
+ * the 2-source "a lone new source must not retire a value" rule that protects
+ * static facts (filings/financials) does NOT apply — a live quote has no second
+ * exchange to corroborate it, and holding the day's first print would freeze the
+ * intraday feed (public.quotes_latest / quotes_intraday never advance).
+ */
+const LIVE_LATEST_TYPES = new Set(['QUOTE.LAST']);
+
 export class LakeCrossCheck implements CrossCheck {
   private readonly verifierHandle: string;
   private readonly tolerance: number;
@@ -134,8 +145,15 @@ export class LakeCrossCheck implements CrossCheck {
       // add a new staging row past the (source_id, external_id, content_hash)
       // dedupe, and never a new source_id) can never auto-VERIFY a single-source
       // fact. VERIFIED/CONFLICT and the price-sensitive hold consume their gather.
+      // Live-latest feeds (QUOTE.LAST) never await a second source — the venue is
+      // authoritative — so they must NOT be held: consume each pass so the next
+      // poll gathers only genuinely-new prints and the newest one is picked (an
+      // unconsumed pile would grow all day and primaryOf would keep selecting the
+      // OLDEST row, re-freezing the feed).
       const holdForCorroboration =
-        decision.kind === 'PENDING' && decision.reason === 'single_source';
+        decision.kind === 'PENDING' &&
+        decision.reason === 'single_source' &&
+        !LIVE_LATEST_TYPES.has(input.objectType);
       if (!holdForCorroboration) {
         await this.consume(tx, candidates.map((c) => c.id));
       }
@@ -180,6 +198,20 @@ export class LakeCrossCheck implements CrossCheck {
     if (live) {
       const liveState = normalizeState(live.state);
 
+      // Live-latest feeds (QUOTE.LAST) are single-source-authoritative: the venue
+      // is the source of truth and its printed value must refresh every poll.
+      // Refresh the live object IN PLACE (same revision — a tick, not a
+      // correction) so objects_quote_project_upd advances quotes_latest /
+      // quotes_intraday instead of freezing at the day's first print. The
+      // single_source-hold rule below is for static facts that await a genuinely
+      // independent second source; a live quote has none.
+      if (LIVE_LATEST_TYPES.has(input.objectType)) {
+        const w = newestCandidate(candidates);
+        await this.refreshLiveValue(tx, live.id, w, parseRunId);
+        this.log.info('cross_check.live_refresh', { naturalKey: input.naturalKey });
+        return { objectId: live.id, state: liveState, revision: live.revision };
+      }
+
       // No in-place cross-pass promotion for single_source: lake.objects does NOT
       // retain the originating source_id, so a live object can never stand in as
       // an independent "prior source" (CONTRACT §7 requires ≥2 DISTINCT source_ids).
@@ -195,7 +227,9 @@ export class LakeCrossCheck implements CrossCheck {
       return { objectId: live.id, state: liveState, revision: live.revision };
     }
 
-    const winner = winnerRow(candidates, decision.winner);
+    const winner = LIVE_LATEST_TYPES.has(input.objectType)
+      ? newestCandidate(candidates)
+      : winnerRow(candidates, decision.winner);
     const objectId = await this.insertObject(tx, input, winner, 'PENDING', parseRunId, verifierId);
 
     if (decision.reason === 'price_sensitive_hold') {
@@ -369,6 +403,28 @@ export class LakeCrossCheck implements CrossCheck {
       returning id
     `;
     return rows[0].id;
+  }
+
+  /** In-place refresh of a live-latest object (QUOTE.LAST) with the newest print.
+   *  No state change and no new revision — a live tick, not a correction — so the
+   *  state guard is not engaged. The AFTER-UPDATE quote projection trigger
+   *  (objects_quote_project_upd) fires and advances quotes_latest/intraday. */
+  private async refreshLiveValue(
+    tx: LakeTx,
+    objectId: string,
+    winner: StagingCandidateRow,
+    parseRunId: string,
+  ): Promise<void> {
+    await tx`
+      update lake.objects set
+        payload = ${asJsonb(winner.payload)},
+        numeric_value = ${winner.numeric_value},
+        unit = ${unitOf(winner)},
+        effective_date = ${winner.effective_date},
+        source_rank = ${winner.source_rank},
+        parse_run_id = ${parseRunId}
+      where id = ${objectId}
+    `;
   }
 
   /** PENDING→VERIFIED. Sets verified_by (the state guard stamps verified_at and
@@ -552,6 +608,14 @@ function sortJson(v: unknown): unknown {
     return o;
   }
   return v;
+}
+
+/** Newest staging row (max id ⇒ latest ingested print) — the value a live-latest
+ *  feed (QUOTE.LAST) must carry. primaryOf/winnerRow deliberately pick the OLDEST
+ *  (lowest rank, lowest id) for corroboration determinism; a live tick wants the
+ *  freshest print instead. */
+function newestCandidate(candidates: StagingCandidateRow[]): StagingCandidateRow {
+  return candidates.reduce((a, b) => (Number(b.id) > Number(a.id) ? b : a));
 }
 
 function winnerRow(candidates: StagingCandidateRow[], winner: Candidate): StagingCandidateRow {
