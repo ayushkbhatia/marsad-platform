@@ -51,16 +51,21 @@ export async function eodCloseGate(
       limit 1
     )
     select
-      (select ts from now_local)                                   as local_ts,
-      (select (ts)::date from now_local)                           as local_date,
-      (select close_local from session)                            as close_local,
+      to_char((select ts from now_local), 'HH24:MI:SS')            as local_time,
+      to_char((select ts from now_local)::date, 'YYYY-MM-DD')      as local_date,
+      (select close_local::text from session)                      as close_local,
       (select exists (select 1 from v))                            as venue_active
   `) as unknown as Array<{
-    local_ts: string | null;
+    local_time: string | null;
     local_date: string | null;
     close_local: string | null;
     venue_active: boolean;
   }>;
+  // local_time/local_date MUST be produced with to_char: postgres.js parses bare
+  // date/timestamp columns into JS Date objects (db.ts registers no custom
+  // parsers), so a `::date` column can never `===` the tradeDate string — that
+  // exact mismatch kept this gate permanently closed (zero eod_bulletin
+  // fetch_log rows ever) until 2026-07-15.
 
   const row = rows[0];
   if (!row || !row.venue_active) {
@@ -75,8 +80,7 @@ export async function eodCloseGate(
 
   // Compare the local wall-clock time against [close, close + window]. Work in
   // minutes-since-midnight so we avoid tz-arithmetic in JS.
-  const localTime = (row.local_ts ?? '').slice(11, 19); // 'HH:MM:SS'
-  const nowMin = hmsToMinutes(localTime);
+  const nowMin = hmsToMinutes(row.local_time ?? '');
   const closeMin = hmsToMinutes(row.close_local);
   if (nowMin === null || closeMin === null) {
     return { open: false, reason: 'unparseable_time' };
