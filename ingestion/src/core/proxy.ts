@@ -1,11 +1,12 @@
 /**
  * Per-source outbound proxy support (P1 runtime fix, GROUND-TRUTH item #4).
  *
- * Some GCC venue origins are IP-geofenced or Akamai-blocked from our plain VPS
- * egress IP (recon: bahrainbourse.com official returns 403 direct, 301 through a
- * GCC-exit residential proxy). We route ONLY the sources that need it — the ones
- * whose ingest.sources.endpoint_config.use_proxy is true — through an IPRoyal
- * residential proxy that exits inside the GCC region.
+ * Some GCC venue origins are IP-geofenced or WAF-blocked from our plain VPS egress
+ * IP. We route ONLY the sources that need it — the ones whose
+ * ingest.sources.endpoint_config.use_proxy is true — through a **Geonode** residential
+ * proxy that exits inside the GCC region (migrated off IPRoyal 2026-07-15; IPRoyal's
+ * account was exhausted). Geonode's geo/session selectors live on the USERNAME
+ * (`geonode_<user>-type-residential-country-bh`), NOT the password.
  *
  * SECRET HANDLING (hard rule): the proxy URL + credentials NEVER live in code or
  * in the migration. They are read from the environment (the owner sets the real
@@ -15,14 +16,14 @@
  * so both transport clients (undici HttpClient, Playwright BrowserClient) can
  * consume one shared, testable shape.
  *
- * IPRoyal URL convention (recon item #4): the geo-targeting selector lives on the
- * PASSWORD, not on the host — e.g.
- *   http://geo.iproyal.com:12321  user=ZTfyHFmrsJ9Yerwa
- *   password=aR5AzVF0J4kjnpZ3_country-ae,sa   → exits Riyadh/Dubai.
- * We keep the password verbatim (including the `_country-…` suffix): IPRoyal's
+ * Geonode URL convention: the geo-targeting (and sticky-session) selectors live on the
+ * USERNAME, not the host — e.g.
+ *   http://proxy.geonode.io:9000  user=geonode_<id>-type-residential-country-bh
+ *   password=<uuid>   → exits a Bahrain residential IP.
+ * We keep the username verbatim (including the `-type-…-country-…` suffix): Geonode's
  * gateway parses it, we do not. We support both a single packed URL
- * (IPROYAL_PROXY_URL / PROXY_URL with userinfo) and split PROXY_SERVER/
- * PROXY_USERNAME/PROXY_PASSWORD vars, so the owner can set whichever is cleaner.
+ * (GEONODE_PROXY_URL / PROXY_URL / IPROYAL_PROXY_URL legacy, with userinfo) and split
+ * PROXY_SERVER/PROXY_USERNAME/PROXY_PASSWORD vars, so the owner can set whichever is cleaner.
  */
 
 import type { SourceRecord, ProxyMode } from './types.js';
@@ -32,7 +33,7 @@ export type { ProxyMode } from './types.js';
 /** Default IP policy when a source is flagged use_proxy but sets no proxy_mode. */
 export const DEFAULT_PROXY_MODE: ProxyMode = 'rotate';
 
-/** Sticky-session lifetime (minutes) baked into the IPRoyal `_lifetime-…` selector. */
+/** Sticky-session lifetime (integer minutes) baked into the Geonode `-lifetime-…` selector. */
 export const STICKY_SESSION_LIFETIME_MIN = 10;
 
 /** A resolved proxy in the shape both clients want. `server` is scheme+host+port
@@ -64,7 +65,7 @@ export interface ProxyConfig {
 export function parseProxyFromEnv(
   env: NodeJS.ProcessEnv = process.env,
 ): ProxyConfig | undefined {
-  const rawUrl = firstNonEmpty(env.IPROYAL_PROXY_URL, env.PROXY_URL);
+  const rawUrl = firstNonEmpty(env.GEONODE_PROXY_URL, env.PROXY_URL, env.IPROYAL_PROXY_URL);
   const rawServer = firstNonEmpty(env.PROXY_SERVER);
 
   let base: ProxyConfig | undefined;
@@ -131,14 +132,23 @@ export function sourceProxyMode(source: Pick<SourceRecord, 'endpointConfig'>): P
 }
 
 /**
- * Append an IPRoyal sticky-session selector to a proxy password so a bounded burst
- * exits the SAME residential IP. IPRoyal chains selectors on the password
- * (`…_country-ae,sa_session-<id>_lifetime-10m`); the gateway parses them, we only
- * concatenate. A session id is generated per call (random, url-safe) — callers that
- * want one IP across N requests must resolve ONCE and reuse the returned config.
- * `rotate` mode returns the proxy untouched (the base creds already rotate per
- * request). If the proxy carries no password (unauthenticated), there is nothing to
- * pin a session on, so it is returned untouched.
+ * Append a Geonode sticky-session selector to the proxy USERNAME so a bounded burst
+ * exits the SAME residential IP. Geonode chains selectors on the username
+ * (`geonode_<user>-type-residential-country-bh-session-<id>-lifetime-<min>`), NOT the
+ * password (this is the key difference from the retired IPRoyal gateway, which chained
+ * them on the password). The gateway parses them; we only concatenate. Lifetime is an
+ * INTEGER number of minutes (Geonode rejects a `m` suffix). A session id is generated
+ * per call — callers that want one IP across N requests must resolve ONCE and reuse the
+ * returned config.
+ *
+ * IMPORTANT: Geonode serves sticky sessions on a SEPARATE gateway port from the rotating
+ * port — the rotating port (…:9000) rejects a session selector with
+ * "Can not use -session- on rotating ports range". So sticky mode only works when
+ * PROXY_SERVER points at a Geonode STICKY port. Until one is configured, keep proxied
+ * sources on proxy_mode='rotate'.
+ *
+ * `rotate` mode returns the proxy untouched (the base creds already rotate per request).
+ * If the proxy carries no username, there is nothing to pin a session on → untouched.
  */
 export function applyProxyMode(
   proxy: ProxyConfig,
@@ -146,12 +156,12 @@ export function applyProxyMode(
   sessionId: string = randomSessionId(),
 ): ProxyConfig {
   if (mode !== 'sticky') return { ...proxy, mode: 'rotate' };
-  if (!proxy.password) return { ...proxy, mode: 'sticky' };
+  if (!proxy.username) return { ...proxy, mode: 'sticky' };
   // Do not double-append if a session selector is already present (idempotent).
-  const password = /_session-/.test(proxy.password)
-    ? proxy.password
-    : `${proxy.password}_session-${sessionId}_lifetime-${STICKY_SESSION_LIFETIME_MIN}m`;
-  return { ...proxy, password, mode: 'sticky' };
+  const username = /-session-/.test(proxy.username)
+    ? proxy.username
+    : `${proxy.username}-session-${sessionId}-lifetime-${STICKY_SESSION_LIFETIME_MIN}`;
+  return { ...proxy, username, mode: 'sticky' };
 }
 
 /**

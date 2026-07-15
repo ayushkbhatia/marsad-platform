@@ -63,8 +63,12 @@ Transport legend: **HTTP** = plain fetch of HTML/JSON/XLSX works; **HTTP+bootstr
 fetch works after a Playwright session establishes cookies/tokens (rotated on a schedule);
 **Headless** = full browser render required.
 
-**Proxy-egress policy (IPRoyal is metered — treat it as a scarce, paid resource).**
-`endpoint_config.use_proxy=true` routes a source through the IPRoyal residential proxy and is
+**Proxy-egress policy (the residential proxy is metered — treat it as a scarce, paid resource).**
+Provider is **Geonode** (`proxy.geonode.io:9000`, migrated off IPRoyal 2026-07-15 after the IPRoyal
+account was exhausted). Creds live in the VPS `worker.env` (`PROXY_SERVER/USERNAME/PASSWORD`); Geonode
+puts geo/session selectors on the **username** (`geonode_<id>-type-residential-country-bh`), and its
+`:9000` gateway is rotate-only (sticky needs a separate Geonode sticky port). `core/proxy.ts` resolves
+it per source. `endpoint_config.use_proxy=true` routes a source through the residential proxy and is
 **billed per outbound byte**; everything else egresses the VPS's own IP for free. The rule:
 **only proxy a host that genuinely CANNOT be reached from the VPS's direct IP** — a hard
 IP-geofence or WAF IP-block (e.g. BHB / `bahrainbourse.com`, Radware-blocked from datacenter

@@ -68,12 +68,25 @@ test('parseProxyFromEnv: PROXY_URL is the fallback when IPROYAL_PROXY_URL is abs
   assert.equal(p.server, 'http://geo.iproyal.com:12321');
 });
 
-test('parseProxyFromEnv: IPROYAL_PROXY_URL wins over PROXY_URL', () => {
-  const p = parseProxyFromEnv({
-    IPROYAL_PROXY_URL: 'http://u1:p1@a.example:1',
-    PROXY_URL: 'http://u2:p2@b.example:2',
-  });
-  assert.equal(p?.server, 'http://a.example:1');
+test('parseProxyFromEnv: GEONODE_PROXY_URL wins; PROXY_URL beats legacy IPROYAL_PROXY_URL', () => {
+  // New precedence: GEONODE_PROXY_URL → PROXY_URL → IPROYAL_PROXY_URL (legacy fallback).
+  assert.equal(
+    parseProxyFromEnv({
+      GEONODE_PROXY_URL: 'http://u0:p0@g.example:9',
+      PROXY_URL: 'http://u2:p2@b.example:2',
+      IPROYAL_PROXY_URL: 'http://u1:p1@a.example:1',
+    })?.server,
+    'http://g.example:9',
+    'Geonode URL takes precedence',
+  );
+  assert.equal(
+    parseProxyFromEnv({
+      PROXY_URL: 'http://u2:p2@b.example:2',
+      IPROYAL_PROXY_URL: 'http://u1:p1@a.example:1',
+    })?.server,
+    'http://b.example:2',
+    'generic PROXY_URL beats the demoted legacy IPRoyal var',
+  );
 });
 
 test('parseProxyFromEnv: split PROXY_SERVER/USERNAME/PASSWORD form', () => {
@@ -183,6 +196,13 @@ const IPROYAL_BASE: ProxyConfig = {
   password: 'aR5AzVF0J4kjnpZ3_country-ae,sa',
 };
 
+// Geonode creds: the geo/session selectors live on the USERNAME, not the password.
+const GEONODE_BASE: ProxyConfig = {
+  server: 'http://proxy.geonode.io:9000',
+  username: 'geonode_vT5MiZ1Lsj-type-residential-country-bh',
+  password: '878e64ed-0251-4f6a-aeca-72d5e7fcc1e8',
+};
+
 test('DEFAULT_PROXY_MODE is rotate (safe default that defeats per-IP rate limits)', () => {
   assert.equal(DEFAULT_PROXY_MODE, 'rotate');
 });
@@ -197,40 +217,41 @@ test('sourceProxyMode: absent ⇒ rotate; explicit sticky ⇒ sticky; junk ⇒ r
   assert.equal(sourceProxyMode(src(false, { proxy_mode: 'sticky' })), 'sticky');
 });
 
-test('applyProxyMode: rotate leaves the base password untouched (fresh IP/request)', () => {
-  const p = applyProxyMode(IPROYAL_BASE, 'rotate');
-  assert.equal(p.password, IPROYAL_BASE.password, 'no session selector appended');
+test('applyProxyMode: rotate leaves the base username/password untouched (fresh IP/request)', () => {
+  const p = applyProxyMode(GEONODE_BASE, 'rotate');
+  assert.equal(p.username, GEONODE_BASE.username, 'no session selector appended');
+  assert.equal(p.password, GEONODE_BASE.password);
   assert.equal(p.mode, 'rotate');
-  assert.equal(p.server, IPROYAL_BASE.server);
-  assert.equal(p.username, IPROYAL_BASE.username);
+  assert.equal(p.server, GEONODE_BASE.server);
 });
 
-test('applyProxyMode: sticky appends an IPRoyal _session-…_lifetime-… selector', () => {
-  const p = applyProxyMode(IPROYAL_BASE, 'sticky', 'abc123');
+test('applyProxyMode: sticky appends a Geonode -session-…-lifetime-… selector to the USERNAME', () => {
+  const p = applyProxyMode(GEONODE_BASE, 'sticky', 'abc123');
   assert.equal(
-    p.password,
-    `aR5AzVF0J4kjnpZ3_country-ae,sa_session-abc123_lifetime-${STICKY_SESSION_LIFETIME_MIN}m`,
-    'session selector chained after the existing _country- selector',
+    p.username,
+    `geonode_vT5MiZ1Lsj-type-residential-country-bh-session-abc123-lifetime-${STICKY_SESSION_LIFETIME_MIN}`,
+    'session selector chained after the existing -country- selector on the username',
   );
+  assert.equal(p.password, GEONODE_BASE.password, 'password is NOT the selector carrier for Geonode');
   assert.equal(p.mode, 'sticky');
 });
 
 test('applyProxyMode: sticky is idempotent — never double-appends a session selector', () => {
-  const once = applyProxyMode(IPROYAL_BASE, 'sticky', 'abc123');
+  const once = applyProxyMode(GEONODE_BASE, 'sticky', 'abc123');
   const twice = applyProxyMode(once, 'sticky', 'zzz999');
-  assert.equal(twice.password, once.password, 'second sticky pass is a no-op on the password');
+  assert.equal(twice.username, once.username, 'second sticky pass is a no-op on the username');
 });
 
-test('applyProxyMode: sticky on an unauthenticated proxy has no password to pin ⇒ untouched', () => {
+test('applyProxyMode: sticky on an unauthenticated proxy has no username to pin ⇒ untouched', () => {
   const p = applyProxyMode({ server: 'http://plain.proxy:8080' }, 'sticky');
-  assert.equal(p.password, undefined);
+  assert.equal(p.username, undefined);
   assert.equal(p.mode, 'sticky');
 });
 
-test('applyProxyMode: distinct session ids ⇒ distinct pinned passwords (different IP bursts)', () => {
-  const a = applyProxyMode(IPROYAL_BASE, 'sticky');
-  const b = applyProxyMode(IPROYAL_BASE, 'sticky');
-  assert.notEqual(a.password, b.password, 'auto-generated session ids differ');
+test('applyProxyMode: distinct session ids ⇒ distinct pinned usernames (different IP bursts)', () => {
+  const a = applyProxyMode(GEONODE_BASE, 'sticky');
+  const b = applyProxyMode(GEONODE_BASE, 'sticky');
+  assert.notEqual(a.username, b.username, 'auto-generated session ids differ');
 });
 
 test('resolveProxyForSource: YAHOO-shaped source ⇒ rotate proxy (fresh IP/request)', () => {
@@ -245,10 +266,14 @@ test('resolveProxyForSource: YAHOO-shaped source ⇒ rotate proxy (fresh IP/requ
 
 test('resolveProxyForSource: WAF-shaped source (sticky) ⇒ IP-pinned proxy', () => {
   const waf = src(true, { proxy_mode: 'sticky' });
-  const p = resolveProxyForSource(waf, { IPROYAL_PROXY_URL: IPROYAL_URL });
+  const p = resolveProxyForSource(waf, {
+    PROXY_SERVER: GEONODE_BASE.server,
+    PROXY_USERNAME: GEONODE_BASE.username,
+    PROXY_PASSWORD: GEONODE_BASE.password,
+  });
   assert.ok(p);
   assert.equal(p.mode, 'sticky');
-  assert.match(p.password ?? '', /_session-[^_]+_lifetime-\d+m$/, 'session selector appended for affinity');
+  assert.match(p.username ?? '', /-session-[^-]+-lifetime-\d+$/, 'session selector appended to the username for affinity');
 });
 
 test('resolveProxyForSource: unflagged source ⇒ direct (undefined), no proxy regardless of mode', () => {
