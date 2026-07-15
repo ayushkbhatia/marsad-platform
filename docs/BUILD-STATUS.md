@@ -59,7 +59,7 @@ The scariest unknown — reaching the exchanges — is resolved. Findings:
 | **MSX** (Muscat) | ✅ official | ✅ 200 | direct from VPS; Yahoo doesn't cover |
 | **BHB** (Bahrain) | via **IPRoyal GCC proxy** | ⚠️ filings URL 403 (tuning) | datacenter IP blocked; proxy solves home page |
 
-**Cross-check strengthened**: Yahoo Finance (`v8/finance/chart`, no WAF/proxy) gives TDWL/QE/DFM a 2nd source → 2-source → VERIFIED, plus ≥2y OHLCV backfill. Built + tested, seeded `active=false` pending provider-aware routing.
+**Quotes are single-source live-refresh (Yahoo quote 2nd-source retired 2026-07-15)**: Yahoo per-symbol quotes were the TDWL/DFM/QE 2nd cross-check source, but the native boards + the `QUOTE.LAST` in-place refresh (`cross-check.ts`) now advance single-source quotes every poll, so the Yahoo **quote** twins are **retired** (`20260715093000`; 081318 had retired DFM/QE but missed the TDWL twin, which kept polling Yahoo through the proxy ~282×/24h). Verified redundant: the twins carried **0** tickers the native boards lack (TDWL 268⊂414, DFM 52⊂473, QE 49⊂146). Yahoo is retained **only** for `ohlcv_backfill` (provider-scoped), itself paused (§7 DEF-DEEP-BACKFILL-ROLLOUT, switched to Mubasher in 0042). **Net: live IPRoyal egress is now BHB + (paused) backfill only.**
 
 ---
 
@@ -67,6 +67,7 @@ The scariest unknown — reaching the exchanges — is resolved. Findings:
 
 1. **Provider-aware routing** — runtime resolves adapter by `(venue, data_type)`; needs to also key on `endpoint_config.provider` (to run Yahoo alongside the primary) + an `ohlcv_backfill` branch. Gates Yahoo activation.
 2. **Per-venue endpoint fixes**: QE filings 404, ADX filings endpoint discovery, BHB filings URL (403 even via proxy), TDWL filings (only quotes moved to Mubasher).
+   - **Parser health (2026-07-15):** BHB quotes (id16), BHB/TDWL/QE filings (id17/2/11) fetch OK but stage **0 rows** in 7d — extractors broken (working siblings: DFM/ADX/MSX filings). BHB's two (proxy) are **paused** pending fix (`ingest.sources.active=false` + schedule off, reversible) to stop non-additive proxy spend; TDWL/QE filings (direct, no proxy cost) left running. Root-cause + fix in progress. Tracked under DEF-VENUE-FILINGS (§7).
 3. **Downstream verification**: confirm snapshots → parse → staging → cross-check → VERIFIED lake objects (the second half of the pipeline).
 4. **Live quote validation**: quotes are session-gated → validate when GCC markets open (Sun–Thu ~10:00 GST). ✅ **intraday-freeze fixed 2026-07-15** — `QUOTE.LAST` is day-keyed + every venue feed is single-source, and cross-check's `applyPending` left a live single-source object untouched (right for static facts), so each security's quote **froze at the day's first print** (max `revision`=1, ~1 intraday point/security/day, all venues). Fix: treat `QUOTE.LAST` as a live-latest single-source-authoritative feed — refresh the live object **in place** with the newest staged print each poll (fires `objects_quote_project_upd`) and consume its staging each pass so `primaryOf` can't keep re-selecting the oldest row. `ingestion/src/lake/cross-check.ts` (`LIVE_LATEST_TYPES`, `refreshLiveValue`, `newestCandidate`).
 
