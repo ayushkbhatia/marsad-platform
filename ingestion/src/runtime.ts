@@ -420,8 +420,17 @@ function dateOnly(iso: string): string {
   return t === -1 ? iso : iso.slice(0, t);
 }
 
-function mapQuote(source: SourceRecord, snapshotId: number, q: NormalizedQuote): StagingRow<NormalizedQuote> {
-  const session = dateOnly(q.asOf);
+function mapQuote(
+  source: SourceRecord,
+  snapshotId: number,
+  q: NormalizedQuote,
+  snapshotExtractedAtIso: string,
+): StagingRow<NormalizedQuote> {
+  // A quote board may carry no per-row print time (the ADX securityBoards feed has no timestamp field);
+  // fall back to the snapshot fetch time so the row still has a business time for both the natural-key
+  // session and extractedAt. Boards that DO self-timestamp (DFM/QE) keep their own asOf.
+  const asOf = q.asOf || snapshotExtractedAtIso;
+  const session = dateOnly(asOf);
   return {
     objectType: 'QUOTE.LAST',
     naturalKey: `QUOTE.LAST:${q.venue}:${q.ticker}:${session}`,
@@ -435,7 +444,7 @@ function mapQuote(source: SourceRecord, snapshotId: number, q: NormalizedQuote):
     unit: null,
     effectiveDate: session,
     priceSensitive: false,
-    extractedAt: q.asOf,
+    extractedAt: asOf,
   };
 }
 
@@ -585,7 +594,7 @@ export function mapRowsToStaging(
   for (const raw of rows) {
     const row = raw as Record<string, unknown>;
     if (isQuote(row)) {
-      out.push(mapQuote(source, snapshotId, raw as NormalizedQuote));
+      out.push(mapQuote(source, snapshotId, raw as NormalizedQuote, snapshotExtractedAtIso));
     } else if (isIndex(row)) {
       out.push(mapIndex(source, snapshotId, raw as NormalizedIndexLevel, source.venue));
     } else if (isOhlcv(row)) {
