@@ -57,14 +57,16 @@ export interface AdxFieldMap {
   asOfKind?: "iso" | "epoch_ms" | "epoch_s";
 }
 
-// A sensible default map matching the DFM-like shape the ADX board is EXPECTED to resemble
-// (recon: "ADX's board JSON is expected to resemble DFM's"). Overridden by the real captured map.
+// Real apigateway.adx.ae/adx/marketwatch/1.1/securityBoards/mainMarket shape, captured live
+// 2026-07-15 (90 rows under response.results). Each row: companySymbol, last, previousClose,
+// changePrice (absolute Δ), change (Δ %), open/high/low, volume, bid/ask, value, trades, marketCap.
+// The board rows carry NO per-row print timestamp, so asOf falls back to the snapshot fetch time.
 const DEFAULT_FIELD_MAP: AdxFieldMap = {
-  rowsPath: "data",
-  symbol: "symbol",
+  rowsPath: "response.results",
+  symbol: "companySymbol",
   last: "last",
-  change: "change",
-  changePct: "changePercent",
+  change: "changePrice",
+  changePct: "change",
   open: "open",
   high: "high",
   low: "low",
@@ -72,7 +74,6 @@ const DEFAULT_FIELD_MAP: AdxFieldMap = {
   volume: "volume",
   bid: "bid",
   ask: "ask",
-  asOf: "timestamp",
   asOfKind: "iso",
 };
 
@@ -218,9 +219,17 @@ async function fetchAdxBoard(ctx: FetchContext): Promise<FetchResult[]> {
       `ADX quotes fetch: source ${source.id} missing endpoint_config.actionDiscovery (network_capture) — cannot discover the board XHR`,
     );
   }
+  // Bootstrap navigates the marketwatch page → seats the Akamai/bpm WAF cookies (www.adx.ae/api/bpm/
+  // get-cookie + set-cookie). The board is the FIXED apigateway feed
+  // (apigateway.adx.ae/adx/marketwatch/1.1/securityBoards/mainMarket), so — exactly like ADX filings —
+  // prefer a pinned endpoint_config.urlTemplate and fetch it through the SAME cookie-seated browser
+  // context (matching TLS/JA3). This replaces the flaky network_capture-only path: the board XHR fires
+  // several seconds after the bpm cookie flow, so capturing it by pattern was unreliable ("found no
+  // URL"). With extract:'direct' + a pinned urlTemplate, bootstrap just seats cookies and the adapter
+  // fetches the known board URL deterministically. Falls back to the captured URL if no template is set.
   const boot = await browser.bootstrap(discovery);
-  logger.info("ADX board: resolved runtime board URL", { sourceId: source.id });
-  const url = boot.resolvedUrl;
+  const url = source.endpointConfig.urlTemplate ?? boot.resolvedUrl;
+  logger.info("ADX board: board URL", { sourceId: source.id, pinned: Boolean(source.endpointConfig.urlTemplate) });
   if (!url) {
     throw new Error(
       `ADX quotes fetch: source ${source.id} has no urlTemplate and bootstrap resolved no URL`,
