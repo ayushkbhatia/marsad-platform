@@ -9,6 +9,7 @@ import { makeKeyRatiosRecompute } from './key-ratios-recompute.js';
 import { makeOhlcvAccrual } from './ohlcv-accrual.js';
 import { makeScoreBatch } from './score-batch.js';
 import { makeNightly } from './nightly.js';
+import { makeStoragePurge } from './storage-purge.js';
 
 /**
  * Register the P1 ingestion handlers (CONTRACT §9) against a live
@@ -25,6 +26,7 @@ import { makeNightly } from './nightly.js';
  *   ohlcv_accrual          q_pipeline     daily quote-board close → ohlcv_daily (P1.7a)
  *   nightly                q_maintenance  02:00 GST omnibus → key_ratios rebuild (P1.7)
  *   score_batch            q_maintenance  04:00 GST Marsad Score re-rank (P1.7c)
+ *   storage_purge          q_maintenance  daily lake-raw Storage-API delete of purged blobs (02 §3)
  */
 export function registerIngestionHandlers(runtime: IngestionRuntime): HandlerName[] {
   const registrations: Array<[HandlerName, ReturnType<typeof makeQuotePoll>]> = [
@@ -36,6 +38,7 @@ export function registerIngestionHandlers(runtime: IngestionRuntime): HandlerNam
     ['ohlcv_accrual', makeOhlcvAccrual()],
     ['nightly', makeNightly(runtime)],
     ['score_batch', makeScoreBatch(runtime)],
+    ['storage_purge', makeStoragePurge()],
   ];
 
   for (const [name, handler] of registrations) {

@@ -9,8 +9,10 @@ export interface WorkerConfig {
   dbUrl: string;
   /**
    * Service-role key: documented least-privilege exception, used ONLY for
-   * Supabase Storage bucket uploads (raw-snapshots, filings-pdf). Never for
-   * PostgREST data access — all data access goes through dbUrl as marsad_worker.
+   * Supabase Storage bucket operations — uploads (raw-snapshots, filings-pdf)
+   * and the retention purge's deletes (storage_purge handler drains freed
+   * lake-raw paths). Never for PostgREST data access — all data access goes
+   * through dbUrl as marsad_worker.
    */
   supabaseServiceRoleKey: string | undefined;
   supabaseUrl: string | undefined;
