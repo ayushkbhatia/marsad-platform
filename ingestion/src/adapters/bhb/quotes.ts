@@ -1,16 +1,17 @@
 // BHB (Bahrain Bourse) — quotes TaskSpec.
 //
-// TRANSPORT REALITY (from captured fixtures, documented for the VPS):
-//   * bahrainbourse.com/en is a pure SPA SHELL — the captured 195 KB HTML carries NO quote rows;
-//     the market watch board is loaded from a JSON API on webapi.bahrainbourse.com/api (host
-//     confirmed live in the SPA bundle). The exact route is portal-generated and MUST be pinned on
-//     the VPS (ingest.sources.endpoint_config actionDiscovery: ^https://webapi\.bahrainbourse\.com
-//     /api/). BHB has NO WAF, so transport is plain 'http' with a capture-once discovery step.
-//   * No real JSON fixture could be captured in the sandbox (SPA shell only), so there is NO golden
-//     for BHB quotes yet. The parser is written to the standard webapi board shape and unit-tested
-//     against an INLINE shape-sample. FIRST VPS RUN MUST capture a real /api market-watch response
-//     into ingestion/fixtures/bhb/ and promote it to the golden. BHB's fully reliable data path is
-//     the EOD Daily-Trading-Summary XLSX (see eod.ts) — the GCC's easiest EOD source.
+// TRANSPORT REALITY (proven live 2026-07-15 via sticky proxy — see scratchpad BHB-API-CONTRACT):
+//   * bahrainbourse.com/en is a pure SPA SHELL; the whole market board comes from ONE JSON call:
+//       GET https://webapi.bahrainbourse.com/api/data/GetTabularData?storedProcdure=Quotes
+//     Auth header `Authorization: Bearer <APIKey>` (a PUBLIC client token shipped in the page JS,
+//     not a server secret) — pinned in ingest.sources[16].endpoint_config.headers on the VPS.
+//   * The webapi host is behind CLOUDFLARE and BHB's datacenter IP is geo-blocked, so the source is
+//     use_proxy=true + proxy_mode='sticky' (a fresh residential IP per poll passes CF; the rotating
+//     pool trips "Attention Required"). transport='http' (plain GET, no bootstrap/discovery needed).
+//   * Real board shape (41 rows): space-padded `symbol`, `Last Price`, `OPENING`, `High`, `Low`,
+//     `VOLUME`, `Change`, `Bid`/`Ask` (no PreviousClose/pct). Gives live last (10-min cron) + daily
+//     OHLCV. The parser handles these exact keys; unit-tested against the real shape in quotes.test.
+//     EOD close history is a separate per-security feed (see ohlcv.ts / DataExportCompanyProfile).
 
 import type {
   FetchContext,
@@ -99,7 +100,7 @@ function parseQuotes(snapshot: StoredSnapshot): ParseResult<NormalizedQuote> {
     const ticker = str(pick(r, ['Symbol', 'symbol', 'Code', 'code', 'Ticker', 'ticker', 'ISIN']));
     if (ticker === '') continue;
 
-    const last = num(pick(r, ['LastPrice', 'lastPrice', 'Price', 'price', 'ClosePrice', 'Close', 'LTP', 'last']));
+    const last = num(pick(r, ['Last Price', 'LastPrice', 'lastPrice', 'Price', 'price', 'ClosePrice', 'Close', 'LTP', 'last']));
     const prevClose = num(pick(r, ['PreviousClose', 'PrevClose', 'previousClose', 'prevClose']));
     let change = num(pick(r, ['Change', 'change', 'NetChange', 'PriceChange']));
     let changePct = num(pick(r, ['PercentChange', 'percentChange', 'ChangePercent', 'changePercent', 'PctChange']));
@@ -116,10 +117,10 @@ function parseQuotes(snapshot: StoredSnapshot): ParseResult<NormalizedQuote> {
       last,
       change,
       changePct,
-      open: num(pick(r, ['Open', 'open', 'OpenPrice'])),
+      open: num(pick(r, ['OPENING', 'Open', 'open', 'OpenPrice'])),
       high: num(pick(r, ['High', 'high', 'DayHigh', 'HighPrice'])),
       low: num(pick(r, ['Low', 'low', 'DayLow', 'LowPrice'])),
-      volume: num(pick(r, ['Volume', 'volume', 'TradedVolume', 'Quantity'])),
+      volume: num(pick(r, ['VOLUME', 'Volume', 'volume', 'TradedVolume', 'Quantity'])),
       week52High: num(pick(r, ['Week52High', 'High52', 'YearHigh'])),
       week52Low: num(pick(r, ['Week52Low', 'Low52', 'YearLow'])),
       bid: num(pick(r, ['BidPrice', 'Bid', 'bid'])),

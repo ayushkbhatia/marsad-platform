@@ -23,29 +23,37 @@ function snap(body: Buffer): StoredSnapshot {
   };
 }
 
-test('BHB quotes: parses a webapi-shape board with derived change', () => {
+test('BHB quotes: parses the real webapi GetTabularData?storedProcdure=Quotes board', () => {
+  // REAL shape captured live 2026-07-15 (sticky proxy): space-padded `symbol`,
+  // `Last Price`/`OPENING`/`VOLUME` (spaced/upper keys), Change absolute, no prevClose.
   const board = {
+    status: 1,
     data: [
-      { Symbol: 'AUB', LastPrice: 0.98, PreviousClose: 0.96, Open: 0.965, High: 0.99, Low: 0.96, Volume: 1200000 },
-      { Symbol: 'BATELCO', LastPrice: 0.52, Change: -0.01, PercentChange: -1.8868, Volume: 340000 },
+      { symbol: 'ABC                 ', currency: 'USD                 ', Bid: 0.3, 'Bid Vol': 25396.0, Ask: 0.302, 'Ask Vol': 30000.0, 'Last Price': 0.3, Change: -0.001, OPENING: 0.305, High: 0.31, Low: 0.3, VOLUME: 84604.0, SYS_TREND: '-' },
+      // legacy/alt shape carrying PreviousClose to keep exercising change derivation
+      { Symbol: 'GFH', LastPrice: 0.52, PreviousClose: 0.53, Volume: 340000 },
     ],
   };
   const { rows, parserVersion } = bhbQuotes.parse(snap(Buffer.from(JSON.stringify(board), 'utf8')));
   assert.equal(parserVersion, bhbQuotes.parserVersion);
   assert.equal(rows.length, 2);
 
-  const aub = rows.find((r) => r.ticker === 'AUB')!;
-  assert.equal(aub.venue, 'BHB');
-  assert.equal(aub.last, 0.98);
-  assert.equal(aub.high, 0.99);
-  assert.equal(aub.volume, 1200000);
-  assert.equal(aub.change, 0.02); // 0.98 - 0.96
-  assert.equal(aub.changePct, 2.0833); // 0.02/0.96*100 rounded to 4dp
+  const abc = rows.find((r) => r.ticker === 'ABC')!; // space-padded symbol must be trimmed
+  assert.equal(abc.venue, 'BHB');
+  assert.equal(abc.last, 0.3); // 'Last Price'
+  assert.equal(abc.open, 0.305); // 'OPENING'
+  assert.equal(abc.high, 0.31);
+  assert.equal(abc.low, 0.3);
+  assert.equal(abc.volume, 84604); // 'VOLUME'
+  assert.equal(abc.change, -0.001);
+  assert.equal(abc.bid, 0.3);
+  assert.equal(abc.ask, 0.302);
+  assert.equal(abc.changePct, null); // no prevClose / pct on the real board
+  assert.equal(abc.asOf, '2026-07-13T10:00:00.000Z');
 
-  const bat = rows.find((r) => r.ticker === 'BATELCO')!;
-  assert.equal(bat.change, -0.01);
-  assert.equal(bat.changePct, -1.8868);
-  assert.equal(bat.asOf, '2026-07-13T10:00:00.000Z');
+  const gfh = rows.find((r) => r.ticker === 'GFH')!;
+  assert.equal(gfh.change, -0.01); // 0.52 - 0.53 derived
+  assert.equal(gfh.changePct, -1.8868); // -0.01/0.53*100
 });
 
 test('BHB quotes: non-JSON body yields zero rows (PARSE_DRIFT), not a throw', () => {
