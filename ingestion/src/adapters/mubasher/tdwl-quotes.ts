@@ -47,8 +47,11 @@ import type {
 
 const VENUE: VenueCode = "TDWL";
 
-/** Bump ⇒ old snapshots become replay-eligible (CONTRACT §10). */
-export const MUBASHER_TDWL_QUOTES_PARSER_VERSION = 1;
+/**
+ * Bump ⇒ old snapshots become replay-eligible (CONTRACT §10).
+ * v2 (2026-07-15): timestamps parsed as UTC, not AST−3h. as_of output shifts +3h vs v1 (bugfix).
+ */
+export const MUBASHER_TDWL_QUOTES_PARSER_VERSION = 2;
 
 /** One row of the Mubasher /stocks/prices board. Every numeric field arrives as a STRING. */
 export interface MubasherPriceRow {
@@ -91,8 +94,11 @@ export function parseMubasherNumber(v: unknown): number | null {
 }
 
 /**
- * Convert a Mubasher wall-clock timestamp "YYYY-MM-DD HH:MM:SS" to an ISO-8601 UTC instant.
- * Mubasher prints Saudi local time (AST = UTC+3, no DST) with no zone suffix, so subtract 3h.
+ * Convert a Mubasher board timestamp "YYYY-MM-DD HH:MM:SS" to an ISO-8601 UTC instant.
+ * The Mubasher /stocks/prices JSON feed prints these fields already in UTC (verified 2026-07-15 against
+ * the live board + owner-confirmed ~15-min delay: a mid-session Aramco print "10:59:55" captured at
+ * 14:16 Riyadh is "now − 15 min" ONLY when read as UTC; the earlier AST−3h assumption backdated every
+ * TDWL quote by exactly 3h). Parse the digits verbatim as UTC — do NOT apply a zone offset.
  * Pure — parses the literal only, no Date.now(). Returns null on unparseable input (the writer then
  * falls back to captured_at for as_of).
  */
@@ -110,8 +116,8 @@ export function parseMubasherTimestampToUtc(v: unknown): string | null {
   const min = Number(mi);
   const sec = se ? Number(se) : 0;
   if (mon < 0 || mon > 11 || day < 1 || day > 31 || hour > 23 || min > 59 || sec > 59) return null;
-  const AST_OFFSET_MS = 3 * 60 * 60 * 1000; // AST is UTC+3, no DST
-  const utcMs = Date.UTC(year, mon, day, hour, min, sec) - AST_OFFSET_MS;
+  // The feed's timestamps are already UTC (see doc above) — parse the digits verbatim, no zone shift.
+  const utcMs = Date.UTC(year, mon, day, hour, min, sec);
   if (!Number.isFinite(utcMs)) return null;
   return new Date(utcMs).toISOString();
 }
@@ -129,7 +135,7 @@ export function mapMubasherRow(
   if (code === "") return null; // no natural key → cannot resolve security_id
 
   // as_of = exchange delayed print time. Prefer the per-row updatedAt, fall back to the board
-  // feed timestamp, else '' (writer stamps captured_at). All are AST wall-clock → converted to UTC.
+  // feed timestamp, else '' (writer stamps captured_at). All are UTC wall-clock (parsed verbatim).
   const asOf = parseMubasherTimestampToUtc(row.updatedAt) ?? boardAsOf ?? "";
 
   return {
