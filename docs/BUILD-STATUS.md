@@ -101,8 +101,8 @@ Two feeds fill `ohlcv_daily` — **both required, different cadences, do not con
   fully seeded the injected list is empty and `runTask` skips the fetch (graceful stop; EOD accrual +
   intraday quotes carry the lake forward). A one-shot `range=2y` GET returns the provider's full feasible
   window, so "backfilled once" = "as deep as the provider offers" — no day-count threshold needed. Live
-  after apply: QE 49/49 stamped → 0 to re-fetch; TDWL 374/387 (finishing); ADX/MSX/BHB still 0 (their
-  backfill sources have not produced — separate issue).
+  2026-07-15 (post `20260715145325` retro-stamp): TDWL 387/387, DFM 55/55, QE 49/49, ADX 79/93, MSX 25/68
+  (advancing chunk-by-chunk), BHB 0/41 (backfill not yet landed).
 - **EOD accrual (ongoing, +1 bar/security/trading-day):** rolls the intraday `quotes_latest` ticks
   into that day's O/H/L/C/volume **at close** (cadence is DAILY, not the ~10-min quote cadence).
   ⏳ **wired but NOT YET VALIDATED** — migration 0028 (`accrue_ohlcv_from_quotes` + `ohlcv_accrual`
@@ -134,6 +134,18 @@ Two feeds fill `ohlcv_daily` — **both required, different cadences, do not con
   backfill bar is pending, auto-waking when MSX/BHB/remaining-ADX staging lands. Verified live: objectify
   returns 0 with no new `parse_run`; sweep cadence now `*/5`. No data dropped — parking only stops
   re-sweeping. Note this does **not** implement DEF-DEEP-BACKFILL-ROLLOUT item (3) (lane reservation).
+- **Stamp regression fixed (`20260715145325`, 2026-07-15):** the 0045 recreate of
+  `ops.objectify_ohlcv_backfill` was based on the 0040 body and **dropped the 0041 `stamp` CTE**, so no
+  security got `ohlcv_backfilled_at` stamped when its backfill bars landed. Blast radius: the coverage
+  guard (`listedTickersForVenue`, chunk 25, `is null`, order by ticker) re-injected the **same first-25
+  chunk forever** — MSX landed 66k bars for 25 securities with 0 stamped, 307 self-chained jobs / 2,150
+  fetches in 24h, never advancing past chunk 1 and never emptying. Fix: recreated the function merging
+  **both** behaviors (0045 self-gate early-return + 0041 stamp CTE) and retro-stamped every security
+  holding a live `OHLCV.CLOSE` lake.object (0041 step 2's idempotent update). Verified live: MSX 25
+  stamped, next injected chunk = 25 *different* tickers (zero overlap with the landed set) — the guard
+  now advances chunk-by-chunk and empties at full drain; BHB stamps will fire as its backfill lands.
+  Lesson: a `create or replace` on a hot function must diff against the **latest** applied body, not the
+  version it was authored from.
 
 ### P1.7b — Fundamentals + ratios (code spine landed 2026-07-14)
 The **derived data path is built + tested**; it goes live the moment `financial_statements` is populated.
