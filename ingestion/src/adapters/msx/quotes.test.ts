@@ -65,3 +65,36 @@ test('MSX quotes: empty/suspended stub yields zero rows (no bogus quote)', () =>
   const { rows } = msxQuotes.parse(snap);
   assert.equal(rows.length, 0);
 });
+
+// Board mode: the live MarketTicker JSON (VPS-verified shape) → one quote per row, with change
+// derived from last + the % move. OHLC/volume are null (not on this board — OHLCV via the export).
+test('MSX quotes: parses the MarketTicker board JSON into many quotes', () => {
+  const board = {
+    d: [
+      { Symbol: 'AACT', LTP: '0.143', Change: '-2.72', ClosePrice: '0.143', ShortNameEn: 'AL ANWAR CERAMIC' },
+      { Symbol: 'BKMB', LTP: '0.400', Change: '0.00', ClosePrice: '0.400', ShortNameEn: 'BANK MUSCAT' },
+      { Symbol: '', LTP: '1.00', Change: '1.0' }, // no symbol → skipped
+    ],
+  };
+  const snap: StoredSnapshot = {
+    snapshotId: 2, sourceId: 1, venue: 'MSX', dataType: 'quotes', contentType: 'application/json',
+    externalId: null, body: Buffer.from(JSON.stringify(board), 'utf8'),
+    fetchedAt: '2026-07-15T08:30:00.000Z', meta: { lang: 'en', board: true },
+  };
+  const { rows } = msxQuotes.parse(snap);
+  assert.equal(rows.length, 2); // blank-symbol row skipped
+
+  const aact = rows.find((r) => r.ticker === 'AACT')!;
+  assert.equal(aact.venue, 'MSX');
+  assert.equal(aact.last, 0.143);
+  assert.equal(aact.changePct, -2.72);
+  // prevClose = 0.143 / (1 - 0.0272) = 0.147004…; change = 0.143 - 0.147004 = -0.004004
+  assert.ok(Math.abs(aact.change! - -0.004) < 1e-3);
+  assert.equal(aact.open, null);
+  assert.equal(aact.volume, null);
+  assert.equal(aact.asOf, '2026-07-15T08:30:00.000Z');
+
+  const bkmb = rows.find((r) => r.ticker === 'BKMB')!;
+  assert.equal(bkmb.changePct, 0);
+  assert.equal(bkmb.change, 0); // flat → zero move
+});
