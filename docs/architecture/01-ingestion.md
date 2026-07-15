@@ -512,10 +512,14 @@ pdf_storage_key, content_type, state)` is the clean, sha256-keyed hand-off. The 
 re-announced identical PDF enqueues exactly once, and a re-fetch of the same bytes is a Storage upsert
 no-op — snapshot-first immutability holds end to end.
 
-**Per-venue transport.** DFM/MSX carry a direct `pdfUrl` on the list ref (api2.dfm.ae CDN, msx.om) →
-plain http. TDWL/ADX detail attachments sit behind Akamai → `http_bootstrap` with an `actionDiscovery`
-`direct` cookie-seat. BHB has only an HTML detail page → the `bhbExtractPdfUrl` resolver scrapes the PDF
-href. Live reactivation status is tracked in BUILD-STATUS §7 (BHB done; TDWL/QE parked — see §2.1/§2.4).
+**Per-venue transport.** DFM/MSX/ADX carry a direct per-announcement `pdfUrl` on the list ref
+(api2.dfm.ae CDN, msx.om RSS `<Link>`, ADX `urlEn`) → the drain downloads it directly (no resolver);
+TDWL/ADX attachment hosts sit behind Akamai → `http_bootstrap` with an `actionDiscovery` `direct`
+cookie-seat. **BHB is list-only**: its AnnouncementDetail page serves the real attachment only via
+client-side SharePoint JS (`spsdisco.aspx`) — the static HTML carries just site-chrome `.pdf` links — so
+its `filing_detail` source is deactivated and no resolver is wired (per-announcement PDF is deferred to
+the BHB webapi attachment endpoint). Live reactivation status is tracked in BUILD-STATUS §7 (BHB list
+done; BHB PDF, TDWL, QE parked with precise triggers).
 
 ---
 

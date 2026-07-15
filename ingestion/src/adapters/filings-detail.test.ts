@@ -56,8 +56,10 @@ test('bhbExtractPdfUrl: first .pdf href → absolute; getattachment fallback; no
   assert.equal(bhbExtractPdfUrl(Buffer.from('<p>no attachment</p>'), 'text/html'), null);
 });
 
-test('BHB is the only venue with a PDF resolver (others carry a direct pdfUrl on the ref)', () => {
-  assert.ok(FILING_PDF_RESOLVERS.BHB, 'BHB resolves its PDF off the HTML detail page');
-  assert.equal(FILING_PDF_RESOLVERS.DFM, undefined);
-  assert.equal(FILING_PDF_RESOLVERS.MSX, undefined);
+test('no venue is wired to an HTML PDF resolver (all live venues carry a direct pdfUrl on the ref)', () => {
+  // BHB was the only HTML-scrape candidate but its real attachment loads via JS (chrome-only .pdf
+  // hrefs in static HTML), so it is deliberately unwired — BHB filings are list-only. DFM/ADX/MSX/TDWL
+  // carry a direct per-announcement pdfUrl, so they need no resolver.
+  assert.equal(Object.keys(FILING_PDF_RESOLVERS).length, 0);
+  assert.equal(FILING_PDF_RESOLVERS.BHB, undefined);
 });

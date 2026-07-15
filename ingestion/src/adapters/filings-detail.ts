@@ -67,9 +67,15 @@ export function filingStorageKey(
 }
 
 // ---------------------------------------------------------------------------
-// BHB — the list ref is the SharePoint news page (linkUrl), not a direct PDF. Extract the first PDF
-// href. BHB documents live under /getattachment/… or a DAM path ending .pdf. Best-effort + safe: if
-// no PDF href is present, return null and the drain marks the item 'nopdf' (clean terminal, no poison).
+// BHB — the list ref is a SharePoint AnnouncementDetail page (linkUrl), not a direct PDF. Verified
+// live 2026-07-16: the announcement's REAL attachment is NOT in the static HTML — it is loaded client-
+// side via the SharePoint social/discovery API (_vti_bin/spsdisco.aspx). The only .pdf hrefs in the
+// served HTML are site CHROME (footer links: Code-of-Ethics-Eng.pdf, Corporate-Governance-Policy.pdf,
+// …), so a naive "first .pdf href" grabs the SAME wrong document for every announcement. BHB per-
+// announcement PDF extraction therefore needs the webapi attachment endpoint (a follow-up,
+// DEF-VENUE-FILINGS-BHB-PDF in §7) and is deliberately NOT wired below — BHB filings are list-only
+// (announcements publish to public.filings; the detail source id37 stays inactive). This pure helper
+// is kept for the day BHB exposes a real per-announcement .pdf href.
 // ---------------------------------------------------------------------------
 
 const BHB_ORIGIN = 'https://bahrainbourse.com';
@@ -92,7 +98,12 @@ function toAbsolute(u: string): string {
   return `${BHB_ORIGIN}${encoded.startsWith('/') ? '' : '/'}${encoded}`;
 }
 
-/** Per-venue resolvers. Absent ⇒ the venue carries a direct pdfUrl on the list ref (no scrape). */
-export const FILING_PDF_RESOLVERS: Partial<Record<VenueCode, FilingPdfResolver>> = {
-  BHB: { extractPdfUrl: bhbExtractPdfUrl },
-};
+/**
+ * Per-venue detail-page → PDF resolvers. Absent for a venue ⇒ its list ref carries a direct pdfUrl
+ * (DFM eFsah resources[], ADX urlEn, MSX RSS <Link>, TDWL attachmentUrl) which the drain downloads
+ * directly — no HTML scrape. EMPTY today: BHB was the only candidate for HTML scraping, but its real
+ * attachment loads via JS (see bhbExtractPdfUrl note), so BHB filings are list-only until its webapi
+ * attachment endpoint is pinned. A venue is added here only when its detail page serves the real
+ * per-announcement PDF href in static HTML.
+ */
+export const FILING_PDF_RESOLVERS: Partial<Record<VenueCode, FilingPdfResolver>> = {};
