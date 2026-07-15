@@ -15,8 +15,15 @@ function openCloseGateRows(tradeDate = '2026-07-13', closeLocal = '13:00:00') {
       local_date: tradeDate,
       close_local: closeLocal,
       venue_active: true,
+      trading_day: true,
+      holiday: false,
     },
   ];
+}
+
+/** One canned gate row = the open row with field overrides. */
+function gateRow(overrides: Record<string, unknown> = {}) {
+  return [{ ...openCloseGateRows()[0]!, ...overrides }];
 }
 
 test('eod_sweep: runs eod sources for the venue with the trade date threaded through', async () => {
@@ -82,14 +89,7 @@ test('eod_sweep: no active eod sources ⇒ no-op', async () => {
 test('eod_sweep: outside the post-close window ⇒ skipped, no fetch', async () => {
   const fakeSql = makeFakeSql();
   // now() is well before the venue close on the trade date ⇒ gate closed.
-  fakeSql.on('public.market_sessions', [
-    {
-      local_time: '09:30:00',
-      local_date: '2026-07-13',
-      close_local: '13:00:00',
-      venue_active: true,
-    },
-  ]);
+  fakeSql.on('public.market_sessions', gateRow({ local_time: '09:30:00' }));
   const runtime = makeFakeRuntime();
   await makeEodSweep(runtime)(
     { handler: 'eod_sweep', venue: 'BHB', tradeDate: '2026-07-13' },
@@ -104,25 +104,40 @@ test('eodCloseGate: open at close, closed before close and past window', async (
   assert.deepEqual(await eodCloseGate(openSql.sql, 'BHB', '2026-07-13'), { open: true });
 
   const beforeSql = makeFakeSql();
-  beforeSql.on('public.market_sessions', [
-    { local_time: '12:59:00', local_date: '2026-07-13', close_local: '13:00:00', venue_active: true },
-  ]);
+  beforeSql.on('public.market_sessions', gateRow({ local_time: '12:59:00' }));
   const before = await eodCloseGate(beforeSql.sql, 'BHB', '2026-07-13');
   assert.equal(before.open, false);
 
   const pastSql = makeFakeSql();
-  pastSql.on('public.market_sessions', [
-    { local_time: '18:00:00', local_date: '2026-07-13', close_local: '13:00:00', venue_active: true },
-  ]);
+  pastSql.on('public.market_sessions', gateRow({ local_time: '18:00:00' }));
   const past = await eodCloseGate(pastSql.sql, 'BHB', '2026-07-13');
   assert.equal(past.open, false);
 
   const wrongDaySql = makeFakeSql();
-  wrongDaySql.on('public.market_sessions', [
-    { local_time: '13:30:00', local_date: '2026-07-14', close_local: '13:00:00', venue_active: true },
-  ]);
+  wrongDaySql.on('public.market_sessions', gateRow({ local_time: '13:30:00', local_date: '2026-07-14' }));
   const wrongDay = await eodCloseGate(wrongDaySql.sql, 'BHB', '2026-07-13');
   assert.equal(wrongDay.open, false);
+});
+
+test('eodCloseGate: closed on weekends and market holidays even inside the post-close window', async () => {
+  // The eod_bulletin schedule is session_only=false, so the gate is the ONLY
+  // calendar check: a BHB Friday (dow ∉ trading_days) or a seeded holiday must
+  // close the gate even at close+30, or the sweep fetches the PREVIOUS
+  // session's bulletin stamped with the non-trading tradeDate.
+  const weekendSql = makeFakeSql();
+  weekendSql.on('public.market_sessions', gateRow({ trading_day: false }));
+  const weekend = await eodCloseGate(weekendSql.sql, 'BHB', '2026-07-13');
+  assert.deepEqual(weekend, { open: false, reason: 'non_trading_day' });
+
+  const holidaySql = makeFakeSql();
+  holidaySql.on('public.market_sessions', gateRow({ holiday: true }));
+  const holiday = await eodCloseGate(holidaySql.sql, 'BHB', '2026-07-13');
+  assert.deepEqual(holiday, { open: false, reason: 'market_holiday' });
+
+  // And the gate query must actually consult the calendar tables.
+  const q = weekendSql.queries.find((x) => x.text.includes('public.market_sessions'));
+  assert.ok(q!.text.includes('trading_days'), 'gate reads venues.trading_days');
+  assert.ok(q!.text.includes('public.market_holidays'), 'gate reads market_holidays');
 });
 
 test('eodCloseGate: date/time columns are cast to text in SQL (postgres.js Date-object regression)', async () => {

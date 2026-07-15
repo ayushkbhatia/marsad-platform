@@ -27,7 +27,11 @@ const POST_CLOSE_WINDOW_MINUTES = 180;
  *
  * Returns { open: true } when the run is inside the post-close window, else
  * { open: false, reason } describing why it was skipped (for the fetch_log /
- * logs). A venue with no session row for the trade date is treated as closed.
+ * logs). A venue with no session row for the trade date is treated as closed,
+ * and so is a weekend (venues.trading_days, 0=Sun…6=Sat like extract(dow)) or a
+ * market_holidays date — the schedule is session_only=false, so without these
+ * checks the gate would open in the post-close window of a NON-trading day and
+ * fetch the previous session's bulletin stamped with the wrong tradeDate.
  */
 export async function eodCloseGate(
   sql: Sql,
@@ -36,7 +40,7 @@ export async function eodCloseGate(
 ): Promise<{ open: true } | { open: false; reason: string }> {
   const rows = (await sql`
     with v as (
-      select timezone from public.venues where code = ${venue} and is_active
+      select timezone, trading_days from public.venues where code = ${venue} and is_active
     ),
     now_local as (
       select (now() at time zone (select timezone from v)) as ts
@@ -54,12 +58,22 @@ export async function eodCloseGate(
       to_char((select ts from now_local), 'HH24:MI:SS')            as local_time,
       to_char((select ts from now_local)::date, 'YYYY-MM-DD')      as local_date,
       (select close_local::text from session)                      as close_local,
-      (select exists (select 1 from v))                            as venue_active
+      (select exists (select 1 from v))                            as venue_active,
+      -- NOTE: "= any (v.trading_days)" needs the array column in scope (cross
+      -- join), NOT "= any ((select ...))" — the subquery form makes Postgres
+      -- compare int = int[] and throws.
+      (select extract(dow from nl.ts)::int = any (v.trading_days)
+         from now_local nl cross join v)                           as trading_day,
+      exists (select 1 from public.market_holidays mh
+              where mh.venue_code = ${venue}
+                and mh.holiday_date = (select ts::date from now_local)) as holiday
   `) as unknown as Array<{
     local_time: string | null;
     local_date: string | null;
     close_local: string | null;
     venue_active: boolean;
+    trading_day: boolean | null;
+    holiday: boolean;
   }>;
   // local_time/local_date MUST be produced with to_char: postgres.js parses bare
   // date/timestamp columns into JS Date objects (db.ts registers no custom
@@ -70,6 +84,12 @@ export async function eodCloseGate(
   const row = rows[0];
   if (!row || !row.venue_active) {
     return { open: false, reason: 'venue_inactive_or_unknown' };
+  }
+  if (!row.trading_day) {
+    return { open: false, reason: 'non_trading_day' };
+  }
+  if (row.holiday) {
+    return { open: false, reason: 'market_holiday' };
   }
   if (!row.close_local) {
     return { open: false, reason: 'no_session_for_trade_date' };
