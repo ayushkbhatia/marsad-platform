@@ -1,11 +1,15 @@
 // QE (Qatar Stock Exchange) — quotes TaskSpec.
 //
-// fetch  = impure: GET the MarketWatch.txt board (endpoint comes from ctx.source, never hardcoded).
+// fetch  = impure: the LIVE board is a POST to www.qe.com.qa/wp/mw_app/mw.php with a
+//          form body (f=MarketWatch); endpoint/method/body come from ctx.source, never
+//          hardcoded. (The legacy /pps/qse_files/MarketWatch.txt path is a STALE static
+//          file — Last-Modified Oct 2025, byte-identical intraday — so it was repointed
+//          to mw.php; migration 20260715085252. The fetch honors cfg.method for both.)
 // parse  = PURE: bytes of a stored snapshot -> NormalizedQuote[]. No I/O, no Date.now(), replayable.
 //
 // Fixture: ingestion/fixtures/qe/marketwatch.txt (real, verbatim, 107 rows, HTTP 200).
-// Shape is clean JSON despite a text/plain-ish content-type: { total,page,records, rows:[ {...} ] }.
-// Field map is per CONTRACT.md §6.1 (QE field map, verbatim).
+// mw.php returns the SAME schema: { total,page,records, rows:[ {...} ] } (clean JSON despite a
+// text/plain-ish content-type). Field map is per CONTRACT.md §6.1 (QE field map, verbatim).
 
 import type {
   FetchContext,
@@ -80,12 +84,19 @@ function price(v: string | undefined): number | null {
 async function fetchQuotes(ctx: FetchContext): Promise<FetchResult[]> {
   const cfg = ctx.source.endpointConfig;
   const url = cfg.urlTemplate ?? ctx.source.entryUrl;
-  const res = await ctx.http.get(url, {
+  // The live board (www.qe.com.qa/wp/mw_app/mw.php) is a POST with a form body
+  // (f=MarketWatch); the legacy static MarketWatch.txt was a GET. Honor the
+  // configured method so one adapter serves both. Slow origin (intermittently
+  // >15s) → honor the source's timeout override (paired with the fetcher's 30s
+  // connect ceiling) so the native board doesn't silently drop onto Yahoo.
+  const opts = {
     ...(cfg.headers ? { headers: cfg.headers } : {}),
-    // MarketWatch.txt is a slow origin (intermittently >15s); honor the source's
-    // timeout override so the native board doesn't silently time out onto Yahoo.
     ...(cfg.timeoutMs ? { timeoutMs: cfg.timeoutMs } : {}),
-  });
+  };
+  const res =
+    (cfg.method ?? 'GET') === 'POST'
+      ? await ctx.http.request(url, { method: 'POST', body: cfg.body ?? '', ...opts })
+      : await ctx.http.get(url, opts);
   return [
     {
       url: res.url,
