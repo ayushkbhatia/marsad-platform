@@ -63,6 +63,20 @@ Transport legend: **HTTP** = plain fetch of HTML/JSON/XLSX works; **HTTP+bootstr
 fetch works after a Playwright session establishes cookies/tokens (rotated on a schedule);
 **Headless** = full browser render required.
 
+**Proxy-egress policy (IPRoyal is metered — treat it as a scarce, paid resource).**
+`endpoint_config.use_proxy=true` routes a source through the IPRoyal residential proxy and is
+**billed per outbound byte**; everything else egresses the VPS's own IP for free. The rule:
+**only proxy a host that genuinely CANNOT be reached from the VPS's direct IP** — a hard
+IP-geofence or WAF IP-block (e.g. BHB / `bahrainbourse.com`, Radware-blocked from datacenter
+IPs). Before ever setting `use_proxy`, **test the host direct first** (`curl` from the VPS); if
+it returns 200 direct, it must stay `use_proxy=false`. A high-volume host that merely *rate-limits*
+(HTTP 429, e.g. Yahoo under a many-symbol backfill) does **not** qualify — mitigate with lower
+cadence / throttling / chunking, not the proxy; reach for proxy only if direct is genuinely blocked.
+All live board/quote polling (TDWL/DFM/QE/ADX/MSX — single-fetch native boards) is **direct**.
+Audit periodically: `select id, venue, data_type, active from ingest.sources where
+(endpoint_config->>'use_proxy')::bool` — every row must justify *why direct fails*, or be flipped
+to `use_proxy=false`. See `docs/architecture/06-infra-cost.md` and memory `marsad-bandwidth-attribution`.
+
 ### 2.1 TDWL — Saudi Exchange (Tadawul), `saudiexchange.sa`
 
 The largest venue (~230 main-market listings + Nomu) and the highest-churn source. The site is an
