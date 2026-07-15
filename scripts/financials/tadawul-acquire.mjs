@@ -111,11 +111,12 @@ async function acquire() {
           const u = [...document.querySelectorAll('a,iframe,object,embed')].map((e) => e.src || e.data || e.href).find((x) => x && /Resources\/fsPdf\//i.test(x) && /\.pdf(\?|$)/i.test(x));
           if (!u) return null;
           const r = await fetch(u, { headers: { Accept: 'application/pdf' } });
+          const ct = r.headers.get('content-type');
           const b = new Uint8Array(await r.arrayBuffer()); let bin = ''; for (let i = 0; i < b.length; i++) bin += String.fromCharCode(b[i]);
-          return { u, status: r.status, len: b.length, magic: String.fromCharCode(...b.slice(0, 5)), b64: btoa(bin) };
+          return { u, status: r.status, ct, len: b.length, magic: String.fromCharCode(...b.slice(0, 5)), head: bin.slice(0, 100), b64: btoa(bin) };
         });
         if (!got) { log(`  ${row.cs} ${row.title.slice(0, 40)} — no fsPdf`); continue; }
-        if (got.magic !== '%PDF') { log(`  ${row.cs} download failed ${got.status}`); continue; }
+        if (!got.magic || !got.magic.startsWith('%PDF')) { log(`  ${row.cs} download failed status=${got.status} ct=${got.ct} len=${got.len} url=${got.u.slice(-40)}`); continue; }
         acquired.push({ ...row, fsPdf: got.u, buf: Buffer.from(got.b64, 'base64') });
         log(`  ✓ ${row.cs} ${row.title.slice(0, 45)} — ${got.len}B`);
       } catch (e) { log(`  row err ${String(e).slice(0, 60)}`); }
