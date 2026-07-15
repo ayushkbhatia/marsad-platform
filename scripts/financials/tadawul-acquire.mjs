@@ -105,19 +105,19 @@ async function acquire() {
       try {
         await nav(row.href); await page.waitForTimeout(9000);
         const frame = page.frames().find((f) => /announcements-details/i.test(f.url())) || page.frames().find((f) => f !== page.mainFrame());
-        const fsPdf = frame && await frame.evaluate(() => {
-          const u = [...document.querySelectorAll('a,iframe,object,embed')].map((e) => e.src || e.data || e.href).find((x) => x && /Resources\/fsPdf\//i.test(x) && /\.pdf$/i.test(x));
-          return u || null;
-        });
-        if (!fsPdf) { log(`  ${row.cs} ${row.title.slice(0, 40)} — no fsPdf`); continue; }
-        const dl = await page.evaluate(async (u) => {
+        // Find AND download the fsPdf INSIDE the detail frame (correct referer/session — a
+        // main-page or raw-request fetch gets Akamai-challenged; the frame context is warmed).
+        const got = frame && await frame.evaluate(async () => {
+          const u = [...document.querySelectorAll('a,iframe,object,embed')].map((e) => e.src || e.data || e.href).find((x) => x && /Resources\/fsPdf\//i.test(x) && /\.pdf(\?|$)/i.test(x));
+          if (!u) return null;
           const r = await fetch(u, { headers: { Accept: 'application/pdf' } });
           const b = new Uint8Array(await r.arrayBuffer()); let bin = ''; for (let i = 0; i < b.length; i++) bin += String.fromCharCode(b[i]);
-          return { status: r.status, len: b.length, magic: String.fromCharCode(...b.slice(0, 5)), b64: btoa(bin) };
-        }, fsPdf);
-        if (dl.magic !== '%PDF') { log(`  ${row.cs} download failed ${dl.status}`); continue; }
-        acquired.push({ ...row, fsPdf, buf: Buffer.from(dl.b64, 'base64') });
-        log(`  ✓ ${row.cs} ${row.title.slice(0, 45)} — ${dl.len}B`);
+          return { u, status: r.status, len: b.length, magic: String.fromCharCode(...b.slice(0, 5)), b64: btoa(bin) };
+        });
+        if (!got) { log(`  ${row.cs} ${row.title.slice(0, 40)} — no fsPdf`); continue; }
+        if (got.magic !== '%PDF') { log(`  ${row.cs} download failed ${got.status}`); continue; }
+        acquired.push({ ...row, fsPdf: got.u, buf: Buffer.from(got.b64, 'base64') });
+        log(`  ✓ ${row.cs} ${row.title.slice(0, 45)} — ${got.len}B`);
       } catch (e) { log(`  row err ${String(e).slice(0, 60)}`); }
     }
   } finally { await browser.close(); }
