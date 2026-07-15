@@ -121,14 +121,17 @@ test("mapAdxRow derives change/pct from prevClose when omitted", () => {
   assert.equal(q!.changePct, 10);
 });
 
-test("parseAdxQuotes uses DEFAULT map when meta.fieldMap absent", () => {
-  const body = JSON.stringify({ data: [{ symbol: "AAA", last: "5.0", previousClose: "4.0", volume: "10", timestamp: "2026-07-13T12:00:00Z" }] });
+test("parseAdxQuotes uses DEFAULT map (real securityBoards/mainMarket shape) when meta.fieldMap absent", () => {
+  // Mirrors the live apigateway board: rows under response.results, companySymbol/last/previousClose/
+  // changePrice(abs)/change(pct)/volume.
+  const body = JSON.stringify({ response: { results: [{ companySymbol: "AAA", last: 5.0, previousClose: 4.0, changePrice: 1.0, change: 25.0, volume: 10 }] } });
   const snap = makeSnapshot({ venue: "ADX", dataType: "quotes", body, contentType: "application/json" });
   const { rows } = parseAdxQuotes(snap);
   assert.equal(rows.length, 1);
   assert.equal(rows[0]!.ticker, "AAA");
   assert.equal(rows[0]!.last, 5);
-  assert.equal(rows[0]!.change, 1); // 5 - 4
+  assert.equal(rows[0]!.change, 1); // changePrice (absolute)
+  assert.equal(rows[0]!.changePct, 25); // change (percent)
 });
 
 test("parseAdxQuotes throws on bad JSON / missing rows path", () => {
@@ -140,7 +143,7 @@ test("parseAdxQuotes throws on bad JSON / missing rows path", () => {
 });
 
 test("empty board → zero rows, no throw", () => {
-  const { rows } = parseAdxQuotes(makeSnapshot({ venue: "ADX", dataType: "quotes", body: '{"data":[]}' }));
+  const { rows } = parseAdxQuotes(makeSnapshot({ venue: "ADX", dataType: "quotes", body: '{"response":{"results":[]}}' }));
   assert.equal(rows.length, 0);
 });
 
