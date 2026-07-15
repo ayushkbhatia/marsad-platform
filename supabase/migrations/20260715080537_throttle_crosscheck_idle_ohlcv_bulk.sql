@@ -1,4 +1,6 @@
--- 0043_throttle_crosscheck_idle_ohlcv_bulk — reclaim worker compute burned on no-op parse_runs.
+-- 20260715080537_throttle_crosscheck_idle_ohlcv_bulk — reclaim worker compute burned on no-op parse_runs.
+-- (Sequential tag "0045" in comments below = next after main's 0043 adx_quotes / 0044; the real applied
+--  version is this file's timestamp prefix, which is what the remote migration ledger recorded.)
 --
 -- THE PROBLEM (found 2026-07-15, deep-backfill now complete): two pg_cron lanes run hot with ~100% no-op
 -- output, doing work that can never produce an object:
@@ -80,7 +82,7 @@ begin
             and o.created_at >= sr.ingested_at   -- a live object already reflects this evidence
         )
       group by sr.natural_key, sr.object_type, sr.venue_code
-      -- PARK rule (0043): sweep only if a 2nd source exists (cross-checkable) OR the key is still within
+      -- PARK rule (0045): sweep only if a 2nd source exists (cross-checkable) OR the key is still within
       -- the grace window. Aged single-source keys are skipped until a 2nd source appears — at which point
       -- count(distinct source_id) >= 2 re-qualifies them on the very next tick (self-healing, no state).
       having count(distinct sr.source_id) >= 2
@@ -139,7 +141,7 @@ begin
     return 0;
   end if;
 
-  -- Self-gate (0043): no un-objectified backfill bar pending ⇒ do nothing. No parse_run, no churn. Every
+  -- Self-gate (0045): no un-objectified backfill bar pending ⇒ do nothing. No parse_run, no churn. Every
   -- venue whose backfill is drained makes this a cheap existence check; it auto-wakes when remaining-ADX,
   -- MSX or BHB backfill staging lands. Same predicate as the batch CTE below, so it is exact.
   if not exists (
