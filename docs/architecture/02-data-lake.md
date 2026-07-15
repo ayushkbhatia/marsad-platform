@@ -246,8 +246,12 @@ Properties and policies:
   `storage_path = null, body_inline = null, purged_at = now()` on a metadata row we keep forever
   — lineage chains never dangle. (Column `purged_at timestamptz` included.) Freed `lake-raw`
   paths are enqueued into `ops.storage_purge_queue` (migration `20260715185413`) because
-  Postgres cannot delete Storage backing files — a worker consumes the queue via the Storage
-  API and stamps `deleted_at` (consumer deferred: BUILD-STATUS §7 DEF-STORAGE-PURGE-WORKER).
+  Postgres cannot delete Storage backing files — the worker's `storage_purge` handler
+  (`worker/src/handlers/storage-purge.ts`) drains the queue via the Storage API and stamps
+  `deleted_at`, pg_cron-poked daily `45 1 * * *` just after the purge (`20260715190000`). It
+  deletes in bounded per-bucket batches (self-chaining beyond a cap), tolerates already-gone
+  objects (a bulk delete omits them), and stamps only after a 2xx so a failed delete stays
+  queued for retry.
   History: the 0013 purge was a silent no-op until 2026-07-15 — it matched dot-delimited
   `'%.quotes%'` keys that never existed, and its fallback only matched `text/html` while quote
   boards are JSON, so zero rows ever purged.
@@ -1932,6 +1936,7 @@ agents / edge functions — see the agents architecture doc); the DB-side schedu
 | 12 | `0 1 * * 0` | partition pre-create (`ensure_partitions`) | SQL fn |
 | 13 | `30 1 * * *` | retention (`apply_retention`), snapshot blob purge | SQL fn |
 | 14 | `0 21 * * *` | 01:00 GST PDPL purge: delete `auth.users` rows whose deletion grace expired (cascades everywhere except invoices/audit) | SQL fn |
+| 15 | `45 1 * * *` | 05:45 GST storage purge: delete `lake-raw` blobs freed by job 13 from `ops.storage_purge_queue` via the Storage API, stamp `deleted_at` (`20260715190000`) | pgmq → worker `storage_purge` |
 
 Event-driven (not cron): score recompute on earnings verdict (trigger on `earnings_events`
 verdict set → enqueue), first-score job scheduled per listing (`securities.score_eligible_from`
