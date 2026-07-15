@@ -68,7 +68,7 @@ The scariest unknown — reaching the exchanges — is resolved. Findings:
 1. **Provider-aware routing** — runtime resolves adapter by `(venue, data_type)`; needs to also key on `endpoint_config.provider` (to run Yahoo alongside the primary) + an `ohlcv_backfill` branch. Gates Yahoo activation.
 2. **Per-venue endpoint fixes**: QE filings 404, ADX filings endpoint discovery, BHB filings URL (403 even via proxy), TDWL filings (only quotes moved to Mubasher).
 3. **Downstream verification**: confirm snapshots → parse → staging → cross-check → VERIFIED lake objects (the second half of the pipeline).
-4. **Live quote validation**: quotes are session-gated → validate when GCC markets open (Sun–Thu ~10:00 GST).
+4. **Live quote validation**: quotes are session-gated → validate when GCC markets open (Sun–Thu ~10:00 GST). ✅ **intraday-freeze fixed 2026-07-15** — `QUOTE.LAST` is day-keyed + every venue feed is single-source, and cross-check's `applyPending` left a live single-source object untouched (right for static facts), so each security's quote **froze at the day's first print** (max `revision`=1, ~1 intraday point/security/day, all venues). Fix: treat `QUOTE.LAST` as a live-latest single-source-authoritative feed — refresh the live object **in place** with the newest staged print each poll (fires `objects_quote_project_upd`) and consume its staging each pass so `primaryOf` can't keep re-selecting the oldest row. `ingestion/src/lake/cross-check.ts` (`LIVE_LATEST_TYPES`, `refreshLiveValue`, `newestCandidate`).
 
 ---
 
