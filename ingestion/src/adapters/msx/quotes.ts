@@ -1,18 +1,19 @@
 // MSX (Muscat Stock Exchange) — quotes TaskSpec.
 //
-// TRANSPORT REALITY (from captured fixtures, documented for the VPS):
-//   * The MSX market-watch *board* (msx.om/market-watch) is a JS/SPA page whose rows are rendered
-//     client-side from an XHR feed; some paths are reCAPTCHA-gated. The board JSON route is NOT
-//     reachable from the captured static HTML and must be pinned on the VPS (endpoint_config
-//     actionDiscovery in ingest.sources already flags network_capture + a snapshot.aspx fallback).
-//   * The per-security page  msx.om/snapshot.aspx?s={symbol}  IS plain-HTTP, NOT captcha-gated, and
-//     is SERVER-RENDERED with real quote data in stable ASP.NET label spans. Fixture
-//     ingestion/fixtures/msx/snapshot-BKMB.html (HTTP 200) is our golden.
+// TRANSPORT REALITY (VPS-verified 2026-07-15):
+//   * PRIMARY — the live market-watch board is a plain-HTTP POST to msx.om/api.aspx/MarketTicker
+//     (ASP.NET ScriptService: content-type application/json, body {"Sector":""} = all sectors,
+//     X-Requested-With: XMLHttpRequest). Returns {"d":[ {Symbol,LTP,Change%,ClosePrice,…names} ]}
+//     for ~63 main-market securities in ONE request — NOT reCAPTCHA-gated, no browser (transport
+//     'http', not 'http_bootstrap'). This is the page behind market-watch-custom.aspx. It carries
+//     no OHLC/volume — those come from the Summary-Report OHLCV export (backfill), by design.
+//   * FALLBACK — the per-security page  msx.om/snapshot.aspx?s={symbol}  is plain-HTTP, server-
+//     rendered with real quote data in stable ASP.NET label spans (fixture snapshot-BKMB.html).
+//     Kept for resilience; a 68-way fan-out, so only for board outage.
 //
-// So the working, golden-verified MSX quote path is: fan out over the security universe, GET
-// snapshot.aspx?s={symbol} per security, snapshot each, and parse ONE quote per snapshot with this
-// pure parser. The board endpoint, once pinned on the VPS, can supersede the fan-out for cost; the
-// parser here is the reliable fallback and the one with a real fixture.
+// fetchQuotes selects the board when the source is method=POST; parseQuotes emits many quotes from
+// the JSON board or one quote from an HTML snapshot. The board supersedes the fan-out for cost
+// (1 request vs 68, and it unblocks the www.msx.om 300/day host budget).
 
 import type {
   FetchContext,
@@ -63,12 +64,38 @@ const CTL = 'ctl00_ContentPlaceHolder1_';
 
 async function fetchQuotes(ctx: FetchContext): Promise<FetchResult[]> {
   const cfg = ctx.source.endpointConfig;
-  // The intended PRIMARY MSX quote path is the board endpoint pinned on the VPS via
-  // endpoint_config.actionDiscovery (network_capture). This snapshot.aspx?s={symbol} fan-out is the
-  // golden-verified FALLBACK and requires a symbol universe supplied on endpoint_config.symbols.
-  // An empty universe here means the fan-out is misconfigured (missing/misspelled `symbols` key):
-  // treat it as a config incident rather than a silent zero-row no-op that masks the misconfig from
-  // the freshness sweep/heartbeat. Template placeholder {symbol} is substituted per security.
+
+  // PRIMARY (2026-07-15): the live market-watch board is ONE plain-HTTP POST to
+  // api.aspx/MarketTicker (body {"Sector":""} = all sectors, ~63 main-market securities:
+  // Symbol/LTP/Change%/ClosePrice) — NOT captcha-gated, no browser needed. This replaces the
+  // 68-per-symbol snapshot.aspx fan-out (1 request vs 68; also unblocks the www.msx.om 300/day
+  // host budget). Selected when the source is configured method=POST; parseQuotes detects the
+  // JSON body and emits one quote per row. OHLC/volume are NOT on this board — they come from the
+  // Summary-Report OHLCV export (backfill), by design.
+  if ((cfg.method ?? 'GET').toUpperCase() === 'POST') {
+    const url = cfg.urlTemplate ?? ctx.source.entryUrl;
+    const res = await ctx.http.request(url, {
+      method: 'POST',
+      body: cfg.body ?? '{"Sector":""}',
+      ...(cfg.headers ? { headers: cfg.headers } : {}),
+      ...(cfg.timeoutMs ? { timeoutMs: cfg.timeoutMs } : {}),
+    });
+    return [
+      {
+        url: res.url,
+        contentType: res.headers['content-type'] ?? 'application/json',
+        httpStatus: res.status,
+        body: res.body,
+        fetchedAt: ctx.now(),
+        meta: { venue: 'MSX', dataType: 'quotes', lang: 'en', board: true },
+      },
+    ];
+  }
+
+  // FALLBACK: snapshot.aspx?s={symbol} fan-out (server-rendered HTML, golden-fixtured). Requires a
+  // symbol universe on endpoint_config.symbols. An empty universe means the fan-out is misconfigured
+  // (missing/misspelled `symbols` key): treat it as a config incident rather than a silent zero-row
+  // no-op that masks the misconfig from the freshness sweep/heartbeat.
   const template = cfg.urlTemplate ?? ctx.source.entryUrl;
   const symbols = extractSymbols(ctx);
   if (symbols.length === 0) {
@@ -108,13 +135,73 @@ function extractSymbols(ctx: FetchContext): string[] {
   return [];
 }
 
+/** Coerce a MarketTicker string/number field to number; blank/non-finite -> null. */
+function numAny(v: unknown): number | null {
+  if (v === null || v === undefined) return null;
+  if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+  return num(String(v));
+}
+
+/**
+ * PURE parser for the MarketTicker board JSON -> one NormalizedQuote per row.
+ * Row: { Symbol, LTP (last), Change (PERCENT, e.g. -2.72), ClosePrice, …names }. The board carries
+ * no OHLC/volume/prev-close columns, so change (absolute) and prev-close are DERIVED from last and
+ * the % move: prevClose = last / (1 + pct/100); change = last - prevClose. asOf = snapshot fetch
+ * time (delayed board print, no per-row timestamp).
+ */
+function parseBoardJson(raw: string, asOf: string): ParseResult<NormalizedQuote> {
+  let payload: unknown;
+  try {
+    payload = JSON.parse(raw);
+  } catch {
+    return { rows: [], parserVersion: MSX_QUOTES_PARSER_VERSION };
+  }
+  const d = (payload as { d?: unknown })?.d ?? payload;
+  const rows = Array.isArray(d) ? (d as Record<string, unknown>[]) : [];
+  const out: NormalizedQuote[] = [];
+  for (const r of rows) {
+    const ticker = typeof r['Symbol'] === 'string' ? r['Symbol'].trim() : '';
+    if (ticker === '') continue;
+    const last = numAny(r['LTP']);
+    const changePct = numAny(r['Change']);
+    let change: number | null = null;
+    if (last !== null && changePct !== null && 1 + changePct / 100 !== 0) {
+      const prevClose = last / (1 + changePct / 100);
+      change = Number((last - prevClose).toFixed(6));
+    }
+    if (last === null && changePct === null) continue; // empty/suspended stub
+    out.push({
+      venue: 'MSX',
+      ticker,
+      last,
+      change,
+      changePct,
+      open: null,
+      high: null,
+      low: null,
+      volume: null,
+      asOf,
+    });
+  }
+  return { rows: out, parserVersion: MSX_QUOTES_PARSER_VERSION };
+}
+
 /**
  * PURE parser for ONE snapshot.aspx?s={symbol} page -> exactly one NormalizedQuote (or zero if the
  * page carries no last price, e.g. a delisted/suspended stub). Ticker comes from the snapshot's
  * externalId/meta (the symbol we requested) with a fallback to the CompanySymbolLabel "(BKMB)".
  */
 function parseQuotes(snapshot: StoredSnapshot): ParseResult<NormalizedQuote> {
-  const html = snapshot.body.toString('utf8');
+  const raw = snapshot.body.toString('utf8');
+
+  // Board mode: a JSON MarketTicker payload ({"d":[ {Symbol,LTP,Change,ClosePrice}, … ]}) yields
+  // MANY quotes in one snapshot. Detected by a JSON-object body (the snapshot.aspx fallback is HTML).
+  const head = raw.slice(0, 64).trimStart();
+  if (head.startsWith('{') || head.startsWith('[')) {
+    return parseBoardJson(raw, snapshot.fetchedAt);
+  }
+
+  const html = raw;
 
   // Ticker: prefer the requested symbol from lineage; fall back to the page label "(BKMB)".
   let ticker =
