@@ -34,6 +34,19 @@ const MAX_READ_CT = 5;
 // Backoff when the queue read itself errors (missing queue, DB blip).
 const ERROR_BACKOFF_MS = 10_000;
 
+// Queues whose messages are scheduled, named tasks (pg_cron enqueues
+// {"task":"score_batch"} etc.) rather than the per-venue ingestion runs that
+// own their own heartbeat rows (ingest:<handler>:<venue>, see
+// handlers/job-heartbeat.ts). For these, the consumer records a SECOND
+// heartbeat keyed by the TASK name — the row ops.job_heartbeats seeds (0015)
+// and the sentinel watches. The queue-level 'worker:<queue>' beat alone left
+// those seeded task rows silent forever, so ops.heartbeat_sentinel raised a
+// permanent false incident for every healthy task (and masked a genuinely
+// failing one). NOT applied to q_ingest/q_pipeline: those handlers already
+// beat per-venue, and a bare per-handler row would inherit the 30s heartbeat
+// interval and trip the sentinel on every off-session gap.
+const TASK_HEARTBEAT_QUEUES = new Set<QueueName>(["q_maintenance", "q_dispatch"]);
+
 interface PgmqMessage {
   /** bigint column; postgres.js delivers it as a string. */
   msg_id: string;
@@ -175,10 +188,24 @@ export function startQueueConsumer(
       // ledger the Desk error queue reads (06 §5).
       await sql`select pgmq.archive(${queue}, ${msg.msg_id}::bigint)`;
       await heartbeat.recordSuccess(jobName);
+      // Per-task heartbeat for scheduled q_maintenance/q_dispatch tasks, keyed by
+      // the task name (= handlerName), so the 0015-seeded registry row for this
+      // task actually beats and the sentinel stops raising a permanent false
+      // incident for a healthy job. handlerName is always set here (a handler
+      // only resolves when resolveHandlerName returned a string).
+      if (handlerName && TASK_HEARTBEAT_QUEUES.has(queue)) {
+        await heartbeat.recordSuccess(handlerName);
+      }
       msgLog.info("message processed", { handler: handlerName });
     } catch (err) {
       msgLog.error("handler failed", { handler: handlerName, err });
       await heartbeat.recordFailure(jobName, err);
+      // Mirror the success path: a failing scheduled task must mark ITS OWN row
+      // failed so a genuinely broken score_batch is distinguishable from the
+      // (now-eliminated) permanent noise, not just the shared queue heartbeat.
+      if (handlerName && TASK_HEARTBEAT_QUEUES.has(queue)) {
+        await heartbeat.recordFailure(handlerName, err);
+      }
 
       if (msg.read_ct >= MAX_READ_CT) {
         // Terminal: archive and surface in the Desk needs-attention queue.

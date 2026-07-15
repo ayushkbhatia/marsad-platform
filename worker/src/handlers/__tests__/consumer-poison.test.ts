@@ -151,6 +151,76 @@ test('consumer: {"task":X} that names a REGISTERED handler runs it (alias accept
   assert.ok(successes.length >= 1, 'success heartbeat recorded');
 });
 
+// ---------------------------------------------------------------------------
+// Per-task heartbeat (Bug 1 fix): for scheduled q_maintenance/q_dispatch tasks
+// the consumer records a SECOND heartbeat keyed by the TASK name, so the
+// 0015-seeded registry rows (score_batch, nightly, …) actually beat and the
+// sentinel stops raising permanent false incidents. q_ingest/q_pipeline are
+// excluded — those handlers own their per-venue rows and a bare per-handler row
+// would trip the sentinel on every off-session gap.
+// ---------------------------------------------------------------------------
+
+/** Register a probe handler once (registry is a process-global singleton). */
+function ensureHandler(name: string, handler: Handler): void {
+  if (!resolveHandler(name)) registerHandler(name, handler);
+}
+
+/** Drive one scripted message through a given queue, return the heartbeat spies. */
+async function runOneOnQueue(
+  queue: Parameters<typeof startQueueConsumer>[0],
+  message: unknown,
+  settle: (s: { successes: string[]; failures: string[] }) => boolean,
+) {
+  const fakeSql = makeFakeSql();
+  fakeSql.on(READ_SUBSTR, [{ msg_id: '99', read_ct: 0, message }]);
+  const spy = makeHeartbeatSpy();
+  const consumer = startQueueConsumer(queue, slowRead(fakeSql.sql), config(), spy.hb);
+  await waitFor(() => settle({ successes: spy.successes, failures: spy.failures }), 1000).catch(
+    () => {},
+  );
+  consumer.stop();
+  await consumer.done;
+  return { fakeSql, successes: spy.successes, failures: spy.failures };
+}
+
+test('consumer: q_maintenance success records a per-task heartbeat (task name) + the queue', async () => {
+  ensureHandler('score_batch_probe', async () => {});
+  const { successes } = await runOneOnQueue(
+    'q_maintenance',
+    { task: 'score_batch_probe' },
+    (s) => s.successes.includes('score_batch_probe'),
+  );
+  assert.ok(successes.includes('worker:q_maintenance'), 'queue-level heartbeat still recorded');
+  assert.ok(successes.includes('score_batch_probe'), 'per-task heartbeat recorded by task name');
+});
+
+test('consumer: q_maintenance handler failure records a per-task failure heartbeat + the queue', async () => {
+  ensureHandler('nightly_probe_fail', async () => {
+    throw new Error('boom');
+  });
+  const { failures } = await runOneOnQueue(
+    'q_maintenance',
+    { task: 'nightly_probe_fail' },
+    (s) => s.failures.includes('nightly_probe_fail'),
+  );
+  assert.ok(failures.includes('worker:q_maintenance'), 'queue-level failure heartbeat recorded');
+  assert.ok(failures.includes('nightly_probe_fail'), 'per-task failure heartbeat by task name');
+});
+
+test('consumer: q_ingest does NOT record a per-task heartbeat (only queue-level)', async () => {
+  ensureHandler('quote_poll_probe', async () => {});
+  const { successes } = await runOneOnQueue(
+    'q_ingest',
+    { task: 'quote_poll_probe' },
+    (s) => s.successes.includes('worker:q_ingest'),
+  );
+  assert.ok(successes.includes('worker:q_ingest'), 'queue-level heartbeat recorded');
+  assert.ok(
+    !successes.includes('quote_poll_probe'),
+    'no bare per-task row on q_ingest — those handlers beat per-venue',
+  );
+});
+
 async function waitFor(pred: () => boolean, timeoutMs = 1000): Promise<void> {
   const start = Date.now();
   while (!pred()) {
