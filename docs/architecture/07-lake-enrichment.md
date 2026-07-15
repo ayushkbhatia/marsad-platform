@@ -714,14 +714,22 @@ Growth follows statements; Revisions = `NULL`.
   for **ADX/MSX/BHB exchange-native is the only path**. *Recommend this split.*
 - **D-src-3 · Fund Yahoo egress** (residential/rotating IP, blocker #1) — a real recurring cost, but
   it is the **only** fundamentals+history source for DFM+QE. *Recommend fund it; it unblocks 2 of 6 venues.*
-- **D-src-4 · BHB price-history scope** — **DECIDED 2026-07-14: accept BHB as the coverage-gap venue.**
-  Confirmed no cheap ≥2y source exists — BHB is on no aggregator (not Yahoo, no Mubasher CSV) and
-  `bahrainbourse.com` is Radware/IP-blocked (403) from the VPS even via headless Chromium; the only
-  artifact is the per-day Daily-Trading-Summary XLSX behind an IPRoyal proxy (~500 proxied requests for
-  2y across only **8** listed securities, lowest ROI, and that proxied path is currently hard-down).
-  **Build NO 2y BHB backfill.** Once the proxied path is restored and BHB quotes flow, the wired EOD
-  accrual (0028) builds `ohlcv_daily` forward from that day; pre-restoration history stays a permanent
-  gap surfaced honestly on the reader (`SINGLE_SOURCE`, D-src-1). Revisit trigger + home: **DEF-BHB-OHLCV**
+- **D-src-4 · BHB price-history scope** — **DECIDED 2026-07-14: accept BHB as the coverage-gap venue.
+  SUPERSEDED 2026-07-15: the revisit trigger fired — a BHB-reachable proxy now exists, so the backfill
+  was built.** The 2026-07-14 decision to build NO backfill was conditioned on there being no cheap ≥2y
+  source and no reachable proxy path. That condition is lifted: a **sticky IPRoyal session** reaches BHB's
+  OWN webapi `GetTabularDataWithDateRangeFilter?storedProcdure=DataExportCompanyProfile` — a per-security
+  price export that returns the **full EOD-close history** in one GET (proven live 2026-07-15 via sticky
+  proxy: GFH 2020→2026 = 1476 rows; the year dropdown offers 2000..current → `FromDateYear=2000` for full
+  history; `scratchpad/BHB-API-CONTRACT.md` §2). This is a first-class BHB endpoint (no aggregator, no
+  Mubasher CSV needed) and supersedes both the retired Daily-Trading-Summary XLSX path AND the
+  "no backfill" scope. Built `adapters/bhb/ohlcv.ts` (provider `bhb_webapi`, routed by
+  `runtime.tasksForProvider` + `withBhbWebapiSymbols`, seed `20260715101500`), mirroring the ADX (0033)
+  and MSX (0034) adapter shape. **EOD CLOSE ONLY** (the export carries date+close only; the adapter emits
+  open/high/low/volume as NULL — explicit owner requirement, does NOT fabricate OHLC). Seeded
+  `active=false`; activation is a deliberate later flip (a 41-symbol deep drain over the sticky proxy is
+  not auto-run). The wired EOD accrual (0028) still builds `ohlcv_daily` forward once BHB quotes flow, and
+  the backfill's `OHLCV.CLOSE:BHB:{ticker}:{date}` bars cross-check against it. **DEF-BHB-OHLCV closed**
   (BUILD-STATUS §7). Does not block P2.
 - **D-src-5 · Consensus-estimate source (OQ-10)** — the Revisions factor + the "14 ratings/avg PT"
   strip need a street-consensus source. Options: scrape Mubasher `/fair-values` (analyst *targets*,

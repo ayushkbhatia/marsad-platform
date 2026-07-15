@@ -29,7 +29,13 @@ insert into public.securities (venue_code, ticker, isin, name_en, sector, curren
   ('ADX',  'FAB',  'AEF000201010', 'First Abu Dhabi Bank PJSC',            'banks',   'AED', 40.000,  11047000000, '2017-04-02', '2017-08-15'),
   ('QE',   'QNBK', 'QA0006929895', 'Qatar National Bank (QPSC)',           'banks',   'QAR', 48.000,   9236000000, '1997-05-01', '1997-10-01'),
   ('MSX',  'OTEL', 'OM0000002549', 'Omantel',                              'telecom', 'OMR', 24.000,    750000000, '2005-07-01', '2005-12-01'),
-  ('BHB',  'NBB',  'BH0004250288', 'National Bank of Bahrain',             'banks',   'BHD', 44.000,   2028000000, '1989-01-01', '1989-06-01');
+  ('BHB',  'NBB',  'BH0004250288', 'National Bank of Bahrain',             'banks',   'BHD', 44.000,   2028000000, '1989-01-01', '1989-06-01')
+-- Idempotent: migrations may already seed some of these (e.g. the BHB universe seed
+-- 20260715101000 seeds NBB as a placeholder). Let the rich fixture values win.
+on conflict (venue_code, ticker) do update set
+  isin = excluded.isin, name_en = excluded.name_en, sector = excluded.sector, currency = excluded.currency,
+  free_float_pct = excluded.free_float_pct, shares_outstanding = excluded.shares_outstanding,
+  listing_date = excluded.listing_date, score_eligible_from = excluded.score_eligible_from, updated_at = now();
 
 -- Delayed quotes as of 09:26 GST (15-min delayed prints, scraped 09:26).
 insert into public.quotes_latest (security_id, last, change, change_pct, open, high, low, volume, vwap, week52_high, week52_low, as_of, captured_at, tick_dir)
