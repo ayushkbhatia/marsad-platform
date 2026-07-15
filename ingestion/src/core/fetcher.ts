@@ -259,13 +259,32 @@ export function createHttpClient(opts: HttpClientOptions = {}): HttpClient {
   };
 }
 
+// Shared undici Agent for the direct (non-proxy) transport. undici's DEFAULT
+// connect timeout is 10s — too tight for some GCC origins that are slow to
+// complete the TLS handshake from the VPS (QE's MarketWatch.txt takes ~15s),
+// which ConnectTimeoutError'd before the request's own AbortController(timeoutMs)
+// could bound it, so those fetches never landed. Raise the connect ceiling to 30s;
+// per-request duration is still bounded by the AbortController the caller wires in.
+let sharedDirectAgentPromise: Promise<unknown> | null = null;
+async function sharedDirectAgent(): Promise<unknown> {
+  if (!sharedDirectAgentPromise) {
+    sharedDirectAgentPromise = (async () => {
+      const { Agent } = await import('undici');
+      return new Agent({ connect: { timeout: 30_000 } });
+    })();
+  }
+  return sharedDirectAgentPromise;
+}
+
 // undici is imported LAZILY (only when the real transport actually runs) so the
 // module loads for unit tests that inject a fake transport, without the dep.
 const defaultTransport: LowLevelTransport = async (url, opts) => {
   const { request: undiciRequest } = await import('undici');
+  const dispatcher = await sharedDirectAgent();
   const reqOpts = {
     method: opts.method as never,
     headers: opts.headers,
+    dispatcher,
     ...(opts.signal ? { signal: opts.signal } : {}),
     ...(opts.body !== undefined ? { body: opts.body } : {}),
     maxRedirections: 5,
