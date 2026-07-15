@@ -11,7 +11,7 @@ import { makeFakeSql, makeCtx, makeFakeRuntime, makeSource, makeRunResult, activ
 function openCloseGateRows(tradeDate = '2026-07-13', closeLocal = '13:00:00') {
   return [
     {
-      local_ts: `${tradeDate}T${closeLocal}`,
+      local_time: closeLocal,
       local_date: tradeDate,
       close_local: closeLocal,
       venue_active: true,
@@ -84,7 +84,7 @@ test('eod_sweep: outside the post-close window ⇒ skipped, no fetch', async () 
   // now() is well before the venue close on the trade date ⇒ gate closed.
   fakeSql.on('public.market_sessions', [
     {
-      local_ts: '2026-07-13T09:30:00',
+      local_time: '09:30:00',
       local_date: '2026-07-13',
       close_local: '13:00:00',
       venue_active: true,
@@ -105,22 +105,38 @@ test('eodCloseGate: open at close, closed before close and past window', async (
 
   const beforeSql = makeFakeSql();
   beforeSql.on('public.market_sessions', [
-    { local_ts: '2026-07-13T12:59:00', local_date: '2026-07-13', close_local: '13:00:00', venue_active: true },
+    { local_time: '12:59:00', local_date: '2026-07-13', close_local: '13:00:00', venue_active: true },
   ]);
   const before = await eodCloseGate(beforeSql.sql, 'BHB', '2026-07-13');
   assert.equal(before.open, false);
 
   const pastSql = makeFakeSql();
   pastSql.on('public.market_sessions', [
-    { local_ts: '2026-07-13T18:00:00', local_date: '2026-07-13', close_local: '13:00:00', venue_active: true },
+    { local_time: '18:00:00', local_date: '2026-07-13', close_local: '13:00:00', venue_active: true },
   ]);
   const past = await eodCloseGate(pastSql.sql, 'BHB', '2026-07-13');
   assert.equal(past.open, false);
 
   const wrongDaySql = makeFakeSql();
   wrongDaySql.on('public.market_sessions', [
-    { local_ts: '2026-07-14T13:30:00', local_date: '2026-07-14', close_local: '13:00:00', venue_active: true },
+    { local_time: '13:30:00', local_date: '2026-07-14', close_local: '13:00:00', venue_active: true },
   ]);
   const wrongDay = await eodCloseGate(wrongDaySql.sql, 'BHB', '2026-07-13');
   assert.equal(wrongDay.open, false);
+});
+
+test('eodCloseGate: date/time columns are cast to text in SQL (postgres.js Date-object regression)', async () => {
+  // postgres.js parses bare date/timestamp columns into JS Date objects, which
+  // can never === a 'YYYY-MM-DD' tradeDate string — that mismatch kept the gate
+  // permanently closed in production (zero eod_bulletin fetches ever). Guard the
+  // fix: the gate query must produce local_date/local_time via to_char and cast
+  // close_local to text, so the driver returns strings end-to-end.
+  const fakeSql = makeFakeSql();
+  fakeSql.on('public.market_sessions', openCloseGateRows());
+  await eodCloseGate(fakeSql.sql, 'BHB', '2026-07-13');
+  const gateQuery = fakeSql.queries.find((q) => q.text.includes('public.market_sessions'));
+  assert.ok(gateQuery, 'gate query recorded');
+  assert.match(gateQuery!.text, /to_char\(\(select ts from now_local\), 'HH24:MI:SS'\)/);
+  assert.match(gateQuery!.text, /to_char\(\(select ts from now_local\)::date, 'YYYY-MM-DD'\)/);
+  assert.match(gateQuery!.text, /close_local::text/);
 });
