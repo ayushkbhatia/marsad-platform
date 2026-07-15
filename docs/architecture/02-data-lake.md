@@ -237,11 +237,20 @@ Properties and policies:
   `prevent_mutation()` trigger allowing only the purge function).
 - **Bucket**: `lake-raw`, private, no public URLs. Desk lineage viewer streams via a
   service-role signed URL with 60 s TTL.
-- **Retention** (section 12): inline quote-scrape snapshots 90 days then purged (the parsed
-  quotes and OHLCV aggregates are the durable record); filings/prospectus/transcript source
-  documents kept indefinitely (they are the provenance the product sells); generic HTML 1 year.
-  Purge marks `storage_path = null, body_inline = null, purged_at = now()` on a metadata row we
-  keep forever — lineage chains never dangle. (Column `purged_at timestamptz` included.)
+- **Retention** (section 12): quote-scrape snapshots 90 days then purged regardless of content
+  type — `source_key like '%:quotes:%'`, matching the store's colon-delimited
+  `${venue}:${dataType}:${id}` keys (the boards are JSON on DFM/QE/BHB/MSX, HTML elsewhere; the
+  parsed quotes and OHLCV aggregates are the durable record). Filings/prospectus/transcript
+  source documents AND raw financial statements kept indefinitely (they are the provenance the
+  product sells / must stay re-parseable); generic HTML **and JSON** 1 year. Purge marks
+  `storage_path = null, body_inline = null, purged_at = now()` on a metadata row we keep forever
+  — lineage chains never dangle. (Column `purged_at timestamptz` included.) Freed `lake-raw`
+  paths are enqueued into `ops.storage_purge_queue` (migration `20260715185413`) because
+  Postgres cannot delete Storage backing files — a worker consumes the queue via the Storage
+  API and stamps `deleted_at` (consumer deferred: BUILD-STATUS §7 DEF-STORAGE-PURGE-WORKER).
+  History: the 0013 purge was a silent no-op until 2026-07-15 — it matched dot-delimited
+  `'%.quotes%'` keys that never existed, and its fallback only matched `text/html` while quote
+  boards are JSON, so zero rows ever purged.
 
 ---
 
@@ -1877,7 +1886,7 @@ propagate through the same polled pulse payloads.
 
 | Table | Partitioning | Retention (raw) | Steady-state size |
 |---|---|---|---|
-| `lake.snapshots` (metadata) | none (bigint PK, lean rows) | metadata forever; blobs: quotes 90 d, generic HTML 1 y, filings/prospectus/transcripts forever | ~150 MB/yr rows; blobs in Storage |
+| `lake.snapshots` (metadata) | none (bigint PK, lean rows) | metadata forever; blobs: quotes 90 d (any content type), generic HTML/JSON 1 y, filings/prospectus/transcripts/financials forever | ~150 MB/yr rows; blobs in Storage |
 | `public.quotes_intraday` | monthly range | 3 months, then dropped (OHLCV daily is durable) | ≤ 120 MB |
 | `public.index_levels` | none | 90-day delete job | < 10 MB |
 | `analytics.events` | monthly range | 13 months; rollups forever | ~340 MB/yr at 100 K ev/day |
@@ -1891,7 +1900,9 @@ propagate through the same polled pulse payloads.
 Partition maintenance: `pg_partman` if the plan's image has it (`create extension pg_partman`),
 else a 30-line `ops.ensure_partitions()` function creating next-month partitions, run weekly by
 pg_cron (`0 1 * * 0`). Retention job `ops.apply_retention()` runs daily (`30 1 * * *`) and only
-detaches/drops whole partitions or runs indexed deletes on the small tables.
+detaches/drops whole partitions or runs indexed deletes on the small tables — plus the
+snapshot-blob purge (§3), which nulls blob pointers and enqueues freed `lake-raw` paths into
+`ops.storage_purge_queue` for Storage-API deletion by a worker.
 
 `lake.objects` partitioning is deliberately deferred: the 4.2 M-object figure in the designs is
 the mature-product fixture; year-one reality is a few hundred thousand rows. Partitioning by
