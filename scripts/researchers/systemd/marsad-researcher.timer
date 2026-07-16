@@ -1,0 +1,14 @@
+[Unit]
+Description=Run Marsad financials researcher periodically
+
+[Timer]
+OnBootSec=8min
+OnUnitActiveSec=15min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+
+[Timer]
+OnUnitActiveSec=
+OnUnitActiveSec=6h

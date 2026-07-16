@@ -472,6 +472,63 @@ create table market.venue_holidays (
 (AR note per LOCKED decision 4: `market.venues.name` and future instrument tables would gain
 `name_ar` siblings later; columns intentionally not created now.)
 
+### 3.5 The filing_detail chain (list-diff → PDF → bucket → extraction seam)
+
+Built 2026-07-16 (DEF-VENUE-FILINGS). This is the concrete "a new quarterly disclosure PDF appears on
+a venue → the PDF lands in our bucket → it is queued for extraction" path. It was verified dead via
+three independent gaps, fixed as one design:
+
+1. **Handler mapping** — `filing_detail` had no `DATA_TYPE_TO_HANDLER` entry (`worker/src/ingest-poller.ts`),
+   so every detail wake-up row failed "no handler for data_type". Added `filing_detail → filings_detail_poll`.
+2. **Sources** — no `ingest.sources` rows of `data_type='filing_detail'` existed, so
+   `filingDetailSourceId(venue)` was always null and the wake-up had nowhere to enqueue. Seeded one
+   `filing_detail` source + a 60-min backstop schedule per venue (`20260716090500`).
+3. **List-diff** — the runtime surfaced new ids from the fetch-level `FetchResult.externalId`, which is
+   always empty for a single list-page fetch, so **nothing ever triggered a detail fetch — even on the
+   working DFM/ADX/MSX venues**. `RunTaskResult` now carries `filingRefs` (every parsed
+   `NormalizedFilingRef`); the handler list-diffs those against `ingest.seen_items` (the ON-CONFLICT
+   insert returns the genuinely-new ones).
+
+**Flow.** `filings_poll` parses the list → records each new announcement as a pending `seen_items` row
+carrying its `detail_url`/`pdf_url`/`title`/`filed_at` (new columns, `20260716090000`) → enqueues ONE
+priority-1 `job_queue` row against the venue's `filing_detail` source. The poller routes it to
+`filings_detail_poll`, which drains a **chunk** (≤10, oldest-first) of the venue's pending targets:
+`runtime.fetchFilingPdfs` seats WAF cookies once per chunk, downloads each PDF (direct `pdfUrl`, or the
+detail page → a per-venue resolver extracts the PDF href — only BHB needs one), and stores it in the
+public **`filings`** Storage bucket, content-addressed: `{venue}/{ticker|_unmapped}/{sha256}.{ext}`
+(mirroring the 295 objects already there; the list feed carries no security id, so the ticker segment is
+`_unmapped` pending a later resolution pass). The handler then, per stored PDF: upserts the
+`public.filings` linkage (`pdf_storage_key` + the new `pdf_sha256`) on `(venue_code, source_ref)` —
+self-sufficient whether or not the `fn_filing_project` (0037) row exists yet — enqueues an
+`ops.filing_extract_queue` placeholder (idempotent on `content_sha256`), and flips `seen_items.detail_state`
+to `fetched` (or `nopdf`/`failed`, both terminal — no poison). A full chunk **self-chains** a 2-min
+cooldown follow-up so a burst of new disclosures is worked in bounded chunks that never starve the quote
+lanes or the per-host ≤1 req/s budget.
+
+**Extraction seam.** `ops.filing_extract_queue (filing_id, venue_code, source_ref, content_sha256 UNIQUE,
+pdf_storage_key, content_type, state)` is the clean, sha256-keyed hand-off. The extraction **service**
+(PDF → `full_text`/`extracted_facts`/`ai_summary`, the one bounded LLM cost) is a later phase
+(DEF-FILING-FACTS / §9); this chain only fills the queue. Because the key is the content sha256, a
+re-announced identical PDF enqueues exactly once, and a re-fetch of the same bytes is a Storage upsert
+no-op — snapshot-first immutability holds end to end.
+
+**Per-venue transport.** DFM/MSX/ADX carry a direct per-announcement `pdfUrl` on the list ref
+(api2.dfm.ae CDN, msx.om RSS `<Link>`, ADX `urlEn`) → the drain downloads it directly (no resolver);
+TDWL/ADX attachment hosts sit behind Akamai → `http_bootstrap` with an `actionDiscovery` `direct`
+cookie-seat. **BHB is list-only**: its AnnouncementDetail page serves the real attachment only via
+client-side SharePoint JS (`spsdisco.aspx`) — the static HTML carries just site-chrome `.pdf` links — so
+its `filing_detail` source is deactivated and no resolver is wired (per-announcement PDF is deferred to
+the BHB webapi attachment endpoint). Live reactivation status is tracked in BUILD-STATUS §7 (BHB list
+done; BHB PDF, TDWL, QE parked with precise triggers).
+
+**Live validation (2026-07-16).** The chain is proven end-to-end on **MSX**: 3 distinct per-announcement
+PDFs downloaded into the `filings` bucket, linked on `public.filings`, and queued for extraction — zero
+failures, zero poison. The chain MECHANISM is thus proven; the remaining work is per-venue PDF **resource
+URL** correctness, which varies by venue: MSX ✓; **DFM** `filing_detail` is deactivated (its eFsah
+`r_path` 404s from `api2.dfm.ae` — that host serves the list feed, not the download; DEF-VENUE-FILINGS-
+DFM-PDF); **ADX** is left active but unproven (its apigateway CDN download is WAF-gated — may pass via the
+http_bootstrap browser context; DEF-VENUE-FILINGS-ADX-PDF); **BHB** is list-only (JS attachment).
+
 ---
 
 ## 4. Scheduling strategy
@@ -539,6 +596,48 @@ overnight filings cadence to 60 min (−54 req/day/host) before anything else.
 Everything that varies — URLs, XHR templates, cadences, normalization rules, robots status,
 active flags — lives in `ingest.sources` / `ingest.schedules` and is editable from Marsad Desk
 (market data ops, 33a). Adapter code contains parsing logic and endpoint *shapes* only.
+
+### 4.5 Productivity backoff — soft auto-stop / auto-resume (`20260716100000`)
+
+A worker that produces no incremental lake benefit should recognize that and stop working —
+**softly** (poll less often), never a hard stop, and resume the instant real work returns. This is
+built into the scheduler, fleet-wide, with **no worker code and no trigger** (a pure-SQL guard).
+
+- **Benefit proxy:** a run produced incremental benefit ⟺ it wrote `ingest.fetch_log.changed = true`
+  (a new snapshot / a landed filing PDF / a staged bar). Every dedup / skip / failure path writes
+  `changed = false`. Verified correct for quotes, filings_list, filing_detail.
+- **Derived idle (idempotent, no trigger):** `ingest.schedules.consecutive_idle_runs` =
+  count of `fetch_log` rows since the source's last `changed = true` row. `enqueue_due_jobs()`
+  recomputes it set-based each `*/5` tick — the COUNT self-resets to ~0 the moment a changed run
+  lands, so there is no accumulator to double-count and **zero** load on the hot `fetch_log`
+  INSERT path (an AFTER-INSERT trigger was rejected for lock contention against the daily prune).
+  `source → schedule` is 1:1, so the per-source derivation is exact.
+- **Effective cadence:** `ingest.effective_cadence_minutes(base, idle, cap, exempt)` =
+  `base × least(cap, 2^floor(idle/3))`. The enqueue gate uses the effective cadence, so an idle
+  source polls exponentially less often, bounded by its `max_backoff_mult`. **Auto-resume:** any
+  `changed = true` collapses idle → base cadence on the next tick. Event-driven wake-ups
+  (`filing_detail` direct `job_queue` inserts) bypass the schedule, so a backed-off backstop still
+  drains real work immediately.
+- **Config-over-code defaults** (per `data_type`, seeded, Desk-overridable): quotes/indices cap
+  **2×** (protect the DELAYED-badge freshness → ≤20 min); filings_list/filing_detail cap **8×**
+  (5→40 min, 60 min→8 h backstops); **eod_bulletin + ohlcv_backfill are `backoff_exempt`** — their
+  handler gate (close-window / coverage guard) is already the correct soft-stop and writes no
+  `fetch_log` on a planned skip, so the guard must not score them. A human overrides any source
+  with one UPDATE: `set max_backoff_mult = …` (or `= 1` to disable), `set consecutive_idle_runs = 0`
+  to force-resume, `set backoff_exempt = true` to opt a schedule out.
+- **Sentinel safety:** a backed-off source polls slower than its heartbeat window, which would trip
+  a false `degraded` incident. `ops.heartbeat_sentinel` is now **session- and backoff-aware**: it
+  suppresses an `ingest:<kind>:<venue>` incident when that venue's matching schedule is
+  session-closed OR currently backed off (`effective_cadence > base`). A genuinely dead feed
+  (session open, not backed off) still alerts at `2× base cadence`.
+- **Kill-switch / rollback:** `update ingest.schedules set max_backoff_mult = 1` reverts the whole
+  fleet to flat cadence with no deploy; the effective-cadence, heartbeat window, and sentinel all
+  read that column so an override is consistent everywhere.
+
+Live result at ship (2026-07-16): the `filing_detail` backstops (TDWL/QE/ADX, lists off or nothing
+pending) backed off 60 min → 4–8 h; the dedup-churning `filings_list` feeds (DFM/ADX/BHB, ~300
+unchanged polls/48 h) backed off 5 → 40 min; quotes stayed ≤20 min; eod/backfill untouched. Zero
+new false incidents; 20 stale ones cleaned.
 
 ---
 

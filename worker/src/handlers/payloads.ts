@@ -11,6 +11,7 @@ export type HandlerName =
   | 'quote_poll'
   | 'eod_sweep'
   | 'filings_poll'
+  | 'filings_detail_poll'
   | 'cross_check'
   | 'key_ratios_recompute'
   | 'ohlcv_accrual'
@@ -31,6 +32,16 @@ export interface EodSweepPayload {
 
 export interface FilingsPollPayload {
   handler: 'filings_poll';
+  sourceId: number;
+}
+
+/**
+ * filing_detail drain (event-driven, CONTRACT §8). sourceId is the venue's filing_detail source; the
+ * handler drains that venue's pending ingest.seen_items (the per-announcement targets), downloads each
+ * PDF into the 'filings' bucket, links public.filings, and enqueues ops.filing_extract_queue.
+ */
+export interface FilingsDetailPollPayload {
+  handler: 'filings_detail_poll';
   sourceId: number;
 }
 

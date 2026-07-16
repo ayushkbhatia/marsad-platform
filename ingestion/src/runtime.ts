@@ -22,8 +22,16 @@
  * VPS xlsx capture (see the adapter note) — orthogonal to this seam.
  */
 
+import { createHash } from 'node:crypto';
 import type { Sql } from './core/db.js';
 import { loadConfig, type IngestionConfig } from './core/config.js';
+import {
+  FILING_PDF_RESOLVERS,
+  filingStorageKey,
+  pdfExtFor,
+  isPdfResponse,
+  type FilingPdfResolver,
+} from './adapters/filings-detail.js';
 import { createHttpClient } from './core/fetcher.js';
 import { createBrowserClient } from './core/browser.js';
 import { createPlaywrightDriver } from './core/playwright-driver.js';
@@ -55,6 +63,7 @@ import type {
   TaskSpec,
   FetchResult,
   FetchContext,
+  EndpointConfig,
   HttpClient,
   BrowserClient,
   Logger,
@@ -80,12 +89,46 @@ export interface StagedKey {
   objectType: string;
 }
 
+/**
+ * One drain target for the filing_detail chain: an announcement the filings_list poll parsed, with
+ * the URLs the detail fetch needs. Recorded (for genuinely-new ids) as an ingest.seen_items row and
+ * later drained by the filings_detail_poll handler. `ticker` is unset by the list feed (0037 note) —
+ * reserved for a later security-resolution pass.
+ */
+export interface FilingDetailTarget {
+  externalId: string;
+  detailUrl: string | null;
+  pdfUrl: string | null;
+  title: string | null;
+  filedAt: string | null;
+  ticker?: string | null;
+}
+
+/** Result of downloading + storing one filing PDF (fetchFilingPdfs). */
+export interface FilingPdfResult {
+  externalId: string;
+  ok: boolean;
+  storageKey?: string;
+  sha256?: string;
+  contentType?: string;
+  bytes?: number;
+  error?: string;
+}
+
 export interface RunTaskResult {
   changed: boolean;
   snapshotId: number | null;
   rowsEmitted: number;
   stagedKeys: StagedKey[];
   newExternalIds: string[];
+  /**
+   * Every NormalizedFilingRef the parse produced this run (filings_list tasks only; empty otherwise).
+   * The gap-#3 fix: `newExternalIds` came from fetch-level FetchResult.externalId, which is always
+   * empty for a single list-page fetch, so no detail was ever enqueued. The list-diff against
+   * ingest.seen_items now runs off THESE parsed refs (the handler passes them to enqueueFilingDetails,
+   * whose ON CONFLICT DO NOTHING returns the genuinely-new ones).
+   */
+  filingRefs: FilingDetailTarget[];
   parserVersion: number;
 }
 
@@ -101,6 +144,18 @@ export interface IngestionRuntime {
   tasksForSource(source: SourceRecord): TaskSpec<unknown>[];
   eodSourcesForVenue(venue: VenueCode): Promise<SourceRecord[]>;
   filingDetailSourceId(venue: VenueCode): Promise<number | null>;
+  /**
+   * Download + store the PDFs for a batch of filing_detail targets (the drain chunk). Seats WAF
+   * cookies once per batch (not per item), fetches each PDF (direct pdfUrl, or detail-page → resolver
+   * → PDF), stores it in the 'filings' Storage bucket content-addressed by sha256, and returns the
+   * storage key + sha per target. Does NO DB write — the worker handler owns the public.filings +
+   * ops.filing_extract_queue + seen_items writes in its identity tx (mirrors the runTask/handler split).
+   */
+  fetchFilingPdfs(input: {
+    source: SourceRecord;
+    targets: FilingDetailTarget[];
+    agentPrincipalId: string;
+  }): Promise<FilingPdfResult[]>;
   crossCheck: CrossCheck;
   pipelinePrincipalId(): Promise<string>;
   recomputeKeyRatios(securityIds?: number[]): Promise<{ rowsWritten: number }>;
@@ -763,6 +818,80 @@ function isStatement(row: Record<string, unknown>): boolean {
   return has(row, 'statementType') && has(row, 'lineItems') && has(row, 'fiscalPeriod');
 }
 
+/**
+ * Download one filing PDF and store it in the 'filings' bucket, content-addressed by sha256. PURE of
+ * DB — takes the injected transport client + uploader. Resolution order:
+ *   1. direct pdfUrl → GET; keep it only if it IS a PDF (content-type or %PDF- magic); a resolver may
+ *      salvage a mislabeled response, else it's a clean failure (never store a login/error page as a PDF).
+ *   2. no pdfUrl → GET detailUrl; if that is the PDF, use it; else a venue resolver extracts the PDF
+ *      href from the detail page and we GET that; no resolver / no link ⇒ clean 'nopdf' failure.
+ * Returns ok:false (never throws for an expected miss) so the drain marks the item terminal, not poison.
+ */
+async function downloadFilingPdf(
+  client: HttpClient | BrowserClient,
+  uploader: StorageUploader,
+  resolver: FilingPdfResolver | undefined,
+  venue: VenueCode,
+  t: FilingDetailTarget,
+  headers: Record<string, string> | undefined,
+): Promise<FilingPdfResult> {
+  const getOpts = headers ? { headers } : {};
+  let bytes: Buffer | null = null;
+  let contentType = '';
+
+  const salvage = async (body: Buffer, ct: string): Promise<{ b: Buffer; ct: string } | null> => {
+    if (!resolver) return null;
+    const u = resolver.extractPdfUrl(body, ct);
+    if (!u) return null;
+    const r = await client.get(u, getOpts);
+    return { b: r.body, ct: r.headers['content-type'] ?? 'application/pdf' };
+  };
+
+  if (t.pdfUrl) {
+    const r = await client.get(t.pdfUrl, getOpts);
+    const ct = r.headers['content-type'] ?? '';
+    if (isPdfResponse(ct, r.body)) {
+      bytes = r.body;
+      contentType = ct || 'application/pdf';
+    } else {
+      const s = await salvage(r.body, ct);
+      if (!s) return { externalId: t.externalId, ok: false, error: `pdfUrl did not return a PDF (${ct || 'no content-type'})` };
+      bytes = s.b;
+      contentType = s.ct;
+    }
+  } else if (t.detailUrl) {
+    const r = await client.get(t.detailUrl, getOpts);
+    const ct = r.headers['content-type'] ?? '';
+    if (isPdfResponse(ct, r.body)) {
+      bytes = r.body;
+      contentType = ct || 'application/pdf';
+    } else {
+      const s = await salvage(r.body, ct);
+      if (!s) return { externalId: t.externalId, ok: false, error: 'no pdf link on detail page' };
+      bytes = s.b;
+      contentType = s.ct;
+    }
+  } else {
+    return { externalId: t.externalId, ok: false, error: 'target has no detailUrl/pdfUrl' };
+  }
+
+  if (!bytes || bytes.length === 0) {
+    return { externalId: t.externalId, ok: false, error: 'empty body' };
+  }
+  const sha = createHash('sha256').update(bytes).digest('hex');
+  const ext = pdfExtFor(contentType);
+  const key = filingStorageKey(venue, t.ticker ?? null, sha, ext);
+  await uploader.upload(key, bytes, contentType || 'application/pdf');
+  return {
+    externalId: t.externalId,
+    ok: true,
+    storageKey: key,
+    sha256: sha,
+    contentType,
+    bytes: bytes.length,
+  };
+}
+
 export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): IngestionRuntime {
   const { sql } = deps;
 
@@ -867,6 +996,20 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
     });
   }
 
+  // Second uploader for the PUBLIC 'filings' bucket — where filing PDFs are served from (295 objects
+  // live, layout {venue}/{ticker}/…). Distinct from the private lake-raw snapshot store. Absent when
+  // the service-role key is missing (local/tests) — fetchFilingPdfs then returns a clean error, never
+  // silently drops the artifact.
+  let filingsUploader: StorageUploader | undefined;
+  if (base.supabaseUrl && base.supabaseServiceRoleKey) {
+    filingsUploader = createStorageUploader({
+      supabaseUrl: base.supabaseUrl,
+      serviceRoleKey: base.supabaseServiceRoleKey,
+      bucket: 'filings',
+      logger,
+    });
+  }
+
   const snapshotStore: SnapshotStore = createSnapshotStore({ sql, config: base, uploader, logger });
   const parseRecorder: ParseRunRecorder = createParseRunRecorder(sql);
   const stagingEmitter = new LakeStagingEmitter(sql as never, logger);
@@ -906,6 +1049,59 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
         dataType: 'filing_detail',
       });
       return rows.length > 0 ? rows[0]!.id : null;
+    },
+
+    async fetchFilingPdfs({ source, targets, agentPrincipalId }) {
+      void agentPrincipalId; // no lake write here — DB linkage is the worker handler's identity tx.
+      const results: FilingPdfResult[] = [];
+      if (targets.length === 0) return results;
+      if (!filingsUploader) {
+        for (const t of targets) {
+          results.push({
+            externalId: t.externalId,
+            ok: false,
+            error: 'filings Storage uploader unconfigured (no service-role key)',
+          });
+        }
+        return results;
+      }
+
+      const useBrowser = source.transport === 'http_bootstrap' || source.transport === 'headless';
+      const client: HttpClient | BrowserClient = useBrowser ? browser : httpClientForSource(source);
+      const cfg = source.endpointConfig as unknown as {
+        actionDiscovery?: EndpointConfig['actionDiscovery'];
+        headers?: Record<string, string>;
+      };
+      // WAF venues (TDWL/ADX): seat cookies ONCE per drain so the in-context PDF GETs pass Akamai.
+      // A bootstrap failure is non-fatal — BrowserClient.get() self-seats via its one-free-retry on a
+      // 401/403 (core/browser.ts), so we only lose the pre-seat optimization.
+      if (useBrowser && cfg.actionDiscovery) {
+        try {
+          await browser.bootstrap(cfg.actionDiscovery);
+        } catch (err) {
+          logger.warn('filing_detail bootstrap failed (continuing; get() self-retries)', {
+            venue: source.venue,
+            err: err instanceof Error ? err.message : String(err),
+          });
+        }
+      }
+      const resolver = FILING_PDF_RESOLVERS[source.venue];
+      // Sequential drain: the transport's per-host ≤1 req/s bucket already paces this; the handler
+      // caps the chunk size so a burst of new announcements never starves quote lanes.
+      for (const t of targets) {
+        try {
+          results.push(
+            await downloadFilingPdf(client, filingsUploader, resolver, source.venue, t, cfg.headers),
+          );
+        } catch (err) {
+          results.push({
+            externalId: t.externalId,
+            ok: false,
+            error: err instanceof Error ? err.message : String(err),
+          });
+        }
+      }
+      return results;
     },
 
     crossCheck,
@@ -962,6 +1158,7 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
             rowsEmitted: 0,
             stagedKeys: [],
             newExternalIds: [],
+            filingRefs: [],
             parserVersion: task.parserVersion,
           };
         }
@@ -978,6 +1175,7 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
       let rowsEmitted = 0;
       const stagedKeys: StagedKey[] = [];
       const newExternalIds: string[] = [];
+      const filingRefs: FilingDetailTarget[] = [];
       let parserVersion = task.parserVersion;
 
       // Process ONE fetched result end-to-end: snapshot-first → pure parse → map → stage.
@@ -1009,6 +1207,24 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
           await stagingEmitter.emit(staging);
           rowsEmitted += staging.length;
           for (const r of staging) stagedKeys.push({ naturalKey: r.naturalKey, objectType: r.objectType });
+        }
+
+        // 4. filings_list only: surface every parsed NormalizedFilingRef so the handler can list-diff
+        //    it against ingest.seen_items and enqueue detail fetches for the genuinely-new ids (gap #3).
+        //    Uses the SAME structural discriminator the staging mapper uses (isFilingRef), so a row is a
+        //    detail target iff it staged as FILING.REF.
+        if (source.dataType === 'filings_list') {
+          for (const raw of parsed.rows as unknown[]) {
+            const row = raw as Record<string, unknown>;
+            if (!isFilingRef(row)) continue;
+            filingRefs.push({
+              externalId: String(row.externalId),
+              detailUrl: typeof row.detailUrl === 'string' && row.detailUrl !== '' ? row.detailUrl : null,
+              pdfUrl: typeof row.pdfUrl === 'string' && row.pdfUrl !== '' ? row.pdfUrl : null,
+              title: typeof row.title === 'string' ? row.title : null,
+              filedAt: typeof row.filedAt === 'string' ? row.filedAt : null,
+            });
+          }
         }
       };
 
@@ -1049,7 +1265,7 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
       }
 
       void tradeDate; // consumed by the staging mapper (EOD trade_date stamping) once wired.
-      return { changed, snapshotId: lastSnapshotId, rowsEmitted, stagedKeys, newExternalIds, parserVersion };
+      return { changed, snapshotId: lastSnapshotId, rowsEmitted, stagedKeys, newExternalIds, filingRefs, parserVersion };
     },
   };
 

@@ -53,6 +53,10 @@ const DATA_TYPE_TO_HANDLER: Record<string, string> = {
   // dedicated handler is needed. Inert until a `financials` source is seeded active.
   financials: "quote_poll",
   filings_list: "filings_poll",
+  // filing_detail: the event-driven PDF-download drain (gap #1 — this mapping did not exist, so
+  // every filing_detail wake-up row failed with "no handler for data_type"). filings_detail_poll
+  // drains the venue's pending seen_items → 'filings' bucket → public.filings + extract queue.
+  filing_detail: "filings_detail_poll",
   eod_bulletin: "eod_sweep",
 };
 
@@ -223,6 +227,8 @@ function buildPayload(
       return { handler: "quote_poll", sourceId: sourceIdNum };
     case "filings_poll":
       return { handler: "filings_poll", sourceId: sourceIdNum };
+    case "filings_detail_poll":
+      return { handler: "filings_detail_poll", sourceId: sourceIdNum };
     case "eod_sweep": {
       if (!job.venueLocalDate) {
         jobLog.warn("eod_sweep job has no venue-local date; skipping");

@@ -4,6 +4,7 @@ import type { HandlerName } from './payloads.js';
 import { makeQuotePoll } from './quote-poll.js';
 import { makeEodSweep } from './eod-sweep.js';
 import { makeFilingsPoll } from './filings-poll.js';
+import { makeFilingsDetailPoll } from './filings-detail-poll.js';
 import { makeCrossCheck } from './cross-check.js';
 import { makeKeyRatiosRecompute } from './key-ratios-recompute.js';
 import { makeOhlcvAccrual } from './ohlcv-accrual.js';
@@ -33,6 +34,7 @@ export function registerIngestionHandlers(runtime: IngestionRuntime): HandlerNam
     ['quote_poll', makeQuotePoll(runtime)],
     ['eod_sweep', makeEodSweep(runtime)],
     ['filings_poll', makeFilingsPoll(runtime)],
+    ['filings_detail_poll', makeFilingsDetailPoll(runtime)],
     ['cross_check', makeCrossCheck(runtime)],
     ['key_ratios_recompute', makeKeyRatiosRecompute(runtime)],
     ['ohlcv_accrual', makeOhlcvAccrual()],

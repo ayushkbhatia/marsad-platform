@@ -198,6 +198,30 @@ export interface StagedKey {
 }
 
 /**
+ * One filing_detail drain target: an announcement the filings_list poll parsed, plus the URLs the
+ * detail fetch needs. Recorded (for new ids) in ingest.seen_items and drained by filings_detail_poll.
+ */
+export interface FilingDetailTarget {
+  externalId: string;
+  detailUrl: string | null;
+  pdfUrl: string | null;
+  title: string | null;
+  filedAt: string | null;
+  ticker?: string | null;
+}
+
+/** Result of downloading + storing one filing PDF (fetchFilingPdfs). */
+export interface FilingPdfResult {
+  externalId: string;
+  ok: boolean;
+  storageKey?: string;
+  sha256?: string;
+  contentType?: string;
+  bytes?: number;
+  error?: string;
+}
+
+/**
  * Result of running one TaskSpec end to end (fetch → snapshot → parse → stage)
  * for a single source, produced by the ingestion runtime's pipeline. Handlers
  * consume this to decide follow-up enqueues; they never touch transport/parse.
@@ -213,6 +237,12 @@ export interface RunTaskResult {
   stagedKeys: StagedKey[];
   /** new external_ids seen this run (filings list-diff → filing_detail follow-up). */
   newExternalIds: string[];
+  /**
+   * Every NormalizedFilingRef parsed this run (filings_list only; empty otherwise). The gap-#3 fix:
+   * the handler list-diffs THESE against ingest.seen_items to enqueue detail fetches — the old
+   * `newExternalIds` came from fetch-level FetchResult.externalId, always empty for a list page.
+   */
+  filingRefs: FilingDetailTarget[];
   /** parser version that ran (for logging / parse_runs). */
   parserVersion: number;
 }
@@ -264,6 +294,18 @@ export interface IngestionRuntime {
    * venue has none configured. Used by filings_poll to enqueue detail fetches.
    */
   filingDetailSourceId(venue: VenueCode): Promise<number | null>;
+
+  /**
+   * Download + store the PDFs for a batch of filing_detail targets (the drain chunk): seat WAF
+   * cookies once, fetch each PDF, store it in the 'filings' Storage bucket content-addressed by
+   * sha256, and return the storage key + sha per target. NO DB write — the filings_detail_poll
+   * handler owns the public.filings / ops.filing_extract_queue / seen_items writes in its identity tx.
+   */
+  fetchFilingPdfs(input: {
+    source: SourceRecord;
+    targets: FilingDetailTarget[];
+    agentPrincipalId: string;
+  }): Promise<FilingPdfResult[]>;
 
   /** CrossCheck.resolve for the cross_check handler (CONTRACT §7). */
   crossCheck: CrossCheck;
