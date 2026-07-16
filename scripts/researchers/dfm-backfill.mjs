@@ -18,14 +18,20 @@
  *   4. Archive + catalogue the PDF in the 'filings' bucket (pdf_storage_key = dfm/<CS>/<sha-ish name>).
  *
  * Incremental + resumable: gates on PERIOD coverage (financial_statements.fiscal_period), so a re-run
- * (or a fresh filing) only spends LLM budget on genuinely-uncovered periods. FSPDF_MAX bounds LLM calls
- * per run (subscription rate limit). A ticker absent from public.securities is skipped + logged (those
- * are the names the DFM securities universe reconciliation 55→68 must add).
+ * (or a fresh filing) only spends LLM budget on genuinely-uncovered periods. A ticker absent from
+ * public.securities is skipped + logged (the names the DFM securities reconciliation must add).
  *
- *   ACQUIRE_SYMBOLS=EMAAR,DIB  FSPDF_MAX=6  node dfm-backfill.mjs      # explicit list
- *   CHUNK_START=0 CHUNK_SIZE=10 node dfm-backfill.mjs                  # slice of all DFM listed securities
+ * PARALLEL: CONCURRENCY (default 4) `claude -p` extractions run at once (async spawn), so a run clears
+ * several names instead of ~1. FSPDF_MAX is the GLOBAL per-run extraction budget; RUN_BUDGET_MS self-stops
+ * before the wrapper's `timeout` so the DONE line always prints (a SIGKILLed run with no DONE resets the
+ * chunk cursor). Bounded by the Claude subscription rate limit — a throttled call logs `extract: claude …`
+ * and retries next run (no data loss). Watch the box: CONCURRENCY parallel claude+pdftotext on the 3.8 GB
+ * VPS — the systemd unit caps it with MemoryHigh so it can't OOM the co-resident marsad-worker.
+ *
+ *   ACQUIRE_SYMBOLS=EMAAR,DIB  FSPDF_MAX=8  node dfm-backfill.mjs               # explicit list
+ *   CHUNK_START=0 CHUNK_SIZE=12 CONCURRENCY=4 FSPDF_MAX=48 node dfm-backfill.mjs  # slice, 4-wide
  */
-import { spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 const ING = '/opt/marsad/ingestion';
 const { extractToStatements, EXTRACTION_SYSTEM, buildExtractionUserMessage } = await import(`${ING}/dist/lake/statement-extraction.js`);
 const postgres = (await import('/opt/marsad/worker/node_modules/postgres/src/index.js').then(m => m.default ?? m));
@@ -35,7 +41,9 @@ for (const [k, v] of Object.entries({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, S
   if (!v) { console.error(`missing env ${k}`); process.exit(1); }
 
 const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'sonnet';
-const FSPDF_MAX = Number(process.env.FSPDF_MAX || 6); // new PDFs (LLM extractions) per run — rate-limit budget
+const FSPDF_MAX = Number(process.env.FSPDF_MAX || 48);      // total LLM extractions/run (global budget) — rate-limit guard
+const CONCURRENCY = Number(process.env.CONCURRENCY || 3);   // parallel `claude -p` extractions (async spawn); 3 balances speed vs the subscription's concurrent-session throttle (4 saw ~37% claude exit-1)
+const RUN_BUDGET_MS = Number(process.env.RUN_BUDGET_MS || 1000000); // self-stop ~16.7 min — well before the wrapper's timeout, so the DONE line always prints (a SIGKILLed run with no DONE resets the cursor)
 const TAKE = Number(process.env.EFSAH_TAKE || 50);    // eFsah page size — 50 covers ~5y of quarterly+annual
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
@@ -109,16 +117,39 @@ async function fetchPdfBuf(url) {
   return { buf };
 }
 
+// Async subprocess runner (spawn, not spawnSync — spawnSync blocks the single Node thread, so N of them
+// can never overlap). Writes `input` to stdin, collects stdout, SIGKILLs after timeoutMs. Returns {code,out}.
+function runProc(cmd, args, input, timeoutMs) {
+  return new Promise((resolve) => {
+    const ch = spawn(cmd, args, { stdio: ['pipe', 'pipe', 'pipe'] });
+    const out = [], err = []; let killed = false;
+    const to = timeoutMs ? setTimeout(() => { killed = true; ch.kill('SIGKILL'); }, timeoutMs) : null;
+    ch.stdout.on('data', (d) => out.push(d));
+    ch.stderr.on('data', (d) => err.push(d));
+    ch.on('error', (e) => { if (to) clearTimeout(to); resolve({ code: -1, out: Buffer.concat(out), err: String(e) }); });
+    ch.on('close', (code) => { if (to) clearTimeout(to); resolve({ code: killed ? 124 : code, out: Buffer.concat(out), err: Buffer.concat(err).toString().slice(0, 200).replace(/\s+/g, ' ').trim() }); });
+    if (input != null) ch.stdin.write(input);
+    ch.stdin.end();
+  });
+}
+
 // PDF text → `claude -p` (sonnet, seat credit) → normalized statements. Venue-agnostic extractor, DFM-tagged.
-function extractViaClaude(buf, cs) {
-  const t = spawnSync('pdftotext', ['-layout', '-', '-'], { input: buf, maxBuffer: 30e6 });
-  const full = t.stdout?.toString() || '';
+// ASYNC so CONCURRENCY of these run in parallel (the whole point of the speed-up).
+async function extractViaClaude(buf, cs) {
+  const t = await runProc('pdftotext', ['-layout', '-', '-'], buf, 60000);
+  const full = t.out.toString();
   if (full.length < 400) return { error: 'no text layer' };
   const userMsg = buildExtractionUserMessage(full, 120000);
   const prompt = `${EXTRACTION_SYSTEM}\n\nThe filing text is on stdin. Return ONLY the JSON object of shape {"currency","scale","statements":[...]} — no prose, no code fences.`;
-  const r = spawnSync('claude', ['-p', prompt, '--output-format', 'json', '--model', CLAUDE_MODEL], { input: userMsg, encoding: 'utf8', maxBuffer: 60e6, timeout: 240000 });
-  if (r.error || r.status !== 0) return { error: `claude ${r.error?.code || r.status}` };
-  let out = r.stdout || ''; try { const env = JSON.parse(out); if (typeof env.result === 'string') out = env.result; } catch { /* raw */ }
+  const args = ['-p', prompt, '--output-format', 'json', '--model', CLAUDE_MODEL];
+  let r = await runProc('claude', args, userMsg, 240000);
+  if (r.code !== 0) {
+    // One retry with a jittered backoff — smooths a transient throttle when several extractions overlap.
+    await new Promise((res) => setTimeout(res, 3000 + Math.floor(Math.random() * 5000)));
+    r = await runProc('claude', args, userMsg, 240000);
+  }
+  if (r.code !== 0) return { error: `claude ${r.code}${r.err ? ' — ' + r.err : ''}` };
+  let out = r.out.toString(); try { const env = JSON.parse(out); if (typeof env.result === 'string') out = env.result; } catch { /* raw */ }
   const mm = out.match(/\{[\s\S]*\}/); if (!mm) return { error: 'no json' };
   let parsed; try { parsed = JSON.parse(mm[0]); } catch { return { error: 'bad json' }; }
   if (!Array.isArray(parsed.statements)) return { error: 'no statements' };
@@ -182,18 +213,47 @@ function filedIso(s) {
 
 // ── main ──
 const t0 = Date.now();
-const sql = postgres(SUPABASE_DB_URL, { max: 2, prepare: false });
+const sql = postgres(SUPABASE_DB_URL, { max: 8, prepare: false }); // headroom for CONCURRENCY parallel persists
 let symbols;
 if (process.env.ACQUIRE_SYMBOLS) symbols = process.env.ACQUIRE_SYMBOLS.split(',').map((s) => s.trim()).filter(Boolean);
 else {
   const start = Number(process.env.CHUNK_START || 0), size = Number(process.env.CHUNK_SIZE || 10);
   symbols = (await sql`select ticker from public.securities where venue_code='DFM' and status='listed' order by ticker offset ${start} limit ${size}`).map((r) => r.ticker);
 }
-log(`dfm-backfill — ${symbols.length} companies, FSPDF_MAX ${FSPDF_MAX}/run, take ${TAKE}`);
+const runDeadline = t0 + RUN_BUDGET_MS;
+log(`dfm-backfill — ${symbols.length} companies, FSPDF_MAX ${FSPDF_MAX}/run, conc ${CONCURRENCY}, take ${TAKE}`);
 
 let companies = 0, pdfNew = 0, rowsW = 0, noSec = 0, budget = FSPDF_MAX;
+
+// Extract a name's gap PDFs through a pool of CONCURRENCY parallel workers (download + claude + persist).
+// JS is single-threaded, so the shared counters/budget mutate atomically between awaits — no locking needed.
+async function extractGaps(gaps, cs, secId) {
+  let gi = 0;
+  async function worker() {
+    while (true) {
+      if (budget <= 0 || Date.now() > runDeadline) return;
+      const i = gi++;
+      if (i >= gaps.length) return;
+      const f = gaps[i];
+      budget--; // reserve a slot up front so parallel workers respect the global cap
+      try {
+        const got = await fetchPdfBuf(f.pdfUrl);
+        if (got.err) { log(`    ${f.fname} fetch: ${got.err}`); continue; }
+        const ex = await extractViaClaude(got.buf, cs);
+        if (ex.error) { log(`    ${f.fname} extract: ${ex.error}`); continue; } // transient — retry next run
+        const key = `dfm/${sanitizeSeg(cs)}/${sanitizeSeg(f.fname)}`;
+        await uploadPdf(key, got.buf);
+        const nrows = await persist(sql, cs, secId, ex.statements, key, `DFM-FSPDF-${f.id}`, filedIso(f.filedRaw));
+        pdfNew++; rowsW += nrows;
+        log(`    ${nrows ? '✓' : '·'} ${f.fname} → ${ex.statements.periods.length}p → ${nrows} new rows (budget ${budget})`);
+      } catch (e) { log(`    ${f.fname} err ${String(e).slice(0, 70)}`); }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, gaps.length) }, () => worker()));
+}
+
 for (const cs of symbols) {
-  if (budget <= 0) break;
+  if (budget <= 0 || Date.now() > runDeadline) break;
   try {
     const sec = await sql`select id from public.securities where venue_code='DFM' and ticker=${cs} limit 1`;
     if (!sec[0]) { log(`  ${cs}: no security row — skipping (needs DFM universe reconciliation)`); noSec++; companies++; continue; }
@@ -203,21 +263,9 @@ for (const cs of symbols) {
     // Uncovered candidates: a candidatePeriod we don't yet have (null candidate ⇒ include — let the extractor judge).
     const gaps = filings.filter((f) => { const per = candidatePeriod(f.headline, f.interval); return per === null || !covered.has(per); });
     log(`  ${cs}: ${filings.length} reports, ${gaps.length} gap-candidates (covered ${covered.size} periods)`);
-    for (const f of gaps) {
-      if (budget <= 0) break;
-      const got = await fetchPdfBuf(f.pdfUrl);
-      if (got.err) { log(`    ${f.fname} fetch: ${got.err}`); continue; }
-      const ex = extractViaClaude(got.buf, cs);
-      budget--;
-      if (ex.error) { log(`    ${f.fname} extract: ${ex.error}`); continue; } // transient — retry next run
-      const key = `dfm/${sanitizeSeg(cs)}/${sanitizeSeg(f.fname)}`;
-      await uploadPdf(key, got.buf);
-      const nrows = await persist(sql, cs, secId, ex.statements, key, `DFM-FSPDF-${f.id}`, filedIso(f.filedRaw));
-      pdfNew++; rowsW += nrows;
-      log(`    ${nrows ? '✓' : '·'} ${f.fname} → ${ex.statements.periods.length}p → ${nrows} new rows (budget ${budget})`);
-    }
+    await extractGaps(gaps, cs, secId);
     companies++;
   } catch (e) { log(`  ${cs} err ${String(e).slice(0, 80)}`); companies++; }
 }
 await sql.end();
-log(`DONE ${(Date.now() - t0) / 1000 | 0}s | companies ${companies}/${symbols.length} | new PDFs ${pdfNew} | rows ${rowsW} | no-security ${noSec} | budget left ${budget}`);
+log(`DONE ${(Date.now() - t0) / 1000 | 0}s | companies ${companies}/${symbols.length} | new PDFs ${pdfNew} | rows ${rowsW} | no-security ${noSec} | conc ${CONCURRENCY} | budget left ${budget}${Date.now() > runDeadline ? ' | deadline-cut' : ''}`);

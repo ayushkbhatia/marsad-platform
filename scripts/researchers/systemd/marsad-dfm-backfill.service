@@ -5,4 +5,9 @@ After=network-online.target
 [Service]
 Type=oneshot
 ExecStart=/bin/bash /home/deploy/dfm-backfill-cron.sh
-TimeoutStartSec=900
+# Runs up to ~22 min with CONCURRENCY parallel extractions; give the wrapper's `timeout 1300` room to
+# finish + print DONE before systemd's own kill.
+TimeoutStartSec=1500
+# The 3.8 GB VPS is memory-tight and co-hosts marsad-worker. Cap this unit's cgroup so N parallel
+# claude+pdftotext spill to swap instead of triggering a box-wide OOM that kills the worker.
+MemoryHigh=2600M
