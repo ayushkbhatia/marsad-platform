@@ -20,6 +20,9 @@
  */
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { writeFileSync, mkdtempSync, readdirSync, unlinkSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 const ING = '/opt/marsad/ingestion';
 const { parseCompanyFinancialStatements, companyFinancialStatementsUrl } = await import(`${ING}/dist/adapters/bhb/financials.js`);
 const { extractToStatements, EXTRACTION_SYSTEM, buildExtractionUserMessage } = await import(`${ING}/dist/lake/statement-extraction.js`);
@@ -31,6 +34,8 @@ for (const [k, v] of Object.entries({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, S
 const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'sonnet';
 const FSPDF_MAX = Number(process.env.FSPDF_MAX || 6); // new PDFs per run (subscription rate-limit budget)
 const RUN_BUDGET_MS = Number(process.env.RUN_BUDGET_MS || 680000); // self-stop before the cron SIGTERM
+const OCR_MAX_PAGES = Number(process.env.OCR_MAX_PAGES || 60); // scanned-PDF OCR page cap (bounds time/mem)
+const OCR_DPI = Number(process.env.OCR_DPI || 200); // rasterization DPI for OCR
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
 const TOKEN_PAGE = 'https://www.bahrainbourse.com/en';
 const API_KEY_RE = /APIKey['"]?\s*[:=]\s*['"]([a-fA-F0-9]{32,})['"]/;
@@ -67,18 +72,60 @@ async function fetchPdf(url) {
   } catch (e) { return { err: String(e).slice(0, 80) }; }
 }
 
-function extractViaClaude(buf) {
+/** Text layer via pdftotext (digital PDFs). '' if none. */
+function pdfToText(buf) {
   const t = spawnSync('pdftotext', ['-layout', '-', '-'], { input: buf, maxBuffer: 30e6 });
-  const full = t.stdout?.toString() || '';
-  if (full.length < 400) return { error: 'no text layer' };
+  return t.stdout?.toString() || '';
+}
+
+/** OCR fallback for SCANNED (image-only) PDFs: rasterize ONE page at a time (pdftoppm) → tesseract →
+ *  concat, unlinking each page image immediately. Page-by-page keeps peak memory/disk ~one page (this VPS
+ *  is memory-tight — OOM history). Bounded by OCR_MAX_PAGES + a 400k-char cap. '' on any failure. */
+function ocrToText(buf) {
+  let dir;
+  try {
+    dir = mkdtempSync(join(tmpdir(), 'bhbocr-'));
+    const pdf = join(dir, 'in.pdf');
+    writeFileSync(pdf, buf);
+    let text = '';
+    for (let pg = 1; pg <= OCR_MAX_PAGES; pg++) {
+      const rp = spawnSync('pdftoppm', ['-png', '-r', String(OCR_DPI), '-f', String(pg), '-l', String(pg), pdf, join(dir, 'pg')], { maxBuffer: 6e7 });
+      if (rp.status !== 0) break; // rasterization error
+      const imgs = readdirSync(dir).filter((f) => f.startsWith('pg') && f.endsWith('.png'));
+      if (imgs.length === 0) break; // page past end of document
+      const abs = join(dir, imgs[0]);
+      const t = spawnSync('tesseract', [abs, 'stdout', '-l', 'eng', '--psm', '6'], { maxBuffer: 4e7 });
+      if (t.status === 0) text += (t.stdout?.toString() || '') + '\n';
+      try { unlinkSync(abs); } catch { /* */ }
+      if (text.length > 400000) break;
+    }
+    return text;
+  } catch {
+    return '';
+  } finally {
+    if (dir) { try { rmSync(dir, { recursive: true, force: true }); } catch { /* */ } }
+  }
+}
+
+// error.permanent=true ⇒ the PDF is genuinely unreadable (image-only AND OCR yielded nothing) — the loop
+// archives + owned-marks it so it is NEVER re-downloaded/re-attempted. permanent=false ⇒ a transient miss
+// (claude timeout / malformed JSON) — left un-owned so it retries next run.
+function extractViaClaude(buf) {
+  let full = pdfToText(buf);
+  if (full.length < 400) {
+    // scanned image PDF — no embedded text layer. OCR it (slow; bounded by OCR_MAX_PAGES).
+    full = ocrToText(buf);
+    if (full.length < 400) return { error: 'no text (ocr failed)', permanent: true };
+    log(`      ocr recovered ${full.length} chars`);
+  }
   const userMsg = buildExtractionUserMessage(full, 120000);
   const prompt = `${EXTRACTION_SYSTEM}\n\nThe filing text is on stdin. Return ONLY the JSON object of shape {"currency","scale","statements":[...]} — no prose, no code fences.`;
   const r = spawnSync('claude', ['-p', prompt, '--output-format', 'json', '--model', CLAUDE_MODEL], { input: userMsg, encoding: 'utf8', maxBuffer: 60e6, timeout: 240000 });
-  if (r.error || r.status !== 0) return { error: `claude ${r.error?.code || r.status}` };
+  if (r.error || r.status !== 0) return { error: `claude ${r.error?.code || r.status}`, permanent: false };
   let out = r.stdout || ''; try { const env = JSON.parse(out); if (typeof env.result === 'string') out = env.result; } catch { /* raw */ }
-  const mm = out.match(/\{[\s\S]*\}/); if (!mm) return { error: 'no json' };
-  let parsed; try { parsed = JSON.parse(mm[0]); } catch { return { error: 'bad json' }; }
-  if (!Array.isArray(parsed.statements)) return { error: 'no statements' };
+  const mm = out.match(/\{[\s\S]*\}/); if (!mm) return { error: 'no json', permanent: false };
+  let parsed; try { parsed = JSON.parse(mm[0]); } catch { return { error: 'bad json', permanent: false }; }
+  if (!Array.isArray(parsed.statements)) return { error: 'no statements', permanent: false };
   return extractToStatements(parsed, 'BHB', '0');
 }
 
@@ -121,6 +168,16 @@ async function persist(sql, cs, statements, storageKey, doc) {
   return n;
 }
 
+/** Write ONLY the public.filings owned-marker (no statement rows) for a genuinely-unreadable PDF, so it is
+ *  not re-downloaded + re-attempted (burning an FSPDF_MAX slot) on every run. */
+async function markOwned(sql, cs, d, storageKey) {
+  const sec = await sql`select id from public.securities where venue_code='BHB' and ticker=${cs} limit 1`;
+  if (!sec[0]) return;
+  await sql`insert into public.filings (security_id, venue_code, source_ref, filing_type, title, filed_at, pdf_storage_key)
+            values (${sec[0].id}, 'BHB', ${d.sourceRef}, 'RESULTS', ${d.periodTitle.slice(0, 200) || d.sourceRef}, now(), ${storageKey})
+            on conflict (venue_code, source_ref) do update set pdf_storage_key=excluded.pdf_storage_key`;
+}
+
 // ── main ──
 const t0 = Date.now();
 const sql = postgres(SUPABASE_DB_URL, { max: 2, prepare: false });
@@ -147,7 +204,17 @@ for (const cs of symbols) {
       if (got.err || got.magic !== '%PDF-') { log(`    ${d.fileId} pdf fetch fail: ${got.err || got.magic}`); continue; }
       const ex = extractViaClaude(got.buf);
       budget--;
-      if (ex.error) { log(`    ${d.fileId} extract: ${ex.error}`); continue; } // transient — retry next run
+      if (ex.error) {
+        log(`    ${d.fileId} extract: ${ex.error}`);
+        if (ex.permanent) {
+          // unreadable even after OCR — archive + owned-mark so it never burns a budget slot again.
+          const key = `bhb/${cs}/${createHash('sha256').update(got.buf).digest('hex')}.pdf`;
+          await uploadPdf(key, got.buf);
+          await markOwned(sql, cs, d, key);
+          ownedRefs.add(d.sourceRef); pdfNew++;
+        }
+        continue; // transient (non-permanent) → left un-owned, retries next run
+      }
       const key = `bhb/${cs}/${createHash('sha256').update(got.buf).digest('hex')}.pdf`;
       await uploadPdf(key, got.buf);
       const nrows = await persist(sql, cs, ex.statements, key, d);
