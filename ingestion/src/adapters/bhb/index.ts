@@ -23,3 +23,13 @@ export { bhbQuotes, BHB_QUOTES_PARSER_VERSION } from './quotes.js';
 export { bhbEodBulletin, mapBulletinRows, decodeWorkbook, BHB_EOD_PARSER_VERSION } from './eod.js';
 export { bhbFilingsList, BHB_FILINGS_PARSER_VERSION } from './filings.js';
 export { bhbOhlcvBackfill, fetchBhbOhlcv, parseBhbOhlcv, toIsoTradeDate, BHB_OHLCV_PARSER_VERSION } from './ohlcv.js';
+// Statements-tab financial-statement PDF index (consumed by the bhb-financials.mjs systemd researcher —
+// NOT a runtime TaskSpec; there is no ingest.sources slot for it). See financials.ts + docs 08-worker-fleet.
+export {
+  parseCompanyFinancialStatements,
+  parseStatementPeriod,
+  companyFinancialStatementsUrl,
+  statementFileId,
+  BHB_FINANCIALS_PARSER_VERSION,
+  type BhbStatementDoc,
+} from './financials.js';
