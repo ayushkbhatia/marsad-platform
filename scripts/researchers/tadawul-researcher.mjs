@@ -15,7 +15,7 @@ import { spawnSync } from 'node:child_process';
 import { makeGuards } from './scrape-guardrails.mjs';
 const ING = '/opt/marsad/ingestion';
 const { chromium } = await import(`${ING}/node_modules/playwright/index.js`).then(m => m.default ?? m);
-const { parseTadawulXbrl } = await import(`${ING}/dist/adapters/tadawul/xbrl.js`);
+const { parseTadawulXbrl, parseTadawulProfile } = await import(`${ING}/dist/adapters/tadawul/xbrl.js`);
 const { extractToStatements } = await import(`${ING}/dist/lake/statement-extraction.js`);
 const postgres = (await import('/opt/marsad/worker/node_modules/postgres/src/index.js').then(m => m.default ?? m));
 
@@ -67,6 +67,30 @@ async function persist(sql, cs, statements, storageKey, sourceRef) {
             values (${secId}, 'TDWL', ${sourceRef}, 'RESULTS', ${sourceRef.slice(0, 200)}, now(), ${storageKey})
             on conflict (venue_code, source_ref) do update set pdf_storage_key=excluded.pdf_storage_key`;
   return n;
+}
+
+// Entity profile (ISIN + sector/industry) → the securities identity columns, Mubasher-free (DEF-SECTOR-DATA).
+// Mirrors persist(): one PROFILE.SECURITY object per (venue,ticker); the fn_security_profile_project trigger
+// projects PENDING inserts into public.securities (coalesce — a null field never wipes the Mubasher-scraped
+// shares_outstanding, so the two producers compose). One-time backfill: only fires while profile_scraped_at IS NULL.
+async function persistProfile(sql, cs, prof) {
+  const sec = await sql`select id from public.securities where venue_code='TDWL' and ticker=${cs} limit 1`;
+  if (!sec[0]) return;
+  const secId = sec[0].id;
+  const agent = await sql`select id from iam.principals where handle='SYSTEM' limit 1`;
+  const pr = await sql`insert into lake.parse_runs (agent_id, parser_key, parser_version, status) values (${agent[0].id}, 'tadawul_xbrl_profile', '1', 'succeeded') returning id`;
+  const nk = `PROFILE.SECURITY:TDWL:${cs}`;
+  const payload = { venue: 'TDWL', ticker: cs, sector: prof.sector, rawSector: prof.rawSector, isin: prof.isin, sharesOutstanding: prof.sharesOutstanding, industry: prof.industry };
+  const live = await sql`select id, revision, state from lake.objects where natural_key=${nk} and superseded_by is null limit 1`;
+  if (live[0] && live[0].state === 'VERIFIED') {
+    const nid = (await sql`select gen_random_uuid() as id`)[0].id;
+    await sql`update lake.objects set superseded_by=${nid}, state='RETIRED' where id=${live[0].id}`;
+    await sql`insert into lake.objects (id,object_type,natural_key,security_id,venue_code,payload,state,revision,parse_run_id,source_rank) values (${nid},'PROFILE.SECURITY',${nk},${secId},'TDWL',${sql.json(payload)},'PENDING',${live[0].revision + 1},${pr[0].id},10)`;
+  } else if (live[0]) {
+    await sql`update lake.objects set payload=${sql.json(payload)}, revision=${live[0].revision + 1}, parse_run_id=${pr[0].id}, source_rank=10 where id=${live[0].id}`;
+  } else {
+    await sql`insert into lake.objects (object_type,natural_key,security_id,venue_code,payload,state,revision,parse_run_id,source_rank) values ('PROFILE.SECURITY',${nk},${secId},'TDWL',${sql.json(payload)},'PENDING',1,${pr[0].id},10)`;
+  }
 }
 
 const MW_URL = 'https://www.saudiexchange.sa/wps/portal/saudiexchange/ourmarkets/main-market-watch?locale=en';
@@ -159,9 +183,14 @@ else {
 // Incremental: already-owned XBRL + PDF storage keys.
 const owned = new Set((await sql`select pdf_storage_key from public.filings where venue_code='TDWL' and pdf_storage_key like 'tdwl/%/xbrl/%'`).map((r) => r.pdf_storage_key));
 const ownedPdf = new Set((await sql`select pdf_storage_key from public.filings where venue_code='TDWL' and pdf_storage_key like 'tdwl/%' and pdf_storage_key not like '%/xbrl/%'`).map((r) => r.pdf_storage_key));
-log(`researcher — ${symbols.length} companies, ${owned.size} XBRL + ${ownedPdf.size} PDF filings already owned`);
+// One-time entity-profile backfill set: TDWL companies whose identity (sector/isin) hasn't landed yet.
+// Stamped by fn_security_profile_project on first land, so a company drops out after one successful scrape.
+const needProfile = new Set((await sql`select ticker from public.securities where venue_code='TDWL' and profile_scraped_at is null`).map((r) => r.ticker));
+log(`researcher — ${symbols.length} companies, ${owned.size} XBRL + ${ownedPdf.size} PDF filings already owned, ${needProfile.size} profiles to backfill`);
 
-let companies = 0, docsNew = 0, rowsW = 0, gateRej = 0, pdfArchived = 0;
+let companies = 0, docsNew = 0, rowsW = 0, gateRej = 0, pdfArchived = 0, profilesW = 0;
+// Bound the one-time profile backfill's extra html GETs per run (fresh-filing htmls are reused for free).
+let profileBudget = Number(process.env.PROFILE_MAX || 30);
 // Proxy-bandwidth guardrails (shared): block image/font/media + trackers, account bytes, hard per-run
 // budget (safety net; the real control is the 6h systemd cadence). Default 800MB/run — well above a
 // normal 16-company chunk after interception, so it only trips on a runaway.
@@ -189,6 +218,7 @@ async function processGroup(group, gid) {
         if (Date.now() > runDeadline) { log(`  [g${gid}] run budget reached — stopping (${done} done)`); await browser.close(); return done; }
         if (guards.over()) { log(`  [g${gid}] byte budget ${guards.stats().maxMb}MB reached — stopping (${done} done, ${guards.stats().mb}MB)`); await browser.close(); return done; }
         try {
+          let profileHtml = null; // reuse a fetched XBRL html for the one-time profile backfill (free)
           const docs = await scrapeDocs(page, nav, cs);
           if (docs === null) { log(`  [g${gid}] ${cs} market-watch nav failed — rotating`); break; } // fresh IP
           const fresh = docs.xbrl.filter((u) => !owned.has(`tdwl/${cs}/xbrl/${u.split('/').pop()}`));
@@ -198,6 +228,7 @@ async function processGroup(group, gid) {
             const got = await fetchHtml(page, u);
             if (got.err || got.status !== 200 || !got.len) { log(`    ${fname} fetch fail: ${got.err || got.status}`); continue; }
             const html = Buffer.from(got.b64, 'base64').toString('utf8');
+            profileHtml = html; // the [100010] identity block is filing-invariant — any fetched html works
             const { statements, validation } = extractToStatements(parseTadawulXbrl(html), 'TDWL', cs);
             gateRej += validation.rejected.length;
             if (!statements.periods.length) { log(`    ${fname} — no accepted periods`); continue; }
@@ -221,6 +252,19 @@ async function processGroup(group, gid) {
             ownedPdf.add(key); pdfArchived++; archivedHere++; pdfBudget--;
           }
           if (freshPdf.length) log(`    [g${gid}] archived ${archivedHere}/${freshPdf.length} PDFs (budget ${pdfBudget})`);
+          // One-time entity-profile backfill (ISIN + sector/industry → securities). Free from a fresh html;
+          // else one owned-html GET (budget-bounded). Skipped once profile_scraped_at is set (needProfile miss).
+          if (needProfile.has(cs)) {
+            if (!profileHtml && docs.xbrl.length && profileBudget > 0) {
+              const got = await fetchHtml(page, docs.xbrl[0]);
+              if (!got.err && got.status === 200 && got.len) profileHtml = Buffer.from(got.b64, 'base64').toString('utf8');
+              profileBudget--;
+            }
+            if (profileHtml) {
+              const prof = parseTadawulProfile(profileHtml, cs);
+              if (prof) { await persistProfile(sql, cs, prof); needProfile.delete(cs); profilesW++; log(`    ⌘ [g${gid}] ${cs} profile → ${prof.sector}${prof.isin ? ' / ' + prof.isin : ''}`); }
+            }
+          }
           done++; companies++;
         } catch (e) { log(`  [g${gid}] ${cs} err ${String(e).slice(0, 70)}`); done++; companies++; }
       }
@@ -237,4 +281,4 @@ const groups = [];
 for (let i = 0; i < symbols.length; i += per) groups.push(symbols.slice(i, i + per));
 await Promise.all(groups.map((g, i) => processGroup(g, i)));
 await sql.end();
-log(`DONE ${(Date.now() - t0) / 1000 | 0}s | companies ${companies}/${symbols.length} | new XBRL docs ${docsNew} | financial_statements rows ${rowsW} | PDFs archived ${pdfArchived} | gate-rejected ${gateRej} | conc ${CONCURRENCY} | proxy ${guards.stats().mb}MB (blocked ${guards.stats().blocked} reqs)`);
+log(`DONE ${(Date.now() - t0) / 1000 | 0}s | companies ${companies}/${symbols.length} | new XBRL docs ${docsNew} | financial_statements rows ${rowsW} | profiles ${profilesW} | PDFs archived ${pdfArchived} | gate-rejected ${gateRej} | conc ${CONCURRENCY} | proxy ${guards.stats().mb}MB (blocked ${guards.stats().blocked} reqs)`);
