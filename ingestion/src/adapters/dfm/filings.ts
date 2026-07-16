@@ -9,7 +9,13 @@
 //   issuer_symbol     ('IFA')  / issuer  (full name)
 //   announcement_type ('Disclosure')
 //   resources[]       ({ description, r_path '/2026/Jul/13/<uuid>/<file>.pdf', category, language, type })
-// The r_path is CDN-relative and prefixed with the api2.dfm.ae origin to form the PDF url.
+// The r_path is CDN-relative. It is served by the DOCUMENT host feeds.dfm.ae/documents — NOT api2.dfm.ae
+// (which is the LIST-feed host and 404s on a resource GET). Verified live 2026-07-16 from an ordinary IP
+// (no browser, no WAF): `GET https://feeds.dfm.ae/documents<r_path>` → 200 application/pdf, while the same
+// path under api2.dfm.ae → 404 {"statusCode":404,"message":"Resource not found"}. r_path segments carry raw
+// spaces (e.g. 'IFA NOT E 13 07 2026.Pdf.pdf') → we percent-encode spaces to match the portal's own href.
+// This corrected host reactivates the DFM filing_detail chain (was deactivated in 20260716095000 solely
+// because the PDF host was unpinned).
 //
 // Golden fixture: ingestion/fixtures/dfm/filings-live.json (real prototype_efsah JSON, 20 rows,
 // includes the leading UTF-8 BOM). The parser strips a leading BOM before JSON.parse.
@@ -23,10 +29,12 @@ import type {
   TaskSpec,
 } from '../../core/types.js';
 
-export const DFM_FILINGS_PARSER_VERSION = 2;
+// v3: pdfUrl now resolves against the real document host (feeds.dfm.ae/documents), not api2.dfm.ae.
+export const DFM_FILINGS_PARSER_VERSION = 3;
 
-// The api2.dfm.ae origin that serves both the JSON list and the resource (PDF) CDN paths.
-const DFM_API_ORIGIN = 'https://api2.dfm.ae';
+// The document (PDF) CDN host. api2.dfm.ae serves the JSON LIST feed only; the resource bytes live under
+// feeds.dfm.ae/documents (verified 2026-07-16 — see header note). r_path already begins with '/'.
+const DFM_DOCS_ORIGIN = 'https://feeds.dfm.ae/documents';
 
 type Json = Record<string, unknown>;
 
@@ -71,7 +79,12 @@ function locateRows(payload: unknown): Json[] {
   return [];
 }
 
-/** Resolve the first attachment's absolute PDF url from resources[].r_path (CDN-relative). */
+/**
+ * Resolve the first attachment's absolute PDF url from resources[].r_path (CDN-relative).
+ * r_path segments carry raw spaces; percent-encode them (only) to reproduce the portal's own working
+ * href (e.g. '/…/IFA NOT E 13 07 2026.Pdf.pdf' → '…/IFA%20NOT%20E%2013%2007%202026.Pdf.pdf'). Other
+ * chars are left as-is — the feeds.dfm.ae CDN serves the file with just spaces encoded.
+ */
 function resolvePdfUrl(row: Json): string | undefined {
   const resources = row['resources'] ?? row['Resources'];
   if (!Array.isArray(resources)) return undefined;
@@ -80,7 +93,8 @@ function resolvePdfUrl(row: Json): string | undefined {
     const rPath = str(pick(r, ['r_path', 'rPath', 'path', 'url', 'Url']));
     if (rPath === '') continue;
     if (/^https?:\/\//i.test(rPath)) return rPath;
-    return `${DFM_API_ORIGIN}${rPath.startsWith('/') ? '' : '/'}${rPath}`;
+    const rel = (rPath.startsWith('/') ? rPath : `/${rPath}`).replace(/ /g, '%20');
+    return `${DFM_DOCS_ORIGIN}${rel}`;
   }
   return undefined;
 }

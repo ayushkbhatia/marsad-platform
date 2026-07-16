@@ -1,0 +1,16 @@
+[Unit]
+Description=Run Marsad DFM financials backfill periodically
+
+# BACKFILL cadence: frequent until the DFM universe is covered. No proxy/browser, so this does NOT
+# contend with the Tadawul fleet's RAM/bandwidth; the period-coverage gate in dfm-backfill.mjs makes a
+# covered pass ~free (0 LLM spend). STAGGERED off the Tadawul timers' boot offsets.
+#
+# STEADY-STATE (once covered): drop to 6h + set DFM_WINDOW_GATE=1 (see DEPLOY.md) — the same new-PDF diff
+# at minimal spend.
+[Timer]
+OnBootSec=8min
+OnUnitActiveSec=30min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

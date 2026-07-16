@@ -1,0 +1,8 @@
+[Unit]
+Description=Marsad DFM financials backfill (eFsah PDF LLM via Claude Code subscription; Class-A, no browser)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /home/deploy/dfm-backfill-cron.sh
+TimeoutStartSec=900
