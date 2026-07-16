@@ -23,6 +23,7 @@ import type {
   NormalizedFiling,
   NormalizedFilingRef,
   NormalizedStatementRow,
+  NormalizedProfile,
   Logger,
   TaskSpec,
 } from '../core/types.js';
@@ -242,6 +243,37 @@ test('financials → FILING.FINANCIALS keyed by venue+ticker+statementType+basis
   )[0]!;
   assert.equal(restated.naturalKey, r.naturalKey); // same object key
   assert.notEqual(contentHash(restated.payload), contentHash(r.payload)); // distinct content ⇒ new revision
+});
+
+test('profile → PROFILE.SECURITY keyed by venue+ticker; single-source PENDING, not price-sensitive', () => {
+  const profSource = source({ id: 38, venue: 'TDWL', dataType: 'securities_profile' });
+  const profile: NormalizedProfile = {
+    venue: 'TDWL',
+    ticker: '2222',
+    sector: 'energy', // public.sectors.key
+    rawSector: 'Energy',
+    isin: 'SA14TG012N13',
+    sharesOutstanding: 242_000_000_000,
+    industry: 'Oil & Gas',
+  };
+  const rows = mapRowsToStaging(profSource, stubTask, SNAP_ID, [profile], noopLogger, SNAP_FETCHED_AT);
+  assert.equal(rows.length, 1);
+  const r = rows[0]!;
+  assert.equal(r.objectType, 'PROFILE.SECURITY');
+  assert.equal(r.naturalKey, 'PROFILE.SECURITY:TDWL:2222'); // identity = venue + ticker
+  assert.equal(r.externalId, null); // one profile per (venue,ticker) ⇒ dedupe on content_hash
+  assert.equal(r.numericValue, null); // a profile is a bag of identity fields, not one scalar
+  assert.equal(r.effectiveDate, null);
+  assert.equal(r.priceSensitive, false); // identity data — no 33b human gate; PENDING projects
+  assert.equal(r.extractedAt, SNAP_FETCHED_AT);
+  // A refresh (shares change) keys IDENTICALLY but hashes differently → the projection updates in place.
+  const refreshed = mapRowsToStaging(
+    profSource, stubTask, SNAP_ID + 1,
+    [{ ...profile, sharesOutstanding: 241_000_000_000 }],
+    noopLogger, SNAP_FETCHED_AT,
+  )[0]!;
+  assert.equal(refreshed.naturalKey, r.naturalKey);
+  assert.notEqual(contentHash(refreshed.payload), contentHash(r.payload));
 });
 
 test('empty batch ⇒ no rows; unknown shape ⇒ dropped, none fabricated', () => {

@@ -572,11 +572,19 @@ time cohort snapshots for backtesting (needed to ever publish the screener's "3Y
 > (`runtime.mapStatement`/`flattenStatements`) + `financials` data_type routing. **Still gated:**
 > `financial_statements` has the persist CONTRACT but no live **producer** yet — nothing emits
 > `NormalizedStatementRow` on main (the persist layer is inert until one is seeded); and
-> `securities.sector` is all `'unknown'` (so §3.3's map + §3.5's cohorts have no data to key on) — both
-> tracked in `BUILD-STATUS.md §7` (DEF-STMT-INGEST producer half, DEF-SECTOR-DATA). **Owner steer
+> `securities.sector`/`isin`/`shares_outstanding` are empty for all 693 (so §3.3's map + §3.5's cohorts
+> have no data to key on). Tracked in `BUILD-STATUS.md §7` (DEF-STMT-INGEST producer half; and
+> **DEF-SECTOR-DATA persist half ✅ DONE 2026-07-16** — the source-agnostic `PROFILE.SECURITY` →
+> `public.securities` projection `lake.fn_security_profile_project` (migration `20260716123154`, mirrors
+> the statement persist layer) + the sector→`public.sectors.key` taxonomy (`securities.sector` is a FK to
+> `sectors(key)`; `ingestion/src/lake/sector-taxonomy.ts`, golden-tested, unmappable → `'unknown'` LOGGED)
+> + config-driven TDWL(Mubasher)/ADX(native overview.json)/MSX producers seeded `active=false` pending a
+> VPS field-map capture — the reachable ≈548/693 = 79%; DFM/QE/BHB are §7 sub-rows). **Owner steer
 > 2026-07-16: avoid the Mubasher aggregator (paywall/durability risk) — the preferred producer is the
-> free deterministic Tadawul XBRL feed, pending a rebase onto main.** Ratios/Score run correct-by-design
-> the moment a producer lands. Full sub-phase status: `BUILD-STATUS.md §5`.
+> free deterministic Tadawul XBRL feed, pending a rebase onto main** (for the profile scrape too, the
+> XBRL entity metadata carries sector/ISIN/shares_outstanding — the Mubasher-free TDWL producer).
+> Ratios/Score run correct-by-design the moment a producer activates. Full sub-phase status:
+> `BUILD-STATUS.md §5`.
 
 ### P1.7a — Price-history complete (CRITICAL PATH, unblocks Momentum + chart)
 **Value: highest** (gates Score + chart tab). **Feasibility: high** for 4 venues, gaps for 2.
@@ -688,6 +696,14 @@ Growth follows statements; Revisions = `NULL`.
   cross-check vs Mubasher. **Effort: M.**
 - **J ownership:** Mubasher `/major-shareholders` (TDWL/ADX) + venue/registrar disclosures + >5%
   filings → `ownership_snapshots`/`holders`/`holder_positions` (quarterly, low volume). **Effort: M.**
+- **I identity (sector/isin/shares) — persist ✅ DONE 2026-07-16 (DEF-SECTOR-DATA):** the
+  source-agnostic `PROFILE.SECURITY` → `public.securities` projection (`lake.fn_security_profile_project`,
+  migration `20260716123154`) fills `sector`/`isin`/`shares_outstanding` — the binding constraint on live
+  PE/PB + the Score. Sector maps onto `public.sectors.key` (a FK; the §3.3 vocabulary) via the
+  golden-tested `sector-taxonomy.ts` (unmappable → `'unknown'` LOGGED). Config-driven producers
+  (`securities_profile` data_type; coverage guard `profile_scraped_at`, chunk-25, self-chain 180 min):
+  TDWL (Mubasher `/profile`, provider `mubasher_profile`), ADX (native `overview.json`), MSX (native) —
+  ≈548/693 (79%); DFM/QE/BHB are §7 sub-rows. **Seeded `active=false` pending a VPS field-map capture.**
 - **I people:** **create `company_people`** + scrape board/management (venue profile pages / filings).
   **Effort: M.**
 - **BHB egress:** stand up a GCC/residential proxy (or GitHub-Actions egress) → attempt BHB price +

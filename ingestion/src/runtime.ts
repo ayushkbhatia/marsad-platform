@@ -79,6 +79,7 @@ import type {
   NormalizedDividend,
   NormalizedIpoEvent,
   NormalizedStatementRow,
+  NormalizedProfile,
 } from './core/types.js';
 
 // ── The narrow runtime surface the worker handlers call (mirrors
@@ -204,10 +205,23 @@ const consoleLogger: Logger = {
  *                         CSV; its webapi (CF-gated, IP-geoblocked → sticky proxy) is a first-class
  *                         history endpoint. EOD CLOSE ONLY (owner requirement) — open/high/low/vol null.
  */
-type AltProvider = 'yahoo' | 'mubasher_csv' | 'msx-summary' | 'bhb_webapi';
+type AltProvider = 'yahoo' | 'mubasher_csv' | 'msx-summary' | 'bhb_webapi' | 'mubasher_profile';
 function providerOf(source: SourceRecord): AltProvider | undefined {
   const p = (source.endpointConfig as unknown as { provider?: unknown }).provider;
-  return p === 'yahoo' || p === 'mubasher_csv' || p === 'msx-summary' || p === 'bhb_webapi' ? p : undefined;
+  return p === 'yahoo' || p === 'mubasher_csv' || p === 'msx-summary' || p === 'bhb_webapi' || p === 'mubasher_profile'
+    ? p
+    : undefined;
+}
+
+/**
+ * True for a CHUNKED ONE-SHOT enrichment — coverage-guarded (injects only un-stamped securities),
+ * self-chaining while a full chunk remains, and DORMANT once complete: the provider-routed ohlcv_backfill
+ * drain, OR the securities_profile scrape (any provider — Mubasher aggregator or native ADX/MSX). These
+ * share the coverage-complete skip + self-chain in runTask.
+ */
+function isChunkedOneShot(source: SourceRecord): boolean {
+  if (source.dataType === 'securities_profile') return true;
+  return source.dataType === 'ohlcv_backfill' && providerOf(source) !== undefined;
 }
 
 /**
@@ -230,6 +244,11 @@ function tasksForProvider(source: SourceRecord): TaskSpec<unknown>[] | undefined
   }
   if (provider === 'mubasher_csv') {
     if (source.dataType === 'ohlcv_backfill') return [mubasherTasks.ohlcvCsv as TaskSpec<unknown>];
+    return [];
+  }
+  if (provider === 'mubasher_profile') {
+    // Mubasher-backed TDWL securities-profile scrape (sector/isin/shares_outstanding), DEF-SECTOR-DATA.
+    if (source.dataType === 'securities_profile') return [mubasherTasks.profile as TaskSpec<unknown>];
     return [];
   }
   if (provider === 'msx-summary') {
@@ -278,28 +297,49 @@ function tasksForProvider(source: SourceRecord): TaskSpec<unknown>[] | undefined
  */
 const BACKFILL_CHUNK_SIZE = 25;
 
+/**
+ * The per-security coverage stamp a CHUNKED ONE-SHOT data_type drains against (graceful stop). null =
+ * not a chunked one-shot (poll the whole universe every cycle — quotes). ohlcv_backfill idles on
+ * ohlcv_backfilled_at (0041); securities_profile idles on profile_scraped_at (20260716110000). Both
+ * inject only un-stamped securities, chunked, so re-runs fetch only the missing names and the task
+ * goes DORMANT (coverage-complete skip in runTask) once every listed security is stamped.
+ */
+type CoverageColumn = 'ohlcv_backfilled_at' | 'profile_scraped_at' | null;
+
+function coverageColumnFor(dataType: DataType): CoverageColumn {
+  if (dataType === 'ohlcv_backfill') return 'ohlcv_backfilled_at';
+  if (dataType === 'securities_profile') return 'profile_scraped_at';
+  return null;
+}
+
+/**
+ * Listed raw tickers for a venue, ticker-asc. `coverage` selects the graceful-stop column: an
+ * un-stamped-only chunked query (ohlcv_backfilled_at / profile_scraped_at) for a chunked one-shot, or
+ * the full listed universe (null) for live sources (quotes) that must poll everything every cycle. The
+ * column is a fixed whitelist branched here (never a dynamic identifier) so there is no injection seam.
+ */
 async function listedTickersForVenue(
   sql: Sql,
   venue: VenueCode,
-  unbackfilledOnly: boolean,
+  coverage: CoverageColumn,
 ): Promise<string[]> {
-  const rows: Array<{ ticker: string }> = unbackfilledOnly
-    ? await sql<{ ticker: string }[]>`
-        select s.ticker
-          from public.securities s
-         where s.venue_code = ${venue}
-           and s.status = 'listed'
-           and s.ohlcv_backfilled_at is null
-         order by s.ticker asc
-         limit ${BACKFILL_CHUNK_SIZE}
-      `
-    : await sql<{ ticker: string }[]>`
-        select s.ticker
-          from public.securities s
-         where s.venue_code = ${venue}
-           and s.status = 'listed'
-         order by s.ticker asc
-      `;
+  let rows: Array<{ ticker: string }>;
+  if (coverage === 'ohlcv_backfilled_at') {
+    rows = await sql<{ ticker: string }[]>`
+        select s.ticker from public.securities s
+         where s.venue_code = ${venue} and s.status = 'listed' and s.ohlcv_backfilled_at is null
+         order by s.ticker asc limit ${BACKFILL_CHUNK_SIZE}`;
+  } else if (coverage === 'profile_scraped_at') {
+    rows = await sql<{ ticker: string }[]>`
+        select s.ticker from public.securities s
+         where s.venue_code = ${venue} and s.status = 'listed' and s.profile_scraped_at is null
+         order by s.ticker asc limit ${BACKFILL_CHUNK_SIZE}`;
+  } else {
+    rows = await sql<{ ticker: string }[]>`
+        select s.ticker from public.securities s
+         where s.venue_code = ${venue} and s.status = 'listed'
+         order by s.ticker asc`;
+  }
   return rows
     .map((r) => r.ticker)
     .filter((t): t is string => typeof t === 'string' && t.trim() !== '');
@@ -310,7 +350,7 @@ export async function yahooSymbolsForVenue(
   venue: VenueCode,
   unbackfilledOnly = false,
 ): Promise<string[]> {
-  const tickers = await listedTickersForVenue(sql, venue, unbackfilledOnly);
+  const tickers = await listedTickersForVenue(sql, venue, unbackfilledOnly ? 'ohlcv_backfilled_at' : null);
   const out: string[] = [];
   for (const ticker of tickers) {
     const sym = toYahooSymbol(venue, ticker);
@@ -356,7 +396,7 @@ export async function withMubasherCsvSymbols(sql: Sql, source: SourceRecord): Pr
   const cfg = source.endpointConfig as unknown as { symbols?: unknown };
   const already = Array.isArray(cfg.symbols) && cfg.symbols.length > 0;
   if (already) return source;
-  const symbols = await listedTickersForVenue(sql, source.venue, source.dataType === 'ohlcv_backfill');
+  const symbols = await listedTickersForVenue(sql, source.venue, coverageColumnFor(source.dataType));
   // ALWAYS set the (possibly empty) list — an empty ohlcv_backfill list is the "coverage complete"
   // signal runTask skips on (graceful backfill stop once the venue is fully seeded).
   return {
@@ -380,7 +420,7 @@ export async function withMsxHistorySymbols(sql: Sql, source: SourceRecord): Pro
   const cfg = source.endpointConfig as unknown as { symbols?: unknown };
   const already = Array.isArray(cfg.symbols) && cfg.symbols.length > 0;
   if (already) return source;
-  const symbols = await listedTickersForVenue(sql, source.venue, source.dataType === 'ohlcv_backfill');
+  const symbols = await listedTickersForVenue(sql, source.venue, coverageColumnFor(source.dataType));
   // ALWAYS set the (possibly empty) list — an empty ohlcv_backfill list is the "coverage complete"
   // signal runTask skips on (graceful backfill stop once the venue is fully seeded).
   return {
@@ -405,7 +445,7 @@ export async function withBhbWebapiSymbols(sql: Sql, source: SourceRecord): Prom
   const cfg = source.endpointConfig as unknown as { symbols?: unknown };
   const already = Array.isArray(cfg.symbols) && cfg.symbols.length > 0;
   if (already) return source;
-  const symbols = await listedTickersForVenue(sql, source.venue, source.dataType === 'ohlcv_backfill');
+  const symbols = await listedTickersForVenue(sql, source.venue, coverageColumnFor(source.dataType));
   // ALWAYS set the (possibly empty) list — an empty ohlcv_backfill list is the "coverage complete"
   // signal runTask skips on (graceful backfill stop once the venue is fully seeded).
   return {
@@ -415,13 +455,37 @@ export async function withBhbWebapiSymbols(sql: Sql, source: SourceRecord): Prom
 }
 
 /**
- * Symbol-injection dispatcher. Routes a source to its provider's symbol-list populator before fetch:
- * Yahoo sources get suffixed Yahoo chart symbols (withYahooSymbols); Mubasher-CSV and MSX-summary
- * sources get RAW listed tickers (withMubasherCsvSymbols / withMsxHistorySymbols); every other (primary)
- * source is returned unchanged. This is the single call runTask makes so a new aggregator only adds one
- * branch here.
+ * For a securities_profile source (any provider — the Mubasher-profile aggregator OR a native ADX/MSX
+ * profile adapter), populate endpoint_config.symbols with the venue's RAW listed tickers that are NOT
+ * yet profiled (profile_scraped_at IS NULL), chunked to BACKFILL_CHUNK_SIZE. This is the profile
+ * analogue of withMubasherCsvSymbols: the frozen FetchContext gives fetch() no DB handle, so the adapter
+ * reads endpoint_config.symbols and the runtime populates it here (config over code, CONTRACT §0.6) so
+ * the symbol universe tracks the live securities master with no redeploy. ALWAYS sets the (possibly
+ * empty) list — an empty list is the "coverage complete" signal runTask skips on (graceful one-shot
+ * stop once every listed security is profiled). No-op (returns source unchanged, no clone) for a row
+ * that already carries an explicit Desk-set symbols list.
+ */
+export async function withProfileSymbols(sql: Sql, source: SourceRecord): Promise<SourceRecord> {
+  if (source.dataType !== 'securities_profile') return source;
+  const cfg = source.endpointConfig as unknown as { symbols?: unknown };
+  const already = Array.isArray(cfg.symbols) && cfg.symbols.length > 0;
+  if (already) return source;
+  const symbols = await listedTickersForVenue(sql, source.venue, 'profile_scraped_at');
+  return {
+    ...source,
+    endpointConfig: { ...source.endpointConfig, symbols } as SourceRecord['endpointConfig'],
+  };
+}
+
+/**
+ * Symbol-injection dispatcher. Routes a source to its symbol-list populator before fetch:
+ * securities_profile sources (any provider) get un-profiled RAW listed tickers (withProfileSymbols);
+ * Yahoo sources get suffixed Yahoo chart symbols (withYahooSymbols); Mubasher-CSV/MSX-summary/BHB-webapi
+ * sources get RAW listed tickers; every other (primary) source is returned unchanged. This is the single
+ * call runTask makes so a new aggregator/one-shot only adds one branch here.
  */
 export async function withInjectedSymbols(sql: Sql, source: SourceRecord): Promise<SourceRecord> {
+  if (source.dataType === 'securities_profile') return withProfileSymbols(sql, source);
   const provider = providerOf(source);
   if (provider === 'yahoo') return withYahooSymbols(sql, source);
   if (provider === 'mubasher_csv') return withMubasherCsvSymbols(sql, source);
@@ -482,6 +546,13 @@ function tasksForDataType(adapter: (typeof ADAPTERS)[VenueCode], dataType: DataT
       // them as FILING.FINANCIALS → cross_check → fn_financial_statement_project. No
       // adapter mounts it on main yet (the persist contract ships ahead of a producer).
       if (adapter.financials) out.push(adapter.financials as TaskSpec<unknown>);
+      break;
+    case 'securities_profile':
+      // Per-security profile scrape (sector/isin/shares_outstanding), DEF-SECTOR-DATA (07 §3.3/
+      // §P1.7e-I). A venue mounts a securitiesProfile TaskSpec (ADX/MSX native) whose parse() emits
+      // NormalizedProfile[]; the staging mapper lands them as PROFILE.SECURITY → cross_check →
+      // fn_security_profile_project. TDWL rides the mubasher_profile PROVIDER instead (above).
+      if (adapter.securitiesProfile) out.push(adapter.securitiesProfile as TaskSpec<unknown>);
       break;
     default:
       break;
@@ -701,6 +772,44 @@ function mapStatement(
   };
 }
 
+function mapProfile(
+  source: SourceRecord,
+  snapshotId: number,
+  p: NormalizedProfile,
+  extractedAt: string,
+  logger: Logger,
+): StagingRow<NormalizedProfile> {
+  // An unmappable venue sector falls back to the 'unknown' key — LOG it here (parse() is pure, so the
+  // "logged fallback, never silently 'unknown'" discipline is enforced at the map step, where the
+  // logger lives). Only warn when there WAS a raw string we failed to classify (rawSector present); a
+  // profile with no sector field at all is not a mapping miss. The raw string is also preserved on
+  // p.rawSector + the persisted object payload for audit (distinguishable from a never-scraped 'unknown'
+  // by securities.profile_scraped_at).
+  if (p.sector === 'unknown' && p.rawSector) {
+    logger.warn('profile.sector_unmapped', { venue: p.venue, ticker: p.ticker, rawSector: p.rawSector });
+  }
+  return {
+    objectType: 'PROFILE.SECURITY',
+    // One object per (venue, ticker). A profile refresh (shares change / late ISIN) re-stages the SAME
+    // key with new content → fresh content_hash → cross_check supersedes → fn_security_profile_project
+    // updates the securities row in place (20260716110000).
+    naturalKey: `PROFILE.SECURITY:${p.venue}:${p.ticker}`,
+    venue: p.venue,
+    sourceId: source.id,
+    snapshotId,
+    externalId: null, // one profile per (venue,ticker); dedupe on (source_id, NULL, content_hash)
+    sourceRank: sourceRankFor(source),
+    payload: p,
+    numericValue: null, // a profile is a bag of identity fields, not one scalar
+    unit: null,
+    effectiveDate: null,
+    // NOT price-sensitive: identity facts the ratio/Score engines consume unattended — single-source
+    // lands PENDING and still projects (like FILING.FINANCIALS / FILING.REF), no 33b human gate.
+    priceSensitive: false,
+    extractedAt,
+  };
+}
+
 /**
  * Map a parser's Normalized* rows → lake StagingRows (CONTRACT §6.5). PURE. Dispatches on the row
  * SHAPE (not just source.dataType, since a `quotes` source runs both the quotes and indices tasks),
@@ -741,6 +850,8 @@ export function mapRowsToStaging(
       out.push(mapIpo(source, snapshotId, raw as NormalizedIpoEvent, snapshotExtractedAtIso));
     } else if (isStatement(row)) {
       out.push(mapStatement(source, snapshotId, raw as NormalizedStatementRow, snapshotExtractedAtIso));
+    } else if (isProfile(row)) {
+      out.push(mapProfile(source, snapshotId, raw as NormalizedProfile, snapshotExtractedAtIso, logger));
     } else {
       logger.warn('mapRowsToStaging: unrecognized normalized row shape — dropped', {
         dataType: source.dataType,
@@ -783,6 +894,11 @@ function isStatement(row: Record<string, unknown>): boolean {
   // financials: the per-period NormalizedStatementRow (07 §P1.7b). statementType + lineItems
   // + fiscalPeriod are unique to it among the Normalized* shapes (disjoint discriminant).
   return has(row, 'statementType') && has(row, 'lineItems') && has(row, 'fiscalPeriod');
+}
+function isProfile(row: Record<string, unknown>): boolean {
+  // securities_profile: the NormalizedProfile identity row (DEF-SECTOR-DATA). rawSector is unique to
+  // it among the Normalized* shapes (disjoint discriminant); sharesOutstanding pins it further.
+  return has(row, 'ticker') && has(row, 'rawSector') && has(row, 'sharesOutstanding');
 }
 
 /**
@@ -1109,16 +1225,19 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
       // sources and for aggregator rows that already carry an explicit Desk-set symbol list.
       const source = await withInjectedSymbols(sql, rawSource);
 
-      // Graceful backfill stop (coverage guard): an ohlcv_backfill aggregator whose injected symbol
-      // set came back EMPTY means every listed security for the venue is already backfilled to target
-      // depth (listedTickersForVenue filtered them all out). Skip the fetch entirely — the daily
-      // schedule keeps ticking and heart-beating, but does no work until a new listing or a gap drops
-      // a security back below coverage. EOD accrual (0028) + intraday quotes carry the lake forward.
-      // Scoped to ohlcv_backfill + provider sources so live quote polling is never affected.
-      if (rawSource.dataType === 'ohlcv_backfill' && providerOf(rawSource) !== undefined) {
+      // Graceful one-shot stop (coverage guard): a CHUNKED ONE-SHOT (ohlcv_backfill or
+      // securities_profile) whose injected symbol set came back EMPTY means every listed security for
+      // the venue is already covered (listedTickersForVenue filtered them all out on the coverage
+      // stamp). Skip the fetch entirely — the daily schedule keeps ticking and heart-beating, but does
+      // no work until a new listing (or a profile refresh) drops a security back below coverage. Scoped
+      // to chunked one-shots so live quote polling is never affected.
+      if (isChunkedOneShot(rawSource)) {
         const injected = (source.endpointConfig as unknown as { symbols?: unknown }).symbols;
         if (Array.isArray(injected) && injected.length === 0) {
-          logger?.info?.('ohlcv_backfill coverage complete — skipping fetch', { venue: source.venue });
+          logger?.info?.('chunked one-shot coverage complete — skipping fetch', {
+            venue: source.venue,
+            dataType: rawSource.dataType,
+          });
           return {
             changed: false,
             snapshotId: null,
@@ -1213,20 +1332,26 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
         await processOne(f);
       }
 
-      // Self-chained chunking for the deep OHLCV backfill. listedTickersForVenue caps the injected set
-      // to BACKFILL_CHUNK_SIZE, so a FULL chunk means more un-backfilled securities remain for this
-      // venue. Enqueue the NEXT chunk ~3 min out — long enough for the objectifier (0041) to stamp this
-      // chunk's securities so the next injection is fresh (no re-fetch race), and self-limiting: a short
-      // chunk (venue nearly done) does not chain, and a fully-seeded venue never injects at all (the
-      // coverage-complete skip above returns first). This churns a deep backfill fast WITHOUT a permanent
-      // fast schedule cadence or the idle no-op jobs it would spawn, and each chunk job stays short so it
-      // never head-of-line-blocks the (now continuous-lane) poller nor outlives the 15-min stuck reaper.
-      if (rawSource.dataType === 'ohlcv_backfill' && providerOf(rawSource) !== undefined) {
+      // Self-chained chunking for CHUNKED ONE-SHOTS. listedTickersForVenue caps the injected set to
+      // BACKFILL_CHUNK_SIZE, so a FULL chunk means more un-covered securities remain for this venue.
+      // Enqueue the NEXT chunk after a cooldown, long enough for the stamp of THIS chunk to land so the
+      // next injection is fresh (no re-fetch race); self-limiting: a short chunk (venue nearly done) does
+      // not chain, and a fully-covered venue never injects (the coverage-complete skip above returns
+      // first). The cooldown differs by budget:
+      //   • ohlcv_backfill — 3 min: it runs on the high-throughput backfill request budget (thousands/
+      //     day/host) and the objectifier (0041) stamps within that window.
+      //   • securities_profile — 180 min: it shares the NORMAL 300 req/day/host budget WITH live quotes
+      //     (Mubasher host also serves TDWL quotes), so ~25 GETs/chunk × 8 chunks/day ≈ 200/day keeps
+      //     well under the cap; and the sweep→cross_check→projection stamp lands far inside 180 min.
+      // Each chunk job stays short (≤25 GETs) so it never head-of-line-blocks the continuous-lane poller
+      // nor outlives the 15-min stuck reaper.
+      if (isChunkedOneShot(rawSource)) {
         const injected = (source.endpointConfig as unknown as { symbols?: unknown }).symbols;
         if (Array.isArray(injected) && injected.length >= BACKFILL_CHUNK_SIZE) {
+          const delayMinutes = rawSource.dataType === 'securities_profile' ? 180 : 3;
           await sql`
             insert into ingest.job_queue (source_id, run_after, priority, status)
-            values (${rawSource.id}, now() + interval '3 minutes', 5, 'queued')
+            values (${rawSource.id}, now() + make_interval(mins => ${delayMinutes}), 5, 'queued')
           `;
         }
       }

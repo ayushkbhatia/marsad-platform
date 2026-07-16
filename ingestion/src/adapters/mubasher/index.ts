@@ -6,17 +6,23 @@
 // and the ADX/MSX/BHB ≥2y daily OHLCV backfill (ohlcv-csv.ts, routed by provider='mubasher_csv').
 // adapters/tdwl/quotes.ts re-exports mubasherTdwlQuotes as the production `tdwlQuotes` task.
 
-import type { NormalizedOhlcv, TaskSpec } from "../../core/types.js";
+import type { NormalizedOhlcv, NormalizedProfile, TaskSpec } from "../../core/types.js";
 import { mubasherOhlcvCsv } from "./ohlcv-csv.js";
+import { mubasherTdwlProfile } from "./tdwl-profile.js";
 
 /**
- * The Mubasher TaskSpec bundle. Consumed by runtime.tasksForProvider once the provider='mubasher_csv'
- * routing resolves a source to it. Keyed by the logical task name, NOT by venue — like Yahoo,
- * Mubasher serves multiple venues from the same per-ticker endpoint; the venue is carried on each
- * NormalizedOhlcv row (recovered by the parser from snapshot.meta.venue, stamped by fetch).
+ * The Mubasher TaskSpec bundle. Consumed by runtime.tasksForProvider once a provider routing
+ * (provider='mubasher_csv' → ohlcvCsv; provider='mubasher_profile' → profile) resolves a source to it.
+ * Keyed by the logical task name, NOT by venue — like Yahoo, Mubasher serves multiple venues from the
+ * same per-ticker endpoint; the venue is carried on each Normalized* row (recovered by the parser from
+ * snapshot.meta.venue, stamped by fetch).
  */
-export const mubasherTasks: { ohlcvCsv: TaskSpec<NormalizedOhlcv> } = {
+export const mubasherTasks: {
+  ohlcvCsv: TaskSpec<NormalizedOhlcv>;
+  profile: TaskSpec<NormalizedProfile>;
+} = {
   ohlcvCsv: mubasherOhlcvCsv,
+  profile: mubasherTdwlProfile,
 };
 
 export {
@@ -36,3 +42,5 @@ export {
   parseMubasherOhlcvCsv,
   MUBASHER_OHLCV_CSV_PARSER_VERSION,
 } from "./ohlcv-csv.js";
+
+export { mubasherTdwlProfile, DEFAULT_TDWL_PROFILE_MAP } from "./tdwl-profile.js";
