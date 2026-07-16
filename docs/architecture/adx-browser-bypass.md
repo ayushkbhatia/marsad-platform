@@ -5,9 +5,11 @@ directly from ADX's own apigateway, bypassing its Akamai/CDN WAF. This is the co
 a fresh session can execute the remaining work (filings linking, financials) from this doc alone.
 
 Status (2026-07-16): **quotes DONE + live**; **filings PARTIAL** (general news feed works, per-security
-linking TODO); **financials DONE-IN-CODE** — the document→extract backfill is built
+linking TODO); **financials DONE + smoke-validated live** — the document→extract backfill is built
 (`scripts/researchers/adx-gapfill.mjs` + `adx-oneshot.sh` + `adx-gapfill-cron.sh` +
-`systemd/marsad-adx-gapfill.{service,timer}`), pending the first VPS run (§5 open items). Same bypass covers all three.
+`systemd/marsad-adx-gapfill.{service,timer}`) and **deployed to `marsad-worker-1`**; the ALDAR smoke test
+landed 6 real rows in `public.financial_statements` (§5). Remaining: run the full-universe one-shot + enable
+the timer. Same bypass covers all three.
 
 ---
 
@@ -51,7 +53,7 @@ XHR request headers — see §6.)
 | **Recent trades** | `/adx/marketwatch/1.1/recentTrades/{SYMBOL}` | tape |
 | **PDF / content** | `/adx/cdn/1.0/content/download/{ID}` | the filing PDF bytes (id from `urlEn`) |
 | **Financials (key figures)** | `/adx/listed-companies/1.1/balance-sheet/data?symbol={SYM}&startYear={Y}&endYear={Y}` | `response.data[]` (per year/quarter): `netProfit,shareCapital,totalEquity,earningsPerShare,priceToBookValue,financialYear,financialQuarter` |
-| **Filings — per company** | `/adx/tradings/1.1/news/category?categoryName={efid\|cdc}&symbol={SYM}&fromDate={MM/DD/YYYY}&toDate={MM/DD/YYYY}` | rows under **`response.results[]`** (2026-07-16 form; the older `?categoryValue={SYM}&recordCount={N}` → `response.news[]` may also still work — `adx-gapfill.mjs` reads either). Each row: `entity`(symbol)`,entityNameEn,titleEn/simpleTitleEn,engUrl`(PDF)`,engFinancialType`(**doc type** — `Financial Report`/`Financial Press Release`/`Integrated Report`)`,engSubCategoryName,publishedDate,exPara`(id)`,aiJsonDataEn`(pre-extracted mini table — numeric cross-check bonus). `efid`=financial disclosures, `cdc`=corporate disclosures. **Widen fromDate for full history — no page-2 clicking.** |
+| **Filings — per company** | ✅ **use** `/adx/tradings/1.1/news?categoryName={efid\|cdc}&categoryValue={SYM}&recordCount={N}` → rows under **`response.news[]`** — returns the issuer's **FULL history uncapped in ONE request** (verified live 2026-07-16: ALDAR → 117 rows, `recordCount=1000`). Each row: `entity`(symbol)`,titleEn/simpleTitleEn,urlEn`(PDF)`,subCategoryNameEn`(**doc type**, e.g. `Financial Reports \| Financial Report` — the segment after `\|` is the sub-type)`,publishedDate,exPara`(id)`,aiJsonDataEn`(pre-extracted mini table — numeric cross-check bonus). ⚠️ The alternate `/news/category?…&fromDate&toDate` (→ `response.results[]`, fields `engUrl`/`engFinancialType`) **400s on a range over ~1 yr** (`"Date range should not exceed …"`), forcing year-paging — avoid it. `adx-gapfill.mjs` reads **either** shape. `efid`=financial disclosures, `cdc`=corporate disclosures. |
 | **Board + management** | `/adx/listed-companies/1.1/board-members/{SYM}` | `response.results[]`: `symbolCode,nameEnglish,nameArabic,englishJobTitle,arabicJobTitle,jobTitleOrder` → `public.company_people` |
 | **Major shareholders** | `/adx/marketwatch/1.1/listedCompanyShareholderInfo/{SYM}` | `response.results[]`: `name,listedCompanyID,id,percentage` → ownership |
 
@@ -133,16 +135,17 @@ bonus*, NOT the primary source.
   cap. NOTE — lighter than TDWL: **no metered proxy** (datacenter Chromium loads ADX fine) and **no xvfb**
   (headless), so only the ~1-3 MB statement PDFs transit, direct + unmetered.
 
-### Open items (first VPS run — verify then tick)
-1. **apikey lifetime** — is `adx-gateway-apikey` stable or rotated? If it rotates, re-capture from the board
-   XHR (§6) and set `ADX_GATEWAY_APIKEY`. (`adx-gapfill.mjs` reads it from env with the current value as default.)
-2. **WAF from VPS IP** — confirm the cookie-seat + apikey GET passes Cloudflare from the datacenter IP
-   without the proxy (default `ADX_USE_PROXY` off). If challenged, set `ADX_USE_PROXY=1`.
-3. **efid depth/cap** — confirm a single wide `fromDate=01/01/2005 → today` window returns ALL financial
-   reports (no server-side row cap). If capped, iterate year-windows (env `ADX_FROM_DATE`/`ADX_TO_DATE`).
-4. **doc-type coverage** — confirm `engFinancialType='Financial Report'` is the full-statement PDF for the
-   bank/insurer filers too; widen `ADX_FIN_TYPES` (e.g. add `Integrated Report`) if any issuer only files
-   the annual audited statements inside the integrated report.
+### Open items (first VPS run)
+**Smoke test PASSED live 2026-07-16** (`ACQUIRE_SYMBOLS=ALDAR ADX_PDF_MAX=1` on `marsad-worker-1`): efid 200 →
+117 disclosures / 47 statement PDFs → 1 downloaded + extracted → **6 rows** into `public.financial_statements`
+(IS/BS/CFS Q1 2026 + comparatives, AED). Revenue 8.734B + EPS 0.254 reconcile exactly to ADX's own figures;
+`net_income` = profit attributable-to-parent (EPS-consistent), not the NCI-inclusive headline. Status of the items:
+1. ~~**WAF from VPS IP**~~ ✅ **resolved** — cookie-seat + apikey GET passes Cloudflare from the datacenter IP, **no proxy** (`ADX_USE_PROXY` off).
+2. ~~**efid depth/cap**~~ ✅ **resolved** — the `/news?categoryValue={SYM}&recordCount={N}` form returns full history uncapped in ONE request (ALDAR 117 rows). (The dated `/news/category` form 400s past ~1 yr — not used.)
+3. **apikey lifetime** — worked today; monitor. If `adx-gateway-apikey` ever rotates, re-capture from the board XHR (§6) and set `ADX_GATEWAY_APIKEY`.
+4. **doc-type coverage (banks/insurers)** — validated on ALDAR (real estate). Confirm `subCategoryNameEn` sub-type `Financial Report` is the full-statement PDF for bank/insurer filers too; widen `ADX_FIN_TYPES` (e.g. `+Integrated Report`) if any issuer only files audited statements inside the annual report. (Will surface in the one-shot run.)
+
+**Next:** run `adx-oneshot.sh` (full universe, `systemd-run`) then enable `marsad-adx-gapfill.timer` for steady-state.
 
 ### Supplementary structured JSON (bonus, same bypass)
 `board-members/{SYM}` → `public.company_people` (board + management); `listedCompanyShareholderInfo/{SYM}`

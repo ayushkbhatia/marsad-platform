@@ -48,14 +48,21 @@ const SEED_URL = process.env.ADX_SEED_URL || 'https://www.adx.ae/en/all-equities
 const APIKEY = process.env.ADX_GATEWAY_APIKEY || '1863a94c-582b-46f9-b4f0-0d02c0cc5307'; // re-capture from the board XHR if it ever rotates
 const JSON_HEADERS = { Accept: 'application/json', 'adx-gateway-apikey': APIKEY, 'channel-id': 'OSS WEB', referer: 'https://www.adx.ae/' };
 const PDF_HEADERS = { Accept: 'application/pdf', 'adx-gateway-apikey': APIKEY, 'channel-id': 'OSS WEB', referer: 'https://www.adx.ae/' };
-// Financial-disclosure feed. Confirmed live 2026-07-16 (Playwright network capture on ALDAR). The query
-// template is env-overridable so an ADX param rename is a config fix, not a redeploy.
-const EFID_TMPL = process.env.ADX_EFID_TEMPLATE || 'https://apigateway.adx.ae/adx/tradings/1.1/news/category?categoryName=efid&symbol={SYM}&fromDate={FROM}&toDate={TO}';
+// Financial-disclosure feed. The `/news?categoryValue={SYM}&recordCount={N}` form returns the issuer's
+// FULL history in ONE request with NO date-window cap (verified live 2026-07-16: ALDAR → 117 rows). The
+// alternate `/news/category?...&fromDate&toDate` form 400s on a range over ~1yr ("Date range should not
+// exceed …"), so it would force year-by-year paging — avoid it. Template env-overridable (a param rename
+// is a config fix); the parser normalizes BOTH response shapes below so either template works.
+const EFID_TMPL = process.env.ADX_EFID_TEMPLATE || 'https://apigateway.adx.ae/adx/tradings/1.1/news?categoryName=efid&categoryValue={SYM}&recordCount={N}';
+const RECORD_COUNT = Number(process.env.ADX_RECORD_COUNT || 1000); // full history; ALDAR is 117
+// Doc sub-type (the segment after 'Financial Reports | ') to route into statement extraction. 'Financial
+// Report' = the full IS/BS/CFS PDF; press-release/governance/sustainability/preliminary excluded. Env-widen
+// (e.g. add 'Integrated Report') if an issuer only files audited statements inside the annual report.
 const FIN_TYPES = new Set((process.env.ADX_FIN_TYPES || 'Financial Report').split(',').map(s => s.trim()).filter(Boolean));
 const mmddyyyy = (d) => `${String(d.getUTCMonth() + 1).padStart(2, '0')}/${String(d.getUTCDate()).padStart(2, '0')}/${d.getUTCFullYear()}`;
-const FROM_DATE = process.env.ADX_FROM_DATE || `01/01/${process.env.ADX_START_YEAR || 2005}`;
+const FROM_DATE = process.env.ADX_FROM_DATE || mmddyyyy(new Date(Date.now() - 400 * 864e5)); // legacy dated form only
 const TO_DATE = process.env.ADX_TO_DATE || mmddyyyy(new Date());
-function efidUrl(sym) { return EFID_TMPL.replace('{SYM}', encodeURIComponent(sym)).replace('{FROM}', encodeURIComponent(FROM_DATE)).replace('{TO}', encodeURIComponent(TO_DATE)); }
+function efidUrl(sym) { return EFID_TMPL.replace('{SYM}', encodeURIComponent(sym)).replace('{N}', String(RECORD_COUNT)).replace('{FROM}', FROM_DATE).replace('{TO}', TO_DATE); }
 
 // Naive ADX publishedDate ('YYYY-MM-DD HH:mm:ss.f', UTC+4, no DST) → ISO UTC (mirrors adapters/adx/filings.ts).
 function adxPubToIso(s) {
@@ -134,7 +141,7 @@ if (process.env.ACQUIRE_SYMBOLS) symbols = process.env.ACQUIRE_SYMBOLS.split(','
 else { const start = Number(process.env.CHUNK_START || 0), size = Number(process.env.CHUNK_SIZE || 6); symbols = (await sql`select ticker from public.securities where venue_code='ADX' and status='listed' order by ticker offset ${start} limit ${size}`).map(r => r.ticker); }
 // Owned = exPara filing ids we already stored (stable per-filing id) — the extract-once gate.
 const owned = new Set((await sql`select source_ref from public.filings where venue_code='ADX' and pdf_storage_key like 'adx/%'`).map(r => r.source_ref));
-log(`adx-gapfill — ${symbols.length} companies, ${owned.size} PDFs owned, ADX_PDF_MAX ${PDF_MAX}/run, window ${FROM_DATE}→${TO_DATE}, proxy=${USE_PROXY ? 'on' : 'OFF'}, headless=${HEADLESS}`);
+log(`adx-gapfill — ${symbols.length} companies, ${owned.size} PDFs owned, ADX_PDF_MAX ${PDF_MAX}/run, recordCount ${RECORD_COUNT}, proxy=${USE_PROXY ? 'on' : 'OFF'}, headless=${HEADLESS}`);
 
 let companies = 0, pdfNew = 0, rowsW = 0, budget = PDF_MAX;
 for (let attempt = 0; attempt < 3 && budget > 0; attempt++) {
@@ -162,15 +169,25 @@ for (let attempt = 0; attempt < 3 && budget > 0; attempt++) {
         if (!resp || !resp.ok()) { log(`  ${sym} efid ${resp ? resp.status() : 'no-resp'} — rotating`); break; }
         let doc; try { doc = await resp.json(); } catch { log(`  ${sym} efid bad json`); companies++; continue; }
         const rows = doc?.response?.results ?? doc?.response?.news ?? [];
-        // The full-statement PDFs (engFinancialType 'Financial Report'); press releases/integrated reports
-        // excluded by default (env ADX_FIN_TYPES to widen). engUrl = the English PDF; exPara = stable id.
-        const reports = rows.filter(r => r && FIN_TYPES.has(String(r.engFinancialType || '').trim()) && r.engUrl && r.exPara);
+        // Normalize the two efid shapes: /news → news[] (`urlEn`, `subCategoryNameEn`='Financial Reports |
+        // Financial Report'); /news/category → results[] (`engUrl`, `engFinancialType`='Financial Report').
+        // Doc sub-type = the segment after '|'. Keep only FIN_TYPES; press releases etc. excluded.
+        const norm = rows
+          .filter(r => r && typeof r === 'object')
+          .map(r => ({
+            exPara: r.exPara,
+            pdfUrl: r.engUrl || r.urlEn,
+            docType: (r.engFinancialType || String(r.subCategoryNameEn || '').split('|').pop() || '').trim(),
+            title: r.simpleTitleEn || r.titleEn || r.title || r.exPara,
+            publishedDate: r.publishedDate,
+          }));
+        const reports = norm.filter(r => FIN_TYPES.has(r.docType) && r.pdfUrl && r.exPara);
         const fresh = reports.filter(r => !owned.has(r.exPara));
         log(`  ${sym}: ${rows.length} disclosures, ${reports.length} statement PDFs, ${fresh.length} new`);
         for (const r of fresh) {
           if (budget <= 0) break;
           const exPara = r.exPara;
-          const got = await ctxGet(r.engUrl, PDF_HEADERS);
+          const got = await ctxGet(r.pdfUrl, PDF_HEADERS);
           if (!got || !got.ok()) { log(`    ${exPara} pdf ${got ? got.status() : 'no-resp'}`); continue; }
           const buf = Buffer.from(await got.body());
           if (buf.slice(0, 5).toString() !== '%PDF-') { log(`    ${exPara} not a pdf`); continue; }
@@ -179,8 +196,7 @@ for (let attempt = 0; attempt < 3 && budget > 0; attempt++) {
           if (ex.error) { log(`    ${exPara} extract: ${ex.error}`); continue; } // transient — retry next run
           const key = `adx/${sym}/${exPara}.pdf`;
           await uploadPdf(key, buf);
-          const title = r.simpleTitleEn || r.title || exPara;
-          const nrows = await persist(sql, sym, ex.statements, key, exPara, title, adxPubToIso(r.publishedDate));
+          const nrows = await persist(sql, sym, ex.statements, key, exPara, r.title, adxPubToIso(r.publishedDate));
           owned.add(exPara); pdfNew++; rowsW += nrows;
           log(`    ${nrows ? '✓' : '·'} ${exPara} → ${ex.statements.periods.length}p → ${nrows} new rows (budget ${budget})`);
           await page.waitForTimeout(1200); // polite ≤1 req/s to the apigateway host
