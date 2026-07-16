@@ -597,6 +597,48 @@ Everything that varies — URLs, XHR templates, cadences, normalization rules, r
 active flags — lives in `ingest.sources` / `ingest.schedules` and is editable from Marsad Desk
 (market data ops, 33a). Adapter code contains parsing logic and endpoint *shapes* only.
 
+### 4.5 Productivity backoff — soft auto-stop / auto-resume (`20260716100000`)
+
+A worker that produces no incremental lake benefit should recognize that and stop working —
+**softly** (poll less often), never a hard stop, and resume the instant real work returns. This is
+built into the scheduler, fleet-wide, with **no worker code and no trigger** (a pure-SQL guard).
+
+- **Benefit proxy:** a run produced incremental benefit ⟺ it wrote `ingest.fetch_log.changed = true`
+  (a new snapshot / a landed filing PDF / a staged bar). Every dedup / skip / failure path writes
+  `changed = false`. Verified correct for quotes, filings_list, filing_detail.
+- **Derived idle (idempotent, no trigger):** `ingest.schedules.consecutive_idle_runs` =
+  count of `fetch_log` rows since the source's last `changed = true` row. `enqueue_due_jobs()`
+  recomputes it set-based each `*/5` tick — the COUNT self-resets to ~0 the moment a changed run
+  lands, so there is no accumulator to double-count and **zero** load on the hot `fetch_log`
+  INSERT path (an AFTER-INSERT trigger was rejected for lock contention against the daily prune).
+  `source → schedule` is 1:1, so the per-source derivation is exact.
+- **Effective cadence:** `ingest.effective_cadence_minutes(base, idle, cap, exempt)` =
+  `base × least(cap, 2^floor(idle/3))`. The enqueue gate uses the effective cadence, so an idle
+  source polls exponentially less often, bounded by its `max_backoff_mult`. **Auto-resume:** any
+  `changed = true` collapses idle → base cadence on the next tick. Event-driven wake-ups
+  (`filing_detail` direct `job_queue` inserts) bypass the schedule, so a backed-off backstop still
+  drains real work immediately.
+- **Config-over-code defaults** (per `data_type`, seeded, Desk-overridable): quotes/indices cap
+  **2×** (protect the DELAYED-badge freshness → ≤20 min); filings_list/filing_detail cap **8×**
+  (5→40 min, 60 min→8 h backstops); **eod_bulletin + ohlcv_backfill are `backoff_exempt`** — their
+  handler gate (close-window / coverage guard) is already the correct soft-stop and writes no
+  `fetch_log` on a planned skip, so the guard must not score them. A human overrides any source
+  with one UPDATE: `set max_backoff_mult = …` (or `= 1` to disable), `set consecutive_idle_runs = 0`
+  to force-resume, `set backoff_exempt = true` to opt a schedule out.
+- **Sentinel safety:** a backed-off source polls slower than its heartbeat window, which would trip
+  a false `degraded` incident. `ops.heartbeat_sentinel` is now **session- and backoff-aware**: it
+  suppresses an `ingest:<kind>:<venue>` incident when that venue's matching schedule is
+  session-closed OR currently backed off (`effective_cadence > base`). A genuinely dead feed
+  (session open, not backed off) still alerts at `2× base cadence`.
+- **Kill-switch / rollback:** `update ingest.schedules set max_backoff_mult = 1` reverts the whole
+  fleet to flat cadence with no deploy; the effective-cadence, heartbeat window, and sentinel all
+  read that column so an override is consistent everywhere.
+
+Live result at ship (2026-07-16): the `filing_detail` backstops (TDWL/QE/ADX, lists off or nothing
+pending) backed off 60 min → 4–8 h; the dedup-churning `filings_list` feeds (DFM/ADX/BHB, ~300
+unchanged polls/48 h) backed off 5 → 40 min; quotes stayed ≤20 min; eod/backfill untouched. Zero
+new false incidents; 20 stale ones cleaned.
+
 ---
 
 ## 5. Where the fleet runs — evaluation and recommendation
