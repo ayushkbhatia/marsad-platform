@@ -1,4 +1,5 @@
--- 20260716140000_reactivate_dfm_filing_detail — flip DFM filing_detail back ON (DEF-VENUE-FILINGS-DFM-PDF).
+-- 20260716142000_reactivate_dfm_filing_detail — flip DFM filing_detail back ON (DEF-VENUE-FILINGS-DFM-PDF).
+-- (Stamp bumped 140000→142000 to avoid collision with 20260716140000_activate_bhb_ohlcv_backfill from #40.)
 --
 -- Reverses 20260716095000, which set DFM filing_detail active=false SOLELY because the per-announcement
 -- PDF host was unpinned: adapters/dfm/filings.ts joined eFsah resources[].r_path to the api2.dfm.ae
