@@ -10,6 +10,10 @@ Two families, split by whether the venue is WAF-walled:
 - **BHB** (`bhb-financials.mjs`) — Bahrain Bourse is **not** WAF-walled: its CompanyProfile "Statements"
   tab is a plain JSON webapi and its statement PDFs download direct. So this one runs **direct HTTP, NO
   browser and NO proxy** — see the [BHB section](#bhb-financials-direct-http--no-browser-no-proxy) below.
+- **ADX** (`adx-gapfill.mjs`) — Abu Dhabi is Akamai-fronted but (unlike Tadawul) a **headless** Chromium
+  loads it fine from the datacenter IP. So it seats the WAF cookies with **one** headless nav then
+  `ctx.request.get`s the apigateway JSON feed + PDFs directly — **NO proxy, NO xvfb**. ADX has no XBRL, so
+  the LLM/PDF path is the **primary** source. See the [ADX section](#adx-financials-headless-cookie-seat--no-proxy) below.
 
 | Script | Purpose | Persist | source_rank |
 |---|---|---|---|
@@ -87,6 +91,51 @@ and install `systemd/marsad-bhb-financials.{service,timer}`. Backfill first-pass
 `FSPDF_MAX`; steady state (6 h cadence) then ships ~0 new PDFs and only re-visits for newly-published
 statements.
 
+## ADX financials (headless cookie-seat — no proxy)
+
+`adx-gapfill.mjs` is the cheap-browser analogue of the BHB script: it needs a headless Chromium to seat the
+Akamai/bpm WAF cookies, but **no proxy and no xvfb**, and it never renders a per-company SPA page. ADX has
+no XBRL, so this LLM/PDF path is the **primary** statements source. Full endpoint recipe:
+`docs/architecture/adx-browser-bypass.md`. Per run it:
+
+1. Navigates `www.adx.ae` **once** to seat the WAF cookies on the browser context (`www.adx.ae/api/bpm/get-cookie`);
+2. per company GETs the `efid` financial-disclosure feed
+   `apigateway.adx.ae/adx/tradings/1.1/news?categoryName=efid&categoryValue=<SYM>&recordCount=<N>` through
+   the cookie-seated context with the `adx-gateway-apikey` + `channel-id: OSS WEB` headers — full history,
+   uncapped, in ONE request (`response.news[]`);
+3. keeps rows whose `subCategoryNameEn` sub-type ∈ `ADX_FIN_TYPES` (default `Financial Report`) and skips any
+   PDF already owned (`public.filings` `source_ref = <exPara>`) — incremental;
+4. downloads each new PDF (`urlEn` → `.../adx/cdn/1.0/content/download/<id>`) **through the context** (verify
+   `%PDF`), `pdftotext -layout` → `claude -p` → `extractToStatements(parsed, 'ADX', …)` → archive to the
+   `filings` bucket + `lake.objects` (`FILING.FINANCIALS`, `source_rank 20`) + catalogue `public.filings`.
+   The `lake.fn_financial_statement_project` trigger lands the `public.financial_statements` rows.
+
+| Script | Purpose | Persist | source_rank |
+|---|---|---|---|
+| `adx-gapfill.mjs` | headless cookie-seat → efid feed → PDF → LLM-extract → `financial_statements` | FILING.FINANCIALS objects + archived PDFs | 20 (primary; no XBRL competitor) |
+
+**Guardrails (why this is cheap):** direct VPS egress (no metered proxy bytes, only ~1-3 MB/PDF), headless
+(no xvfb), `ADX_PDF_MAX` new PDFs/run (subscription rate-limit budget), incremental skip-owned **before** any
+download, chunk cursor + its **own** `flock` (`.adx-scrape.lock` — never contends with the Tadawul/BHB
+flocks), reporting-window gate (UAE calendar, `WINDOW_DAYS=60`/`ANNUAL_WINDOW_DAYS=120`), and `unset
+ANTHROPIC_API_KEY` in the wrapper so `claude -p` uses the $0 subscription seat. Cadence:
+`marsad-adx-gapfill.timer` `OnUnitActiveSec=6h`.
+
+**Config (env):** `CHUNK_START/CHUNK_SIZE` (ADX universe slice), `ACQUIRE_SYMBOLS` (explicit CSV, e.g.
+`ALDAR,IHC`), `ADX_PDF_MAX`, `ADX_FIN_TYPES` (widen to add e.g. `Integrated Report`), `ADX_GATEWAY_APIKEY`
+(re-capture if it rotates), `ADX_RECORD_COUNT`, `CLAUDE_MODEL`, `ADX_USE_PROXY=1` (fallback if the VPS IP is
+ever challenged). Supabase creds from `/etc/marsad/worker.env`. `LIST_SYMBOLS=1` prints the listed ADX
+tickers and exits (used by the one-shot).
+
+**Prereqs on the VPS:** the compiled `ingestion/dist/lake/statement-extraction.js` must exist, plus Playwright
++ Chromium (`/opt/marsad/.playwright`), `pdftotext` (poppler), and the `claude` CLI logged into the
+subscription seat.
+
+**Deploy:** `scp scripts/researchers/adx-gapfill.mjs adx-gapfill-cron.sh adx-oneshot.sh deploy@<vps>:/home/deploy/`
+and install `systemd/marsad-adx-gapfill.{service,timer}`. Backfill first-pass: `adx-oneshot.sh` (DB-enumerated
+universe, full history depth) via `systemd-run`; steady state (6 h cadence) then re-visits only for
+newly-published statements.
+
 ## Run manually (test)
 
 Tadawul (browser + proxy):
@@ -104,4 +153,13 @@ BHB (direct HTTP — no xvfb, no proxy):
 cd /home/deploy && set -a; source /etc/marsad/worker.env; set +a
 unset ANTHROPIC_API_KEY   # so `claude -p` uses the $0 subscription seat
 ACQUIRE_SYMBOLS=ALBH FSPDF_MAX=2 node bhb-financials.mjs
+```
+
+ADX (headless cookie-seat — no xvfb, no proxy):
+
+```sh
+cd /home/deploy && set -a; source /etc/marsad/worker.env; set +a
+unset ANTHROPIC_API_KEY   # so `claude -p` uses the $0 subscription seat
+PLAYWRIGHT_BROWSERS_PATH=/opt/marsad/.playwright \
+  ACQUIRE_SYMBOLS=ALDAR ADX_PDF_MAX=2 node adx-gapfill.mjs
 ```
