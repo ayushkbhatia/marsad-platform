@@ -8,12 +8,14 @@
 // external id as an `itemid=<n>` query param (e.g. itemid=541). filedAt = messageDate, title=title,
 // ticker=symbol.
 //
-// TRANSPORT (verified live): the BHB origin is IP-geofenced/Akamai-blocked from the plain VPS IP, and
-// the webapi returns 200 only for the request the SharePoint page itself issues on load (referer /
-// session seated by the page) — a bare re-fetch 401s. So BHB filings MUST run http_bootstrap +
-// use_proxy=true (both already set on the source): navigate the COMPANYANNOUNCEMENTS page through the
-// GCC proxy and capture the GetAllAnnouncements response via endpoint_config.actionDiscovery
-// (network_capture). The host is non-www bahrainbourse.com.
+// TRANSPORT (verified live 2026-07-16): the GetAllAnnouncements webapi is the SAME host as the BHB
+// quotes board (webapi.bahrainbourse.com) and needs the SAME dynamic `Authorization: Bearer <APIKey>`
+// (a public homepage token that rotates) — a bare GET 401s. So BHB filings runs plain http DIRECT with
+// the shared bhbWebapiGet helper (scrape homepage APIKey → cache → re-scrape on 401), NO browser /
+// bootstrap / proxy. The urlTemplate is pinned and endpoint_config.actionDiscovery was dropped
+// (20260716091000) — the old http_bootstrap+network_capture path threw "action discovery found no URL"
+// because the SharePoint page never fires the XHR in the capture window. The host is non-www
+// bahrainbourse.com for the human page-of-record; the feed host is webapi.bahrainbourse.com.
 //
 // Golden fixture: ingestion/fixtures/bhb/filings-live.json (real GetAllAnnouncements, 30 rows).
 
@@ -26,6 +28,7 @@ import type {
   StoredSnapshot,
   TaskSpec,
 } from '../../core/types.js';
+import { bhbWebapiGet, type BhbWebapiConfig } from './webapi.js';
 
 export const BHB_FILINGS_PARSER_VERSION = 2;
 
@@ -100,33 +103,17 @@ function parseMessageDate(s: string, fallback: string): string {
 }
 
 async function fetchFilings(ctx: FetchContext): Promise<FetchResult[]> {
-  const { source, http, browser, now } = ctx;
-  const cfg = source.endpointConfig;
-  const useBrowser = source.transport === 'http_bootstrap' || source.transport === 'headless';
-  let url = cfg.urlTemplate ?? source.entryUrl;
-  if (useBrowser && cfg.actionDiscovery) {
-    const boot = await browser.bootstrap(cfg.actionDiscovery);
-    // The GetAllAnnouncements URL is captured at runtime (session/referer must be seated by the page).
-    if (!cfg.urlTemplate) {
-      if (!boot.resolvedUrl) {
-        throw new Error(
-          `BHB filings_list fetch: source ${source.id} has no urlTemplate and bootstrap resolved no URL`,
-        );
-      }
-      url = boot.resolvedUrl;
-    }
-  }
-  const client = useBrowser ? browser : http;
-  const res = await client.get(url, {
-    ...(cfg.headers ? { headers: cfg.headers } : {}),
-  });
+  const cfg = ctx.source.endpointConfig as unknown as BhbWebapiConfig;
+  const url = cfg.urlTemplate ?? ctx.source.entryUrl;
+  // Same webapi host + dynamic Bearer as BHB quotes — direct http, no browser/bootstrap.
+  const res = await bhbWebapiGet(ctx, url, cfg);
   return [
     {
       url: res.url,
       contentType: res.headers['content-type'] ?? 'application/json',
       httpStatus: res.status,
       body: res.body,
-      fetchedAt: now(),
+      fetchedAt: ctx.now(),
       meta: { venue: 'BHB', dataType: 'filings_list', lang: 'en' },
     },
   ];

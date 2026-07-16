@@ -28,6 +28,7 @@ import type { VenueCode } from './ingestion-runtime.js';
 const EXPECTED_INTERVAL_S = {
   quote_poll: 10 * 60, // quotes cadence 10 min (session-only)
   filings_poll: 5 * 60, // filings_list cadence 5 min
+  filings_detail_poll: 60 * 60, // filing_detail backstop cadence 60 min (event-driven otherwise)
   eod_sweep: 60 * 60, // eod_bulletin coarse cadence 60 min
 } as const;
 

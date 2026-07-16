@@ -1,0 +1,8 @@
+[Unit]
+Description=Marsad financials gap-fill (fsPdf LLM via Claude Code subscription)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /home/deploy/gapfill-cron.sh
+TimeoutStartSec=900
