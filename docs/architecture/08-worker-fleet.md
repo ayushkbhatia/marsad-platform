@@ -67,6 +67,14 @@ pgmq-consumer handlers on the same worker (event/cron-driven, not proxy, cheap):
 > owner flagged. The correct end-state is **event-driven**: only re-scrape a company when a new
 > financial-statement filing is detected. See §5 remediation.
 
+> **Fixed 2026-07-16 — credit-leak bug in `gapfill-cron.sh`:** the wrapper sources `/etc/marsad/worker.env`
+> with `set -a` (exports everything, including `ANTHROPIC_API_KEY` — set there for the platform's own
+> LLM gateway) before running `tadawul-gapfill.mjs`, which `spawnSync('claude', ['-p', ...])`s with no
+> `env` override. `claude -p` prefers `ANTHROPIC_API_KEY` over the OAuth subscription login when both are
+> present, so every extraction call silently billed pay-as-you-go **credits** instead of the intended $0
+> subscription seat (the comment "$0 via Claude Code subscription" was never true in practice). Fixed by
+> `unset ANTHROPIC_API_KEY` right after sourcing worker.env in `gapfill-cron.sh`.
+
 *One-off / manual scripts in `/home/deploy` (NOT timed, dev tools — do not run recurring):
 `tadawul-acquire/company/detail/diag/marketwatch/profile.mjs`, `geonode-navtest.mjs`, `extract-test.mjs`,
 `xbrl-ingest.mjs`. These should be pruned or moved to a `scripts/` dir; they are not part of the fleet.*
