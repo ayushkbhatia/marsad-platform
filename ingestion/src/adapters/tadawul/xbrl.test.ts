@@ -82,9 +82,17 @@ test('a filing with no [100010] identity block → null (never stage an empty ob
 });
 
 test('unmappable sector degrades to unknown but keeps rawSector + ISIN', () => {
-  const html = tbl(row2('Company symbol code| ISIN code', '7010 | SA0007879999') + row2('Sector| Industry group', 'Software | Application Software'));
+  const html = tbl(row2('Company symbol code| ISIN code', '7010 | SA0007879999') + row2('Sector| Industry group', 'Zorble | Widgets'));
   const p = parseTadawulProfile(html, '7010');
-  assert.equal(p?.sector, 'unknown'); // no 'technology' key in the taxonomy
-  assert.equal(p?.rawSector, 'Software | Application Software');
+  assert.equal(p?.sector, 'unknown'); // no taxonomy rule matches → LOGGED unknown fallback
+  assert.equal(p?.rawSector, 'Zorble | Widgets');
   assert.equal(p?.isin, 'SA0007879999');
+});
+
+test('IT sector maps to the technology key (migration 20260716190059)', () => {
+  const html = tbl(row2('Company symbol code| ISIN code', '7200 | SA0007879998') + row2('Sector| Industry group', 'Information Technology | IT Services'));
+  const p = parseTadawulProfile(html, '7200');
+  assert.equal(p?.sector, 'technology');
+  assert.equal(p?.rawSector, 'Information Technology | IT Services');
+  assert.equal(p?.isin, 'SA0007879998');
 });

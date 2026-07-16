@@ -11,9 +11,9 @@
  *
  * ── THE OUTPUT VOCABULARY IS public.sectors.key (a FOREIGN KEY, verified live) ──────────────────
  * public.securities.sector is `FOREIGN KEY (sector) REFERENCES sectors(key)` — NOT free text. So this
- * mapper MUST emit one of the 12 seeded sectors.key slugs, or the projection UPDATE fails the FK. The
+ * mapper MUST emit one of the 13 seeded sectors.key slugs, or the projection UPDATE fails the FK. The
  * live keys (public.sectors): banks, insurance, financials, energy, materials, utilities, telecom,
- * healthcare, industrials, real_estate, consumer, unknown. (The projection also validates against the
+ * healthcare, industrials, technology, real_estate, consumer, unknown. (The projection also validates against the
  * table defensively, so an out-of-sync mapper degrades to 'unknown' rather than erroring a tx — but
  * keep THIS list in sync with public.sectors as the primary contract.)
  *
@@ -43,6 +43,7 @@ export const CANONICAL_SECTORS = [
   'telecom',
   'healthcare',
   'industrials',
+  'technology',
   'consumer',
 ] as const;
 
@@ -55,10 +56,9 @@ export const UNKNOWN_SECTOR = 'unknown';
  * Priority-ordered keyword rules (raw venue string, lower-cased, whitespace-collapsed) → sectors.key.
  * ORDER MATTERS: 'bank' before generic finance, 'insur'/'takaful' before finance, materials (petrochem)
  * before energy (petro), real estate before finance. First match wins. Patterns are deliberately broad
- * substrings so casing/punctuation/venue phrasing drift is tolerated. There is NO 'technology' key in
- * public.sectors, so software/IT strings that match nothing else fall to 'unknown' (logged) rather than
- * being force-fit — a 'technology' sector can be added to public.sectors later if volume warrants (a §7
- * note), and this map extended in the same change.
+ * substrings so casing/punctuation/venue phrasing drift is tolerated. 'technology' is placed AFTER
+ * healthcare so "biotechnology" resolves to healthcare (not tech on the 'technolog' stem), and before
+ * industrials/consumer so IT strings win over the broad capital-goods/consumer buckets.
  */
 const SECTOR_RULES: ReadonlyArray<{ pattern: RegExp; sector: CanonicalSector }> = [
   // Financials — banks/insurers FIRST (they get the reduced §3.3 ratio set), then other finance.
@@ -76,6 +76,9 @@ const SECTOR_RULES: ReadonlyArray<{ pattern: RegExp; sector: CanonicalSector }> 
   { pattern: /utilit|electric|power|water|desalinat/, sector: 'utilities' },
   { pattern: /telecom|communication/, sector: 'telecom' },
   { pattern: /health|pharma|medical|hospital|biotech|\bdrug/, sector: 'healthcare' },
+  // Technology — AFTER healthcare so "biotechnology" stays healthcare (shared 'technolog' stem), and
+  // before industrials/consumer so IT/software/hardware wins over the broad capital-goods buckets.
+  { pattern: /technolog|software|\bit services|semiconductor|electronic equipment|hardware/, sector: 'technology' },
   // Industrials (capital goods, transport, contracting, commercial & professional services).
   {
     pattern: /industr|capital goods|transport|logistic|construct|contract|engineering|aerospace|machinery|building|commercial (?:&|and) professional|diversified operation/,

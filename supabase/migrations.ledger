@@ -106,3 +106,4 @@
 20260716140000_activate_bhb_ohlcv_backfill
 20260716141000_reconcile_dfm_securities_universe
 20260716142000_reactivate_dfm_filing_detail
+20260716190059_add_technology_sector
