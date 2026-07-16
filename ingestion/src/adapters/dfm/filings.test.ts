@@ -38,8 +38,14 @@ test('DFM filings: parses the live eFsah fixture (BOM-prefixed) into announcemen
   assert.ok(first.externalId.startsWith('DFM-'), 'external_id namespaced');
   assert.ok(first.title.length > 0, 'title present');
   assert.ok(/^\d{4}-\d{2}-\d{2}T/.test(first.filedAt), 'filedAt is ISO');
-  // r_path resolves to an absolute api2.dfm.ae PDF url.
-  assert.ok(first.pdfUrl?.startsWith('https://api2.dfm.ae/'), 'pdfUrl absolute');
+  // r_path resolves to an absolute feeds.dfm.ae document url with spaces percent-encoded (api2.dfm.ae
+  // is the list host and 404s on a resource GET — see 20260716095000 / the filings.ts header note).
+  assert.ok(first.pdfUrl?.startsWith('https://feeds.dfm.ae/documents/'), 'pdfUrl on the document host');
+  assert.ok(!first.pdfUrl?.includes(' '), 'pdfUrl has spaces percent-encoded');
+  assert.equal(
+    first.pdfUrl,
+    'https://feeds.dfm.ae/documents/2026/Jul/13/8c8a918b-f0d8-410e-b774-e8bf68e20009/IFA%20NOT%20E%2013%2007%202026.Pdf.pdf',
+  );
 
   // Every row has a non-empty external_id + title (the drift-zero contract).
   for (const r of rows) {

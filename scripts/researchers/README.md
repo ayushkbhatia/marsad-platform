@@ -1,15 +1,17 @@
-# Tadawul browser researchers
+# Marsad venue researchers
 
-The two headed-Chromium scrapers that fetch **TDWL financial statements** (Akamai-blocks `saudiexchange.sa`
-from our IPs, so they run a real browser through the Geonode residential proxy). They are the platform's
-**only heavy proxy consumers** — see `docs/architecture/08-worker-fleet.md` for the fleet map + guardrails,
-and `§5/§6` there for the 9 GB incident + the event-driven redesign spec.
+Off-band financial-statement scrapers that run on the VPS from `/home/deploy/` (not the worker CI deploy).
+**TDWL** needs headed Chromium through the Geonode residential proxy (Akamai blocks `saudiexchange.sa` from
+our IPs) — the platform's **only heavy proxy consumers**; see `docs/architecture/08-worker-fleet.md` §5/§6
+for the fleet map, the 9 GB incident, and the event-driven redesign. **DFM** is direct-fetchable (plain
+http, no WAF) so it is **Class-A: no browser, no proxy, no OOM ceiling** — a lightweight `fetch` worker.
 
 | Script | Purpose | Persist | source_rank |
 |---|---|---|---|
-| `tadawul-researcher.mjs` | Free XBRL path: scrape `XBRL_DOCS/*.html`, parse deterministically → `financial_statements`; archive the source HTML + statement PDFs to the `filings` bucket | XBRL objects | 10 (wins) |
-| `tadawul-gapfill.mjs` | LLM path (`claude -p`, $0 via subscription): for periods XBRL doesn't cover, download `fsPdf/*.pdf`, LLM-extract → `financial_statements` | fsPdf-LLM objects | 20 (gap-fill only; a downgrade guard never overwrites XBRL) |
-| `scrape-guardrails.mjs` | **Shared bandwidth guardrails** both import: resource interception (abort image/font/media + trackers) + byte accounting + a hard per-run byte budget | — | — |
+| `tadawul-researcher.mjs` | TDWL free XBRL path: scrape `XBRL_DOCS/*.html`, parse deterministically → `financial_statements`; archive the source HTML + statement PDFs to the `filings` bucket | XBRL objects | 10 (wins) |
+| `tadawul-gapfill.mjs` | TDWL LLM path (`claude -p`, $0 via subscription): for periods XBRL doesn't cover, download `fsPdf/*.pdf`, LLM-extract → `financial_statements` | fsPdf-LLM objects | 20 (gap-fill only; a downgrade guard never overwrites XBRL) |
+| `dfm-backfill.mjs` | **DFM** LLM path, **Class-A (no browser/proxy)**: per name, GET the eFsah `financial_reports` list → download the statement PDF from `feeds.dfm.ae/documents` → `claude -p` extract → `financial_statements`; catalogue the PDF in the `filings` bucket. DFM is PDF-only (no issuer XBRL), so this is its sole statements producer. | fsPdf-LLM objects | 20 |
+| `scrape-guardrails.mjs` | **Shared bandwidth guardrails** the TDWL scrapers import: resource interception (abort image/font/media + trackers) + byte accounting + a hard per-run byte budget. (DFM doesn't use a browser, so it doesn't need these.) | — | — |
 
 ## Guardrails (why the proxy bill is bounded)
 
@@ -42,11 +44,25 @@ units + cron wrappers are mirrored under `systemd/` for reference. **Follow-up (
 point the units at `/opt/marsad/scripts/researchers/` so they track the git checkout and this manual sync goes
 away.
 
+## DFM backfill (Class-A, no browser)
+
+`dfm-backfill.mjs` + `dfm-backfill-cron.sh` need **no** proxy/Xvfb/Chromium — just `SUPABASE_URL`,
+`SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL` (from `worker.env`) + the `claude` CLI + `pdftotext`. The
+wrapper **`unset ANTHROPIC_API_KEY`** so `claude -p` uses the $0 subscription seat (same as gapfill). Env:
+`CHUNK_START/CHUNK_SIZE` (universe slice) or `ACQUIRE_SYMBOLS`, `FSPDF_MAX` (LLM extractions/run),
+`EFSAH_TAKE` (list depth, default 50 ≈ 5y), `CLAUDE_MODEL`, `DFM_WINDOW_GATE=1` (steady-state filing-window
+gate; off = backfill mode). Coverage-gated + resumable (skips periods already in `financial_statements`).
+A ticker absent from `public.securities` is skipped + logged — see DEF-DFM-SECURITIES-RECONCILE (55→68).
+
 ## Run manually (test)
 
 ```sh
 cd /home/deploy && set -a; source /etc/marsad/worker.env; set +a
+# TDWL (browser):
 PLAYWRIGHT_BROWSERS_PATH=/opt/marsad/.playwright \
   ACQUIRE_SYMBOLS=2222 CONCURRENCY=1 PDF_ARCHIVE_MAX=0 RUN_BUDGET_MS=150000 \
   xvfb-run -a node tadawul-researcher.mjs
+# DFM (Class-A, no browser):
+unset ANTHROPIC_API_KEY
+ACQUIRE_SYMBOLS=EMAAR FSPDF_MAX=2 node dfm-backfill.mjs
 ```
