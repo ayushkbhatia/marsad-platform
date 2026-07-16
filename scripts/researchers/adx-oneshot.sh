@@ -2,7 +2,7 @@
 # adx-oneshot.sh — ONE-SHOT full first-pass over the whole ADX universe (financial-statement PDFs).
 #
 # Purpose: temporarily bypass the 6h reporting-window cadence to get first-pass coverage of every listed
-# ADX stock — WITH full history depth (ADX_PDF_MAX high, ADX_FROM_DATE back to 2005), not the 6/run
+# ADX stock — WITH depth capped to the last ~5 fiscal years (ADX_MIN_YEAR=Y-4, ADX_PDF_MAX high), not the 6/run
 # steady-state cap. The symbol list is enumerated from the DB at runtime (LIST_SYMBOLS mode) so it never
 # goes stale. Resumable: each PDF is extract-once (exPara owned marker), so a crash/kill mid-run is safe.
 #
@@ -29,16 +29,18 @@ flock -n 9 || { echo "scrape lock held by another run — abort"; exit 1; }
 set -a; source /etc/marsad/worker.env; set +a
 unset ANTHROPIC_API_KEY                     # force the $0 subscription seat (see gapfill-cron.sh)
 export PLAYWRIGHT_BROWSERS_PATH=/opt/marsad/.playwright
-export ADX_START_YEAR="${ADX_START_YEAR:-2005}"   # full history depth
+# Depth cap: keep only statements published in the last ~5 fiscal years (Y-4). Overridable; set
+# ADX_MIN_YEAR=0 for full history. Caps LLM calls per company sharply (deep filers have 8-10y of quarterlies).
+export ADX_MIN_YEAR="${ADX_MIN_YEAR:-$(( $(date -u +%Y) - 4 ))}"
 cd /home/deploy
 
 # Enumerate all listed ADX tickers from the DB (never a hardcoded list — ~93 names, drifts with listings).
 SYMS=$(LIST_SYMBOLS=1 node adx-gapfill.mjs)
 IFS=',' read -ra ALL <<< "$SYMS"
-CHUNK=${CHUNK:-6}
+CHUNK=${CHUNK:-15}                          # companies per node run (extract-once owned-marker checkpoints per PDF)
 n=${#ALL[@]}
 [ "$n" -eq 0 ] && { echo "no ADX symbols enumerated — abort"; exit 1; }
-echo "ADX ONE-SHOT start $(date -u '+%Y-%m-%d %H:%M UTC') — $n listed ADX names, chunk=$CHUNK, full history from ${ADX_START_YEAR}"
+echo "ADX ONE-SHOT start $(date -u '+%Y-%m-%d %H:%M UTC') — $n listed ADX names, chunk=$CHUNK, statements ≥ ${ADX_MIN_YEAR}"
 for ((i=0; i<n; i+=CHUNK)); do
   SLICE=$(IFS=,; echo "${ALL[*]:i:CHUNK}")
   end=$(( i+CHUNK<n ? i+CHUNK : n ))
