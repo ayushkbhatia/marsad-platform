@@ -658,6 +658,16 @@ time cohort snapshots for backtesting (needed to ever publish the screener's "3Y
 > 2026-07-16: AVOID the Mubasher aggregator** (paywall/durability risk) — the Mubasher adapter below was NOT
 > built; the **producer is the free deterministic Tadawul XBRL feed** (live; pending a rebase onto main).
 > The Mubasher shapes below stay valid as a tested normalizer path a future aggregator *could* reuse.
+>
+> **BHB statements producer (2026-07-16):** BHB now has its OWN statements producer — the
+> `bhb-financials.mjs` Class-B researcher (`docs/architecture/08-worker-fleet.md §B`). BHB is not
+> WAF-walled, so it needs no browser/proxy: it reads the CompanyProfile Statements tab webapi
+> (`GetCompanyFinancialStatements`, pure parser `ingestion/src/adapters/bhb/financials.ts`, back to 2016),
+> downloads each statement PDF **direct**, and runs the SAME `extractToStatements` + `claude -p` path the
+> Tadawul gap-fill uses — persisting `FILING.FINANCIALS` lake.objects at `source_rank 20` (BHB has no XBRL,
+> so this is the PRIMARY source, not a gap-filler) through the same snake_case projection. This is the BHB
+> arm of P1.7e and takes BHB off DEF-STMT-LLM-PDF (which now scopes MSX + F full-text via the
+> `normalizeViaLlm` runtime seam only).
 
 - TDWL/ADX: ~~**Mubasher `/financial-statements` + `/ratios`**~~ **(deprioritized 2026-07-16, owner
   "avoid Mubasher")** — kept as the golden-tested `normalizeMubasherStatements`/`normalizeMubasherRatios`
@@ -727,7 +737,7 @@ Growth follows statements; Revisions = `NULL`.
 | MUST exist before P2 stock pages are credible | Can enrich in parallel / trail P2 |
 |---|---|
 | `ohlcv_daily` (≥126 bars) — P1.7a | ADX-native cross-check depth (P1.7e) |
-| `financial_statements` ≥8Q + `key_ratios` — P1.7b | BHB (proxy-gated, coverage-gap) |
+| `financial_statements` ≥8Q + `key_ratios` — P1.7b | BHB statements — now produced by the direct-HTTP `bhb-financials.mjs` researcher (2026-07-16; NOT proxy-gated), drain pending VPS deploy |
 | **Marsad Score v1** (V/P/M; Growth where available) — P1.7c | Transcripts (N), IPO (O), AI thesis (P) |
 | Filing `full_text`+`extracted_facts`+`ai_summary` — P1.7d | Analyst-maintained `datapoint_series` (L) |
 | `dividends` (from filings) — P1.7d | Street consensus PT strip (K, blocked) |

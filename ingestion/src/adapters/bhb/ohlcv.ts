@@ -11,13 +11,17 @@
 // exposes a per-security date-range price export — one GET is the full close history:
 //   GET https://webapi.bahrainbourse.com/api/data/GetTabularDataWithDateRangeFilter
 //        ?storedProcdure=DataExportCompanyProfile&parameterValue={symbol}&FromDateYear={from}&ToDateYear={to}
-//   → {status:1, data:[ {"":"MM/DD/YYYY","Price":"   0.230"}, … ]}  (verified live 2026-07-15 via
-//     sticky proxy: GFH 2020→2026 = 1476 rows; the year dropdown offers 2000..2026 → full history from
-//     FromDateYear=2000). Auth header `Authorization: Bearer <APIKey>` is a PUBLIC client token shipped
-//     in the CompanyProfile page JS (not a server secret) — pinned in the seed's endpoint_config.headers.
-//   The webapi host is behind CLOUDFLARE and BHB's datacenter IP is geo-blocked, so the source is
-//   use_proxy=true + proxy_mode='sticky' (a fresh residential IP per poll passes CF; the rotating pool
-//   trips "Attention Required"). transport='http' (plain GET, no bootstrap/discovery needed).
+//   → {status:1, data:[ {"":"MM/DD/YYYY","Price":"   0.230"}, … ]}  (GFH 2020→2026 = 1476 rows; the year
+//     dropdown offers 2000..2026 → full history from FromDateYear=2000).
+//
+// ── AUTH + EGRESS (reconciled 2026-07-16) ──────────────────────────────────────────────────────────
+// This host is webapi.bahrainbourse.com — the SAME host as BHB quotes/filings, which proved live DIRECT
+// from the VPS (the historical Cloudflare/geo-block is gone; id16 quotes runs use_proxy=false). So this
+// backfill also runs DIRECT (use_proxy=false) — the metered residential proxy is reserved for hosts that
+// genuinely cannot be reached direct (owner egress policy), and this one can. Auth is the dynamic
+// `Authorization: Bearer <APIKey>` via the shared bhbWebapiGet helper (scrape the rotating PUBLIC homepage
+// token → cache → re-scrape once on 401) — NOT a pinned endpoint_config token, which rotates several
+// times/day and would 401 within hours. transport='http' (plain GET, no bootstrap/discovery needed).
 //
 // ── EOD CLOSE ONLY (explicit owner requirement) ────────────────────────────────────────────────────
 // This feed is EOD CLOSE ONLY — NOT OHLCV. The response carries a date + a single Price (the close);
@@ -60,6 +64,7 @@ import type {
   TaskSpec,
   VenueCode,
 } from '../../core/types.js';
+import { bhbWebapiGet, type BhbWebapiConfig } from './webapi.js';
 
 /** Bump ⇒ old snapshots become replay-eligible (CONTRACT §10). */
 export const BHB_OHLCV_PARSER_VERSION = 1;
@@ -67,7 +72,8 @@ export const BHB_OHLCV_PARSER_VERSION = 1;
 /** The six GCC venue codes (VenueCode is a closed union; guard meta.venue against it). */
 const VENUE_CODES: ReadonlySet<string> = new Set<VenueCode>(['TDWL', 'DFM', 'ADX', 'QE', 'MSX', 'BHB']);
 
-/** Default bounded-fetch concurrency (single GET per symbol); clamped ≥1. Modest — sticky-proxy + CF. */
+/** Default bounded-fetch concurrency (single GET per symbol); clamped ≥1. Modest — direct HTTP, but a
+ *  41-symbol deep-history drain should not hammer the origin. */
 const DEFAULT_FETCH_CONCURRENCY = 4;
 
 /** Default earliest year to request when endpoint_config carries no fromYear (dropdown offers 2000..). */
@@ -246,13 +252,15 @@ function buildUrl(template: string, symbol: string, from: number, to: number): s
 async function fetchOneSymbol(ctx: FetchContext, symbol: string, from: number, to: number): Promise<FetchResult | null> {
   const cfg = configOf(ctx);
   const template = cfg.urlTemplate ?? ctx.source.entryUrl;
-  const headers = cfg.headers;
   const fetchedAt = ctx.now();
   const url = buildUrl(template, symbol, from, to);
 
   let res;
   try {
-    res = await ctx.http.get(url, headers ? { headers } : {});
+    // Dynamic APIKey Bearer (shared with quotes/filings): scrape the rotating PUBLIC homepage token →
+    // cache in-process (one token serves the whole 41-symbol sweep) → re-scrape once on a 401. Direct
+    // egress — no proxy. bhbWebapiGet throws only when NO key can be obtained at all (caught below).
+    res = await bhbWebapiGet(ctx, url, cfg as unknown as BhbWebapiConfig);
   } catch (err) {
     ctx.logger?.warn('bhb ohlcv: symbol fetch failed, skipping', {
       symbol,
@@ -304,9 +312,9 @@ async function runPool<T>(items: T[], size: number, worker: (item: T) => Promise
 }
 
 /**
- * fetch(): impure/transport. Plain HTTP (ctx.http) — routed to the IPRoyal sticky-proxy client by the
- * runtime (use_proxy=true + proxy_mode='sticky' in the seed; the webapi host is CF-gated + IP-geoblocked,
- * so DIRECT egress is impossible). One GET per symbol of the full date range (FromDateYear=2000 →
+ * fetch(): impure/transport. Plain HTTP (ctx.http), DIRECT egress (use_proxy=false — the webapi host is
+ * reachable direct from the VPS, proven by the same-host quotes source), authed with the dynamic APIKey
+ * Bearer via bhbWebapiGet. One GET per symbol of the full date range (FromDateYear=2000 →
  * ToDateYear=current year, the latter from ctx.now()). Two paths, mirroring yahoo/ohlcv.ts,
  * mubasher/ohlcv-csv.ts and msx/history.ts exactly:
  *   - STREAMING (ctx.onFetched supplied): fetch symbols at bounded concurrency
