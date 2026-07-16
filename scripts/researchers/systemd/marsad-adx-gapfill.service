@@ -4,6 +4,9 @@ After=network-online.target
 
 [Service]
 Type=oneshot
+# Pin HOME so the spawned `claude -p` finds the $0 subscription OAuth creds at /root/.claude (the cron
+# already `unset ANTHROPIC_API_KEY` — the API key in worker.env must never win over the subscription seat).
+Environment=HOME=/root
 ExecStart=/bin/bash /home/deploy/adx-gapfill-cron.sh
 TimeoutStartSec=900
 # 3.8 GB box is memory-tight: cap the cgroup so a headless Chromium + PDF buffers + `claude -p` spill to
