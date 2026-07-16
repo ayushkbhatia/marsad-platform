@@ -145,10 +145,11 @@ ANTHROPIC_API_KEY` in the wrapper so `claude -p` uses the $0 subscription seat. 
 `marsad-adx-gapfill.timer` `OnUnitActiveSec=6h`.
 
 **Config (env):** `CHUNK_START/CHUNK_SIZE` (ADX universe slice), `ACQUIRE_SYMBOLS` (explicit CSV, e.g.
-`ALDAR,IHC`), `ADX_PDF_MAX`, `ADX_FIN_TYPES` (widen to add e.g. `Integrated Report`), `ADX_GATEWAY_APIKEY`
-(re-capture if it rotates), `ADX_RECORD_COUNT`, `CLAUDE_MODEL`, `ADX_USE_PROXY=1` (fallback if the VPS IP is
-ever challenged). Supabase creds from `/etc/marsad/worker.env`. `LIST_SYMBOLS=1` prints the listed ADX
-tickers and exits (used by the one-shot).
+`ALDAR,IHC`), `ADX_PDF_MAX`, `ADX_MIN_YEAR` (**depth cap** — drop statements published before this year; the
+one-shot defaults it to `Y-4` ≈ last 5 fiscal years; `0` = full history), `ADX_FIN_TYPES` (widen to add e.g.
+`Integrated Report`), `ADX_GATEWAY_APIKEY` (re-capture if it rotates), `ADX_RECORD_COUNT`, `CLAUDE_MODEL`,
+`ADX_USE_PROXY=1` (fallback if the VPS IP is ever challenged). Supabase creds from
+`/etc/marsad/worker.env`. `LIST_SYMBOLS=1` prints the listed ADX tickers and exits (used by the one-shot).
 
 **Prereqs on the VPS:** the compiled `ingestion/dist/lake/statement-extraction.js` must exist, plus Playwright
 + Chromium (`/opt/marsad/.playwright`), `pdftotext` (poppler), and the `claude` CLI logged into the
@@ -156,8 +157,9 @@ subscription seat.
 
 **Deploy:** `scp scripts/researchers/adx-gapfill.mjs adx-gapfill-cron.sh adx-oneshot.sh deploy@<vps>:/home/deploy/`
 and install `systemd/marsad-adx-gapfill.{service,timer}`. Backfill first-pass: `adx-oneshot.sh` (DB-enumerated
-universe, full history depth) via `systemd-run`; steady state (6 h cadence) then re-visits only for
-newly-published statements.
+universe, `CHUNK=15`, depth capped to the last ~5 fiscal years via `ADX_MIN_YEAR=Y-4` — set `ADX_MIN_YEAR=0`
+for full history) via `systemd-run`; steady state (6 h cadence) then re-visits only for newly-published
+statements.
 
 ## Run manually (test)
 

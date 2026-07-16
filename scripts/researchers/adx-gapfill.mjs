@@ -59,6 +59,11 @@ const RECORD_COUNT = Number(process.env.ADX_RECORD_COUNT || 1000); // full histo
 // Report' = the full IS/BS/CFS PDF; press-release/governance/sustainability/preliminary excluded. Env-widen
 // (e.g. add 'Integrated Report') if an issuer only files audited statements inside the annual report.
 const FIN_TYPES = new Set((process.env.ADX_FIN_TYPES || 'Financial Report').split(',').map(s => s.trim()).filter(Boolean));
+// Depth cap: 0 = full history. Else drop efid rows whose publishedDate year < ADX_MIN_YEAR. The recordCount
+// feed returns full uncapped history, so the cap is applied client-side on publishedDate (a report published
+// in year Y covers ~FY Y or Y-1) — e.g. ADX_MIN_YEAR=2022 keeps ~last 5 fiscal years, far fewer LLM calls.
+const MIN_YEAR = Number(process.env.ADX_MIN_YEAR || 0);
+const pubYear = (s) => Number(String(s || '').slice(0, 4)) || 0;
 const mmddyyyy = (d) => `${String(d.getUTCMonth() + 1).padStart(2, '0')}/${String(d.getUTCDate()).padStart(2, '0')}/${d.getUTCFullYear()}`;
 const FROM_DATE = process.env.ADX_FROM_DATE || mmddyyyy(new Date(Date.now() - 400 * 864e5)); // legacy dated form only
 const TO_DATE = process.env.ADX_TO_DATE || mmddyyyy(new Date());
@@ -141,7 +146,7 @@ if (process.env.ACQUIRE_SYMBOLS) symbols = process.env.ACQUIRE_SYMBOLS.split(','
 else { const start = Number(process.env.CHUNK_START || 0), size = Number(process.env.CHUNK_SIZE || 6); symbols = (await sql`select ticker from public.securities where venue_code='ADX' and status='listed' order by ticker offset ${start} limit ${size}`).map(r => r.ticker); }
 // Owned = exPara filing ids we already stored (stable per-filing id) — the extract-once gate.
 const owned = new Set((await sql`select source_ref from public.filings where venue_code='ADX' and pdf_storage_key like 'adx/%'`).map(r => r.source_ref));
-log(`adx-gapfill — ${symbols.length} companies, ${owned.size} PDFs owned, ADX_PDF_MAX ${PDF_MAX}/run, recordCount ${RECORD_COUNT}, proxy=${USE_PROXY ? 'on' : 'OFF'}, headless=${HEADLESS}`);
+log(`adx-gapfill — ${symbols.length} companies, ${owned.size} PDFs owned, ADX_PDF_MAX ${PDF_MAX}/run, recordCount ${RECORD_COUNT}, minYear ${MIN_YEAR || 'none'}, proxy=${USE_PROXY ? 'on' : 'OFF'}, headless=${HEADLESS}`);
 
 let companies = 0, pdfNew = 0, rowsW = 0, budget = PDF_MAX;
 for (let attempt = 0; attempt < 3 && budget > 0; attempt++) {
@@ -181,9 +186,9 @@ for (let attempt = 0; attempt < 3 && budget > 0; attempt++) {
             title: r.simpleTitleEn || r.titleEn || r.title || r.exPara,
             publishedDate: r.publishedDate,
           }));
-        const reports = norm.filter(r => FIN_TYPES.has(r.docType) && r.pdfUrl && r.exPara);
+        const reports = norm.filter(r => FIN_TYPES.has(r.docType) && r.pdfUrl && r.exPara && (!MIN_YEAR || pubYear(r.publishedDate) >= MIN_YEAR));
         const fresh = reports.filter(r => !owned.has(r.exPara));
-        log(`  ${sym}: ${rows.length} disclosures, ${reports.length} statement PDFs, ${fresh.length} new`);
+        log(`  ${sym}: ${rows.length} disclosures, ${reports.length} statement PDFs${MIN_YEAR ? ` (≥${MIN_YEAR})` : ''}, ${fresh.length} new`);
         for (const r of fresh) {
           if (budget <= 0) break;
           const exPara = r.exPara;
