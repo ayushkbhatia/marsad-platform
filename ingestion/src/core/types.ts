@@ -25,6 +25,7 @@ export type DataType =
   | 'filings_list'
   | 'filing_detail'
   | 'financials'
+  | 'securities_profile'
   | 'dividends'
   | 'ipo'
   | 'calendar'
@@ -181,6 +182,7 @@ export interface VenueAdapter {
   eodBulletin?: TaskSpec<NormalizedOhlcv>;
   ipo?: TaskSpec<NormalizedIpoEvent>;
   financials?: TaskSpec<NormalizedStatementRow>;
+  securitiesProfile?: TaskSpec<NormalizedProfile>;
   // extend per §8 as sources are added; unset = venue does not serve that type in v1.
 }
 
@@ -362,6 +364,31 @@ export interface NormalizedStatementRow {
   currency: string; // char(3)
   lineItems: Record<string, number | null>; // the §3.1 primitive keys
   segments?: Record<string, unknown> | null;
+}
+
+/**
+ * §6.5 / 07 §3.3/§P1.7e-I — one security-profile row flattened for staging + projection.
+ * Fills the three currently-empty identity columns the ratio + Score engines are blocked on:
+ * public.securities.sector / isin / shares_outstanding. The staging mapper (runtime.mapProfile)
+ * builds a PROFILE.SECURITY natural_key `PROFILE.SECURITY:{venue}:{ticker}`; the projection
+ * (lake.fn_security_profile_project, migration 20260716110000) reads these camelCase payload keys:
+ * venue/ticker → security_id, and sector/isin/sharesOutstanding/industry → the serving columns.
+ *
+ * `sector` is ALREADY mapped onto the internal taxonomy (lake/sector-taxonomy.ts) — a public.sectors.key
+ * slug (securities.sector is a FK to sectors(key)), so a Saudi bank and a Qatari bank share one 'banks'
+ * cohort key (§3.5 D-2). `rawSector` preserves the venue's original string for audit — an unmappable
+ * venue string yields sector='unknown' (a LOGGED fallback, never SILENTLY 'unknown'), with the raw
+ * string kept here + on the object payload. A source that carries none of the three facts stages
+ * nothing (runtime.mapProfile drops an all-null profile).
+ */
+export interface NormalizedProfile {
+  venue: VenueCode;
+  ticker: string; // → resolves public.securities.id at projection time (venue+ticker unique)
+  sector: string; // internal-taxonomy key ('banks'|'insurance'|…|'unknown'); a valid public.sectors.key
+  rawSector: string | null; // the venue's original sector string (audit/provenance)
+  isin: string | null; // → public.securities.isin (wherever the venue profile exposes it)
+  sharesOutstanding: number | null; // → public.securities.shares_outstanding (binding ratio input)
+  industry?: string | null; // → public.securities.industry (nice-to-have; null-safe on projection)
 }
 
 /** §6.4 filings_list poll (list-diff on external_id) */

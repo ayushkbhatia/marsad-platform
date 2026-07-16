@@ -8,6 +8,7 @@ import type { VenueAdapter } from "../../core/types.js";
 import { adxQuotes } from "./quotes.js";
 import { adxFilingsList, adxFilingDetail } from "./filings.js";
 import { adxEodBulletin } from "./eod.js";
+import { adxProfile } from "./profile.js";
 
 export const adxAdapter: VenueAdapter = {
   venue: "ADX",
@@ -16,7 +17,9 @@ export const adxAdapter: VenueAdapter = {
   filingsList: adxFilingsList,
   filingDetail: adxFilingDetail,
   eodBulletin: adxEodBulletin,
+  securitiesProfile: adxProfile,
 };
 
-export { adxQuotes, adxFilingsList, adxFilingDetail, adxEodBulletin };
+export { adxQuotes, adxFilingsList, adxFilingDetail, adxEodBulletin, adxProfile };
+export { DEFAULT_ADX_PROFILE_MAP } from "./profile.js";
 export default adxAdapter;

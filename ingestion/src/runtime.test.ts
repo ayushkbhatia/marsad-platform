@@ -14,8 +14,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { resolveTasksForSource, yahooSymbolsForVenue, withYahooSymbols } from './runtime.js';
+import {
+  resolveTasksForSource,
+  yahooSymbolsForVenue,
+  withYahooSymbols,
+  withProfileSymbols,
+  withInjectedSymbols,
+} from './runtime.js';
 import { yahooTasks } from './adapters/yahoo/index.js';
+import { mubasherTasks } from './adapters/mubasher/index.js';
 import { ADAPTERS } from './adapters/index.js';
 import type { Sql } from './core/db.js';
 import type { SourceRecord, DataType, VenueCode } from './core/types.js';
@@ -190,4 +197,84 @@ test('withYahooSymbols sets symbols:[] for a fully-backfilled ohlcv_backfill sou
   const resolved = await withYahooSymbols(sql, src);
   const cfg = resolved.endpointConfig as unknown as { symbols?: unknown };
   assert.deepEqual(cfg.symbols, [], 'empty symbols must be set explicitly (coverage-complete signal)');
+});
+
+// ── securities_profile (DEF-SECTOR-DATA) task resolution ────────────────────────────────────────
+test('provider=mubasher_profile + securities_profile → the Mubasher profile TaskSpec', () => {
+  const src = makeSource({
+    venue: 'TDWL',
+    dataType: 'securities_profile' as DataType,
+    endpointConfig: { responseKind: 'json', provider: 'mubasher_profile' },
+  });
+  const tasks = resolveTasksForSource(src);
+  assert.equal(tasks.length, 1);
+  assert.equal(tasks[0], mubasherTasks.profile, 'must be the Mubasher profile task, not a venue adapter');
+});
+
+test('provider=mubasher_profile with a non-profile data_type resolves to no task', () => {
+  const src = makeSource({
+    venue: 'TDWL',
+    dataType: 'quotes',
+    endpointConfig: { responseKind: 'json', provider: 'mubasher_profile' },
+  });
+  assert.deepEqual(resolveTasksForSource(src), []);
+});
+
+test('native ADX/MSX securities_profile → the venue adapter securitiesProfile task', () => {
+  for (const venue of ['ADX', 'MSX'] as VenueCode[]) {
+    const src = makeSource({ venue, dataType: 'securities_profile' as DataType, endpointConfig: { responseKind: 'json' } });
+    const tasks = resolveTasksForSource(src);
+    const sp = ADAPTERS[venue].securitiesProfile;
+    assert.ok(sp, `${venue} should mount a securitiesProfile task`);
+    assert.ok(tasks.includes(sp as never), `${venue} securities_profile must resolve to its own adapter task`);
+  }
+});
+
+// ── withProfileSymbols coverage guard (profile_scraped_at) ──────────────────────────────────────
+test('withProfileSymbols injects the un-profiled RAW tickers (no suffix) for a profile source', async () => {
+  const sql = fakeSql([{ ticker: '2222' }, { ticker: '1120' }]);
+  const src = makeSource({
+    venue: 'TDWL',
+    dataType: 'securities_profile' as DataType,
+    endpointConfig: { responseKind: 'json', provider: 'mubasher_profile' },
+  });
+  const resolved = await withProfileSymbols(sql, src);
+  const cfg = resolved.endpointConfig as unknown as { symbols?: unknown };
+  assert.deepEqual(cfg.symbols, ['2222', '1120'], 'RAW tickers, no Yahoo suffix');
+});
+
+test('withProfileSymbols sets symbols:[] when every security is already profiled (dormant)', async () => {
+  const sql = fakeSql([]); // profile_scraped_at IS NULL filtered everything out
+  const src = makeSource({
+    venue: 'ADX',
+    dataType: 'securities_profile' as DataType,
+    endpointConfig: { responseKind: 'json' },
+  });
+  const resolved = await withProfileSymbols(sql, src);
+  const cfg = resolved.endpointConfig as unknown as { symbols?: unknown };
+  assert.deepEqual(cfg.symbols, [], 'empty symbols is the coverage-complete signal runTask skips on');
+});
+
+test('withProfileSymbols is a no-op for a non-profile source', async () => {
+  let queried = false;
+  const sql = ((..._a: unknown[]) => {
+    queried = true;
+    return Promise.resolve([]);
+  }) as unknown as Sql;
+  const src = makeSource({ venue: 'TDWL', dataType: 'quotes', endpointConfig: { responseKind: 'json' } });
+  const resolved = await withProfileSymbols(sql, src);
+  assert.equal(resolved, src);
+  assert.equal(queried, false);
+});
+
+test('withInjectedSymbols routes a securities_profile source through withProfileSymbols', async () => {
+  const sql = fakeSql([{ ticker: 'ALDAR' }]);
+  const src = makeSource({
+    venue: 'ADX',
+    dataType: 'securities_profile' as DataType,
+    endpointConfig: { responseKind: 'json' },
+  });
+  const resolved = await withInjectedSymbols(sql, src);
+  const cfg = resolved.endpointConfig as unknown as { symbols?: unknown };
+  assert.deepEqual(cfg.symbols, ['ALDAR']);
 });
