@@ -27,6 +27,7 @@ export type DataType =
   | 'filings_list'
   | 'filing_detail'
   | 'financials'
+  | 'securities_profile'
   | 'dividends'
   | 'ipo'
   | 'calendar'

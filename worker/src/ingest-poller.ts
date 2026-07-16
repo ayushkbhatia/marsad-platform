@@ -52,6 +52,13 @@ const DATA_TYPE_TO_HANDLER: Record<string, string> = {
   // through the staging mapper (FILING.FINANCIALS) → cross_check → the projection. No
   // dedicated handler is needed. Inert until a `financials` source is seeded active.
   financials: "quote_poll",
+  // securities_profile (DEF-SECTOR-DATA, 07 §3.3/§P1.7e-I) reuses quote_poll: like ohlcv_backfill /
+  // financials it is source-scoped ({ sourceId }) and provider-agnostic — the handler loads the source,
+  // resolves its securities_profile TaskSpec via runtime.tasksForSource (mubasher_profile provider for
+  // TDWL, or a native ADX/MSX adapter), and runTask emits NormalizedProfile through the staging mapper
+  // (PROFILE.SECURITY) → cross_check → fn_security_profile_project → public.securities. The runtime's
+  // coverage guard (withProfileSymbols) chunks + idles it. No dedicated handler is needed.
+  securities_profile: "quote_poll",
   filings_list: "filings_poll",
   // filing_detail: the event-driven PDF-download drain (gap #1 — this mapping did not exist, so
   // every filing_detail wake-up row failed with "no handler for data_type"). filings_detail_poll
