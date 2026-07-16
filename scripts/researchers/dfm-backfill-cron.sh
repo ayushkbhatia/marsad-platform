@@ -23,7 +23,7 @@ if [ "${DFM_WINDOW_GATE:-0}" = "1" ]; then
 fi
 
 STATE=/home/deploy/.dfm-backfill-chunk
-SIZE=${CHUNK_SIZE:-10}
+SIZE=${CHUNK_SIZE:-12}
 START=$(cat "$STATE" 2>/dev/null || echo 0)
 
 set -a; source /etc/marsad/worker.env; set +a
@@ -31,9 +31,13 @@ set -a; source /etc/marsad/worker.env; set +a
 # var over the OAuth subscription login if present, silently billing pay-as-you-go instead of the $0
 # subscription seat. Unset it so the spawned `claude` CLI falls back to the subscription auth.
 unset ANTHROPIC_API_KEY
-export CHUNK_START="$START" CHUNK_SIZE="$SIZE" FSPDF_MAX="${FSPDF_MAX:-6}" CLAUDE_MODEL="${CLAUDE_MODEL:-sonnet}"
+# Parallel first-pass: CONCURRENCY claude extractions at once, FSPDF_MAX global budget/run, RUN_BUDGET_MS
+# self-stop (~16.7 min) well inside the `timeout` below so the DONE line always prints (no cursor reset).
+export CHUNK_START="$START" CHUNK_SIZE="$SIZE" \
+       FSPDF_MAX="${FSPDF_MAX:-48}" CONCURRENCY="${CONCURRENCY:-3}" RUN_BUDGET_MS="${RUN_BUDGET_MS:-1000000}" \
+       CLAUDE_MODEL="${CLAUDE_MODEL:-sonnet}"
 cd /home/deploy
-OUT=$(timeout 800 node dfm-backfill.mjs 2>&1)
+OUT=$(timeout 1300 node dfm-backfill.mjs 2>&1)
 echo "$OUT" | grep -E "dfm-backfill —|DONE" | tail -2
 
 NUM=$(echo "$OUT" | grep -oE "companies [0-9]+/[0-9]+" | tail -1 | sed -E 's#companies ([0-9]+)/.*#\1#')

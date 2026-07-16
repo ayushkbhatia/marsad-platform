@@ -61,10 +61,13 @@ away.
 `dfm-backfill.mjs` + `dfm-backfill-cron.sh` need **no** proxy/Xvfb/Chromium — just `SUPABASE_URL`,
 `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL` (from `worker.env`) + the `claude` CLI + `pdftotext`. The
 wrapper **`unset ANTHROPIC_API_KEY`** so `claude -p` uses the $0 subscription seat (same as gapfill). Env:
-`CHUNK_START/CHUNK_SIZE` (universe slice) or `ACQUIRE_SYMBOLS`, `FSPDF_MAX` (LLM extractions/run),
-`EFSAH_TAKE` (list depth, default 50 ≈ 5y), `CLAUDE_MODEL`, `DFM_WINDOW_GATE=1` (steady-state filing-window
-gate; off = backfill mode). Coverage-gated + resumable (skips periods already in `financial_statements`).
-A ticker absent from `public.securities` is skipped + logged — see DEF-DFM-SECURITIES-RECONCILE (55→68).
+`CHUNK_START/CHUNK_SIZE` (universe slice) or `ACQUIRE_SYMBOLS`, `CONCURRENCY` (parallel `claude -p`
+extractions, default 3 — 4+ trips the subscription concurrent-session throttle), `FSPDF_MAX` (global LLM
+extractions/run), `RUN_BUDGET_MS` (self-stop, default ~16.7 min, must stay under the wrapper's `timeout`
+so the DONE line prints), `EFSAH_TAKE` (list depth, default 50 ≈ 5y), `CLAUDE_MODEL`, `DFM_WINDOW_GATE=1`
+(steady-state filing-window gate; off = backfill mode). Coverage-gated + resumable (skips periods already
+in `financial_statements`). A ticker absent from `public.securities` is skipped + logged. Scanned PDFs
+(no text layer) are skipped pending OCR (DEF-DFM-OCR-SCANNED — mirror the BHB #43 fallback).
 
 ## BHB financials (direct HTTP — no browser, no proxy)
 
