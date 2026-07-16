@@ -17,6 +17,7 @@ import {
   normalizeMubasherRatios,
   normalizeYahooTimeseries,
   deriveTtm,
+  flattenStatements,
   validateNormalizedPeriod,
   normalizeViaLlm,
   toNumberOrNull,
@@ -77,6 +78,49 @@ test('Mubasher statements: capital_employed null (no current liabilities line)',
 test('Mubasher statements: malformed input ⇒ no periods, never throws', () => {
   assert.deepEqual(normalizeMubasherStatements(null).periods, []);
   assert.deepEqual(normalizeMubasherStatements({ exchange: 'TDWL', columns: [], rows: [] }).periods, []);
+});
+
+// ─── flattenStatements → per-period staging rows (07 §P1.7b persist path) ─────
+
+test('flattenStatements: enriches each non-empty period with venue/ticker/basis identity', () => {
+  const norm = normalizeMubasherStatements(readFixture('mubasher/financial-statements-2222.json'));
+  const rows = flattenStatements(norm); // default basis 'consolidated'
+  assert.equal(rows.length, 5); // 2021..2025, all non-empty
+  const r2025 = rows.find((r) => r.fiscalPeriod === 'FY2025')!;
+  assert.ok(r2025);
+  assert.equal(r2025.venue, 'TDWL');
+  assert.equal(r2025.ticker, '2222');
+  assert.equal(r2025.basis, 'consolidated');
+  assert.equal(r2025.statementType, 'income'); // Mubasher collapses to the income period
+  assert.equal(r2025.periodKind, 'annual');
+  assert.equal(r2025.periodEnd, '2025-12-31');
+  assert.equal(r2025.currency, 'SAR');
+  // line_items carry through verbatim (the §3.1 primitives the projection lands as jsonb).
+  assert.equal(r2025.lineItems.total_assets, 2516431000);
+  assert.equal(r2025.lineItems.net_income, 398200000);
+});
+
+test('flattenStatements: standalone basis passes through; TTM period included', () => {
+  const norm = normalizeMubasherStatements(readFixture('mubasher/financial-statements-2222.json'));
+  const rows = flattenStatements(norm, 'standalone');
+  assert.ok(rows.every((r) => r.basis === 'standalone'));
+});
+
+test('flattenStatements: drops empty-line_items periods + blank identity ⇒ []', () => {
+  // A period with no mapped primitives must not stage (nothing to persist).
+  const empties = flattenStatements({
+    venue: 'TDWL',
+    ticker: '2222',
+    periods: [
+      { periodKind: 'annual', fiscalPeriod: 'FY2020', periodEnd: '2020-12-31', currency: 'SAR', statementType: 'income', lineItems: {} },
+    ],
+  });
+  assert.deepEqual(empties, []);
+  // Blank venue/ticker cannot be keyed downstream.
+  assert.deepEqual(
+    flattenStatements({ venue: '', ticker: '', periods: [] }),
+    [],
+  );
 });
 
 // ─── Mubasher /ratios golden ─────────────────────────────────────────────────

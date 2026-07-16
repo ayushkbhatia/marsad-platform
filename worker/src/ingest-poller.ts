@@ -46,6 +46,12 @@ const DATA_TYPE_TO_HANDLER: Record<string, string> = {
   // source), then runTask emits NormalizedOhlcv rows through the existing OHLCV staging mapper +
   // cross-check. No dedicated handler is needed.
   ohlcv_backfill: "quote_poll",
+  // financials (07 §P1.7b) reuses quote_poll: like ohlcv_backfill it is source-scoped
+  // ({ sourceId }) and provider-agnostic — the handler loads the source, resolves its
+  // financials TaskSpec via runtime.tasksForSource, and runTask emits NormalizedStatementRow
+  // through the staging mapper (FILING.FINANCIALS) → cross_check → the projection. No
+  // dedicated handler is needed. Inert until a `financials` source is seeded active.
+  financials: "quote_poll",
   filings_list: "filings_poll",
   eod_bulletin: "eod_sweep",
 };

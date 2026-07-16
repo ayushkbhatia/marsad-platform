@@ -22,6 +22,7 @@ import type {
   NormalizedOhlcv,
   NormalizedFiling,
   NormalizedFilingRef,
+  NormalizedStatementRow,
   Logger,
   TaskSpec,
 } from '../core/types.js';
@@ -206,6 +207,41 @@ test('filings_list ref → FILING.REF keyed by venue+externalId; not misread as 
   assert.equal(r.naturalKey, 'FILING.REF:TDWL:CG-1-2026-4471');
   assert.equal(r.externalId, 'CG-1-2026-4471');
   assert.equal(r.numericValue, null);
+});
+
+test('financials → FILING.FINANCIALS keyed by venue+ticker+statementType+basis+fiscalPeriod', () => {
+  const finSource = source({ id: 11, venue: 'TDWL', dataType: 'financials' });
+  const stmt: NormalizedStatementRow = {
+    venue: 'TDWL',
+    ticker: '2222',
+    statementType: 'income',
+    basis: 'consolidated',
+    periodKind: 'annual',
+    fiscalPeriod: 'FY2025',
+    periodEnd: '2025-12-31',
+    currency: 'SAR',
+    lineItems: { revenue: 100, net_income: 40, total_assets: 2516431000 },
+  };
+  const rows = mapRowsToStaging(finSource, stubTask, SNAP_ID, [stmt], noopLogger, SNAP_FETCHED_AT);
+  assert.equal(rows.length, 1);
+  const r = rows[0]!;
+  assert.equal(r.objectType, 'FILING.FINANCIALS');
+  assert.equal(r.naturalKey, 'FILING.FINANCIALS:TDWL:2222:income:consolidated:FY2025');
+  assert.equal(r.externalId, null); // no per-row id ⇒ dedupe on (source_id, NULL, content_hash)
+  assert.equal(r.numericValue, null); // a period is a bag of line items, not one scalar
+  assert.equal(r.unit, 'SAR');
+  assert.equal(r.effectiveDate, '2025-12-31'); // period_end
+  assert.equal(r.priceSensitive, false); // bulk facts, not a 33b human-confirm gate
+  assert.equal(r.extractedAt, SNAP_FETCHED_AT); // no self-timestamp ⇒ snapshot fetch time
+  // A RESTATEMENT (same period, changed numbers) keys IDENTICALLY but hashes differently —
+  // the whole mechanism the versioning projection keys off.
+  const restated = mapRowsToStaging(
+    finSource, stubTask, SNAP_ID + 1,
+    [{ ...stmt, lineItems: { ...stmt.lineItems, net_income: 41 } }],
+    noopLogger, SNAP_FETCHED_AT,
+  )[0]!;
+  assert.equal(restated.naturalKey, r.naturalKey); // same object key
+  assert.notEqual(contentHash(restated.payload), contentHash(r.payload)); // distinct content ⇒ new revision
 });
 
 test('empty batch ⇒ no rows; unknown shape ⇒ dropped, none fabricated', () => {
