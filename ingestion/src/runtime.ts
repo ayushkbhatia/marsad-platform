@@ -78,6 +78,7 @@ import type {
   NormalizedFiling,
   NormalizedDividend,
   NormalizedIpoEvent,
+  NormalizedStatementRow,
 } from './core/types.js';
 
 // ── The narrow runtime surface the worker handlers call (mirrors
@@ -475,6 +476,13 @@ function tasksForDataType(adapter: (typeof ADAPTERS)[VenueCode], dataType: DataT
     case 'ipo':
       if (adapter.ipo) out.push(adapter.ipo as TaskSpec<unknown>);
       break;
+    case 'financials':
+      // Per-security financial statements (07 §P1.7b). A venue mounts a financials
+      // TaskSpec whose parse() emits NormalizedStatementRow[]; the staging mapper lands
+      // them as FILING.FINANCIALS → cross_check → fn_financial_statement_project. No
+      // adapter mounts it on main yet (the persist contract ships ahead of a producer).
+      if (adapter.financials) out.push(adapter.financials as TaskSpec<unknown>);
+      break;
     default:
       break;
   }
@@ -661,6 +669,38 @@ function mapIpo(source: SourceRecord, snapshotId: number, e: NormalizedIpoEvent,
   };
 }
 
+function mapStatement(
+  source: SourceRecord,
+  snapshotId: number,
+  s: NormalizedStatementRow,
+  extractedAt: string,
+): StagingRow<NormalizedStatementRow> {
+  const basis = s.basis ?? 'consolidated';
+  return {
+    objectType: 'FILING.FINANCIALS',
+    // One object per (venue, ticker, statement_type, basis, fiscal_period). A RESTATEMENT
+    // re-stages the SAME key with new numbers → a fresh content_hash → cross_check supersedes
+    // the prior object → lake.fn_financial_statement_project archives the old version and
+    // bumps version (07 §P1.7b). is_estimate is not in the key: scraped facts are always the
+    // non-estimate row; desk estimates are a separate write path.
+    naturalKey: `FILING.FINANCIALS:${s.venue}:${s.ticker}:${s.statementType}:${basis}:${s.fiscalPeriod}`,
+    venue: s.venue,
+    sourceId: source.id,
+    snapshotId,
+    externalId: null, // no per-row id; dedupe on (source_id, NULL, content_hash)
+    sourceRank: sourceRankFor(source),
+    payload: s,
+    numericValue: null, // a statement period is a bag of line items, not one scalar
+    unit: s.currency,
+    effectiveDate: s.periodEnd,
+    // NOT 33b price-sensitive: statements are bulk quantitative facts the ratio job consumes
+    // unattended — a 2nd source promotes them to VERIFIED without a human-confirm gate (unlike
+    // dividends/IPO price fields). Single-source lands PENDING and still projects (like filings).
+    priceSensitive: false,
+    extractedAt,
+  };
+}
+
 /**
  * Map a parser's Normalized* rows → lake StagingRows (CONTRACT §6.5). PURE. Dispatches on the row
  * SHAPE (not just source.dataType, since a `quotes` source runs both the quotes and indices tasks),
@@ -699,6 +739,8 @@ export function mapRowsToStaging(
       out.push(mapDividend(source, snapshotId, raw as NormalizedDividend, snapshotExtractedAtIso));
     } else if (isIpo(row)) {
       out.push(mapIpo(source, snapshotId, raw as NormalizedIpoEvent, snapshotExtractedAtIso));
+    } else if (isStatement(row)) {
+      out.push(mapStatement(source, snapshotId, raw as NormalizedStatementRow, snapshotExtractedAtIso));
     } else {
       logger.warn('mapRowsToStaging: unrecognized normalized row shape — dropped', {
         dataType: source.dataType,
@@ -736,6 +778,11 @@ function isDividend(row: Record<string, unknown>): boolean {
 }
 function isIpo(row: Record<string, unknown>): boolean {
   return has(row, 'companyName') && has(row, 'stage');
+}
+function isStatement(row: Record<string, unknown>): boolean {
+  // financials: the per-period NormalizedStatementRow (07 §P1.7b). statementType + lineItems
+  // + fiscalPeriod are unique to it among the Normalized* shapes (disjoint discriminant).
+  return has(row, 'statementType') && has(row, 'lineItems') && has(row, 'fiscalPeriod');
 }
 
 /**

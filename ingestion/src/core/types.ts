@@ -180,6 +180,7 @@ export interface VenueAdapter {
   dividends?: TaskSpec<NormalizedDividend>;
   eodBulletin?: TaskSpec<NormalizedOhlcv>;
   ipo?: TaskSpec<NormalizedIpoEvent>;
+  financials?: TaskSpec<NormalizedStatementRow>;
   // extend per §8 as sources are added; unset = venue does not serve that type in v1.
 }
 
@@ -336,6 +337,31 @@ export interface NormalizedOhlcv {
   close: number; // → ohlcv_daily.close  numeric(18,6) NOT NULL
   volume?: number | null;
   valueTraded?: number | null;
+}
+
+/**
+ * §6.5 / 07 §P1.7b — one financial-statement PERIOD flattened for staging + projection.
+ * The statement normalizer (lake/statement-normalizer.ts) emits NormalizedPeriod, which
+ * carries NO identity (venue/ticker); a producing adapter enriches each period with
+ * venue+ticker+basis via flattenStatements() so the PURE staging mapper (runtime.mapStatement)
+ * can build a resolvable FILING.FINANCIALS natural_key and a projection-ready object payload
+ * WITHOUT a DB handle. These payload keys are EXACTLY what lake.fn_financial_statement_project
+ * reads (migration 20260716095100): venue/ticker → security_id, statementType/basis/periodKind/
+ * fiscalPeriod/periodEnd/currency → the serving columns, lineItems → the §3.1 primitive jsonb.
+ * The line_items vocabulary is the §3.1 canonical primitive keys (PRIMITIVE_KEYS in
+ * statement-normalizer.ts) — a source that carries none of them stages nothing.
+ */
+export interface NormalizedStatementRow {
+  venue: VenueCode;
+  ticker: string; // → resolves public.securities.id at projection time (venue+ticker unique)
+  statementType: 'income' | 'balance' | 'cashflow';
+  basis: 'consolidated' | 'standalone';
+  periodKind: 'quarter' | 'annual' | 'ttm';
+  fiscalPeriod: string; // 'FY2023' | '2023-Q4' | 'TTM-2025-12-31'
+  periodEnd: string; // 'YYYY-MM-DD'
+  currency: string; // char(3)
+  lineItems: Record<string, number | null>; // the §3.1 primitive keys
+  segments?: Record<string, unknown> | null;
 }
 
 /** §6.4 filings_list poll (list-diff on external_id) */

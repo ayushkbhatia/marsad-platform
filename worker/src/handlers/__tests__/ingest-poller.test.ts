@@ -98,8 +98,10 @@ test('ingest poller: unknown data_type is marked failed, never dispatched', asyn
   const beforeQuote = spies.quote_poll!.length;
 
   const fakeSql = makeFakeSql();
+  // 'calendar' is a declared DataType with NO DATA_TYPE_TO_HANDLER entry (unlike 'financials',
+  // which now maps to quote_poll) — the genuine "no handler services it" case.
   fakeSql.on(CLAIM_SUBSTR, [
-    { id: '9', source_id: '900', venue: 'QE', data_type: 'financials', venue_local_date: '2026-07-13' },
+    { id: '9', source_id: '900', venue: 'QE', data_type: 'calendar', venue_local_date: '2026-07-13' },
   ]);
 
   const poller = startIngestPoller(fakeSql.sql, pollerConfig());

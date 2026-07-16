@@ -563,10 +563,20 @@ time cohort snapshots for backtesting (needed to ever publish the screener's "3Y
 > golden-tested; LLM/PDF path is a declared-throwing seam); the **Marsad Score engine + `score_batch`/`nightly`
 > handlers** (§3.4/§3.5/§3.6, all owner D-1…D-10 encoded, freshness-gate abort); the **`public.filings`
 > publish path** (§1.1 F, `lake.fn_filing_project`, single-source rule — 86 filings published); and the
-> **`company_people`** table (§1.1 I). **Still gated:** `financial_statements` has no live feed yet, and
+> **`company_people`** table (§1.1 I); and — **added 2026-07-16** — the **source-agnostic statement
+> persist layer**: the `FILING.FINANCIALS → public.financial_statements` projection
+> (`lake.fn_financial_statement_project`, migration `20260716095100`) with **restatement versioning**
+> (current-row `version`/`is_restated` + an append-only `public.financial_statement_history`; a restated
+> quarter archives the prior version then overwrites in place, so readers keep one current row/period and
+> the TTM roll-up never double-counts) + the `NormalizedPeriod→FILING.FINANCIALS` staging mapper
+> (`runtime.mapStatement`/`flattenStatements`) + `financials` data_type routing. **Still gated:**
+> `financial_statements` has the persist CONTRACT but no live **producer** yet — nothing emits
+> `NormalizedStatementRow` on main (the persist layer is inert until one is seeded); and
 > `securities.sector` is all `'unknown'` (so §3.3's map + §3.5's cohorts have no data to key on) — both
-> tracked in `BUILD-STATUS.md §7` (DEF-STMT-INGEST, DEF-SECTOR-DATA). Ratios/Score run correct-by-design
-> the moment those two land. Full sub-phase status: `BUILD-STATUS.md §5`.
+> tracked in `BUILD-STATUS.md §7` (DEF-STMT-INGEST producer half, DEF-SECTOR-DATA). **Owner steer
+> 2026-07-16: avoid the Mubasher aggregator (paywall/durability risk) — the preferred producer is the
+> free deterministic Tadawul XBRL feed, pending a rebase onto main.** Ratios/Score run correct-by-design
+> the moment a producer lands. Full sub-phase status: `BUILD-STATUS.md §5`.
 
 ### P1.7a — Price-history complete (CRITICAL PATH, unblocks Momentum + chart)
 **Value: highest** (gates Score + chart tab). **Feasibility: high** for 4 venues, gaps for 2.
@@ -622,8 +632,25 @@ time cohort snapshots for backtesting (needed to ever publish the screener's "3Y
 ### P1.7b — Fundamentals + ratios via aggregators (the Financials tab + screener)
 **Value: highest** (Financials tab, ratio strip, screener scan target, Score V/G/P inputs).
 **Feasibility: high for 4 venues.**
-- TDWL/ADX: **Mubasher `/financial-statements` + `/ratios`** (content-poll on selector, **not
-  networkidle**). **Effort: M** (adapter per source; shapes already captured).
+
+> **Persist layer landed 2026-07-16 (source-agnostic, migration `20260716095100`).** The
+> `financial_statements` write path exists ahead of any producer: a `FILING.FINANCIALS` lake.object →
+> `public.financial_statements` projection (`lake.fn_financial_statement_project`) with **restatement
+> versioning** (a restated quarter archives its prior version into the append-only
+> `public.financial_statement_history` then overwrites the current row in place + bumps `version` /
+> `is_restated`, so the reader table keeps exactly one current row per period and the TTM roll-up never
+> double-counts a restatement), fed by the `NormalizedPeriod → FILING.FINANCIALS` staging mapper
+> (`runtime.mapStatement` + `flattenStatements`) and `financials` data_type routing. It is **INERT until a
+> producer is seeded** — any source that emits `NormalizedStatementRow[]` (venue+ticker+statement identity
+> + the §3.1 primitive `lineItems`) via a `financials` `TaskSpec` flows staging→cross_check→projection with
+> no further wiring. **Owner steer 2026-07-16: AVOID the Mubasher aggregator** (paywall/durability risk for
+> a load-bearing Financials tab + Score) — the Mubasher adapter below was therefore NOT built; the
+> **preferred producer is the free deterministic Tadawul XBRL feed** (pending a rebase onto main). The
+> Mubasher shapes below stay valid as a tested normalizer path a future aggregator *could* reuse.
+
+- TDWL/ADX: ~~**Mubasher `/financial-statements` + `/ratios`**~~ **(deprioritized 2026-07-16, owner
+  "avoid Mubasher")** — kept as the golden-tested `normalizeMubasherStatements`/`normalizeMubasherRatios`
+  normalizer path (content-poll on selector, **not networkidle**), not wired to a live source.
 - DFM/QE: **Yahoo `fundamentals-timeseries`** (multi-year standardized) — **blocked on egress**;
   QE native HTML tables as the second source. **Effort: M once egress exists.**
 - MSX: `msx.om` `.aspx` tables + **PDF-extraction pipeline** for depth. **Effort: M–L.**

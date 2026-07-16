@@ -30,6 +30,7 @@
  */
 
 import { fromYahooSymbol } from '../adapters/yahoo/symbols.js';
+import type { NormalizedStatementRow, VenueCode } from '../core/types.js';
 
 /** The three statement families public.financial_statements.statement_type checks. */
 export type StatementType = 'income' | 'balance' | 'cashflow';
@@ -505,6 +506,49 @@ export function deriveTtm(periods: NormalizedPeriod[]): NormalizedPeriod[] {
       lineItems: pruneNulls(items),
     },
   ];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Flatten for staging — NormalizedStatements → the per-period staging rows the
+// runtime maps to FILING.FINANCIALS (07 §P1.7b persist path)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * PURE. Flatten a NormalizedStatements (venue+ticker+periods) into the per-period
+ * NormalizedStatementRow[] the staging mapper consumes — each period enriched with the
+ * identity (venue, ticker, basis) the FILING.FINANCIALS natural_key + the projection
+ * (lake.fn_financial_statement_project) need to resolve a security_id and land the row.
+ *
+ * A producing adapter's parse() calls this (typically over normalizeX(...).periods PLUS
+ * deriveTtm(...) merged in) so the pure staging mapper (runtime.mapStatement) needs NO DB
+ * handle. Periods with empty line_items are dropped (nothing to persist — never stage an
+ * empty period). Basis defaults to 'consolidated' (the §3b default; a standalone-only
+ * source passes 'standalone'). Blank venue/ticker ⇒ [] (cannot key the row downstream).
+ */
+export function flattenStatements(
+  ns: NormalizedStatements,
+  basis: 'consolidated' | 'standalone' = 'consolidated',
+): NormalizedStatementRow[] {
+  const venue = (typeof ns.venue === 'string' ? ns.venue.trim() : '') as VenueCode;
+  const ticker = typeof ns.ticker === 'string' ? ns.ticker.trim() : '';
+  if (venue === ('' as VenueCode) || ticker === '') return [];
+
+  const out: NormalizedStatementRow[] = [];
+  for (const p of ns.periods) {
+    if (Object.keys(p.lineItems).length === 0) continue;
+    out.push({
+      venue,
+      ticker,
+      statementType: p.statementType,
+      basis,
+      periodKind: p.periodKind,
+      fiscalPeriod: p.fiscalPeriod,
+      periodEnd: p.periodEnd,
+      currency: p.currency,
+      lineItems: p.lineItems,
+    });
+  }
+  return out;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
