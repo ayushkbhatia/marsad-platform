@@ -1,0 +1,103 @@
+# Marsad migration ledger — the reviewed source of truth for which migrations exist.
+#
+# One line per migration: the filename stem (<version>_<name>, i.e. the .sql basename without
+# the extension), sorted. CI (`scripts/check-migration-ledger.mjs`, wired into .github/workflows/ci.yml)
+# FAILS the build if `supabase/migrations/*.sql` and this file diverge — so a migration can never be
+# added, removed, or renamed without a reviewed change to this ledger.
+#
+# WHY THIS EXISTS — the recurring MCP-apply drift trap:
+#   Applying a migration to live via the Supabase MCP `apply_migration` tool auto-generates the
+#   ledger `version` from the wall-clock at apply time (NOT from your filename), and stores the
+#   filename as `name`. So the committed `20260716100000_fleet_productivity_guard.sql` landed on
+#   live as version `20260716060948`. Repo and live schema_migrations then hold the SAME migrations
+#   under DIFFERENT version strings — silent drift a from-scratch replay/rebuild would get wrong.
+#   PR #22 fixed it once; it recurred within two days (reconciled 2026-07-16, see
+#   supabase/reconcile/20260716_reconcile_migration_ledger.sql).
+#
+# THE DISCIPLINE (do this every time you touch migrations — it is what makes the guard bite):
+#   1. Author the migration as a committed `supabase/migrations/<version>_<name>.sql`.
+#   2. Apply it. If you used the MCP `apply_migration`, IMMEDIATELY check that the live
+#      `supabase_migrations.schema_migrations` row's `version` == your filename's version. If the MCP
+#      auto-generated a different version, re-stamp it (metadata-only UPDATE) so live == filename.
+#   3. Regenerate this ledger + confirm CI passes:  `node scripts/check-migration-ledger.mjs --write`
+#      Review the diff — a surprise line means drift you must reconcile against LIVE, not paper over.
+#
+# NOTE (2026-07-16): the live DB additionally carries version `20260716121312`
+# (fix_heartbeat_sentinel_session_source_aware), applied out-of-band by a concurrent session while
+# this ledger was reconciled. It is NOT in this ledger because its .sql is not committed here — its
+# owning change must add both the `20260716121312_*.sql` file AND its ledger line (CI will require it).
+
+20260713000001_extensions
+20260713000002_iam
+20260713000003_market_reference
+20260713000004_lake
+20260713000005_prices
+20260713000006_fundamentals
+20260713000007_datapoints_scores
+20260713000008_content
+20260713000009_rules_pipeline
+20260713000010_billing
+20260713000011_engagement
+20260713000012_ads_comms
+20260713000013_analytics_audit
+20260713000014_rls
+20260713000015_cron
+20260713000016_seed_dev
+20260713000017_ingest_sources
+20260713000018_lake_staging_rows
+20260713000019_tdwl_mubasher_source
+20260713000020_bhb_proxy
+20260713000021_yahoo_source
+20260713000022_activate_yahoo
+20260713000023_filings_endpoints
+20260713000024_adx_filings_direct
+20260713000025_adx_filings_accept_header
+20260713000026_crosscheck_sweep
+20260713000027_yahoo_proxy_rotate
+20260713000028_ohlcv_daily
+20260713000029_securities_bootstrap
+20260713000030_crosscheck_sweep_dedup
+20260713000031_quote_project
+20260713000032_ohlcv_consume_backfill_staging
+20260713000033_adx_mubasher_ohlcv
+20260713000034_msx_ohlcv
+20260713000035_activate_adx_msx_backfill
+20260713000036_key_ratios_score_cols
+20260713000037_filing_project
+20260713000038_company_people
+20260713000039_crosscheck_sweep_fair_rotation
+20260713000040_ohlcv_bulk_objectify
+20260713000041_ohlcv_backfill_coverage_flag
+20260713000042_mubasher_deep_ohlcv_tdwl_dfm_qe
+20260713000043_adx_quotes_direct_board
+20260713000044_adx_quote_gateway_headers
+20260714183239_financials_project
+20260715080537_throttle_crosscheck_idle_ohlcv_bulk
+20260715081318_dfm_qe_native_quote_boards
+20260715083817_dfm_quote_headers_lowercase
+20260715085252_qe_quotes_live_board
+20260715093000_retire_yahoo_quote_twins
+20260715100000_bhb_quotes_webapi_board
+20260715101000_bhb_securities_seed
+20260715101500_bhb_ohlcv_backfill
+20260715102547_msx_quotes_market_ticker_board
+20260715105540_msx_ohlcv_backfill_summary_report
+20260715141155_proxy_geonode_migration_cleanup
+20260715145325_restore_ohlcv_backfill_stamp
+20260715150100_reconcile_live_drift_dead_pollers
+20260715155435_bhb_quotes_dynamic_apikey
+20260715161005_reconcile_heartbeat_registry_retire_notify_drain
+20260715185413_fix_retention_quote_purge
+20260715190000_storage_purge_cron
+20260716090000_filing_detail_chain
+20260716090500_filing_detail_sources
+20260716091000_bhb_filings_drop_action_discovery
+20260716093000_reactivate_bhb_filings
+20260716094000_seen_items_nopdf_state
+20260716094500_bhb_filing_detail_list_only
+20260716095000_deactivate_dfm_filing_detail
+20260716095100_financial_statements_persist_versioning
+20260716100000_fleet_productivity_guard
+20260716120000_reconcile_financials_projection_versioning
+20260716123154_securities_profile_persist
+20260716123227_securities_profile_sources

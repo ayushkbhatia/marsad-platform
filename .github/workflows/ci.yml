@@ -39,6 +39,7 @@ jobs:
             db:
               - 'supabase/**'
               - 'scripts/assert-rls.sql'
+              - 'scripts/check-migration-ledger.mjs'
               - '.github/workflows/ci.yml'
       # Existence guards keep CI green while sibling modules (worker/, supabase/)
       # are still being bootstrapped by other builders. The worker gate keys on
@@ -94,6 +95,22 @@ jobs:
         working-directory: ingestion
       - run: npm ci
       - run: npx tsc --noEmit
+
+  migration-ledger:
+    name: db (migration ledger in sync)
+    needs: changes
+    # Fast, secretless drift guard: asserts supabase/migrations/*.sql matches the reviewed
+    # reference ledger (supabase/migrations.ledger). Catches the MCP-apply-vs-committed-.sql
+    # version-drift trap at PR time instead of by audit. Runs whenever migrations change (does
+    # NOT need the local Supabase stack, so it is independent of supabase-exists).
+    if: needs.changes.outputs.db == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/check-migration-ledger.mjs
 
   db:
     name: db (migrations from scratch + RLS assertions)
