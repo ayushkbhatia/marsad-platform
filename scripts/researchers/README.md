@@ -81,6 +81,14 @@ path is the **primary** statements source (not a gap-filler). Per company it:
    (`FILING.FINANCIALS`, `source_rank 20`) + catalogue `public.filings`. The `lake.fn_financials_project`
    trigger lands the `public.financial_statements` rows.
 
+**Scanned PDFs (OCR fallback).** Older BHB statement PDFs are commonly **image-only scans** (no text
+layer). When `pdftotext` yields `< 400` chars, the researcher rasterizes the PDF **one page at a time**
+(`pdftoppm` at `OCR_DPI`, capped at `OCR_MAX_PAGES`) and OCRs each page with `tesseract`, unlinking each
+page image immediately (peak memory ~one page — this VPS is memory-tight). A PDF that is **still**
+unreadable after OCR is archived + **owned-marked** (a 0-row `public.filings` row) so it is never
+re-downloaded / re-attempted (it would otherwise burn an `FSPDF_MAX` slot every run). Transient `claude`
+misses (timeout / malformed JSON) are left un-owned so they retry next run.
+
 | Script | Purpose | Persist | source_rank |
 |---|---|---|---|
 | `bhb-financials.mjs` | direct-HTTP statements index → PDF → LLM-extract → `financial_statements` | FILING.FINANCIALS objects + archived PDFs | 20 (primary; no XBRL competitor) |
@@ -96,8 +104,9 @@ the $0 subscription seat. Cadence: `marsad-bhb-financials.timer` `OnUnitActiveSe
 `/etc/marsad/worker.env`. **No proxy env.**
 
 **Prereqs on the VPS:** the compiled `ingestion/dist/adapters/bhb/financials.js` +
-`ingestion/dist/lake/statement-extraction.js` must exist (build the ingestion package), plus `pdftotext`
-(poppler) and the `claude` CLI logged into the subscription seat.
+`ingestion/dist/lake/statement-extraction.js` must exist (build the ingestion package); `pdftotext` +
+`pdftoppm` (poppler) and `tesseract-ocr` (the scanned-PDF OCR fallback, `-l eng`); and the `claude` CLI
+logged into the subscription seat.
 
 **Deploy:** `scp scripts/researchers/bhb-financials.mjs bhb-financials-cron.sh deploy@<vps>:/home/deploy/`
 and install `systemd/marsad-bhb-financials.{service,timer}`. Backfill first-pass: run over the whole
