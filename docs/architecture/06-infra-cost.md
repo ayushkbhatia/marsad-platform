@@ -181,7 +181,7 @@ writes `ops.job_heartbeats` and pings its Healthchecks.io check.
 | 18 | `evergreen_review` | `0 1 1 1,4,7,10 *` | quarterly | `q_maintenance` | evergreen content quarterly desk review tasks (TPL-06) |
 | 19 | `pdpl_purge` | `30 20 * * *` | 00:30 GST nightly | `q_maintenance` | deletion requests past 30-day grace → irreversible purge, invoices retained (ZATCA 10y) |
 | 20 | `retention_sweeps` | `0 21 * * 6` | Sat weekly | `q_maintenance` | analytics-event downsampling >90d; pgmq archive pruning; Storage temp-exports cleanup. Audit log: no-op sweep (7-year retention, append-only). |
-| 21 | `heartbeat_sentinel` | `*/10 * * * *` | every 10 min | plpgsql only: flags any `ops.job_heartbeats` row past `2× expected_interval` → inserts `ops.incidents` row | powers the Desk needs-attention queue (24a) |
+| 21 | `heartbeat_sentinel` | `*/10 * * * *` | every 10 min | plpgsql only: flags any `ops.job_heartbeats` row past `2× expected_interval` → inserts `ops.incidents` row. Session/source-aware (`20260716121312`): suppresses `ingest:*` jobs that are off-session / outside their eod window / backed off / have no active backing source (`ops.ingest_job_expected_silent`), so only genuine failures alert. | powers the Desk needs-attention queue (24a) |
 
 ### 4.2 VPS-resident loops (in-process `node-cron` / timers — too chatty for pg_cron)
 

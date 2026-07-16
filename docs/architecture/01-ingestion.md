@@ -626,10 +626,21 @@ built into the scheduler, fleet-wide, with **no worker code and no trigger** (a 
   with one UPDATE: `set max_backoff_mult = …` (or `= 1` to disable), `set consecutive_idle_runs = 0`
   to force-resume, `set backoff_exempt = true` to opt a schedule out.
 - **Sentinel safety:** a backed-off source polls slower than its heartbeat window, which would trip
-  a false `degraded` incident. `ops.heartbeat_sentinel` is now **session- and backoff-aware**: it
-  suppresses an `ingest:<kind>:<venue>` incident when that venue's matching schedule is
-  session-closed OR currently backed off (`effective_cadence > base`). A genuinely dead feed
-  (session open, not backed off) still alerts at `2× base cadence`.
+  a false `degraded` incident. `ops.heartbeat_sentinel` is now **session-, source-, and
+  backoff-aware** (`20260716121312`, generalizing the 0716100000 first cut which only inspected an
+  *active* schedule and so still spammed deactivated feeds). It delegates to
+  `ops.ingest_job_expected_silent(job_name)`: silence for an `ingest:<kind>:<venue>` job is expected
+  when **(A)** there is **no active backing source** for that venue+kind (a deactivated source is not
+  a failing job — covers `filings_poll` on the off LIST venues and the by-design-off
+  `filings_detail_poll:BHB/DFM`), or **(B)** an active source is intentionally quiet right now:
+  session-closed (`quotes`/`indices`, via `venue_is_open`), outside its post-close window
+  (`eod_sweep`, via `ingest.venue_in_eod_window()` — the SQL mirror of the worker `eodCloseGate`,
+  `POST_CLOSE_WINDOW_MINUTES=180`, same calendar + `::date`/`::time` casting so no postgres.js
+  Date-string trap), or backed off (`effective_cadence > base`). A genuinely dead feed (active
+  source, session open / in window, not backed off) still alerts at `2× base cadence`. The
+  by-design-off `ingest:filings_detail_poll:BHB/DFM` heartbeat rows were dropped from the registry
+  (they never beat; `ops.beat` re-seeds on reactivation). Pinned by
+  `supabase/tests/heartbeat_sentinel_session_source_aware.sql`.
 - **Kill-switch / rollback:** `update ingest.schedules set max_backoff_mult = 1` reverts the whole
   fleet to flat cadence with no deploy; the effective-cadence, heartbeat window, and sentinel all
   read that column so an override is consistent everywhere.
