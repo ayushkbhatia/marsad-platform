@@ -178,3 +178,56 @@ hundred MB/night, with zero data loss (quarterly data; incremental skip-owned). 
 3. **Move the scrapers into the repo** (`scripts/researchers/`), version-controlled, with their config as
    declared env — closing the onboarding-guardrail gap (they run today untracked on the VPS).
 4. **A hard per-run byte budget** as a safety net so no future misconfiguration can burn GBs in a night.
+
+**Status of the deeper fixes (2026-07-16):** #2 (resource interception + bytes/run logging) and #4
+(hard per-run byte budget) are **DONE** — shipped in `scripts/researchers/scrape-guardrails.mjs`,
+imported by both scrapers, validated live (Aramco: 17 XBRL / 21 PDF found, 137 requests blocked, no extra
+Akamai challenge, `proxy 10.8 MB` logged). #3 (repo-tracking) is **DONE** — both scrapers + wrappers +
+units are now under `scripts/researchers/`. #1 (event-driven cadence) is specced below and needs sign-off.
+
+---
+
+## 6. Event-driven researcher redesign (spec — needs owner sign-off)
+
+**The remaining waste.** Even at 6 h cadence with interception, both researchers **walk the universe on a
+blind timer** and pay full page-load bandwidth to *check* each company for new documents — the `owned`/
+`covered` skip happens only *after* the market-watch + profile SPA loads (~10 MB/company). Financial
+statements arrive ~4×/year/company in known windows, so ~99% of these page loads discover nothing new.
+"Well-pointed" means: **do the expensive proxy page-load for a company only when it actually has a new
+filing.** Two ways to know that cheaply:
+
+### Option A — Reporting-window calendar gate (near-term, zero new infra)
+Saudi issuers file on statutory windows: quarterlies within ~30 days of Mar 31 / Jun 30 / Sep 30, annuals
+within ~90 days of Dec 31. **Gate the cadence on the calendar:** run the universe walk frequently only
+*inside* those windows (e.g. the ~6 weeks after each quarter-end), and rarely (weekly) outside them.
+- **Build:** the cron wrapper (`researcher-cron.sh`) computes "am I in a reporting window?" from the date
+  and exits early if not (or a second, slow systemd `OnCalendar` for the off-season). ~15 lines. No detector.
+- **Saves:** ~2/3 of the year is off-season → the walk stops entirely then. In-window it still walks (but
+  that is when filings actually land, so it is justified — not waste).
+- **Keeps:** the current scraping logic unchanged; lowest risk.
+
+### Option B — Cheap direct detector → targeted scrape (the fully well-pointed endgame)
+Detect *which* companies filed using a **cheap, DIRECT, no-proxy** signal, then scrape only those.
+- **The detector** is a small direct poller (no Akamai, no proxy) over an aggregator that lists TDWL
+  disclosures — **Mubasher** (already our direct TDWL quotes + OHLCV source, so the transport is proven) or
+  Argaam. It emits, per new financial disclosure, a `(ticker, filing_ref)` — a **discovery task** is needed
+  first to pin Mubasher's disclosures endpoint (like the quotes feed was pinned).
+- **The trigger:** a new-disclosure row enqueues a **targeted scrape** (reuse `ACQUIRE_SYMBOLS=<ticker>` —
+  the scrapers already accept an explicit list) for just that company. The blind universe walk is retired.
+- **Steady-state proxy cost ≈ (new TDWL filings/day) × (1 page-load)** ≈ a handful of MB/day — essentially
+  the floor. This is the design the onboarding standard (§4) wants for every proxied worker.
+- **Build:** (1) discovery task to pin the Mubasher/Argaam disclosures feed; (2) a direct poller
+  (fits the existing `ingest.sources`/adapter pattern, `use_proxy=false`) writing a `tdwl_fs_pending`
+  signal; (3) the wrapper reads pending tickers instead of the chunk cursor. Bigger than A, but it is the
+  correct end-state and removes the proxy from steady state almost entirely.
+
+### Recommendation
+**Ship A now** (immediate, ~15 lines, kills off-season waste with zero risk), **then build B** as the
+endgame (retire the blind walk once the Mubasher/Argaam disclosures feed is pinned). A + the interception +
+the 6 h throttle already take the ~9 GB to well under 1 GB/night; B takes steady state to ~zero.
+
+### Decision needed
+1. Approve **A** (calendar-gated cadence) — I can implement immediately.
+2. Approve the **discovery task** for the Mubasher/Argaam TDWL disclosures feed (the prerequisite for B).
+3. Confirm the off-season cadence (proposal: weekly full walk off-season; 6 h in-window) and the reporting
+   windows (proposal: quarter-end + 45 days).
