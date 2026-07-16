@@ -233,6 +233,17 @@ test('financials → FILING.FINANCIALS keyed by venue+ticker+statementType+basis
   assert.equal(r.effectiveDate, '2025-12-31'); // period_end
   assert.equal(r.priceSensitive, false); // bulk facts, not a 33b human-confirm gate
   assert.equal(r.extractedAt, SNAP_FETCHED_AT); // no self-timestamp ⇒ snapshot fetch time
+  // WIRE CONTRACT: payload is SNAKE_CASE (what lake.fn_financials_project reads) + carries
+  // venue/ticker for security_id resolution — NOT the camelCase NormalizedStatementRow fields.
+  const p = r.payload as Record<string, unknown>;
+  assert.equal(p.statement_type, 'income');
+  assert.equal(p.period_kind, 'annual');
+  assert.equal(p.fiscal_period, 'FY2025');
+  assert.equal(p.period_end, '2025-12-31');
+  assert.equal(p.venue, 'TDWL');
+  assert.equal(p.ticker, '2222');
+  assert.deepEqual(p.line_items, { revenue: 100, net_income: 40, total_assets: 2516431000 });
+  assert.equal(p.statementType, undefined); // no camelCase leakage
   // A RESTATEMENT (same period, changed numbers) keys IDENTICALLY but hashes differently —
   // the whole mechanism the versioning projection keys off.
   const restated = mapRowsToStaging(

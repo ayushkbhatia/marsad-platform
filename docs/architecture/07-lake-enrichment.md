@@ -633,20 +633,23 @@ time cohort snapshots for backtesting (needed to ever publish the screener's "3Y
 **Value: highest** (Financials tab, ratio strip, screener scan target, Score V/G/P inputs).
 **Feasibility: high for 4 venues.**
 
-> **Persist layer landed 2026-07-16 (source-agnostic, migration `20260716095100`).** The
-> `financial_statements` write path exists ahead of any producer: a `FILING.FINANCIALS` lake.object →
-> `public.financial_statements` projection (`lake.fn_financial_statement_project`) with **restatement
-> versioning** (a restated quarter archives its prior version into the append-only
-> `public.financial_statement_history` then overwrites the current row in place + bumps `version` /
-> `is_restated`, so the reader table keeps exactly one current row per period and the TTM roll-up never
-> double-counts a restatement), fed by the `NormalizedPeriod → FILING.FINANCIALS` staging mapper
-> (`runtime.mapStatement` + `flattenStatements`) and `financials` data_type routing. It is **INERT until a
-> producer is seeded** — any source that emits `NormalizedStatementRow[]` (venue+ticker+statement identity
-> + the §3.1 primitive `lineItems`) via a `financials` `TaskSpec` flows staging→cross_check→projection with
-> no further wiring. **Owner steer 2026-07-16: AVOID the Mubasher aggregator** (paywall/durability risk for
-> a load-bearing Financials tab + Score) — the Mubasher adapter below was therefore NOT built; the
-> **preferred producer is the free deterministic Tadawul XBRL feed** (pending a rebase onto main). The
-> Mubasher shapes below stay valid as a tested normalizer path a future aggregator *could* reuse.
+> **Persist layer + restatement versioning landed 2026-07-16, reconciled onto the LIVE contract.**
+> `FILING.FINANCIALS` lake.object → `public.financial_statements` is projected by
+> **`lake.fn_financials_project`** (the function the live triggers call), which migration `20260716120000`
+> rewrote from a clobber-upsert into a **restatement-versioning** projection: a restated quarter archives
+> its prior version into the append-only `public.financial_statement_history` then overwrites the current
+> row in place + bumps `version`/`is_restated`, so the reader table keeps exactly one current row per period
+> and the TTM roll-up never double-counts. It reads the live **snake_case** payload contract
+> (`statement_type`/`line_items`/…) + `object.security_id` (with a venue+ticker fallback). Migration
+> `20260716095100` first shipped a source-agnostic camelCase variant (`fn_financial_statement_project`); the
+> reconcile retired it to converge repo ⇄ live on ONE projection. The live table already holds **6,964 rows
+> / 129 securities** from an active Tadawul-XBRL cron (off-main); the reconcile added versioning to that
+> pipeline in place (existing rows become version 1). The staging mapper (`runtime.mapStatement` +
+> `flattenStatements`) emits the same snake_case payload; any source emitting `NormalizedStatementRow[]` via
+> a `financials` `TaskSpec` flows staging→cross_check→projection with no further wiring. **Owner steer
+> 2026-07-16: AVOID the Mubasher aggregator** (paywall/durability risk) — the Mubasher adapter below was NOT
+> built; the **producer is the free deterministic Tadawul XBRL feed** (live; pending a rebase onto main).
+> The Mubasher shapes below stay valid as a tested normalizer path a future aggregator *could* reuse.
 
 - TDWL/ADX: ~~**Mubasher `/financial-statements` + `/ratios`**~~ **(deprioritized 2026-07-16, owner
   "avoid Mubasher")** — kept as the golden-tested `normalizeMubasherStatements`/`normalizeMubasherRatios`
