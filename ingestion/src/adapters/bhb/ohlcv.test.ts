@@ -18,6 +18,7 @@ import {
   toIsoTradeDate,
   BHB_OHLCV_PARSER_VERSION,
 } from './ohlcv.js';
+import { __resetBhbApiKeyCache } from './webapi.js';
 import { resolveTasksForSource } from '../../runtime.js';
 import type {
   FetchContext,
@@ -165,13 +166,19 @@ test('bhb ohlcv: non-array data or absent status → zero rows', () => {
 // ── FETCH: single-GET mock, streaming sink, isolation, bounded pool, array path, URL shape ─────────
 
 const browserBoom = () => {
-  throw new Error('bhb ohlcv backfill is plain http (via sticky proxy) — must not touch ctx.browser');
+  throw new Error('bhb ohlcv backfill is plain http (direct) — must not touch ctx.browser');
 };
 
+const TOKEN_PAGE = 'https://www.bahrainbourse.com/en';
+const API_KEY = 'a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90';
+
 /**
- * Single-GET HttpClient double. Any URL for a symbol in `notFound` returns HTTP 404 (skipped); every
- * other returns a valid status:1 one-row export. Records URLs and tracks max in-flight to prove the lane
- * cap AND actual parallelism; yields a macrotask so lanes interleave.
+ * Single-GET HttpClient double. The homepage (TOKEN_PAGE) serves `APIKey = '<hex>'` so the shared
+ * bhbWebapiGet can scrape the dynamic Bearer; any webapi URL for a symbol in `notFound` returns HTTP 404
+ * (skipped); every other returns a valid status:1 one-row export. Records URLs and tracks max in-flight to
+ * prove the lane cap AND actual parallelism; yields a macrotask so lanes interleave. (Reset the module
+ * APIKey cache with __resetBhbApiKeyCache() at the top of each fetch test so the homepage scrape is
+ * deterministic per test.)
  */
 class ExportHttpClient implements HttpClient {
   public readonly gets: string[] = [];
@@ -185,6 +192,11 @@ class ExportHttpClient implements HttpClient {
     this.maxInFlight = Math.max(this.maxInFlight, this.inFlight);
     await new Promise((r) => setImmediate(r)); // yield so concurrent lanes overlap
     this.inFlight -= 1;
+
+    if (url === TOKEN_PAGE) {
+      const html = `<script>var APIKey = '${API_KEY}';</script>`;
+      return { url, status: 200, headers: { 'content-type': 'text/html' }, body: Buffer.from(html), fromCache304: false };
+    }
 
     const sym = decodeURIComponent(/parameterValue=([^&]*)/.exec(url)?.[1] ?? '');
     if (this.notFound.has(sym)) {
@@ -207,9 +219,9 @@ function makeSource(symbols: string[], extra?: { fetchConcurrency?: number; from
     responseKind: 'json',
     provider: 'bhb_webapi',
     urlTemplate: URL_TEMPLATE,
-    headers: { Authorization: 'Bearer test', Accept: 'application/json' },
-    use_proxy: true,
-    proxy_mode: 'sticky',
+    // No pinned Authorization — bhbWebapiGet scrapes the dynamic APIKey Bearer. Direct egress.
+    headers: { Accept: 'application/json' },
+    use_proxy: false,
     symbols,
   };
   if (extra?.fetchConcurrency !== undefined) endpointConfig.fetch_concurrency = extra.fetchConcurrency;
@@ -252,6 +264,7 @@ function makeCtx(
 }
 
 test('bhb ohlcv fetch: streaming sink stages each symbol w/ meta, isolates 404, bounds concurrency', async () => {
+  __resetBhbApiKeyCache();
   const http = new ExportHttpClient(new Set(['DELISTED']));
   const source = makeSource(['GFH', 'BBK', 'DELISTED', 'BEYON', 'NBB'], { fetchConcurrency: 2 });
   const staged: FetchResult[] = [];
@@ -272,17 +285,21 @@ test('bhb ohlcv fetch: streaming sink stages each symbol w/ meta, isolates 404, 
 });
 
 test('bhb ohlcv fetch: URL is built with {symbol}, {fromYear} and {toYear}=current year (from ctx.now())', async () => {
+  __resetBhbApiKeyCache();
   const http = new ExportHttpClient();
   const source = makeSource(['GFH'], { fromYear: 2000 });
   await bhbOhlcvBackfill.fetch(makeCtx(source, http, async () => {}, '2026-07-15T00:00:00.000Z'));
-  assert.equal(http.gets.length, 1);
-  const url = http.gets[0]!;
+  // gets = [homepage token scrape, webapi]; assert on the DataExport webapi GET.
+  const apiGets = http.gets.filter((u) => u.includes('DataExportCompanyProfile'));
+  assert.equal(apiGets.length, 1);
+  const url = apiGets[0]!;
   assert.ok(url.includes('parameterValue=GFH'), 'symbol substituted');
   assert.ok(url.includes('FromDateYear=2000'), 'fromYear from endpoint_config');
   assert.ok(url.includes('ToDateYear=2026'), 'toYear = current year from ctx.now()');
 });
 
 test('bhb ohlcv fetch: no sink → serial array (back-compat), failures skipped', async () => {
+  __resetBhbApiKeyCache();
   const http = new ExportHttpClient(new Set(['DELISTED']));
   const source = makeSource(['GFH', 'DELISTED', 'BBK'], { fetchConcurrency: 8 });
   const returned = await bhbOhlcvBackfill.fetch(makeCtx(source, http)); // no onFetched
@@ -293,6 +310,7 @@ test('bhb ohlcv fetch: no sink → serial array (back-compat), failures skipped'
 });
 
 test('bhb ohlcv fetch: absent fetch_concurrency defaults the pool to 4', async () => {
+  __resetBhbApiKeyCache();
   const http = new ExportHttpClient();
   const source = makeSource(['GFH', 'BBK', 'BEYON', 'NBB', 'SALAM', 'TRAFCO']); // no fetch_concurrency
   const staged: FetchResult[] = [];
@@ -303,6 +321,7 @@ test('bhb ohlcv fetch: absent fetch_concurrency defaults the pool to 4', async (
 });
 
 test('bhb ohlcv fetch: a staged JSON parses end-to-end with the meta-carried venue/ticker', async () => {
+  __resetBhbApiKeyCache();
   const http = new ExportHttpClient();
   const source = makeSource(['GFH'], { fetchConcurrency: 1 });
   const staged: FetchResult[] = [];

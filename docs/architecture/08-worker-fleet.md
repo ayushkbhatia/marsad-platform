@@ -60,8 +60,16 @@ pgmq-consumer handlers on the same worker (event/cron-driven, not proxy, cheap):
 |---|---|---|---|---|---|
 | **tadawul-researcher** (`marsad-researcher.timer` → `researcher-cron.sh` → `tadawul-researcher.mjs`) | TDWL financial statements: per company, click "Financial Statements & Reports" → scrape `XBRL_DOCS/*.html` + `fsPdf/*.pdf` → parse XBRL → `financial_statements` + archive PDFs to `filings` bucket | **headed Chromium through the Geonode proxy**; per company: `goto` market-watch SPA → click company anchor → click FS control → in-page `fetch` the XBRL/PDF | **6 h** (was 15 min — §5); walks the universe in chunks of 16, 2 concurrent sticky-IP browsers | `RUN_BUDGET_MS` (~680 s) + `PDF_ARCHIVE_MAX` (20/run) + chunk cursor; **incremental** — skips already-`owned` storage keys | env: `CHUNK_SIZE/CONCURRENCY/RUN_BUDGET_MS/PDF_ARCHIVE_MAX`; state `.researcher-chunk` |
 | **tadawul-gapfill** (`marsad-gapfill.timer` → `gapfill-cron.sh` → `tadawul-gapfill.mjs`) | TDWL **pre-XBRL** statements: scrape `fsPdf/*.pdf` → LLM-extract (Claude Code) → `financial_statements` | same headed-Chromium-through-proxy pattern; downloads PDFs | **6 h** (was 20 min — §5) | shares the `.tadawul-scrape.lock` with the researcher (never concurrent); incremental skip-owned | env similar; state cursor |
+| **bhb-financials** (`marsad-bhb-financials.timer` → `bhb-financials-cron.sh` → `bhb-financials.mjs`) | BHB statements: `GetCompanyFinancialStatements` webapi index → download statement PDFs → LLM-extract (Claude Code) → `financial_statements` | **direct HTTP — NO browser, NO proxy** (BHB is not WAF-walled): one JSON `fetch` per company (dynamic APIKey Bearer) + direct PDF downloads; `pdftotext` → `claude -p` | **6 h** | `FSPDF_MAX` (6/run) + `RUN_BUDGET_MS` + chunk cursor; **incremental skip-owned BEFORE download** (`public.filings` `BHB-FS-*`); own `.bhb-financials.lock` (never contends with the Tadawul chrome lock) | env: `CHUNK_SIZE/FSPDF_MAX/RUN_BUDGET_MS/CLAUDE_MODEL`; state `.bhb-financials-chunk` |
 
-> **Known weakness (Class B):** both researchers **re-navigate the full market-watch SPA per company to
+> **`bhb-financials` is the CHEAP script-driven researcher:** it is script-driven + LLM-extracting like the
+> Tadawul pair, but it is **direct HTTP, so it is NOT a proxy/bandwidth risk** — the "most expensive thing
+> we do" framing of §B applies only to the two headed-Chromium-through-proxy Tadawul researchers. BHB's
+> Statements tab is a plain JSON webapi and its PDFs download direct (verified 2026-07-16), so there is no
+> full-page SPA load and no metered proxy byte. Its cost is bounded purely by the `claude -p` budget
+> (`FSPDF_MAX`) + direct egress, not proxy bandwidth.
+
+> **Known weakness (Class B):** both **Tadawul** researchers **re-navigate the full market-watch SPA per company to
 > check for new documents, even when nothing is new** — the `owned`-skip happens *after* the page load, so
 > a steady-state pass still pays full page bandwidth for zero new data. This is the "treasure hunt" the
 > owner flagged. The correct end-state is **event-driven**: only re-scrape a company when a new
