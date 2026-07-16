@@ -669,27 +669,60 @@ function mapIpo(source: SourceRecord, snapshotId: number, e: NormalizedIpoEvent,
   };
 }
 
+/**
+ * The FILING.FINANCIALS object payload — the WIRE contract lake.fn_financials_project reads
+ * (migration 20260716120000). SNAKE_CASE keys to match the projection (and the live Tadawul-XBRL
+ * producer's already-shipped contract): `statement_type`/`line_items`/`period_kind`/… — NOT the
+ * camelCase NormalizedStatementRow field names. venue+ticker are carried so the projection can
+ * resolve security_id when the object doesn't already carry one. Pure financial content only (no
+ * clock/snapshot id) so the content_hash is stable ⇒ dedup + restatement detection are correct.
+ */
+interface FinancialsObjectPayload {
+  venue: string;
+  ticker: string;
+  statement_type: 'income' | 'balance' | 'cashflow';
+  basis: 'consolidated' | 'standalone';
+  period_kind: 'quarter' | 'annual' | 'ttm';
+  fiscal_period: string;
+  period_end: string;
+  currency: string;
+  line_items: Record<string, number | null>;
+  segments?: Record<string, unknown> | null;
+}
+
 function mapStatement(
   source: SourceRecord,
   snapshotId: number,
   s: NormalizedStatementRow,
   extractedAt: string,
-): StagingRow<NormalizedStatementRow> {
+): StagingRow<FinancialsObjectPayload> {
   const basis = s.basis ?? 'consolidated';
+  const payload: FinancialsObjectPayload = {
+    venue: s.venue,
+    ticker: s.ticker,
+    statement_type: s.statementType,
+    basis,
+    period_kind: s.periodKind,
+    fiscal_period: s.fiscalPeriod,
+    period_end: s.periodEnd,
+    currency: s.currency,
+    line_items: s.lineItems,
+    ...(s.segments != null ? { segments: s.segments } : {}),
+  };
   return {
     objectType: 'FILING.FINANCIALS',
     // One object per (venue, ticker, statement_type, basis, fiscal_period). A RESTATEMENT
     // re-stages the SAME key with new numbers → a fresh content_hash → cross_check supersedes
-    // the prior object → lake.fn_financial_statement_project archives the old version and
-    // bumps version (07 §P1.7b). is_estimate is not in the key: scraped facts are always the
-    // non-estimate row; desk estimates are a separate write path.
+    // the prior object → lake.fn_financials_project archives the old version and bumps version
+    // (07 §P1.7b). is_estimate is not in the key: scraped facts are always the non-estimate row;
+    // desk estimates are a separate write path.
     naturalKey: `FILING.FINANCIALS:${s.venue}:${s.ticker}:${s.statementType}:${basis}:${s.fiscalPeriod}`,
     venue: s.venue,
     sourceId: source.id,
     snapshotId,
     externalId: null, // no per-row id; dedupe on (source_id, NULL, content_hash)
     sourceRank: sourceRankFor(source),
-    payload: s,
+    payload,
     numericValue: null, // a statement period is a bag of line items, not one scalar
     unit: s.currency,
     effectiveDate: s.periodEnd,
