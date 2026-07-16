@@ -16,7 +16,8 @@ export type HandlerName =
   | 'key_ratios_recompute'
   | 'ohlcv_accrual'
   | 'score_batch'
-  | 'nightly';
+  | 'nightly'
+  | 'storage_purge';
 
 export interface QuotePollPayload {
   handler: 'quote_poll';
@@ -87,4 +88,18 @@ export interface ScoreBatchPayload {
  */
 export interface NightlyPayload {
   handler: 'nightly';
+}
+
+/**
+ * storage_purge (q_maintenance). A pg_cron enqueues {"task":"storage_purge"}
+ * shortly after ops.apply_retention; the consumer aliases `task`→`handler`.
+ * Drains ops.storage_purge_queue: deletes freed lake-raw objects via the Storage
+ * API and stamps deleted_at. Optional limit (paths per Storage delete call,
+ * clamped ≤1000) and maxBatches (batches per message before self-chaining) tune
+ * the drain; omitted ⇒ 200 × 25.
+ */
+export interface StoragePurgePayload {
+  handler: 'storage_purge';
+  limit?: number;
+  maxBatches?: number;
 }
