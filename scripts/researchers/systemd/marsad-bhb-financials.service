@@ -1,0 +1,8 @@
+[Unit]
+Description=Marsad BHB financials backfill (statement PDF LLM via Claude Code subscription; direct http, no proxy)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /home/deploy/bhb-financials-cron.sh
+TimeoutStartSec=900
