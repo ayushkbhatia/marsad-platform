@@ -8,6 +8,10 @@ set -uo pipefail
 exec 9>/home/deploy/.tadawul-scrape.lock
 flock -n 9 || { echo "another tadawul scrape holds the lock — skipping this fire"; exit 0; }
 
+# Reporting-window cadence gate (Option A) — every fire in-window, ~weekly off-season. Skips (exit 0) otherwise.
+export WINDOW_STATE=/home/deploy/.scrape-window-researcher
+source /home/deploy/window-gate.sh
+
 STATE=/home/deploy/.researcher-chunk
 SIZE=${CHUNK_SIZE:-16}
 START=$(cat "$STATE" 2>/dev/null || echo 0)

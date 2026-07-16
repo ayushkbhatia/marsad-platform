@@ -206,28 +206,38 @@ within ~90 days of Dec 31. **Gate the cadence on the calendar:** run the univers
   that is when filings actually land, so it is justified — not waste).
 - **Keeps:** the current scraping logic unchanged; lowest risk.
 
-### Option B — Cheap direct detector → targeted scrape (the fully well-pointed endgame)
-Detect *which* companies filed using a **cheap, DIRECT, no-proxy** signal, then scrape only those.
-- **The detector** is a small direct poller (no Akamai, no proxy) over an aggregator that lists TDWL
-  disclosures — **Mubasher** (already our direct TDWL quotes + OHLCV source, so the transport is proven) or
-  Argaam. It emits, per new financial disclosure, a `(ticker, filing_ref)` — a **discovery task** is needed
-  first to pin Mubasher's disclosures endpoint (like the quotes feed was pinned).
-- **The trigger:** a new-disclosure row enqueues a **targeted scrape** (reuse `ACQUIRE_SYMBOLS=<ticker>` —
-  the scrapers already accept an explicit list) for just that company. The blind universe walk is retired.
-- **Steady-state proxy cost ≈ (new TDWL filings/day) × (1 page-load)** ≈ a handful of MB/day — essentially
-  the floor. This is the design the onboarding standard (§4) wants for every proxied worker.
-- **Build:** (1) discovery task to pin the Mubasher/Argaam disclosures feed; (2) a direct poller
-  (fits the existing `ingest.sources`/adapter pattern, `use_proxy=false`) writing a `tdwl_fs_pending`
-  signal; (3) the wrapper reads pending tickers instead of the chunk cursor. Bigger than A, but it is the
-  correct end-state and removes the proxy from steady state almost entirely.
+### Option B — Tadawul market-wide disclosures detector → targeted scrape (the well-pointed endgame)
+> **Owner directive 2026-07-16:** the golden source of truth is **Tadawul (`saudiexchange.sa`), not
+> Mubasher** — Mubasher is/will be paywalled, so the platform must not build new pipelines on it. The
+> detector is therefore Tadawul-native, not a Mubasher/Argaam feed.
+
+The waste in the universe walk is that it discovers *which company filed* by loading each company's page.
+Tadawul publishes a **market-wide issuer-news / disclosures list** (`newsandreports/issuer-news`) that
+names every recent filing (issuer + type + date + id) — **one page load instead of 387.** The redesign:
+- **Detector:** the wrapper loads the issuer-news disclosures list **once** (through the proxy browser,
+  since Tadawul is Akamai-blocked), diffs the recent *financial-statement* filings against a seen-set
+  (`ingest.seen_items`-style), and derives the set of companies with a NEW filing.
+- **Targeted scrape:** feed exactly those tickers to the existing scrapers via `ACQUIRE_SYMBOLS=<list>`
+  (they already accept it). The blind universe walk is retired.
+- **Steady-state proxy cost ≈ 1 disclosures-list load per run + a page-load only per genuinely-new filing**
+  ≈ a few MB/day — essentially the floor.
+- **Build:** (1) the **discovery task** — DONE (finding): a direct `goto` of the issuer-news portal URL
+  does **not** render (Akamai + the WebSphere portal virtualizes exactly like the company profile — two
+  capture attempts crashed on that nav). So the detector must reach the disclosures list via the same
+  market-watch→in-page-SPA-nav click pattern the researcher already uses for company profiles; pinning the
+  exact list feed is part of this build. (2) A small `list-disclosures.mjs` that loads it,
+  parses `(ticker, filing_ref, filedAt)`, and writes a `tdwl_fs_pending` set. (3) The wrappers read pending
+  tickers instead of the chunk cursor. All Tadawul-native, no Mubasher.
 
 ### Recommendation
-**Ship A now** (immediate, ~15 lines, kills off-season waste with zero risk), **then build B** as the
-endgame (retire the blind walk once the Mubasher/Argaam disclosures feed is pinned). A + the interception +
-the 6 h throttle already take the ~9 GB to well under 1 GB/night; B takes steady state to ~zero.
+**A shipped now**; **build B** as the endgame once the issuer-news list is pinned. A + interception + the
+6 h throttle already take ~9 GB to well under 1 GB/night; B takes steady state to ~zero — all off Tadawul.
 
-### Decision needed
-1. Approve **A** (calendar-gated cadence) — I can implement immediately.
-2. Approve the **discovery task** for the Mubasher/Argaam TDWL disclosures feed (the prerequisite for B).
-3. Confirm the off-season cadence (proposal: weekly full walk off-season; 6 h in-window) and the reporting
-   windows (proposal: quarter-end + 45 days).
+### Broader steer — exit Mubasher platform-wide (strategic, separate from this)
+Per the same directive, the platform should get **off Mubasher entirely**, not just the researcher. Current
+Mubasher dependence: **TDWL quotes** (Mubasher `/stocks/prices?country=sa`) and the **TDWL/ADX OHLCV
+backfill** (Mubasher CSV). These moved to Mubasher because `saudiexchange.sa` is Akamai-blocked *direct*;
+returning them to Tadawul means routing them through the **proxy browser** (the researchers' path) — a real
+cost/latency trade the quotes cadence (10-min, all 387 tickers) makes non-trivial. This is a **separate
+project** with its own plan (options: Tadawul-via-proxy board capture; official EOD-license; accept the
+proxy cost). Logged as **DEF-EXIT-MUBASHER** in §7 — do not fold it into the researcher work.
