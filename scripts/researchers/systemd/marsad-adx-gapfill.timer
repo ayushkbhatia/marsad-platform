@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Marsad ADX financials backfill periodically
+
+[Timer]
+# Staggered after the TDWL researcher (8min) + gapfill (12min) so the three scrapers do not fire at once.
+OnBootSec=16min
+OnUnitActiveSec=6h
+Persistent=true
+
+[Install]
+WantedBy=timers.target

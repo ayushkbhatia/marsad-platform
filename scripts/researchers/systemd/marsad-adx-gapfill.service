@@ -1,0 +1,11 @@
+[Unit]
+Description=Marsad ADX financials backfill (statement PDF LLM via Claude Code subscription; no proxy/xvfb)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /home/deploy/adx-gapfill-cron.sh
+TimeoutStartSec=900
+# 3.8 GB box is memory-tight: cap the cgroup so a headless Chromium + PDF buffers + `claude -p` spill to
+# swap instead of OOM-killing the co-resident marsad-worker.
+MemoryHigh=2200M
