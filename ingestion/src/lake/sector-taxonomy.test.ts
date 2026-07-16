@@ -35,6 +35,13 @@ test('GCC / GICS-ish venue strings map onto the sectors.key taxonomy', () => {
     ['Utilities', 'utilities'],
     ['Telecommunication Services', 'telecom'],
     ['Health Care Equipment & Services', 'healthcare'],
+    // TDWL IT filers (7200/7201/7202/7203/7211 share the first string, 9524 the second) — previously
+    // fell to 'unknown' before the 'technology' key existed (migration 20260716190059).
+    ['Information Technology | IT Services / Software', 'technology'],
+    ['Information Technology | Electronic Equipment, Instruments and Components', 'technology'],
+    ['Software & Services', 'technology'],
+    ['Semiconductors & Semiconductor Equipment', 'technology'],
+    ['Technology Hardware & Equipment', 'technology'],
     ['Capital Goods', 'industrials'],
     ['Transportation', 'industrials'],
     ['Commercial & Professional Services', 'industrials'],
@@ -51,6 +58,15 @@ test('GCC / GICS-ish venue strings map onto the sectors.key taxonomy', () => {
     assert.equal(m.rawSector, raw);
     assert.ok(VALID_KEYS.has(m.sector), `${m.sector} must be a valid public.sectors.key`);
   }
+});
+
+test('technology ordering: biotech stays healthcare, IT wins over industrials/consumer', () => {
+  // 'technology' sits AFTER healthcare so the shared 'technolog' stem never steals biotech.
+  assert.equal(mapSectorToTaxonomy('Biotechnology').sector, 'healthcare');
+  assert.equal(mapSectorToTaxonomy('Pharmaceuticals, Biotechnology & Life Sciences').sector, 'healthcare');
+  // …and BEFORE industrials/consumer so IT strings resolve to technology, not the broad buckets.
+  assert.equal(mapSectorToTaxonomy('IT Services / Software').sector, 'technology');
+  assert.equal(mapSectorToTaxonomy('Electronic Equipment, Instruments & Components').sector, 'technology');
 });
 
 test('every mapped result is a valid public.sectors.key (FK safety)', () => {

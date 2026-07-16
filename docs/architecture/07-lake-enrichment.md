@@ -444,6 +444,12 @@ percentiles, **weights renormalized over non-null components**.
 > **GCC-wide cohorts, not per-venue** (owner **D-2**): a Saudi bank and a Qatari bank compete in one
 > "Banks" cohort — this is the platform's whole thesis (FX pegs make cross-venue clean; liquidity
 > differences are the caveat). Minimum cohort size **8**; thinner GCC sectors flag `thin_cohort=true`.
+>
+> **`technology` is a DISTINCT cohort** (owner call 2026-07-16, migration `20260716190059`): the 6 TDWL
+> IT filers (7200/7201/7202/7203/7211 "IT Services / Software", 9524 "Electronic Equipment") were force-
+> fit to `unknown` before the key existed. Owner chose a distinct `technology` cohort over folding into
+> `industrials` — it starts <8 GCC names so it flags `thin_cohort=true` until more IT names land, the
+> accepted trade for a clean tech peer set. The 13th key (`unknown`) is never a scored cohort.
 
 **Weighting → 0–100:**
 ```
