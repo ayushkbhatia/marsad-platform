@@ -84,6 +84,19 @@ interface BootstrapState {
  *  validated _abck cookie before the in-context fetch (empirically ~4s suffices). */
 const DIRECT_SETTLE_MS = 4500;
 
+/**
+ * True when an error means the Chromium session itself is gone (crashed, OOM-killed, or
+ * closed out-of-band) rather than the request merely failing. Such an error surfaces
+ * before any HTTP status exists, so the 401/403 refresh path can never catch it — the
+ * caller must discard the singleton instead. Matches Playwright's closed-target strings.
+ */
+function isSessionDead(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return /Target (page, context or browser )?has been closed|Browser has been closed|Target closed|browser has disconnected|Protocol error.*(Target closed|Session closed)/i.test(
+    msg,
+  );
+}
+
 export function createBrowserClient(opts: BrowserClientOptions): BrowserClient {
   const ratePerSec = opts.ratePerSec ?? 1;
   const budget = opts.budgetPerHostPerDay ?? 300;
@@ -107,6 +120,22 @@ export function createBrowserClient(opts: BrowserClientOptions): BrowserClient {
     return session;
   }
 
+  /**
+   * Drop the singleton so the next ensureSession() relaunches.
+   *
+   * Chromium can die out-of-band (crash, OOM, context closed by the host). The dead
+   * handle stays non-null, so ensureSession() keeps returning it and every later call
+   * re-throws the same error until the process restarts. refreshIfChallenged() only
+   * resets on a 401/403 *response*, which a dead session never produces — it throws
+   * before any status exists. Any path that discovers a broken session must discard it.
+   */
+  async function discardSession(): Promise<void> {
+    if (!session) return;
+    const dead = session;
+    session = null;
+    await dead.close().catch(() => {});
+  }
+
   async function throttle(host: string): Promise<void> {
     const bucket = limiters.bucket(host);
     for (let i = 0; i < 10_000; i++) {
@@ -126,7 +155,7 @@ export function createBrowserClient(opts: BrowserClientOptions): BrowserClient {
       );
     }
     lastDiscovery = cfg;
-    const sess = await ensureSession();
+    let sess = await ensureSession();
     const host = hostOf(cfg.navigateUrl);
 
     if (limiters.budget(host).remaining() <= 0) {
@@ -136,7 +165,27 @@ export function createBrowserClient(opts: BrowserClientOptions): BrowserClient {
     limiters.budget(host).tryConsume();
 
     logger?.info('bootstrap navigate (seat WAF cookies)', { navigateUrl: cfg.navigateUrl });
-    const page = await sess.newPageAndGoto(cfg.navigateUrl);
+    // Discard-and-relaunch on ANY navigate failure: the session's health is unknowable
+    // from here, and a relaunch costs ~1s against a wedge that otherwise persists until
+    // the worker restarts (ADX quotes sat dead 46h this way, 2026-07-15→17).
+    let page: BrowserPage;
+    try {
+      page = await sess.newPageAndGoto(cfg.navigateUrl);
+    } catch (err) {
+      logger?.warn('bootstrap navigate failed — discarding session, relaunching once', {
+        navigateUrl: cfg.navigateUrl,
+        err: err instanceof Error ? err.message : String(err),
+      });
+      await discardSession();
+      sess = await ensureSession();
+      try {
+        page = await sess.newPageAndGoto(cfg.navigateUrl);
+      } catch (retryErr) {
+        // Leave no poisoned handle behind — the next poll starts from a clean launch.
+        await discardSession();
+        throw retryErr;
+      }
+    }
 
     let resolvedUrl: string | null = null;
     try {
@@ -180,10 +229,7 @@ export function createBrowserClient(opts: BrowserClientOptions): BrowserClient {
     if (status === 401 || status === 403) {
       logger?.warn('WAF challenge — re-bootstrapping', { status });
       // Tear down the poisoned session; next bootstrap relaunches.
-      if (session) {
-        await session.close().catch(() => {});
-        session = null;
-      }
+      await discardSession();
       if (lastDiscovery) await bootstrap(lastDiscovery);
     }
   }
@@ -193,8 +239,6 @@ export function createBrowserClient(opts: BrowserClientOptions): BrowserClient {
     if (limiters.budget(host).remaining() <= 0) {
       throw new FetchError('HTTP_4XX', `daily request budget exhausted for host ${host}`);
     }
-
-    const sess = await ensureSession();
 
     async function once(): Promise<RawResponse> {
       await limiters.globalSemaphore.acquire();
@@ -210,7 +254,19 @@ export function createBrowserClient(opts: BrowserClientOptions): BrowserClient {
         } = { method: options.method ?? 'GET' };
         if (options.headers) reqOpts.headers = options.headers;
         if (options.body !== undefined) reqOpts.data = options.body;
-        const res = await sess.contextRequest(url, reqOpts);
+        // Resolved per attempt, never captured: refreshIfChallenged() replaces the
+        // singleton on a 401/403, and a retry holding the pre-refresh handle would
+        // re-issue against the session we just tore down.
+        const sess = await ensureSession();
+        let res: Awaited<ReturnType<BrowserSession['contextRequest']>>;
+        try {
+          res = await sess.contextRequest(url, reqOpts);
+        } catch (err) {
+          // A dead context throws instead of returning a status, so refreshIfChallenged
+          // never sees it — discard here or the handle wedges every later request.
+          if (isSessionDead(err)) await discardSession();
+          throw err;
+        }
         const body = res.status === 304 ? Buffer.alloc(0) : await res.body();
         return {
           url: res.url,
