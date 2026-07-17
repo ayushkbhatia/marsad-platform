@@ -20,7 +20,15 @@
 
 import type { LakeSql, LakeTx, LakeLogger } from './db.js';
 import { noopLogger } from './db.js';
-import { computeKeyRatios, hasAnyRatio, type RatioInputs, type KeyRatios } from './ratios-compute.js';
+import {
+  computeKeyRatios,
+  fitToColumnBudget,
+  hasAnyRatio,
+  type RatioInputs,
+  type KeyRatios,
+} from './ratios-compute.js';
+
+const errText = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 
 export interface KeyRatiosOptions {
   /** iam handle attributed as the COMPUTED object's verifier/actor. */
@@ -58,23 +66,59 @@ export class KeyRatiosRecompute {
     const securities = await this.loadSecurities(securityIds);
     let rowsWritten = 0;
     let rowsSkippedAllNull = 0;
+    const rowsFailed: Array<{ securityId: string; err: unknown }> = [];
 
     for (const sec of securities) {
-      const inputs = await this.gatherInputs(sec);
-      const ratios = computeKeyRatios(inputs);
-      if (!hasAnyRatio(ratios)) {
-        rowsSkippedAllNull += 1;
-        continue;
+      // PER-SECURITY ISOLATION: persist() opens its own transaction per security, so
+      // one bad name rolls back alone. Without this try/catch a single security threw
+      // out of the whole loop and every remaining security silently went ratio-less —
+      // live on 2026-07-17 the recompute died on security id 29 (TDWL EAST PIPES, a
+      // bad eps extraction) and so never reached the other ~660. Failures are counted
+      // and rethrown as a batch below, never swallowed.
+      try {
+        const inputs = await this.gatherInputs(sec);
+        const { ratios, dropped } = fitToColumnBudget(computeKeyRatios(inputs));
+        if (dropped.length > 0) {
+          // Loud on purpose: an out-of-range ratio is either a degenerate business or
+          // an upstream extraction bug. Nulling it keeps the screener honest, but a
+          // SILENT null is how a systematic data fault hides.
+          this.log.warn('key_ratios.out_of_range', {
+            securityId: sec.id,
+            venue: sec.venue_code,
+            dropped: dropped.map((d) => ({ field: d.field, value: d.value, limit: d.limit })),
+          });
+        }
+        if (!hasAnyRatio(ratios)) {
+          rowsSkippedAllNull += 1;
+          continue;
+        }
+        await this.persist(sec, ratios, agentId);
+        rowsWritten += 1;
+      } catch (err) {
+        rowsFailed.push({ securityId: sec.id, err });
+        this.log.warn('key_ratios.security_failed', { securityId: sec.id, venue: sec.venue_code, err });
       }
-      await this.persist(sec, ratios, agentId);
-      rowsWritten += 1;
     }
 
     this.log.info('key_ratios.recompute', {
       considered: securities.length,
       written: rowsWritten,
       skipped: rowsSkippedAllNull,
+      failed: rowsFailed.length,
     });
+
+    // Surface partial failure to the caller — the handler's heartbeat records it and
+    // the sentinel raises on a sustained streak (20260717101959). The good rows are
+    // already committed by their own transactions, so throwing costs no data; staying
+    // quiet about N broken securities is what we are deliberately not doing.
+    if (rowsFailed.length > 0) {
+      const sample = rowsFailed.slice(0, 3).map((f) => `${f.securityId}: ${errText(f.err)}`).join('; ');
+      throw new Error(
+        `key_ratios recompute: ${rowsFailed.length}/${securities.length} securities failed ` +
+          `(${rowsWritten} written). First: ${sample}`,
+      );
+    }
+
     return {
       securitiesConsidered: securities.length,
       rowsWritten,

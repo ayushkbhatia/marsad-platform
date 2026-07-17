@@ -329,3 +329,84 @@ test('bank sector nulls gross/ev/net-debt but keeps nim in the persisted payload
   assert.equal(p.nim, 0.03); // 30 / 1000 kept
   assert.equal(p.net_margin, 0.2); // still valid
 });
+
+// ── per-security isolation + the key_ratios column budget ────────────────────
+// Regressions for the 2026-07-17 nightly outage. Two independent faults:
+//   1. a near-zero denominator produced a finite-but-unstorable ratio (numeric
+//      field overflow on insert), and
+//   2. the recompute loop had no per-security try/catch, so that single throw
+//      escaped the loop and every LATER security silently went ratio-less. Live,
+//      it died on security id 29 of ~693 and never reached the other ~660.
+
+/** Wraps the rich fake so one security's gather-side read throws, simulating a
+ *  security that blows up mid-recompute (live: `numeric field overflow`). */
+function poisonedDb(rs: RichState, poisonSecurityId: string): LakeSql {
+  const inner = createRichDb(rs);
+  const wrapped = ((strings: TemplateStringsArray, ...params: unknown[]) => {
+    const q = strings.join('?').replace(/\s+/g, ' ').trim().toLowerCase();
+    if (q.includes('from public.quotes_latest') && String(params[0]) === poisonSecurityId) {
+      return Promise.reject(new Error('numeric field overflow'));
+    }
+    return (inner as unknown as (s: TemplateStringsArray, ...p: unknown[]) => Promise<Row[]>)(
+      strings,
+      ...params,
+    );
+  }) as unknown as LakeSql;
+  wrapped.begin = inner.begin;
+  return wrapped;
+}
+
+test('one failing security does NOT cost the others their ratios (per-security isolation)', async () => {
+  const rs = richState();
+  const a = seedSecurity(rs, { id: '5001', shares: '1000' });
+  const bad = seedSecurity(rs, { id: '5002', shares: '1000' });
+  const c = seedSecurity(rs, { id: '5003', shares: '1000' });
+  rs.fake.quotesLatest.set(a, '50');
+  rs.fake.quotesLatest.set(bad, '55');
+  rs.fake.quotesLatest.set(c, '60');
+
+  // The batch must FAIL LOUDLY (the handler heartbeats it; the sentinel raises on a
+  // sustained streak) — but only after every healthy security has been persisted.
+  await assert.rejects(
+    () => new KeyRatiosRecompute(poisonedDb(rs, bad)).run(),
+    (err: Error) => {
+      assert.match(err.message, /1\/3 securities failed/);
+      assert.match(err.message, /2 written/);
+      assert.match(err.message, /numeric field overflow/, 'the underlying cause is surfaced');
+      return true;
+    },
+  );
+
+  // THE REGRESSION: 5003 comes AFTER the poisoned 5002. Pre-fix the throw escaped the
+  // loop and 5003 was never reached at all.
+  assert.ok(rs.fake.keyRatios.has(a), '5001 (before the failure) is written');
+  assert.ok(rs.fake.keyRatios.has(c), '5003 (AFTER the failure) is still written');
+  assert.ok(!rs.fake.keyRatios.has(bad), 'the failing security writes nothing');
+});
+
+test('an out-of-range ratio is nulled, and the row still writes (nightly survives)', async () => {
+  // The live ALFIRDOUS shape: AED 647 trailing revenue vs ~3.66M net income ⇒
+  // net_margin 5,663 ⇒ numeric(7,4) overflow. Post-fix the ratio is nulled and every
+  // OTHER ratio for the security still lands.
+  const rs = richState();
+  const id = seedSecurity(rs, { id: '5010', shares: '600000000' });
+  rs.fake.quotesLatest.set(id, '0.286');
+  rs.statements.push({
+    security_id: id, statement_type: 'income', period_kind: 'ttm', period_end: '2026-03-31',
+    is_estimate: false, line_items: { net_income: 3_664_226, revenue: 647 },
+  });
+
+  const summary = await new KeyRatiosRecompute(createRichDb(rs)).run();
+  assert.equal(summary.rowsWritten, 1, 'the security is still written, not skipped');
+  assert.ok(rs.fake.keyRatios.has(id), 'the key_ratios row lands');
+
+  // Assert on the COMPUTED object payload — the fake's keyRatios mock models only
+  // (security_id, source_object_id), not the ratio columns, but the payload carries
+  // the same values that the upsert binds.
+  const computed = rs.fake.objects.find(
+    (o) => o.object_type === 'COMPUTED.RATIOS' && o.superseded_by === null,
+  )!;
+  const payload = computed.payload as Record<string, unknown>;
+  assert.equal(payload.net_margin, null, 'the unstorable ratio is nulled, not clamped');
+  assert.equal(payload.market_cap, 0.286 * 600_000_000, 'in-range ratios still land');
+});

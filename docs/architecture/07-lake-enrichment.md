@@ -366,6 +366,19 @@ TTM = trailing-4-quarter sum for flows, latest for stocks/balance, computed by t
 
 ### 3.2 Ratio catalog (formula → input → `key_ratios` column)
 
+> **Every ratio below is bounded by its column.** `key_ratios` columns are `numeric(p,s)`, which
+> reject any value with `abs(v) >= 10^(p-s)` — the tight ones are `roe`/`roce`/`nim`/`net_margin`/
+> `gross_margin`/`dividend_yield`/`payout_ratio` at `numeric(7,4)` ⇒ **max 999.9999**. Guarding a
+> **zero** denominator is not enough: a near-zero one produces a huge *finite* number that passes
+> every `isFinite` check and then raises `numeric field overflow` on INSERT. Live 2026-07-17: DFM
+> ALFIRDOUS booked AED 647 of trailing revenue against ~3.66M of investment income ⇒ `net_margin`
+> 5,663 ⇒ the whole nightly recompute died. `fitToColumnBudget()` (`ratios-compute.ts`) mirrors this
+> DDL and **nulls** anything unstorable — never clamps, since a clamped 999.9999 would assert a
+> 99,999% margin and top every high-margin screen, whereas a null just drops the name from that
+> filter (the module's "never a wrong number" contract). Each drop is logged: an out-of-range ratio
+> is either a degenerate business or an upstream extraction bug, and both must stay visible.
+> **Adding a column here means adding its `(p,s)` to `COLUMN_NUMERIC`.**
+
 **Valuation** (price + fundamentals): `market_cap = last × shares_outstanding`;
 `pe = market_cap / net_income_ttm`; `pb = market_cap / equity`; `ps = market_cap / revenue_ttm`;
 `eps_ttm` = trailing-4Q `eps_diluted`; `book_value_ps = equity / shares_outstanding`;

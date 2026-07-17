@@ -223,3 +223,85 @@ export function computeKeyRatios(input: RatioInputs): KeyRatios {
 export function hasAnyRatio(r: KeyRatios): boolean {
   return Object.entries(r).some(([k, v]) => k !== 'currencyComputed' && v !== null);
 }
+
+/**
+ * The public.key_ratios numeric(precision, scale) budget — MIRRORS THE DDL (0006
+ * `key_ratios`, plus the later growth/momentum columns). A numeric(p,s) column
+ * rejects any value whose absolute value is >= 10^(p-s): postgres raises
+ * `numeric field overflow` and the INSERT takes the whole recompute down with it.
+ *
+ * Keep in sync with the DDL. A column added to key_ratios without a row here is
+ * simply never range-checked (fail-open, same as today) — it is not silently
+ * dropped.
+ */
+const COLUMN_NUMERIC: Partial<Record<keyof KeyRatios, readonly [precision: number, scale: number]>> = {
+  marketCap: [20, 2],
+  pe: [10, 3],
+  pb: [10, 3],
+  epsTtm: [12, 4],
+  bookValuePs: [12, 4],
+  dividendYield: [7, 4],
+  payoutRatio: [7, 4],
+  roe: [7, 4],
+  roce: [7, 4],
+  nim: [7, 4],
+  netDebtEbitda: [8, 3],
+  evEbitda: [10, 3],
+  ps: [10, 3],
+  netMargin: [7, 4],
+  grossMargin: [7, 4],
+  revGrowthYoy: [9, 4],
+  epsGrowthYoy: [9, 4],
+  revCagr3y: [9, 4],
+  epsCagr3y: [9, 4],
+  ret3m: [9, 4],
+  ret6m: [9, 4],
+  ret121: [9, 4],
+  ebitdaTtm: [20, 2],
+};
+
+/** A ratio dropped for not fitting its column. Surfaced so the caller can LOG it —
+ *  an out-of-range ratio is either a genuinely degenerate business (a shell with
+ *  ~zero revenue) or an upstream extraction bug, and both deserve to be visible
+ *  rather than to vanish into a null. */
+export interface DroppedRatio {
+  field: keyof KeyRatios;
+  value: number;
+  /** The exclusive absolute bound the value had to clear: 10^(precision-scale). */
+  limit: number;
+}
+
+/**
+ * Null every ratio that cannot be stored in its key_ratios column, and report what
+ * was dropped.
+ *
+ * WHY NULL RATHER THAN CLAMP: this module's contract is "when an input is missing
+ * the ratio is null rather than a guess … never a wrong number" — and the screener
+ * scans this table, so a null simply drops the security from that filter. Clamping
+ * net_margin to 999.9999 would instead assert a 99,999% margin and rank the name
+ * FIRST on any high-margin screen. Null is the honest answer.
+ *
+ * WHY THIS IS NEEDED AT ALL: safeDiv only guards `b === 0`. A denominator that is
+ * merely NEAR zero yields a huge FINITE number that passes every isFinite check and
+ * then overflows on insert. Live example (2026-07-17): DFM ALFIRDOUS, a dormant
+ * holding company, booked AED 647 of trailing revenue against ~3.66M of investment
+ * income ⇒ net_margin 5,663.4 ⇒ numeric(7,4) overflow ⇒ the entire nightly recompute
+ * died, and with no per-security isolation it took every other security's ratios
+ * with it.
+ */
+export function fitToColumnBudget(r: KeyRatios): { ratios: KeyRatios; dropped: DroppedRatio[] } {
+  const dropped: DroppedRatio[] = [];
+  const ratios = { ...r };
+  for (const [field, spec] of Object.entries(COLUMN_NUMERIC) as Array<
+    [keyof KeyRatios, readonly [number, number]]
+  >) {
+    const value = ratios[field];
+    if (typeof value !== 'number') continue;
+    const limit = 10 ** (spec[0] - spec[1]);
+    if (Math.abs(value) >= limit) {
+      dropped.push({ field, value, limit });
+      (ratios[field] as number | null) = null;
+    }
+  }
+  return { ratios, dropped };
+}
