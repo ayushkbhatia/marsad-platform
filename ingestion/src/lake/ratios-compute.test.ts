@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { computeKeyRatios, hasAnyRatio, type RatioInputs } from './ratios-compute.js';
+import { computeKeyRatios, fitToColumnBudget, hasAnyRatio, type RatioInputs } from './ratios-compute.js';
 
 const base: RatioInputs = { securityId: 1, last: null, sharesOutstanding: null };
 
@@ -171,4 +171,66 @@ test("'unknown'/null sector keeps the FULL ratio set (prod default)", () => {
     assert.notEqual(r.evEbitda, null, `ev/ebitda for ${sector}`);
     assert.notEqual(r.netDebtEbitda, null, `net_debt/ebitda for ${sector}`);
   }
+});
+
+// --- fitToColumnBudget: the key_ratios numeric(p,s) budget ------------------
+// Regression for the 2026-07-17 nightly outage: safeDiv only rejects a ZERO
+// denominator, so a merely near-zero one yields a huge FINITE ratio that passes
+// every isFinite guard and then raises `numeric field overflow` on insert —
+// killing the whole recompute.
+
+test('fitToColumnBudget: the live ALFIRDOUS case — near-zero revenue overflows net_margin', () => {
+  // DFM ALFIRDOUS, a dormant holding company: AED 647 of trailing revenue against
+  // ~3.66M of investment income ⇒ net_margin 5,663.4 vs a numeric(7,4) cap of 1000.
+  const raw = computeKeyRatios({ ...base, last: 0.286, sharesOutstanding: 600_000_000,
+    netIncomeTtm: 3_664_226, revenueTtm: 647 });
+  assert.ok(raw.netMargin !== null && raw.netMargin > 5000, 'precondition: the raw ratio overflows');
+
+  const { ratios, dropped } = fitToColumnBudget(raw);
+  assert.equal(ratios.netMargin, null, 'must be nulled, not clamped');
+  assert.equal(dropped.length, 1);
+  assert.equal(dropped[0].field, 'netMargin');
+  assert.equal(dropped[0].limit, 1000);
+  assert.ok(dropped[0].value > 5000, 'the offending value is reported for logging');
+});
+
+test('fitToColumnBudget: the live EAST PIPES case — a bad eps extraction overflows eps_ttm', () => {
+  // TDWL 1321: the XBRL extractor wrote net_income into eps_diluted, so eps_ttm came
+  // out at ~521M vs a numeric(12,4) cap of 1e8. Nulling keeps a nonsense EPS (and the
+  // PE derived from it) out of the screener.
+  const { ratios, dropped } = fitToColumnBudget(
+    computeKeyRatios({ ...base, last: 50, epsTtm: 521_292_763 }),
+  );
+  assert.equal(ratios.epsTtm, null);
+  assert.ok(dropped.some((d) => d.field === 'epsTtm' && d.limit === 1e8));
+});
+
+test('fitToColumnBudget: in-range ratios pass through untouched', () => {
+  const raw = computeKeyRatios({ ...base, last: 100, sharesOutstanding: 1_000_000,
+    epsTtm: 5, trailingDps: 2, netIncomeTtm: 5_000_000, revenueTtm: 20_000_000,
+    totalEquity: 50_000_000 });
+  const { ratios, dropped } = fitToColumnBudget(raw);
+  assert.deepEqual(dropped, [], 'nothing dropped for a normal company');
+  assert.deepEqual(ratios, raw, 'the object is unchanged');
+});
+
+test('fitToColumnBudget: nulls and boundaries', () => {
+  // null stays null (not treated as 0), and the bound is EXCLUSIVE: a numeric(7,4)
+  // column holds up to 999.9999, so exactly 1000 must drop but 999.9 must not.
+  const { ratios: atCap, dropped: dropAt } = fitToColumnBudget({
+    ...computeKeyRatios(base), roe: 1000, roce: 999.9,
+  });
+  assert.equal(atCap.roe, null, '1000 >= 10^(7-4) must drop');
+  assert.equal(atCap.roce, 999.9, '999.9 fits');
+  assert.equal(dropAt.length, 1);
+
+  const { dropped: noneForNulls } = fitToColumnBudget(computeKeyRatios(base));
+  assert.deepEqual(noneForNulls, [], 'an all-null ratio set drops nothing');
+});
+
+test('fitToColumnBudget: a negative overflow drops too', () => {
+  // The bound is on ABSOLUTE value — a huge negative margin overflows identically.
+  const { ratios, dropped } = fitToColumnBudget({ ...computeKeyRatios(base), netMargin: -5663.4 });
+  assert.equal(ratios.netMargin, null);
+  assert.equal(dropped[0].value, -5663.4);
 });
