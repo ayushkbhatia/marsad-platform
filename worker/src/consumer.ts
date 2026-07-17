@@ -216,7 +216,11 @@ export function startQueueConsumer(
           await sql`
             insert into ops.incidents (severity, source, message)
             values (
-              'error',
+              -- 'critical', NOT 'error': ops.incidents.severity is CHECKed against
+              -- ('info','degraded','critical') (0005 DDL). 'error' violated the constraint, the
+              -- INSERT threw, and ignoreErrors swallowed it — so a dead-lettered message NEVER
+              -- reached the Desk queue this path exists to feed (live: 0 rows ever written).
+              'critical',
               ${jobName},
               ${`message ${msg.msg_id} archived after ${msg.read_ct} attempts: ${errText(err)}`.slice(0, 2000)}
             )
