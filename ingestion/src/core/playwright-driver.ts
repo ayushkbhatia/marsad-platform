@@ -99,7 +99,16 @@ export function createPlaywrightDriver(opts: PlaywrightDriverOptions = {}): Brow
         async newPageAndGoto(url: string): Promise<BrowserPage> {
           const page = await context.newPage();
           page.setDefaultNavigationTimeout(navTimeout);
-          await page.goto(url, { waitUntil: 'networkidle' });
+          try {
+            await page.goto(url, { waitUntil: 'networkidle' });
+          } catch (err) {
+            // Close before rethrowing or the page leaks: the caller only ever gets a
+            // handle on success, so its own finally-close can't reach this one. A venue
+            // whose navigateUrl goes bad then leaks one page per poll until chromium
+            // OOMs and takes every browser source down with it (ADX, 2026-07-15→17).
+            await page.close().catch(() => {});
+            throw err;
+          }
           return {
             async discoverAjaxUrl(pattern?: string): Promise<string | null> {
               // Scrape the datatable AJAX endpoint out of the page at runtime.
