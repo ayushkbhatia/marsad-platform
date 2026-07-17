@@ -150,3 +150,105 @@ test('BrowserClient: close() releases the singleton', async () => {
   await c.get('https://x/a');
   assert.ok(f.launches() >= 2);
 });
+
+/**
+ * Regression — ADX quotes sat dead 46h (2026-07-15 11:07 → 2026-07-17 09:5x).
+ *
+ * Chromium died out-of-band; `newPageAndGoto` then threw "Target page, context or
+ * browser has been closed" on EVERY later bootstrap. The dead handle stayed non-null,
+ * so ensureSession() kept returning it, and refreshIfChallenged() never fired because
+ * a dead session throws before producing a 401/403 status. Only a worker restart cleared it.
+ */
+test('BrowserClient: a dead session does not wedge bootstrap forever (relaunches)', async () => {
+  let launches = 0;
+  let killNextNavigate = true;
+  const driver: BrowserDriver = {
+    async launch(): Promise<BrowserSession> {
+      launches++;
+      // Only the FIRST launched session is poisoned; a relaunch yields a healthy one.
+      const poisoned = killNextNavigate;
+      killNextNavigate = false;
+      return {
+        async newPageAndGoto(): Promise<BrowserPage> {
+          if (poisoned) {
+            throw new Error('browserContext.newPage: Target page, context or browser has been closed');
+          }
+          return {
+            async discoverAjaxUrl() {
+              return 'https://x/action';
+            },
+            async captureResponseUrl() {
+              return 'https://x/action';
+            },
+            async settle() {},
+            async close() {},
+          };
+        },
+        async contextRequest(url) {
+          return {
+            status: 200,
+            url,
+            headers: {},
+            body: async () => Buffer.from('ok'),
+          };
+        },
+        async cookies() {
+          return '_abck=seated';
+        },
+        async close() {},
+      };
+    },
+  };
+
+  const c = createBrowserClient({ driver, sleep: async () => {}, ratePerSec: 100000 });
+
+  // Before the fix this threw; the dead handle was never discarded.
+  const res = await c.bootstrap(discovery);
+  assert.equal(res.resolvedUrl, 'https://x/action', 'recovered on the in-place relaunch');
+  assert.equal(launches, 2, 'discarded the dead session and relaunched exactly once');
+
+  // And it stays healthy — no relaunch storm on the next poll.
+  await c.bootstrap(discovery);
+  assert.equal(launches, 2, 'healthy session is reused, not relaunched');
+});
+
+test('BrowserClient: dead session during a request is discarded (heals next poll)', async () => {
+  let launches = 0;
+  let dead = true;
+  const driver: BrowserDriver = {
+    async launch(): Promise<BrowserSession> {
+      launches++;
+      const poisoned = dead;
+      dead = false;
+      return {
+        async newPageAndGoto(): Promise<BrowserPage> {
+          return {
+            async discoverAjaxUrl() {
+              return 'https://x/action';
+            },
+            async captureResponseUrl() {
+              return 'https://x/action';
+            },
+            async settle() {},
+            async close() {},
+          };
+        },
+        async contextRequest(url) {
+          if (poisoned) throw new Error('Target closed');
+          return { status: 200, url, headers: {}, body: async () => Buffer.from('ok') };
+        },
+        async cookies() {
+          return '_abck=seated';
+        },
+        async close() {},
+      };
+    },
+  };
+
+  const c = createBrowserClient({ driver, sleep: async () => {}, ratePerSec: 100000 });
+  await assert.rejects(() => c.get('https://x/a'), /Target closed/, 'surfaces the failure');
+  // The poisoned handle must be gone — the retry gets a fresh browser rather than the corpse.
+  const res = await c.get('https://x/a');
+  assert.equal(res.status, 200, 'next call self-heals');
+  assert.equal(launches, 2, 'relaunched once after discarding the dead session');
+});
