@@ -169,6 +169,13 @@ VPS in `/home/deploy` — a gap; they should move under `scripts/researchers/` w
 - [ ] If proxied: justified why direct fails; resource-blocking on; bytes/run logged; cadence ≤ data change rate.
 - [ ] All config in data/env (nothing hardcoded); script in the repo; kill-switch documented.
 - [ ] Heartbeat + fetch_log so the productivity guard / sentinel can see it.
+- [ ] **Heartbeat reports OUTCOME, not just liveness** — `heartbeatOk()` on success *and*
+      `heartbeatError()` on failure, not `heartbeatRun()` alone. A `last_run_at` stamp only answers
+      "is it beating?", which stays **true** for a job that runs forever and fails every time; the
+      sentinel's failure rule needs `last_ok_at` + `consecutive_failures` to see it. Skipping this is
+      how `ingest:quote_poll:ADX` stayed dark for 47 h (`20260717101959`). If the job intentionally
+      does nothing (gate/close-window/coverage), that is a **success**, not a failure — call
+      `heartbeatOk()`, or the sentinel will page on a healthy no-op.
 
 ---
 

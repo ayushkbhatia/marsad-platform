@@ -641,6 +641,22 @@ built into the scheduler, fleet-wide, with **no worker code and no trigger** (a 
   by-design-off `ingest:filings_detail_poll:BHB/DFM` heartbeat rows were dropped from the registry
   (they never beat; `ops.beat` re-seeds on reactivation). Pinned by
   `supabase/tests/heartbeat_sentinel_session_source_aware.sql`.
+- **Backoff must never excuse FAILURE** (`20260717101959`) — the sharp edge of the guard, and the
+  one that bit. The benefit proxy counts a **failed** fetch as `changed=false`, identical to a
+  healthy dedup. So a broken feed looks *idle* → the guard backs it off → `effective_cadence > base`
+  → `ops.ingest_job_expected_silent` returns true → **the feed silences its own alarm after ~3
+  failures.** Live on 2026-07-17: `ingest:quote_poll:ADX` had failed **29 consecutive** times and
+  not succeeded in **47 h**, raising nothing; ditto `filings_poll:BHB` (19 / 14 h) and
+  `filings_poll:ADX` (12 / 9 h). The predicate is therefore **split**, with
+  `ops.ingest_job_backing()` as the single home for the `job_name → source` mapping:
+  - `ops.ingest_job_expected_idle()` — deactivated / off-session / outside the eod window. The job
+    is not *supposed* to be working, so neither silence nor a stale `last_ok_at` means anything.
+  - `ops.ingest_job_expected_silent()` = `expected_idle` **OR** backed off. Unchanged in meaning
+    (`exists(P or Q) ≡ exists(P) or exists(Q)`), and still suppresses the **silence** rule only.
+
+  A backed-off source polls slower but is still expected to **succeed when it does run** — so the
+  failure rule consults `expected_idle`, never `expected_silent`. Pinned by
+  `supabase/tests/failure_sentinel_job_health.sql` (11 cases; F2 is this exact regression).
 - **Kill-switch / rollback:** `update ingest.schedules set max_backoff_mult = 1` reverts the whole
   fleet to flat cadence with no deploy; the effective-cadence, heartbeat window, and sentinel all
   read that column so an override is consistent everywhere.

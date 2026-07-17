@@ -181,7 +181,7 @@ writes `ops.job_heartbeats` and pings its Healthchecks.io check.
 | 18 | `evergreen_review` | `0 1 1 1,4,7,10 *` | quarterly | `q_maintenance` | evergreen content quarterly desk review tasks (TPL-06) |
 | 19 | `pdpl_purge` | `30 20 * * *` | 00:30 GST nightly | `q_maintenance` | deletion requests past 30-day grace → irreversible purge, invoices retained (ZATCA 10y) |
 | 20 | `retention_sweeps` | `0 21 * * 6` | Sat weekly | `q_maintenance` | analytics-event downsampling >90d; pgmq archive pruning; Storage temp-exports cleanup. Audit log: no-op sweep (7-year retention, append-only). |
-| 21 | `heartbeat_sentinel` | `*/10 * * * *` | every 10 min | plpgsql only: flags any `ops.job_heartbeats` row past `2× expected_interval` → inserts `ops.incidents` row. Session/source-aware (`20260716121312`): suppresses `ingest:*` jobs that are off-session / outside their eod window / backed off / have no active backing source (`ops.ingest_job_expected_silent`), so only genuine failures alert. | powers the Desk needs-attention queue (24a) |
+| 21 | `heartbeat_sentinel` | `*/10 * * * *` | every 10 min | plpgsql only. Raises an `ops.incidents` row for either failure mode (`ops.job_unhealthy_reason`): **silent** — no run for `2× expected_interval`; or **failing** (`20260717101959`) — `consecutive_failures >= 3` AND nothing succeeded for `2× expected_interval`, i.e. the job beats on time but errors every run. Suppression is mode-specific: silence honours backoff (`ops.ingest_job_expected_silent`), failure does NOT (`ops.ingest_job_expected_idle` — a failed fetch writes `changed=false` and thus causes its own backoff). Also **auto-resolves** `job:*` incidents (`auto_expire` only) once the job is healthy. | powers the Desk needs-attention queue (24a) |
 
 ### 4.2 VPS-resident loops (in-process `node-cron` / timers — too chatty for pg_cron)
 
@@ -260,7 +260,7 @@ Primary observability is **the product itself** — the Desk feed-health board (
 market-data ops screen (33a) are designed as ops consoles, so the ops tables are
 first-class schema, not an afterthought:
 
-- `ops.job_heartbeats(job_name pk, expected_interval_s, last_run_at, last_ok_at, last_error, consecutive_failures)` — every job upserts on completion. The `heartbeat_sentinel` pg_cron job turns silence into `ops.incidents` rows.
+- `ops.job_heartbeats(job_name pk, expected_interval_s, last_run_at, last_ok_at, last_error, consecutive_failures)` — every job upserts on completion. The `heartbeat_sentinel` pg_cron job turns both silence (`last_run_at`) **and sustained failure** (`last_ok_at` + `consecutive_failures`) into `ops.incidents` rows. **The three columns are one contract:** `last_run_at` alone answers "is it beating?", which stays true for a job that runs forever and fails every time — so a handler that stamps `last_run_at` must also call `heartbeatOk`/`heartbeatError` (worker `job-heartbeat.ts`), or its failures are invisible. This is exactly the 47 h ADX blind spot `20260717101959` closed.
 - `ops.job_runs(id, job_name, started_at, finished_at, ok, detail jsonb)` — append log, 30-day retention, powers the 30-day ops stats on 33a.
 - `ops.feed_status(venue, state, last_sync_at, latency_ms, retry_count, detail)` — the 6-state freshness machine's home; broadcast on the `feed_status` Realtime channel to every badge on every surface.
 - `ops.incidents(id, severity, source, message, created_at, resolved_at, auto_expire)` — feeds the Desk needs-attention queue and incident banner composer.
