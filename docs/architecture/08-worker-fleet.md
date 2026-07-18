@@ -23,6 +23,14 @@ Marsad runs autonomous work in two structurally different ways. Confusing them i
 rarely as the data changes, fetch as little as possible, and never re-load a page whose output it already
 owns.** Class-A is cheap and can run often. Never let a Class-B worker inherit a Class-A cadence.
 
+> **Class B is a transport, not a category of work.** `qe-financials` (2026-07-17) is a *script-driven
+> systemd researcher* — Class B by shape — that is **plain-HTTP JSON**: no Chromium, no xvfb, no proxy,
+> no `scrape-guardrails`, `MemoryHigh=600M`. It is as cheap as Class A. The expensive thing was never
+> "being a researcher", it was **rendering a page to get at data that was available as an endpoint**.
+> Before building the next researcher, look for the endpoint first (§ "Fetch the data endpoint, not the
+> page"): QE's Financials tab looked like an unpinnable Liferay portlet and was in fact a clean REST API
+> the page itself calls. The browser is a last resort for WAF-walled origins, not a default.
+
 Both classes are also governed by the **fleet productivity guard** (§3.1) — a worker that produces no
 incremental lake benefit backs off automatically. But the guard only covers the cadence-driven ingest
 pollers (Class A); Class-B researchers are governed by their own systemd cadence + the guardrails in §4.

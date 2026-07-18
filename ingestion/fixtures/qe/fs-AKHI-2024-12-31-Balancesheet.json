@@ -1,0 +1,584 @@
+[
+  {
+    "xbrlID": "qse-ins-is_CashAndCashEquivalentsPolicyholders",
+    "Value": 24763022.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_CashAndCashEquivalentsPolicyholders",
+    "Value": 48542902.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_CashAndCashEquivalentsShareholders",
+    "Value": 49085784.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_CashAndCashEquivalentsShareholders",
+    "Value": 41245573.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_CurrentTaxLiabilitiesShareholders",
+    "Value": 2173.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_CurrentTaxLiabilitiesShareholders",
+    "Value": 2173.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_EquityAttributableToOwnersOfParent",
+    "Value": 597373996.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_EquityAttributableToOwnersOfParent",
+    "Value": 627761746.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_FairValueReserve",
+    "Value": 2179238.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_FairValueReserve",
+    "Value": 1522047.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_FixedDepositsPolicyholders",
+    "Value": 40950000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_FixedDepositsPolicyholders",
+    "Value": 50000000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_FixedDepositsShareholders",
+    "Value": 128750000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_FixedDepositsShareholders",
+    "Value": 155100000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_GeneralReserve",
+    "Value": 75477.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_GeneralReserve",
+    "Value": 75477.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_InsuranceContractsIssuedThatAreLiabilitiesPolicyholders",
+    "Value": 296086823.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_InsuranceContractsIssuedThatAreLiabilitiesPolicyholders",
+    "Value": 298276576.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_InsuranceContractsIssuedThatAreLiabilitiesShareholders",
+    "Value": 400000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_InsuranceContractsIssuedThatAreLiabilitiesShareholders",
+    "Value": 75000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_InsurancePayablesPolicyholders",
+    "Value": 33118586.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_InsurancePayablesPolicyholders",
+    "Value": 74571546.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_InsurancePayablesShareholders",
+    "Value": 1060509.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_InsurancePayablesShareholders",
+    "Value": 1060509.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_InsuranceReceivablesPolicyholders",
+    "Value": 98057670.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_InsuranceReceivablesPolicyholders",
+    "Value": 97602189.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_InsuranceReceivablesShareholders",
+    "Value": 0.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_InsuranceReceivablesShareholders",
+    "Value": 0.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_InvestmentPropertyPolicyholders",
+    "Value": 28739797.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_InvestmentPropertyPolicyholders",
+    "Value": 28061100.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_InvestmentPropertyShareholders",
+    "Value": 205859103.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_InvestmentPropertyShareholders",
+    "Value": 202585391.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_InvestmentSecuritiesPolicyholders",
+    "Value": 16059689.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_InvestmentSecuritiesPolicyholders",
+    "Value": 16711779.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_InvestmentSecuritiesShareholders",
+    "Value": 158559655.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_InvestmentSecuritiesShareholders",
+    "Value": 208330334.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_InvestmentsInSubsidiariesJointVenturesAndAssociatesShareholders",
+    "Value": 57624756.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_InvestmentsInSubsidiariesJointVenturesAndAssociatesShareholders",
+    "Value": 25385269.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_IssuedCapital",
+    "Value": 255279020.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_IssuedCapital",
+    "Value": 255279020.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_MiscellaneousOtherReserves",
+    "Value": 56262383.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_MiscellaneousOtherReserves",
+    "Value": 45176238.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_OtherAssetsPolicyholders",
+    "Value": 10666396.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_OtherAssetsPolicyholders",
+    "Value": 10647348.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_OtherFinancialLiabilitiesShareholders",
+    "Value": 4136276.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_OtherFinancialLiabilitiesShareholders",
+    "Value": 4073199.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_OtherLiabilitiesPolicyholders",
+    "Value": 9276143.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_OtherLiabilitiesPolicyholders",
+    "Value": 9040223.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_OtherReserves",
+    "Value": 313796118.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_OtherReserves",
+    "Value": 302052782.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_PolicyholdersAssets",
+    "Value": 399894369.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_PolicyholdersAssets",
+    "Value": 432056883.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_PolicyholdersEquity",
+    "Value": 34595473.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_PolicyholdersEquity",
+    "Value": 33881817.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_PolicyholdersEquityAndLiabilities",
+    "Value": 399894369.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_PolicyholdersEquityAndLiabilities",
+    "Value": 432056883.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_PolicyholdersLiabilities",
+    "Value": 365298896.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_PolicyholdersLiabilities",
+    "Value": 398175066.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_PropertyPlantAndEquipmentShareholders",
+    "Value": 4870475.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_PropertyPlantAndEquipmentShareholders",
+    "Value": 3987023.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_ProvisionsForEmployeeBenefitsShareholders",
+    "Value": 6669094.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_ProvisionsForEmployeeBenefitsShareholders",
+    "Value": 7599117.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_ProvisionsPolicyholders",
+    "Value": 0.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_ProvisionsPolicyholders",
+    "Value": 0.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_ProvisionsShareholders",
+    "Value": 6669094.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_ProvisionsShareholders",
+    "Value": 7599117.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_ReinsuranceContractsHeldThatAreAssetsPolicyholders",
+    "Value": 166926517.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_ReinsuranceContractsHeldThatAreAssetsPolicyholders",
+    "Value": 165630321.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_ReinsuranceContractsHeldThatAreAssetsShareholders",
+    "Value": 398721.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_ReinsuranceContractsHeldThatAreAssetsShareholders",
+    "Value": 74760.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_RetainedEarnings",
+    "Value": 28298858.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_RetainedEarnings",
+    "Value": 70429944.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_RetakafulParticipantsAssetsShareholders",
+    "Value": 0.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_RightOfUseAssetsShareholders",
+    "Value": 27927902.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_RightOfUseAssetsShareholders",
+    "Value": 27058130.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_ShareholdersAndPolicyholdersAssets",
+    "Value": 1039612803.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_ShareholdersAndPolicyholdersAssets",
+    "Value": 1102968731.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_ShareholdersAndPolicyholdersEquityAndLiabilities",
+    "Value": 1039612803.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_ShareholdersAndPolicyholdersEquityAndLiabilities",
+    "Value": 1102968731.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_ShareholdersAssets",
+    "Value": 639718434.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_ShareholdersAssets",
+    "Value": 670911848.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_ShareholdersEquity",
+    "Value": 597373996.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_ShareholdersEquity",
+    "Value": 627761746.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_ShareholdersEquityAndLiabilities",
+    "Value": 639718434.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_ShareholdersEquityAndLiabilities",
+    "Value": 670911848.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_ShareholdersLiabilities",
+    "Value": 42344438.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_ShareholdersLiabilities",
+    "Value": 43150102.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_StatutoryReserve",
+    "Value": 255279020.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_StatutoryReserve",
+    "Value": 255279020.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_TradeAndOtherPayablesPolicyholders",
+    "Value": 26817344.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_TradeAndOtherPayablesPolicyholders",
+    "Value": 16286721.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_TradeAndOtherPayablesShareholders",
+    "Value": 30076386.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_TradeAndOtherPayablesShareholders",
+    "Value": 30340104.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_TradeAndOtherReceivablesPolicyholders",
+    "Value": 13731278.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_TradeAndOtherReceivablesPolicyholders",
+    "Value": 14861244.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_TradeAndOtherReceivablesShareholders",
+    "Value": 6642038.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-ins-is_TradeAndOtherReceivablesShareholders",
+    "Value": 7145368.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  }
+]

@@ -1,0 +1,332 @@
+[
+  {
+    "xbrlID": "ifrs-full_AdjustedWeightedAverageShares",
+    "Value": 6050000000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_AdjustedWeightedAverageShares",
+    "Value": 6050000000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_BasicEarningsLossPerShare",
+    "Value": 0.78,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_BasicEarningsLossPerShare",
+    "Value": 0.74,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_BasicEarningsLossPerShareFromContinuingOperations",
+    "Value": 0.78,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_BasicEarningsLossPerShareFromContinuingOperations",
+    "Value": 0.74,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_CostOfSales",
+    "Value": 9216464000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_CostOfSales",
+    "Value": 9810216000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_DilutedEarningsLossPerShare",
+    "Value": 0.78,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_DilutedEarningsLossPerShare",
+    "Value": 0.74,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_DilutedEarningsLossPerShareFromContinuingOperations",
+    "Value": 0.78,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_DilutedEarningsLossPerShareFromContinuingOperations",
+    "Value": 0.74,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_FinanceCosts",
+    "Value": 28528000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_FinanceCosts",
+    "Value": 29857000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_FinanceIncome",
+    "Value": 812931000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_FinanceIncome",
+    "Value": 686622000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_GeneralAndAdministrativeExpense",
+    "Value": 739813000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_GeneralAndAdministrativeExpense",
+    "Value": 761081000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_GrossProfit",
+    "Value": 2527568000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_GrossProfit",
+    "Value": 2841920000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ImpairmentLossReversalOfImpairmentLossRecognisedInProfitOrLoss",
+    "Value": -610000000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_IncomeTaxExpenseContinuingOperations",
+    "Value": 1648000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_IncomeTaxExpenseContinuingOperations",
+    "Value": 41837000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_NumberOfSharesOutstanding",
+    "Value": 6050000000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_NumberOfSharesOutstanding",
+    "Value": 6050000000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_OperatingExpense",
+    "Value": 209296000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_OperatingExpense",
+    "Value": 850727000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ProfitLoss",
+    "Value": 4722789000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ProfitLoss",
+    "Value": 4559559000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ProfitLossAttributableToNoncontrollingInterests",
+    "Value": 2650000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ProfitLossAttributableToNoncontrollingInterests",
+    "Value": 69266000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ProfitLossAttributableToOwnersOfParent",
+    "Value": 4720139000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ProfitLossAttributableToOwnersOfParent",
+    "Value": 4490293000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ProfitLossFromContinuingOperations",
+    "Value": 4722789000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ProfitLossFromContinuingOperations",
+    "Value": 4559559000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ProfitLossFromDiscontinuedOperations",
+    "Value": 0.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ProfitLossFromDiscontinuedOperations",
+    "Value": 0.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ProfitLossFromOperatingActivities",
+    "Value": 2318272000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ProfitLossFromOperatingActivities",
+    "Value": 1991193000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_Revenue",
+    "Value": 11744032000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_Revenue",
+    "Value": 12652136000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_RevenueAndOperatingIncome",
+    "Value": 2527568000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_RevenueAndOperatingIncome",
+    "Value": 2841920000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_SalesAndMarketingExpense",
+    "Value": 79483000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_SalesAndMarketingExpense",
+    "Value": 89646000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ShareOfProfitLossOfAssociatesAndJointVenturesAccountedForUsingEquityMethod",
+    "Value": 1641597000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ShareOfProfitLossOfAssociatesAndJointVenturesAccountedForUsingEquityMethod",
+    "Value": 1605475000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_WeightedAverageShares",
+    "Value": 6050000000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_WeightedAverageShares",
+    "Value": 6050000000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_OtherNonOperatingIncomeExpense",
+    "Value": -19835000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_OtherNonOperatingIncomeExpense",
+    "Value": 347963000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_ProfitLossBeforeIncomeTaxContinuingOperations",
+    "Value": 4724437000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_ProfitLossBeforeIncomeTaxContinuingOperations",
+    "Value": 4601396000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_RevenueFromOperatingActivities",
+    "Value": 11744032000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_RevenueFromOperatingActivities",
+    "Value": 12652136000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  }
+]

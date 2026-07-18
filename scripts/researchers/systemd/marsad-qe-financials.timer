@@ -1,0 +1,23 @@
+[Unit]
+Description=Run Marsad QE financials researcher periodically
+
+[Timer]
+# Staggered after the TDWL researcher (8min) / gapfill (12min) / ADX gapfill (16min) so the scrapers
+# never fire together.
+OnBootSec=24min
+# BACKFILL (as shipped): fire every 30min with the window gate OFF (the wrapper defaults
+# QE_WINDOW_GATE=0), so the cursor walks the ~54-company universe. ~4 fires per full pass at
+# CHUNK_SIZE=16.
+OnUnitActiveSec=30min
+#
+# STEADY STATE: once the cursor has wrapped with coverage, flip to a 6h interval and enable the gate
+# — the gate then allows every fire in a reporting window and ~weekly off-season, which is the
+# owner's "check weekly for new PDFs". Statements change quarterly, so a faster fixed cadence would
+# be wrong (08-worker-fleet.md §4: "if the cadence is faster than the data changes, it is wrong").
+#   systemctl edit marsad-qe-financials.timer     # [Timer] OnUnitActiveSec=6h
+#   systemctl edit marsad-qe-financials.service   # [Service] Environment=QE_WINDOW_GATE=1
+# Kill switch: systemctl disable --now marsad-qe-financials.timer
+Persistent=true
+
+[Install]
+WantedBy=timers.target

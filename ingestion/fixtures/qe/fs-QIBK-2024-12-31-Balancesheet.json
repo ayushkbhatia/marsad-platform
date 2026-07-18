@@ -1,0 +1,398 @@
+[
+  {
+    "xbrlID": "ifrs-full_Assets",
+    "Value": 189157099000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_Assets",
+    "Value": 200779776000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_Equity",
+    "Value": 30017138000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_Equity",
+    "Value": 31770844000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_EquityAndLiabilities",
+    "Value": 82970684000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_EquityAndLiabilities",
+    "Value": 92214138000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_EquityAttributableToOwnersOfParent",
+    "Value": 25391762000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_EquityAttributableToOwnersOfParent",
+    "Value": 27157332000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_Goodwill",
+    "Value": 217814000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_Goodwill",
+    "Value": 0.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_InvestmentProperty",
+    "Value": 3305864000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_InvestmentProperty",
+    "Value": 2467793000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_InvestmentsInSubsidiariesJointVenturesAndAssociates",
+    "Value": 1127659000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_InvestmentsInSubsidiariesJointVenturesAndAssociates",
+    "Value": 1100365000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_IssuedCapital",
+    "Value": 2362932000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_IssuedCapital",
+    "Value": 2362932000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_Liabilities",
+    "Value": 52953546000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_Liabilities",
+    "Value": 60443294000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_LiabilitiesIncludedInDisposalGroupsClassifiedAsHeldForSale",
+    "Value": 3429799000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_NoncontrollingInterests",
+    "Value": 625376000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_NoncontrollingInterests",
+    "Value": 613512000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_NoncurrentAssetsOrDisposalGroupsClassifiedAsHeldForSaleOrAsHeldForDistributionToOwners",
+    "Value": 5188045000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_OtherAssets",
+    "Value": 2296916000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_OtherAssets",
+    "Value": 2214142000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_OtherLiabilities",
+    "Value": 3203092000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_OtherLiabilities",
+    "Value": 2825744000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_OtherReserves",
+    "Value": 9025347000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_OtherReserves",
+    "Value": 9020144000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_PropertyPlantAndEquipment",
+    "Value": 515525000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_PropertyPlantAndEquipment",
+    "Value": 355853000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_Provisions",
+    "Value": 0.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_Provisions",
+    "Value": 0.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ReserveOfExchangeDifferencesOnTranslation",
+    "Value": -577340000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ReserveOfExchangeDifferencesOnTranslation",
+    "Value": -661941000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_RetainedEarnings",
+    "Value": 14003483000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_RetainedEarnings",
+    "Value": 15774256000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_StatutoryReserve",
+    "Value": 6370016000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_StatutoryReserve",
+    "Value": 6370016000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_BankingRiskReserve",
+    "Value": 2952553000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_BankingRiskReserve",
+    "Value": 3102283000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_CashAndBalancesWithQatarCentralBank",
+    "Value": 8037333000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_CashAndBalancesWithQatarCentralBank",
+    "Value": 8683066000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_CustomersDepositsAndCurrentAccountsLiabilities",
+    "Value": 14648105000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_CustomersDepositsAndCurrentAccountsLiabilities",
+    "Value": 16429048000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_DueFromBanksAndFinancialInstitutions",
+    "Value": 3261873000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_DueFromBanksAndFinancialInstitutions",
+    "Value": 2488250000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_DueToBanksAndFinancialInstitutions",
+    "Value": 20434099000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_DueToBanksAndFinancialInstitutions",
+    "Value": 24017183000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_EquityAndLiabilitiesAndEquityOfInvestmentAccountHolders",
+    "Value": 189157099000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_EquityAndLiabilitiesAndEquityOfInvestmentAccountHolders",
+    "Value": 200779776000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_EquityOfInvestmentAccountHolders",
+    "Value": 106186415000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_EquityOfInvestmentAccountHolders",
+    "Value": 108565638000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_FairValueReserve",
+    "Value": -18637000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_FairValueReserve",
+    "Value": -88969000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_FinancingAssets",
+    "Value": 122380843000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_FinancingAssets",
+    "Value": 125274016000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_GeneralReserve",
+    "Value": 81935000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_GeneralReserve",
+    "Value": 81935000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_InvestmentSecurities",
+    "Value": 48013272000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_InvestmentSecurities",
+    "Value": 53008246000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_MiscellaneousOtherReserves",
+    "Value": 216820000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_MiscellaneousOtherReserves",
+    "Value": 216820000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_SukukEligibleAsAdditionalCapital",
+    "Value": 4000000000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_SukukEligibleAsAdditionalCapital",
+    "Value": 4000000000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_SukukIslamicBondsFinancingLiabilities",
+    "Value": 14668250000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_SukukIslamicBondsFinancingLiabilities",
+    "Value": 13741520000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  }
+]
