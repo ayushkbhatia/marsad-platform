@@ -155,9 +155,14 @@ function unzipPdfs(buf) {
     writeFileSync(zip, buf);
 
     // 1. Read the manifest ONLY. `unzip -l` prints a trailing "<total> <count> files" summary line.
+    // NB: Debian `unzip 6.00` exits 1 (a WARNING — "processing completed successfully") on MSX's zips,
+    // which carry a few appended bytes; the listing/extraction still succeed. Only status >= 2 is a real
+    // error, and even then it is treated as TRANSIENT (a truncated download retries next run) — never
+    // permanent, or a one-off network blip would lose the filing forever. macOS unzip exits 0 on the same
+    // files, so this MUST be validated on the Debian VPS, not locally (learned the hard way 2026-07-18).
     const list = spawnSync('unzip', ['-l', zip], { maxBuffer: 2e7, encoding: 'utf8' });
     if (list.error?.code === 'ENOENT') return { err: 'unzip missing', permanent: false };
-    if (list.status !== 0) return { err: `unzip -l status ${list.status}`, permanent: true };
+    if (list.status !== 0 && list.status !== 1) return { err: `unzip -l status ${list.status}`, permanent: false };
     const summary = /^\s*(\d+)\s+(\d+)\s+files?\s*$/m.exec(list.stdout || '');
     const declared = summary ? Number(summary[1]) : 0;
     const count = summary ? Number(summary[2]) : 0;
@@ -168,9 +173,11 @@ function unzipPdfs(buf) {
     const out = join(dir, 'out');
     const r = spawnSync('unzip', ['-o', '-qq', '-j', zip, '*.pdf', '-d', out], { maxBuffer: 2e7 });
     if (r.error?.code === 'ENOENT') return { err: 'unzip missing', permanent: false };
-    // exit 11 = "no matching files" — a real, successful read of a zip that simply holds no PDFs.
+    // exit 0 = clean; exit 1 = warnings but files DID extract (the normal case for MSX's appended-byte
+    // zips on Debian unzip). exit 11 = "no matching files" (a real, permanently-empty zip). Any other
+    // code (>=2) is a genuine error — most likely a truncated download, so retry it rather than burn it.
     if (r.status === 11) return { err: 'zip contains no pdfs', permanent: true };
-    if (r.status !== 0) return { err: `unzip status ${r.status}`, permanent: true };
+    if (r.status !== 0 && r.status !== 1) return { err: `unzip status ${r.status}`, permanent: false };
 
     let names;
     try { names = readdirSync(out); } catch { return { err: 'no output dir', permanent: true }; }
