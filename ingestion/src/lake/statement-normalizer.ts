@@ -30,10 +30,14 @@
  */
 
 import { fromYahooSymbol } from '../adapters/yahoo/symbols.js';
-import type { NormalizedStatementRow, VenueCode } from '../core/types.js';
+import type { NormalizedStatementRow, StatementPresentationRow, StatementType, VenueCode } from '../core/types.js';
 
-/** The three statement families public.financial_statements.statement_type checks. */
-export type StatementType = 'income' | 'balance' | 'cashflow';
+/**
+ * Re-exported from core/types — the ONE statement_type union (was declared three
+ * times: here, core/types.ts, runtime.ts; widening one and not the others compiled
+ * cleanly and failed at runtime/SQL — 20260717 Phase A unification).
+ */
+export type { StatementPresentationRow, StatementType };
 
 /** public.financial_statements.period_kind check ('quarter'|'annual'|'ttm'). */
 export type PeriodKind = 'quarter' | 'annual' | 'ttm';
@@ -45,7 +49,8 @@ export interface NormalizedPeriod {
   periodEnd: string; // 'YYYY-MM-DD' → period_end
   currency: string; // char(3) → currency
   statementType: StatementType;
-  lineItems: Record<string, number | null>; // → line_items (jsonb), the §3.1 primitive keys
+  lineItems: Record<string, number | null>; // → line_items (jsonb) — open bag, §3.1 primitives as overlay
+  presentation?: StatementPresentationRow[] | null; // → presentation (jsonb), printed labels in document order
 }
 
 /** All normalized periods for one security from one source. */
@@ -55,7 +60,13 @@ export interface NormalizedStatements {
   periods: NormalizedPeriod[];
 }
 
-/** The §3.1 canonical primitive keys — the single vocabulary line_items may use. */
+/**
+ * The §3.1 canonical primitive keys — the canonical OVERLAY the ratio engine reads.
+ * line_items itself is an OPEN BAG (every printed line under a snake_case key —
+ * statement-extraction.ts's contract); these keys are the subset with a guaranteed
+ * meaning across venues, NOT a closed vocabulary. A non-primitive key is first-class
+ * data for the reader/agent surfaces, never a violation.
+ */
 export const PRIMITIVE_KEYS = [
   'revenue',
   'gross_profit',
@@ -442,6 +453,14 @@ function firstString(v: unknown): string | null {
  * flow (per-period EPS sums to a trailing EPS). Ratios like capital_employed are
  * re-derived from the TTM balance levels, not summed.
  */
+/**
+ * TTM derivation only ever windows over the core three statement families —
+ * 'oci'/'equity_change' quarters are roll-forwards/companions, not part of the
+ * §3.1 primitive bag, and including them would let the TTM row inherit a
+ * non-core statementType from whichever quarter sorted first.
+ */
+const TTM_ELIGIBLE_TYPES = new Set<StatementType>(['income', 'balance', 'cashflow']);
+
 const FLOW_KEYS = new Set<PrimitiveKey>([
   'revenue',
   'gross_profit',
@@ -463,7 +482,7 @@ const FLOW_KEYS = new Set<PrimitiveKey>([
  */
 export function deriveTtm(periods: NormalizedPeriod[]): NormalizedPeriod[] {
   const quarters = periods
-    .filter((p) => p.periodKind === 'quarter')
+    .filter((p) => p.periodKind === 'quarter' && TTM_ELIGIBLE_TYPES.has(p.statementType))
     .slice()
     .sort((a, b) => (a.periodEnd < b.periodEnd ? 1 : a.periodEnd > b.periodEnd ? -1 : 0));
 
@@ -546,6 +565,7 @@ export function flattenStatements(
       periodEnd: p.periodEnd,
       currency: p.currency,
       lineItems: p.lineItems,
+      ...(p.presentation != null && p.presentation.length > 0 ? { presentation: p.presentation } : {}),
     });
   }
   return out;
@@ -561,19 +581,25 @@ export interface StatementValidation {
   warnings: string[];
 }
 
-/** Required primitive keys per statement type (07 §3.1; cashflow has no hard floor). */
+/** Required primitive keys per statement type (07 §3.1; cashflow/oci/equity_change have no hard floor). */
 const REQUIRED_BY_TYPE: Record<StatementType, PrimitiveKey[]> = {
   income: ['revenue', 'net_income'],
   balance: ['total_assets', 'equity'],
   cashflow: [],
+  oci: [],
+  equity_change: [],
 };
 
 /**
  * PURE. Validate ONE normalized period against the primitive contract: the
  * required-by-statement-type keys must be present AND non-null. Missing required
- * keys ⇒ ok:false + the list. Warnings flag soft issues (empty line_items, an
- * unknown key that is not a §3.1 primitive) without failing — the LLM/PDF path
- * (7d) and the venue adapters both aim at this fixed target.
+ * keys ⇒ ok:false + the list. Warnings flag soft issues (empty line_items, a
+ * malformed currency/period_end) without failing.
+ *
+ * NOTE (Phase A vocabulary ruling): a non-§3.1 key is NOT flagged — line_items is
+ * an open bag by contract (every printed line lands under a snake_case key); the
+ * primitives are only the canonical overlay the ratio engine reads. The former
+ * "non-primitive key" warning contradicted the extraction contract and is retired.
  */
 export function validateNormalizedPeriod(p: NormalizedPeriod): StatementValidation {
   const missingRequired: string[] = [];
@@ -588,11 +614,6 @@ export function validateNormalizedPeriod(p: NormalizedPeriod): StatementValidati
   if (Object.keys(p.lineItems).length === 0) warnings.push('empty line_items');
   if (!p.currency || p.currency.length !== 3) warnings.push('currency not a 3-letter code');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(p.periodEnd)) warnings.push('period_end not YYYY-MM-DD');
-
-  const known = new Set<string>(PRIMITIVE_KEYS);
-  for (const key of Object.keys(p.lineItems)) {
-    if (!known.has(key)) warnings.push(`non-primitive key: ${key}`);
-  }
 
   return { ok: missingRequired.length === 0, missingRequired, warnings };
 }

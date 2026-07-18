@@ -26,6 +26,7 @@
  */
 import { toNumberOrNull } from './statement-normalizer.js';
 import type { NormalizedPeriod, NormalizedStatements, PeriodKind, StatementType } from './statement-normalizer.js';
+import type { StatementPresentationRow } from '../core/types.js';
 
 /** One reporting column of one filing (the reported period, or its prior-period comparative). The SAME
  *  shape the XBRL parser (adapters/tadawul/xbrl.ts) and the PDF+LLM path both emit, so both flow through
@@ -41,6 +42,9 @@ export interface ExtractedStatement {
   is_comparative?: boolean;
   /** {key: value} for EVERY printed line, in `scale` units; absent line ⇒ null/absent. */
   line_items: Record<string, number | null>;
+  /** Printed labels in document order (Phase A presentation capture) — optional; the XBRL parser
+   *  emits it, the LLM path may. Carried through assemble untouched (never scaled). */
+  presentation?: StatementPresentationRow[];
 }
 
 /** The LLM/XBRL extraction envelope — one filing's statements at a single declared scale. */
@@ -99,12 +103,23 @@ export const EXTRACTION_JSON_SCHEMA = {
           type: 'object', additionalProperties: false,
           required: ['statement_type', 'period_kind', 'fiscal_period', 'period_end', 'is_comparative', 'line_items'],
           properties: {
-            statement_type: { type: 'string', enum: ['income', 'balance', 'cashflow'] },
+            statement_type: { type: 'string', enum: ['income', 'balance', 'cashflow', 'oci', 'equity_change'] },
             period_kind: { type: 'string', enum: ['quarter', 'annual'] },
             fiscal_period: { type: 'string' },
             period_end: { type: 'string' },
             is_comparative: { type: 'boolean' },
             line_items: { type: 'object', additionalProperties: { type: ['number', 'null'] } },
+            presentation: {
+              type: 'array',
+              items: {
+                type: 'object', additionalProperties: false,
+                required: ['key', 'label', 'depth', 'is_subtotal'],
+                properties: {
+                  key: { type: 'string' }, label: { type: 'string' },
+                  depth: { type: 'number' }, is_subtotal: { type: 'boolean' },
+                },
+              },
+            },
           },
         },
       },
@@ -183,7 +198,11 @@ export function assembleFromExtraction(raw: ExtractedFinancials, venue: string, 
     const lineItems = scaleLineItems(s.line_items || {}, factor);
     if (Object.keys(lineItems).length === 0) continue;
     const fiscalPeriod = canonicalFiscalPeriod(s.period_kind, s.period_end, s.fiscal_period);
-    periods.push({ periodKind: s.period_kind, fiscalPeriod, periodEnd: s.period_end, currency, statementType: s.statement_type, lineItems });
+    periods.push({
+      periodKind: s.period_kind, fiscalPeriod, periodEnd: s.period_end, currency,
+      statementType: s.statement_type, lineItems,
+      ...(s.presentation && s.presentation.length > 0 ? { presentation: s.presentation } : {}),
+    });
   }
   return { venue, ticker, periods };
 }
@@ -191,6 +210,11 @@ export function assembleFromExtraction(raw: ExtractedFinancials, venue: string, 
 const MAX_MAGNITUDE = 1e15;
 const IDENTITY_TOL = 0.02;
 const BUDGET_RE = /budget|forecast|projected|guidance/i;
+/** Runtime membership gates — the TS unions constrain compile time only; LLM JSON can carry
+ *  anything. Before Phase A a garbage statement_type accrued NO reject reasons here and shipped
+ *  unvalidated, then died SILENTLY at the projection guard. Now it rejects loudly at the gate. */
+const KNOWN_STATEMENT_TYPES = new Set<string>(['income', 'balance', 'cashflow', 'oci', 'equity_change']);
+const KNOWN_PERIOD_KINDS = new Set<string>(['quarter', 'annual', 'ttm']);
 
 export interface ValidationIssue {
   statementType: StatementType;
@@ -230,6 +254,8 @@ export function validateExtraction(raw: ExtractedFinancials): ValidationResult {
     const reasons: ValidationIssue[] = [];
     const m = li(s);
     const push = (check: string, severity: 'reject' | 'warn', detail: string) => reasons.push({ statementType: s.statement_type, fiscalPeriod: s.fiscal_period, check, severity, detail });
+    if (!KNOWN_STATEMENT_TYPES.has(s.statement_type)) push('unknown_statement_type', 'reject', `statement_type "${s.statement_type}" is not a known type`);
+    if (!KNOWN_PERIOD_KINDS.has(s.period_kind)) push('unknown_period_kind', 'reject', `period_kind "${s.period_kind}" is not a known kind`);
     if (BUDGET_RE.test(s.fiscal_period)) push('not_actual', 'reject', `"${s.fiscal_period}" is a budget/forecast`);
     for (const k of ['total_assets', 'equity', 'revenue'])
       if (typeof m[k] === 'number' && Math.abs(m[k]) > MAX_MAGNITUDE)

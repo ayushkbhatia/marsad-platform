@@ -1,6 +1,6 @@
 # Marsad — Build Status & Roadmap
 
-_Last updated: 2026-07-16. Living document — the source of truth for what's shipped, what's live, and what's next._
+_Last updated: 2026-07-18. Living document — the source of truth for what's shipped, what's live, and what's next._
 
 Maps against the phase plan in [`docs/architecture/00-master-plan.md`](architecture/00-master-plan.md).
 
@@ -129,7 +129,7 @@ Two feeds fill `ohlcv_daily` — **both required, different cadences, do not con
   fully seeded the injected list is empty and `runTask` skips the fetch (graceful stop; EOD accrual +
   intraday quotes carry the lake forward). A one-shot `range=2y` GET returns the provider's full feasible
   window, so "backfilled once" = "as deep as the provider offers" — no day-count threshold needed. Live
-  2026-07-15 (post `20260715145325` retro-stamp): TDWL 387/387, DFM 55/55, QE 49/49, ADX 79/93, MSX 25/68
+  2026-07-15 (post `20260715145325` retro-stamp): TDWL 387/387, DFM 55/72 (17 secs added by the 20260716141000 universe reconcile still un-backfilled), QE 49/49, ADX 79/93, MSX 25/68
   (advancing chunk-by-chunk), BHB 0/41 (backfill source **activated** `20260716140000` + adapter reconciled to direct/dynamic-Bearer; first drain pending VPS deploy).
 - **EOD accrual (ongoing, +1 bar/security/trading-day):** rolls the intraday `quotes_latest` ticks
   into that day's O/H/L/C/volume **at close** (cadence is DAILY, not the ~10-min quote cadence).
@@ -177,6 +177,35 @@ Two feeds fill `ohlcv_daily` — **both required, different cadences, do not con
 
 ### P1.7b — Fundamentals + ratios (code spine landed 2026-07-14)
 The **derived data path is built + tested**; it goes live the moment `financial_statements` is populated.
+- ✅ **Statement-pipeline Phase A — silent-failure chokepoints closed ahead of the oci/equity_change
+  capture** (2026-07-18, migration `20260718193005` applied live, all suites green: ingestion 511,
+  worker 57, live SQL regression 6/6):
+  (1) **`statement_type` widened + unified** — DB CHECK now admits `oci` + `equity_change`, and the
+  formerly-TRIPLED TS union (`statement-normalizer.ts` / `core/types.ts` / `runtime.ts` each declared
+  their own copy — widening one compiled cleanly and failed at runtime/SQL) is ONE exported
+  `StatementType` in `core/types.ts`; `EXTRACTION_JSON_SCHEMA` + `REQUIRED_BY_TYPE` widened;
+  `validateExtraction` gained runtime **membership gates** (a garbage type/kind from the LLM now
+  REJECTS loudly instead of shipping unvalidated); `deriveTtm` windows only core-type quarters.
+  (2) **Projection v3** (`lake.fn_financials_project`): malformed payloads **`raise warning`** with the
+  natural_key before skipping (was: silent `return null` — object sat PENDING, healthy-looking, no
+  serving row, no signal); change-detection **split content vs metadata** — content (line_items/
+  period_end/currency) still restates (archive + version bump), but a segments/presentation/period_kind
+  refresh updates in place with NO bump (so re-staging 12k rows with newly captured presentation can't
+  fake-archive them; also fixes the pre-v3 bugs where a segments-only or period_kind-only change was
+  silently discarded, and the write-once-sticky `coalesce(v_seg, segments)`); **`source_filing_id`
+  finally populated** (payload `source_filing_id` or venue-scoped `filing_source_ref` lookup — the
+  statements→filings link was permanently NULL).
+  (3) **Presentation capture** — new `presentation` jsonb on `financial_statements` + history:
+  ordered `[{key,label,depth,is_subtotal}]` per statement, captured at parse time (free there,
+  expensive to reconstruct); `parseTadawulXbrl` emits it (SABIC balance = 32 labeled rows in document
+  order; depth stays 0 — the XBRL HTML carries no indent markup), carried through
+  extraction→normalizer→staging→projection; goldens regenerated, semantically identical minus the
+  added presentation.
+  (4) **Vocabulary ruling** — `line_items` is an OPEN BAG (every printed line), `PRIMITIVE_KEYS` is
+  the canonical ratio-engine OVERLAY; the normalizer's "non-primitive key" warning (which contradicted
+  the extractor's capture-everything contract) is retired.
+  Regression: `supabase/tests/financials_projection_v3.sql` (6 cases, passes live). Phase B (the
+  actual `oci`/`equity_change` XBRL capture + storage replay) is next.
 - ✅ **`[NEW COL]` migration** (0036) on `public.key_ratios`: `net_margin, gross_margin, rev_growth_yoy,
   eps_growth_yoy, rev_cagr_3y, eps_cagr_3y, ret_3m, ret_6m, ret_12_1, ebitda_ttm, currency_computed`.
 - ✅ **Sector-aware ratio recompute** (`ingestion/src/lake/ratios-compute.ts` + `key-ratios.ts`): proper

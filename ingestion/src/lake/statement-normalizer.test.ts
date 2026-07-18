@@ -280,3 +280,65 @@ test('normalizeViaLlm: throws until the P1.7d PDF pipeline lands', () => {
     /not implemented \(P1\.7d PDF pipeline\)/,
   );
 });
+
+// ─── Phase A: widened statement types + open-bag vocabulary + TTM eligibility ─
+
+test('validate: oci/equity_change have no required floor and pass', () => {
+  const oci: NormalizedPeriod = {
+    periodKind: 'quarter',
+    fiscalPeriod: 'Q1 2026',
+    periodEnd: '2026-03-31',
+    currency: 'SAR',
+    statementType: 'oci',
+    lineItems: { total_comprehensive_income: 6_250_067 },
+  };
+  assert.equal(validateNormalizedPeriod(oci).ok, true);
+  assert.equal(validateNormalizedPeriod({ ...oci, statementType: 'equity_change' }).ok, true);
+});
+
+test('validate: non-primitive keys are first-class (open bag) — no warning', () => {
+  const p: NormalizedPeriod = {
+    periodKind: 'annual',
+    fiscalPeriod: 'FY2023',
+    periodEnd: '2023-12-31',
+    currency: 'SAR',
+    statementType: 'income',
+    lineItems: { revenue: 100, net_income: 10, statutory_reserve: 5, zakat_provision: 2 },
+  };
+  const v = validateNormalizedPeriod(p);
+  assert.equal(v.ok, true);
+  assert.deepEqual(v.warnings, []); // the retired "non-primitive key" warning must NOT return
+});
+
+test('deriveTtm: oci/equity_change quarters are excluded from the TTM window', () => {
+  const periods: NormalizedPeriod[] = [
+    quarter('2024-03-31', { revenue: 100 }),
+    quarter('2024-06-30', { revenue: 110 }),
+    quarter('2024-09-30', { revenue: 120 }),
+    { ...quarter('2024-12-31', { revenue: 999 }), statementType: 'oci' }, // must not enter the window
+    quarter('2024-12-31', { revenue: 130 }),
+  ];
+  const t = deriveTtm(periods)[0]!;
+  assert.equal(t.statementType, 'income'); // inherited from a CORE quarter, never 'oci'
+  assert.equal(t.lineItems.revenue, 100 + 110 + 120 + 130);
+});
+
+test('flattenStatements: presentation rides through to the staging row', () => {
+  const rows = flattenStatements({
+    venue: 'TDWL',
+    ticker: '2010',
+    periods: [
+      {
+        periodKind: 'quarter',
+        fiscalPeriod: 'Q1 2026',
+        periodEnd: '2026-03-31',
+        currency: 'SAR',
+        statementType: 'income',
+        lineItems: { revenue: 100 },
+        presentation: [{ key: 'revenue', label: 'Revenue', depth: 0, is_subtotal: false }],
+      },
+    ],
+  });
+  assert.equal(rows.length, 1);
+  assert.deepEqual(rows[0]!.presentation, [{ key: 'revenue', label: 'Revenue', depth: 0, is_subtotal: false }]);
+});

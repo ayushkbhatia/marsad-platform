@@ -194,3 +194,60 @@ test('GOLDEN: SABIC 2010 XBRL → byte-identical to the live VPS output', () => 
   const got = extractToStatements(input, 'TDWL', '2010');
   assert.deepEqual(got, expected);
 });
+
+// ─── Phase A: runtime membership gate + widened types + presentation ──────────
+
+test('gate: an unknown statement_type is REJECTED loudly (never ships unvalidated)', () => {
+  const raw: ExtractedFinancials = {
+    currency: 'SAR', scale: 'units',
+    statements: [stmt({ statement_type: 'garbage' as never, line_items: { x: 1 } })],
+  };
+  const v = validateExtraction(raw);
+  assert.equal(v.ok, false);
+  assert.equal(v.rejected.length, 1);
+  assert.equal(v.rejected[0]!.reasons[0]!.check, 'unknown_statement_type');
+});
+
+test('gate: an unknown period_kind is REJECTED', () => {
+  const raw: ExtractedFinancials = {
+    currency: 'SAR', scale: 'units',
+    statements: [stmt({ period_kind: 'fortnight' as never, line_items: { total_assets: 1 } })],
+  };
+  const v = validateExtraction(raw);
+  assert.equal(v.rejected.length, 1);
+  assert.equal(v.rejected[0]!.reasons[0]!.check, 'unknown_period_kind');
+});
+
+test('gate: oci and equity_change pass the gate and assemble', () => {
+  const raw: ExtractedFinancials = {
+    currency: 'SAR', scale: 'thousands',
+    statements: [
+      stmt({ statement_type: 'oci', line_items: { total_comprehensive_income: 6_250 } }),
+      stmt({ statement_type: 'equity_change', line_items: { dividends_and_others: -540 } }),
+    ],
+  };
+  const { statements, validation } = extractToStatements(raw, 'TDWL', '2010');
+  assert.equal(validation.ok, true);
+  assert.equal(statements.periods.length, 2);
+  assert.equal(statements.periods[0]!.statementType, 'oci');
+  assert.equal(statements.periods[0]!.lineItems.total_comprehensive_income, 6_250_000); // scaled
+  assert.equal(statements.periods[1]!.statementType, 'equity_change');
+});
+
+test('assemble: presentation rides through untouched (never scaled)', () => {
+  const raw: ExtractedFinancials = {
+    currency: 'SAR', scale: 'thousands',
+    statements: [stmt({
+      line_items: { total_assets: 100, equity: 60, total_liabilities: 40 },
+      presentation: [
+        { key: 'total_assets', label: 'Total assets', depth: 0, is_subtotal: true },
+        { key: 'equity', label: 'Total equity', depth: 0, is_subtotal: true },
+      ],
+    })],
+  };
+  const ns = assembleFromExtraction(raw, 'TDWL', '2010');
+  assert.deepEqual(ns.periods[0]!.presentation, [
+    { key: 'total_assets', label: 'Total assets', depth: 0, is_subtotal: true },
+    { key: 'equity', label: 'Total equity', depth: 0, is_subtotal: true },
+  ]);
+});

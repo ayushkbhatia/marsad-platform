@@ -44,7 +44,201 @@
         "total_equity": 199947053,
         "equity": 199947053,
         "total_liabilities_and_equity": 298174659
-      }
+      },
+      "presentation": [
+        {
+          "key": "bank_balances_and_cash",
+          "label": "Bank balances and cash",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "short_term_deposits",
+          "label": "Short-term deposits",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "trade_accounts_receivable",
+          "label": "Trade accounts receivable",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "inventories",
+          "label": "Inventories",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "other_current_assets",
+          "label": "Other current assets",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total",
+          "label": "Total",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "total_current_assets",
+          "label": "Total current assets",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "property_plant_and_equipment",
+          "label": "Property, plant and equipment",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "intangible_assets_other_than_goodwill_net",
+          "label": "Intangible assets other than goodwill, net",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "investments_in_associates_and_joint_ventures",
+          "label": "Investments in associates and joint ventures",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "other_non_current_assets",
+          "label": "Other non-current assets",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "right_of_use_assets",
+          "label": "Right-of-use assets",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_non_current_assets",
+          "label": "Total non-current assets",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "total_assets",
+          "label": "Total assets",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "short_term_borrowings",
+          "label": "Short term borrowings",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "other_current_liabilities",
+          "label": "Other current liabilities",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_current_liabilities",
+          "label": "Total current liabilities",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "employees_terminal_benefits",
+          "label": "Employees' terminal benefits",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "long_term_accounts_payable",
+          "label": "Long term accounts payable",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "other_non_current_liabilities",
+          "label": "Other non-current liabilities",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_non_current_liabilities",
+          "label": "Total non-current liabilities",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "total_liabilities",
+          "label": "Total liabilities",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "share_capital",
+          "label": "Share capital",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "statutory_reserve",
+          "label": "Statutory Reserve",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "general_reserve",
+          "label": "General Reserve",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "retained_earnings_accumulated_losses",
+          "label": "Retained earnings (accumulated losses)",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "miscellaneous_other_reserves",
+          "label": "Miscellaneous other reserves",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_other_reserves",
+          "label": "Total other reserves",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "equity_attributable_to_owners_of_parent",
+          "label": "Equity attributable to owners of parent",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "non_controlling_interests",
+          "label": "Non-controlling interests",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_equity",
+          "label": "Total equity",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "total_liabilities_and_equity",
+          "label": "Total liabilities and equity",
+          "depth": 0,
+          "is_subtotal": true
+        }
+      ]
     },
     {
       "statement_type": "balance",
@@ -88,7 +282,201 @@
         "total_equity": 203929818,
         "equity": 203929818,
         "total_liabilities_and_equity": 297112783
-      }
+      },
+      "presentation": [
+        {
+          "key": "bank_balances_and_cash",
+          "label": "Bank balances and cash",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "short_term_deposits",
+          "label": "Short-term deposits",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "trade_accounts_receivable",
+          "label": "Trade accounts receivable",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "inventories",
+          "label": "Inventories",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "other_current_assets",
+          "label": "Other current assets",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total",
+          "label": "Total",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "total_current_assets",
+          "label": "Total current assets",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "property_plant_and_equipment",
+          "label": "Property, plant and equipment",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "intangible_assets_other_than_goodwill_net",
+          "label": "Intangible assets other than goodwill, net",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "investments_in_associates_and_joint_ventures",
+          "label": "Investments in associates and joint ventures",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "other_non_current_assets",
+          "label": "Other non-current assets",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "right_of_use_assets",
+          "label": "Right-of-use assets",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_non_current_assets",
+          "label": "Total non-current assets",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "total_assets",
+          "label": "Total assets",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "short_term_borrowings",
+          "label": "Short term borrowings",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "other_current_liabilities",
+          "label": "Other current liabilities",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_current_liabilities",
+          "label": "Total current liabilities",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "employees_terminal_benefits",
+          "label": "Employees' terminal benefits",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "long_term_accounts_payable",
+          "label": "Long term accounts payable",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "other_non_current_liabilities",
+          "label": "Other non-current liabilities",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_non_current_liabilities",
+          "label": "Total non-current liabilities",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "total_liabilities",
+          "label": "Total liabilities",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "share_capital",
+          "label": "Share capital",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "statutory_reserve",
+          "label": "Statutory Reserve",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "general_reserve",
+          "label": "General Reserve",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "retained_earnings_accumulated_losses",
+          "label": "Retained earnings (accumulated losses)",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "miscellaneous_other_reserves",
+          "label": "Miscellaneous other reserves",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_other_reserves",
+          "label": "Total other reserves",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "equity_attributable_to_owners_of_parent",
+          "label": "Equity attributable to owners of parent",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "non_controlling_interests",
+          "label": "Non-controlling interests",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_equity",
+          "label": "Total equity",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "total_liabilities_and_equity",
+          "label": "Total liabilities and equity",
+          "depth": 0,
+          "is_subtotal": true
+        }
+      ]
     },
     {
       "statement_type": "balance",
@@ -132,7 +520,201 @@
         "total_equity": 194237125,
         "equity": 194237125,
         "total_liabilities_and_equity": 295468550
-      }
+      },
+      "presentation": [
+        {
+          "key": "bank_balances_and_cash",
+          "label": "Bank balances and cash",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "short_term_deposits",
+          "label": "Short-term deposits",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "trade_accounts_receivable",
+          "label": "Trade accounts receivable",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "inventories",
+          "label": "Inventories",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "other_current_assets",
+          "label": "Other current assets",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total",
+          "label": "Total",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "total_current_assets",
+          "label": "Total current assets",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "property_plant_and_equipment",
+          "label": "Property, plant and equipment",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "intangible_assets_other_than_goodwill_net",
+          "label": "Intangible assets other than goodwill, net",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "investments_in_associates_and_joint_ventures",
+          "label": "Investments in associates and joint ventures",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "other_non_current_assets",
+          "label": "Other non-current assets",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "right_of_use_assets",
+          "label": "Right-of-use assets",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_non_current_assets",
+          "label": "Total non-current assets",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "total_assets",
+          "label": "Total assets",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "short_term_borrowings",
+          "label": "Short term borrowings",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "other_current_liabilities",
+          "label": "Other current liabilities",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_current_liabilities",
+          "label": "Total current liabilities",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "employees_terminal_benefits",
+          "label": "Employees' terminal benefits",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "long_term_accounts_payable",
+          "label": "Long term accounts payable",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "other_non_current_liabilities",
+          "label": "Other non-current liabilities",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_non_current_liabilities",
+          "label": "Total non-current liabilities",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "total_liabilities",
+          "label": "Total liabilities",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "share_capital",
+          "label": "Share capital",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "statutory_reserve",
+          "label": "Statutory Reserve",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "general_reserve",
+          "label": "General Reserve",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "retained_earnings_accumulated_losses",
+          "label": "Retained earnings (accumulated losses)",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "miscellaneous_other_reserves",
+          "label": "Miscellaneous other reserves",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_other_reserves",
+          "label": "Total other reserves",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "equity_attributable_to_owners_of_parent",
+          "label": "Equity attributable to owners of parent",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "non_controlling_interests",
+          "label": "Non-controlling interests",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_equity",
+          "label": "Total equity",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "total_liabilities_and_equity",
+          "label": "Total liabilities and equity",
+          "depth": 0,
+          "is_subtotal": true
+        }
+      ]
     },
     {
       "statement_type": "income",
@@ -163,7 +745,117 @@
         "total_basic_earnings_loss_per_share": 1.62,
         "eps_basic": 1.62,
         "eps_diluted": 1.62
-      }
+      },
+      "presentation": [
+        {
+          "key": "sales_of_goods",
+          "label": "Sales of goods",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_revenue",
+          "label": "Total revenue",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "finance_costs",
+          "label": "Finance costs",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "share_of_profit_loss_of_joint_ventures_and_associates",
+          "label": "Share of profit (loss) of joint ventures and associates",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "other_income",
+          "label": "Other income",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "cost_of_sales",
+          "label": "Cost of sales",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "selling_and_distribution_expenses",
+          "label": "Selling and distribution expenses",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "share_of_results_of_integral_joint_ventures",
+          "label": "Share of results of integral joint ventures",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "general_and_administrative_expenses",
+          "label": "General and administrative expenses",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "profit_loss_before_zakat_and_income_tax_from_continuing_operations",
+          "label": "Profit (loss) before zakat and income tax from continuing operations",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "zakat_expenses_on_continuing_operations_for_period",
+          "label": "Zakat expenses on continuing operations for period",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "income_tax_on_continuing_operations_for_period",
+          "label": "Income tax on continuing operations for period",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "profit_loss_for_period_from_continuing_operations",
+          "label": "Profit (loss) for period from continuing operations",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "profit_loss_for_period",
+          "label": "Profit (loss) for period",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "profit_loss_attributable_to_equity_holders_of_parent_company",
+          "label": "Profit (loss), attributable to equity holders of parent company",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "profit_loss_attributable_to_non_controlling_interests",
+          "label": "Profit (loss), attributable to non-controlling interests",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "basic_earnings_loss_per_share_from_continuing_operations",
+          "label": "Basic earnings (loss) per share from continuing operations",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_basic_earnings_loss_per_share",
+          "label": "Total basic earnings (loss) per share",
+          "depth": 0,
+          "is_subtotal": true
+        }
+      ]
     },
     {
       "statement_type": "income",
@@ -194,7 +886,117 @@
         "total_basic_earnings_loss_per_share": -0.35,
         "eps_basic": -0.35,
         "eps_diluted": -0.35
-      }
+      },
+      "presentation": [
+        {
+          "key": "sales_of_goods",
+          "label": "Sales of goods",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_revenue",
+          "label": "Total revenue",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "finance_costs",
+          "label": "Finance costs",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "share_of_profit_loss_of_joint_ventures_and_associates",
+          "label": "Share of profit (loss) of joint ventures and associates",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "other_income",
+          "label": "Other income",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "cost_of_sales",
+          "label": "Cost of sales",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "selling_and_distribution_expenses",
+          "label": "Selling and distribution expenses",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "share_of_results_of_integral_joint_ventures",
+          "label": "Share of results of integral joint ventures",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "general_and_administrative_expenses",
+          "label": "General and administrative expenses",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "profit_loss_before_zakat_and_income_tax_from_continuing_operations",
+          "label": "Profit (loss) before zakat and income tax from continuing operations",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "zakat_expenses_on_continuing_operations_for_period",
+          "label": "Zakat expenses on continuing operations for period",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "income_tax_on_continuing_operations_for_period",
+          "label": "Income tax on continuing operations for period",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "profit_loss_for_period_from_continuing_operations",
+          "label": "Profit (loss) for period from continuing operations",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "profit_loss_for_period",
+          "label": "Profit (loss) for period",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "profit_loss_attributable_to_equity_holders_of_parent_company",
+          "label": "Profit (loss), attributable to equity holders of parent company",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "profit_loss_attributable_to_non_controlling_interests",
+          "label": "Profit (loss), attributable to non-controlling interests",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "basic_earnings_loss_per_share_from_continuing_operations",
+          "label": "Basic earnings (loss) per share from continuing operations",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_basic_earnings_loss_per_share",
+          "label": "Total basic earnings (loss) per share",
+          "depth": 0,
+          "is_subtotal": true
+        }
+      ]
     },
     {
       "statement_type": "cashflow",
@@ -237,7 +1039,189 @@
         "net_increase_decrease_in_cash_and_cash_equivalents": 5785603,
         "cash_and_cash_equivalents_at_beginning_of_period": 28838342,
         "cash_and_cash_equivalents_at_end_of_period": 34623945
-      }
+      },
+      "presentation": [
+        {
+          "key": "profit_loss_before_zakat_and_income_tax_from_continuing_operations",
+          "label": "Profit (loss) before zakat and income tax from continuing operations",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "profit_loss_for_period_before_zakat_and_income_tax",
+          "label": "Profit (loss) for period before zakat and income tax",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "operating_cash_flow_before_working_capital_changes",
+          "label": "Operating cash flow before working capital changes",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "net_cash_flows_from_used_in_operations",
+          "label": "Net cash flows from (used in) operations",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "depreciation_amortisation_and_impairment",
+          "label": "Depreciation, amortisation and impairment",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "finance_costs",
+          "label": "Finance costs",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "share_of_results_of_non_integral_joint_ventures_and_associates",
+          "label": "Share of results of non-integral joint ventures and associates",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "provisions_and_other_movements_net",
+          "label": "Provisions and other movements, net",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "increase_decrease_in_other_non_current_assets",
+          "label": "(Increase) decrease in other non-current assets",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "working_capital_changes",
+          "label": "Working capital changes",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "increase_in_net_employee_benefits_obligations",
+          "label": "Increase in net employee benefits obligations",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "other_assets_and_liabilities_changes",
+          "label": "Other assets and liabilities changes",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_other_inflows_outflows_of_cash_classified_as_operating_activities",
+          "label": "Total other inflows (outflows) of cash, classified as operating activities",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "net_cash_flows_from_used_in_operating_activities",
+          "label": "Net cash flows from (used in) operating activities",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "finance_cost_paid",
+          "label": "Finance cost paid",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "zakat_and_income_tax_paid",
+          "label": "Zakat and income tax paid",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "purchase_of_tangible_and_intangible_assets",
+          "label": "Purchase of tangible and intangible assets",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "short_term_investments_net",
+          "label": "Short-term investments, net",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "investments_in_associates_and_joint_ventures_net",
+          "label": "Investments in associates and joint ventures, net",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "other_assets_movements",
+          "label": "Other assets movements",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "net_cash_flows_from_used_in_investing_activities",
+          "label": "Net cash flows from (used in) investing activities",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "proceeds_from_debt",
+          "label": "Proceeds from debt",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "proceeds_against_acquisition_of_non_controlling_interests",
+          "label": "Proceeds against acquisition of non-controlling interests",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "debt_and_lease_repayments",
+          "label": "Debt and lease repayments",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "dividends_to_shareholders_and_non_controlling_interests",
+          "label": "Dividends to shareholders and non-controlling interests",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "net_cash_flows_from_used_in_financing_activities",
+          "label": "Net cash flows from (used in) financing activities",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "increase_decrease_in_cash_and_cash_equivalents_before_effect_of_exchange_rate_ch",
+          "label": "Increase (decrease) in cash and cash equivalents before effect of exchange rate changes",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "net_increase_decrease_in_cash_and_cash_equivalents",
+          "label": "Net increase (decrease) in cash and cash equivalents",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "cash_and_cash_equivalents_at_beginning_of_period",
+          "label": "Cash and cash equivalents at beginning of period",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "cash_and_cash_equivalents_at_end_of_period",
+          "label": "Cash and cash equivalents at end of period",
+          "depth": 0,
+          "is_subtotal": false
+        }
+      ]
     },
     {
       "statement_type": "cashflow",
@@ -280,7 +1264,189 @@
         "net_increase_decrease_in_cash_and_cash_equivalents": -382206,
         "cash_and_cash_equivalents_at_beginning_of_period": 35292318,
         "cash_and_cash_equivalents_at_end_of_period": 34910112
-      }
+      },
+      "presentation": [
+        {
+          "key": "profit_loss_before_zakat_and_income_tax_from_continuing_operations",
+          "label": "Profit (loss) before zakat and income tax from continuing operations",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "profit_loss_for_period_before_zakat_and_income_tax",
+          "label": "Profit (loss) for period before zakat and income tax",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "operating_cash_flow_before_working_capital_changes",
+          "label": "Operating cash flow before working capital changes",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "net_cash_flows_from_used_in_operations",
+          "label": "Net cash flows from (used in) operations",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "depreciation_amortisation_and_impairment",
+          "label": "Depreciation, amortisation and impairment",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "finance_costs",
+          "label": "Finance costs",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "share_of_results_of_non_integral_joint_ventures_and_associates",
+          "label": "Share of results of non-integral joint ventures and associates",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "provisions_and_other_movements_net",
+          "label": "Provisions and other movements, net",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "increase_decrease_in_other_non_current_assets",
+          "label": "(Increase) decrease in other non-current assets",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "working_capital_changes",
+          "label": "Working capital changes",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "increase_in_net_employee_benefits_obligations",
+          "label": "Increase in net employee benefits obligations",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "other_assets_and_liabilities_changes",
+          "label": "Other assets and liabilities changes",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_other_inflows_outflows_of_cash_classified_as_operating_activities",
+          "label": "Total other inflows (outflows) of cash, classified as operating activities",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "net_cash_flows_from_used_in_operating_activities",
+          "label": "Net cash flows from (used in) operating activities",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "finance_cost_paid",
+          "label": "Finance cost paid",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "zakat_and_income_tax_paid",
+          "label": "Zakat and income tax paid",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "purchase_of_tangible_and_intangible_assets",
+          "label": "Purchase of tangible and intangible assets",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "short_term_investments_net",
+          "label": "Short-term investments, net",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "investments_in_associates_and_joint_ventures_net",
+          "label": "Investments in associates and joint ventures, net",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "other_assets_movements",
+          "label": "Other assets movements",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "net_cash_flows_from_used_in_investing_activities",
+          "label": "Net cash flows from (used in) investing activities",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "proceeds_from_debt",
+          "label": "Proceeds from debt",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "proceeds_against_acquisition_of_non_controlling_interests",
+          "label": "Proceeds against acquisition of non-controlling interests",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "debt_and_lease_repayments",
+          "label": "Debt and lease repayments",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "dividends_to_shareholders_and_non_controlling_interests",
+          "label": "Dividends to shareholders and non-controlling interests",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "net_cash_flows_from_used_in_financing_activities",
+          "label": "Net cash flows from (used in) financing activities",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "increase_decrease_in_cash_and_cash_equivalents_before_effect_of_exchange_rate_ch",
+          "label": "Increase (decrease) in cash and cash equivalents before effect of exchange rate changes",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "net_increase_decrease_in_cash_and_cash_equivalents",
+          "label": "Net increase (decrease) in cash and cash equivalents",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "cash_and_cash_equivalents_at_beginning_of_period",
+          "label": "Cash and cash equivalents at beginning of period",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "cash_and_cash_equivalents_at_end_of_period",
+          "label": "Cash and cash equivalents at end of period",
+          "depth": 0,
+          "is_subtotal": false
+        }
+      ]
     }
   ]
 }

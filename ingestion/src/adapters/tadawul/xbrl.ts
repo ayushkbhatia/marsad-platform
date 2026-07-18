@@ -114,6 +114,9 @@ export function parseTadawulXbrl(html: string, opts: { currency?: string } = {})
   const tables = html.match(/<table[\s\S]*?<\/table>/gi) || [];
   // Collect per (statement_type, period_end) → line_items, so multiple table fragments merge cleanly.
   const acc = new Map<string, ExtractedStatement>();
+  // Presentation capture (Phase A): printed label + document order per statement, dedup by key.
+  // depth stays 0 — the XBRL_DOCS HTML carries no indent markup (plain <td>, no padding/style).
+  const presSeen = new Map<string, Set<string>>();
   for (const table of tables) {
     const stype = classify(table);
     if (!stype) continue;
@@ -143,8 +146,14 @@ export function parseTadawulXbrl(html: string, opts: { currency?: string } = {})
         const key = `${stype}|${p.end}`;
         let st = acc.get(key);
         if (!st) {
-          st = { statement_type: stype, period_kind: p.kind, fiscal_period: p.fp, period_end: p.end, is_comparative: p.comparative, line_items: {} };
+          st = { statement_type: stype, period_kind: p.kind, fiscal_period: p.fp, period_end: p.end, is_comparative: p.comparative, line_items: {}, presentation: [] };
           acc.set(key, st);
+          presSeen.set(key, new Set());
+        }
+        const seen = presSeen.get(key)!;
+        if (!seen.has(sk)) {
+          seen.add(sk);
+          st.presentation!.push({ key: sk, label, depth: 0, is_subtotal: /^total\b/i.test(label) });
         }
         const li = st.line_items as Record<string, number>;
         // raw label always; canonical key when matched (per-share values pass through unscaled downstream)

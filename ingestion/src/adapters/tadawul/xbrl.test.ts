@@ -96,3 +96,22 @@ test('IT sector maps to the technology key (migration 20260716190059)', () => {
   assert.equal(p?.rawSector, 'Information Technology | IT Services');
   assert.equal(p?.isin, 'SA0007879998');
 });
+
+// ─── Phase A: presentation capture (label + document order; depth 0 — no indent in XBRL HTML) ─
+
+test('parseTadawulXbrl: emits presentation rows in document order with subtotal flags', () => {
+  const fs = parseTadawulXbrl(readFileSync(resolve(here, '../../../fixtures/tdwl/sabic-2010-xbrl.source.html'), 'utf8'));
+  const bal = fs.statements.find((s) => s.statement_type === 'balance' && !s.is_comparative)!;
+  assert.ok(bal.presentation && bal.presentation.length > 10, 'balance presentation missing/too small');
+  // Every presentation key maps onto a landed line_items key; order is de-duplicated document order.
+  const keys = bal.presentation!.map((r) => r.key);
+  assert.equal(new Set(keys).size, keys.length, 'presentation keys must be unique');
+  for (const r of bal.presentation!) {
+    assert.ok(bal.line_items[r.key] !== undefined, `presentation key ${r.key} has no line_items value`);
+    assert.equal(r.depth, 0); // XBRL_DOCS HTML carries no indent markup
+    assert.equal(r.is_subtotal, /^total\b/i.test(r.label));
+  }
+  // 'Total assets' printed AFTER its components — document order preserved.
+  const ta = keys.indexOf('total_assets');
+  assert.ok(ta > 0, 'total_assets must not be first');
+});
