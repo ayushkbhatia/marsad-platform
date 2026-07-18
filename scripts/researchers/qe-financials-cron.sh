@@ -34,14 +34,18 @@ START=$(cat "$STATE" 2>/dev/null || echo 0)
 pkill -9 -f "node qe-financials" 2>/dev/null || true
 
 set -a; source /etc/marsad/worker.env; set +a
-# ⚠ www.qe.com.qa also serves the LIVE quote board (source id 10). Concurrency stays low and requests
-# are paced (QE_RPS_MS) so a backfill can never get the origin to throttle the quote feed. The timer
-# is scheduled outside the 09:30–13:15 Asia/Qatar session for the same reason.
-# RUN_BUDGET_MS < the 800s SIGTERM so the run self-terminates and prints DONE (cursor stays correct).
+# ⚠ www.qe.com.qa also serves the LIVE quote board (source id 10). CONCURRENCY=1 keeps us to a single
+# keep-alive connection at a time so a backfill can never get the origin to throttle the quote feed;
+# the ~15s connect tarpit on this IP is itself the rate limit. Timer runs outside the 09:30–13:15
+# Asia/Qatar session for the same reason.
+# RUN_BUDGET_MS must clear the 800s SIGTERM by MORE than one company's runtime — outOfTime() is only
+# checked between companies (never mid curl-batch), and a full-backfill company takes ~200s (159-195s
+# observed: ~140 requests behind the 15s connect tarpit + Mumbai-DB write latency). 600s budget leaves
+# ~200s headroom so the run always self-stops and prints DONE before the hard kill (a SIGKILLed run
+# with no DONE line resets the cursor to 0).
 export CHUNK_START="$START" CHUNK_SIZE="$SIZE" \
-       CONCURRENCY="${CONCURRENCY:-3}" \
-       RUN_BUDGET_MS="${RUN_BUDGET_MS:-680000}" \
-       QE_RPS_MS="${QE_RPS_MS:-1000}" \
+       CONCURRENCY="${CONCURRENCY:-1}" \
+       RUN_BUDGET_MS="${RUN_BUDGET_MS:-600000}" \
        QE_DOC_MAX="${QE_DOC_MAX:-40}" \
        QE_MIN_YEAR="${QE_MIN_YEAR:-2020}"
 cd /home/deploy

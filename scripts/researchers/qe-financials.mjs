@@ -10,6 +10,13 @@
  * (docs/architecture/08-worker-fleet.md §6). If you ever find yourself adding a browser to this
  * file, stop — the endpoint does not need one.
  *
+ * TRANSPORT — read the curlBatch() comment before touching it. From the VPS datacenter IP, QE
+ * TARPITS every new TCP connection (~15s to establish; a residential IP gets ~100ms) AND resets
+ * node/undici's TLS handshake outright (fingerprint block, same shape as TDWL's Akamai). So we fetch
+ * via **curl** (its OpenSSL handshake is accepted) and reuse ONE keep-alive connection per company,
+ * paying the 15s tarpit once per company instead of once per request. This is also why the live QE
+ * quote board (id 10, undici) has been failing since it started being reset — a separate incident.
+ *
  * Per (company, period):
  *   getFilingDetails=1 -> exists? + filedAt
  *   3 × sectionName    -> parseQeFinancials -> extractToStatements (gate) -> FILING.FINANCIALS
@@ -26,9 +33,15 @@
  *   QE_DRY_RUN=1 …                                        # fetch + parse + report, ZERO writes
  *
  * ⚠ SHARED HOST. www.qe.com.qa also serves the LIVE quote board (source id 10). A rude backfill that
- * gets us throttled takes QE quotes down with it. Hence: >=QE_RPS_MS spacing, QE_DOC_MAX per run,
- * low concurrency, and a timer scheduled OUTSIDE the 09:30-13:15 Asia/Qatar session.
+ * gets us throttled takes QE quotes down with it. Hence: CONCURRENCY=1 (one keep-alive connection at
+ * a time), QE_DOC_MAX per run, and a timer scheduled OUTSIDE the 09:30-13:15 Asia/Qatar session. The
+ * per-request pacing is now implicit — the 15s connect tarpit is itself the rate limit.
  */
+import { execFile } from 'node:child_process';
+import { mkdtempSync, readFileSync, existsSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
 const ING = '/opt/marsad/ingestion';
 const { parseQeFinancials, parseQeFilingDetail, QE_SECTIONS } = await import(`${ING}/dist/adapters/qe/financials.js`);
 const { extractToStatements } = await import(`${ING}/dist/lake/statement-extraction.js`);
@@ -46,12 +59,20 @@ const DRY = process.env.QE_DRY_RUN === '1';
 // QE's XBRL era starts in 2020 — verified 0 for 2016-2019 across every company sampled. Probing
 // below the floor is pure waste against a shared host. (Mirrors ADX_MIN_YEAR.)
 const MIN_YEAR = Number(process.env.QE_MIN_YEAR || 2020);
-// Politeness on a host that also serves live quotes. undici's default 10s connect ceiling is too
-// tight for QE's slow TLS (BUILD-STATUS §79b), so timeouts are generous and explicit.
-const RPS_MS = Number(process.env.QE_RPS_MS || 1000);
-const HTTP_TIMEOUT_MS = Number(process.env.QE_HTTP_TIMEOUT_MS || 45000);
 const DOC_MAX = Number(process.env.QE_DOC_MAX || 40);
-const CONCURRENCY = Number(process.env.CONCURRENCY || 3);
+// ONE company at a time by default. The VPS datacenter IP is TARPITTED by QE — every *new* TCP
+// connection to www.qe.com.qa costs ~15s to establish (a residential IP gets ~100ms; this is
+// IP-reputation throttling), and node/undici is RESET outright (TLS-fingerprint block, like TDWL's
+// Akamai — curl's OpenSSL handshake is accepted, undici's is not). So we (a) fetch via curl, never
+// undici, and (b) reuse ONE keep-alive connection per company across all its requests — a batch of
+// 100+ requests then pays the 15s tarpit ONCE. Running companies in parallel would open N
+// simultaneous tarpitted connections to a host that also serves the LIVE quote board (id 10); keep
+// it to 1 unless you have a specific reason.
+const CONCURRENCY = Number(process.env.CONCURRENCY || 1);
+// Generous per-batch ceiling: a full-backfill company batch is ~150 requests behind one 15s connect,
+// and PDF batches move 1-2 MB files; well clear of the wrapper's 800s SIGTERM.
+const BATCH_TIMEOUT_S = Number(process.env.QE_BATCH_TIMEOUT_S || 300);
+const CONNECT_TIMEOUT_S = Number(process.env.QE_CONNECT_TIMEOUT_S || 40);
 
 const t0 = Date.now();
 // Self-terminate before the wrapper's SIGTERM so DONE always prints — the cron advances the cursor
@@ -60,30 +81,51 @@ const runDeadline = t0 + Number(process.env.RUN_BUDGET_MS || 680000);
 const outOfTime = () => Date.now() > runDeadline;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-let lastReq = 0;
-/** Serialize a minimum gap between ALL outbound QE requests, across workers. */
-async function pace() {
-  const wait = lastReq + RPS_MS - Date.now();
-  if (wait > 0) await sleep(wait);
-  lastReq = Date.now();
+
+/**
+ * Fetch many URLs through ONE curl process (keep-alive) so the 15s connect tarpit is paid once.
+ * Bodies are written to files — this handles binary PDFs cleanly and avoids stdout-splitting — while
+ * per-transfer HTTP status comes back on stdout, one `<i> <code>` line per --next segment.
+ * reqs: [{ id, url }]. Returns Map id -> { status, file|null }, plus a hidden _dir to clean up.
+ */
+function curlBatch(reqs) {
+  return new Promise((resolve) => {
+    if (reqs.length === 0) { const m = new Map(); m._dir = null; return resolve(m); }
+    const dir = mkdtempSync(join(tmpdir(), 'qe-'));
+    const args = ['-sS', '--compressed', '-m', String(BATCH_TIMEOUT_S), '--connect-timeout', String(CONNECT_TIMEOUT_S), '-A', UA];
+    reqs.forEach((r, i) => {
+      if (i > 0) args.push('--next');
+      args.push('-o', join(dir, String(i)), '-w', `${i} %{http_code}\\n`, r.url);
+    });
+    execFile('curl', args, { maxBuffer: 5e6 }, (_err, stdout) => {
+      const codes = new Map();
+      for (const line of String(stdout || '').split('\n')) {
+        const m = /^(\d+) (\d+)$/.exec(line.trim());
+        if (m) codes.set(Number(m[1]), Number(m[2]));
+      }
+      const out = new Map();
+      reqs.forEach((r, i) => {
+        const f = join(dir, String(i));
+        out.set(r.id, { status: codes.get(i) ?? 0, file: existsSync(f) ? f : null });
+      });
+      out._dir = dir;
+      resolve(out);
+    });
+  });
 }
 
-async function qeGet(url, kind = 'json') {
-  await pace();
-  const ac = new AbortController();
-  const timer = setTimeout(() => ac.abort(), HTTP_TIMEOUT_MS);
-  try {
-    const r = await fetch(url, { headers: { 'user-agent': UA, accept: kind === 'pdf' ? 'application/pdf' : 'application/json' }, signal: ac.signal });
-    if (!r.ok) return { ok: false, status: r.status };
-    if (kind === 'pdf') return { ok: true, status: r.status, buf: Buffer.from(await r.arrayBuffer()), cd: r.headers.get('content-disposition') || '' };
-    const text = await r.text();
-    try { return { ok: true, status: r.status, json: JSON.parse(text) }; }
-    catch { return { ok: false, status: r.status, err: 'non-json' }; }
-  } catch (e) {
-    return { ok: false, err: String(e).slice(0, 100) };
-  } finally {
-    clearTimeout(timer);
-  }
+/** Read a batch entry as parsed JSON, or null (non-200, missing, or unparseable). */
+function readJson(entry) {
+  if (!entry || entry.status !== 200 || !entry.file) return null;
+  try { return JSON.parse(readFileSync(entry.file, 'utf8')); } catch { return null; }
+}
+/** Read a batch entry as a Buffer, or null. */
+function readBuf(entry) {
+  if (!entry || entry.status !== 200 || !entry.file) return null;
+  try { return readFileSync(entry.file); } catch { return null; }
+}
+function cleanup(batch) {
+  if (batch && batch._dir) { try { rmSync(batch._dir, { recursive: true, force: true }); } catch { /* ignore */ } }
 }
 
 const q = (o) => new URLSearchParams(o).toString();
@@ -106,6 +148,13 @@ function candidatePeriods() {
   const out = [];
   for (let y = maxYear; y >= MIN_YEAR; y--) for (const md of ['12-31', '09-30', '06-30', '03-31']) out.push(`${y}-${md}`);
   return out;
+}
+
+/** 'YYYY-12-31' -> 'YYYY' (annual); 'YYYY-06-30' -> 'Q2 YYYY'. Matches canonicalFiscalPeriod so the
+ *  owned-set keys built here line up with what persist() writes. */
+function fpOf(period) {
+  const y = period.slice(0, 4), mm = Number(period.slice(5, 7));
+  return mm === 12 ? y : `Q${Math.floor((mm - 1) / 3) + 1} ${y}`;
 }
 
 async function uploadPdf(key, buf) {
@@ -218,72 +267,115 @@ function noteErr(what, r) {
 
 async function doCompany(sym) {
   let found = 0;
-  for (const period of PERIODS) {
-    if (outOfTime() || aborted) return found;
+  if (outOfTime() || aborted) return found;
 
-    // Cheap skip: if we already hold all three statement types for this period AND both PDFs, this
-    // cell is done — no request at all. (Balance/income/cashflow share the period label.)
-    const fp = /-12-31$/.test(period) ? period.slice(0, 4) : `Q${Math.floor((Number(period.slice(5, 7)) - 1) / 3) + 1} ${period.slice(0, 4)}`;
+  // Which cells still need work? Skip a period only when we already hold all three statement types
+  // AND both PDFs — the stop condition precedes any fetch (08-worker-fleet.md §4).
+  const todo = PERIODS.filter((period) => {
+    const fp = fpOf(period);
     const haveStmts = ['balance', 'income', 'cashflow'].every((t) => ownedPeriods.has(`FINANCIALS:QE:${sym}:${t}:${fp}`));
     const havePdfs = ATTACHMENTS.every((a) => ownedPdfs.has(`qe/${sym}/${a.seg}/${period}.pdf`));
-    if (haveStmts && havePdfs) continue;
+    return !(haveStmts && havePdfs);
+  });
+  if (todo.length === 0) return found;
 
-    // Does a filing exist for this cell at all? One call answers that AND gives filedAt.
-    const det = await qeGet(detailsUrl(sym, period)); reqs++;
-    if (!det.ok) { noteErr(`${sym} ${period} details`, det); continue; } // unknown, NOT "absent"
-    const filedAt = parseQeFilingDetail(det.json);
-    const hasFiling = Array.isArray(det.json) && det.json.length > 0;
+  // ── PHASE 1: one keep-alive connection for ALL of this company's details + sections + checks.
+  const need = new Map(); // period -> { haveStmts }
+  const p1 = [];
+  for (const period of todo) {
+    const fp = fpOf(period);
+    const haveStmts = ['balance', 'income', 'cashflow'].every((t) => ownedPeriods.has(`FINANCIALS:QE:${sym}:${t}:${fp}`));
+    need.set(period, { haveStmts });
+    p1.push({ id: `det|${period}`, url: detailsUrl(sym, period) });
+    if (!haveStmts) for (const s of QE_SECTIONS) p1.push({ id: `sec|${period}|${s}`, url: sectionUrl(sym, period, s) });
+    for (const a of ATTACHMENTS) {
+      if (!ownedPdfs.has(`qe/${sym}/${a.seg}/${period}.pdf`)) p1.push({ id: `chk|${period}|${a.type}`, url: checkUrl(sym, period, a.type) });
+    }
+  }
+  reqs += p1.length;
+  const b1 = await curlBatch(p1);
+  // If the whole batch failed to connect (tarpit refused / reset), every entry is status 0. Treat as
+  // a transport failure — do NOT read it as "this company has no data".
+  if ([...b1.values()].every((e) => e.status === 0)) {
+    cleanup(b1);
+    noteErr(`${sym} phase1 (all ${p1.length} req failed)`, { status: 0 });
+    return found;
+  }
+
+  const pdfWanted = []; // { period, a, filedAt }
+  for (const period of todo) {
+    const { haveStmts } = need.get(period);
+    const det = readJson(b1.get(`det|${period}`));
+    const filedAt = parseQeFilingDetail(det);
+    const hasFiling = Array.isArray(det) && det.length > 0;
 
     if (!haveStmts && hasFiling) {
       const payloads = [];
       let sectionErr = false;
       for (const section of QE_SECTIONS) {
-        const r = await qeGet(sectionUrl(sym, period, section)); reqs++;
-        if (!r.ok) { noteErr(`${sym} ${period} ${section}`, r); sectionErr = true; continue; }
-        if (Array.isArray(r.json) && r.json.length > 0) payloads.push({ section, rows: r.json });
+        const e = b1.get(`sec|${period}|${section}`);
+        if (!e || e.status === 0) { sectionErr = true; continue; }
+        const rows = readJson(e);
+        if (Array.isArray(rows) && rows.length > 0) payloads.push({ section, rows });
       }
-      // Persisting a partial filing would land an incomplete statement set and then be skipped
-      // forever by the `owned` check. Better to leave the cell untouched and retry next run.
-      if (sectionErr) { log(`  ${sym} ${period}: partial fetch — skipping, will retry`); continue; }
-      if (payloads.length > 0) {
+      // A partial fetch would land an incomplete statement set that the owned-check then skips
+      // forever. Leave the cell untouched and let a later run retry it.
+      if (sectionErr) { log(`  ${sym} ${period}: partial section fetch — skipping, will retry`); }
+      else if (payloads.length > 0) {
         const raw = parseQeFinancials(payloads, 'QAR');
         const { statements, validation } = extractToStatements(raw, 'QE', sym);
         gateRej += validation.rejected.length;
-        if (validation.rejected.length > 0) {
-          log(`  ${sym} ${period}: ${validation.rejected.length} rejected — ${validation.rejected[0].reasons.map((x) => x.check).join(',')}`);
-        }
+        if (validation.rejected.length > 0) log(`  ${sym} ${period}: ${validation.rejected.length} rejected — ${validation.rejected[0].reasons.map((x) => x.check).join(',')}`);
         if (statements.periods.length > 0) {
           found++; periodsNew++;
           if (!DRY) rowsW += await persist(sql, sym, statements, filedAt);
           else rowsW += statements.periods.length;
+          // Reflect the write in the in-run owned-set so a re-fetch this run is impossible.
+          for (const p of statements.periods) ownedPeriods.add(`FINANCIALS:QE:${sym}:${p.statementType}:${p.fiscalPeriod}`);
         }
       }
     }
 
-    // PDFs. Independent of the JSON — QATI, for one, has a PDF but no structured data.
+    // Queue the PDFs that exist and we don't already own. Existence comes from the check in b1.
     for (const a of ATTACHMENTS) {
-      if (outOfTime() || docBudget <= 0) break;
       const key = `qe/${sym}/${a.seg}/${period}.pdf`;
       if (ownedPdfs.has(key)) continue;
-      const chk = await qeGet(checkUrl(sym, period, a.type)); reqs++;
-      if (!chk.ok) { noteErr(`${sym} ${period} check(${a.type})`, chk); continue; }
-      if (String(chk.json).trim() !== '1') continue; // a genuine 0 — no such attachment
-      docBudget--; // reserve the slot BEFORE the fetch so parallel workers respect the cap
-      const pdf = await qeGet(attachUrl(sym, period, a.type), 'pdf'); reqs++;
-      if (!pdf.ok) { noteErr(`${sym} ${period} ${a.seg}`, pdf); continue; }
-      // Verify the magic bytes: an error page served with a 200 must never be archived as a filing.
-      if (!pdf.buf || pdf.buf.subarray(0, 5).toString('latin1') !== '%PDF-') {
-        log(`  ${sym} ${period} ${a.seg}: 200 but not a PDF — skipping`);
+      const chk = b1.get(`chk|${period}|${a.type}`);
+      if (!chk || chk.status === 0) continue; // transport-failed check: retry next run, don't guess
+      if (String((readJson(chk) ?? readBuf(chk)?.toString() ?? '')).trim() !== '1') continue; // genuine 0
+      pdfWanted.push({ period, a, filedAt, key });
+    }
+  }
+  cleanup(b1);
+
+  // ── PHASE 2: one keep-alive connection for the PDFs that exist, bounded by the doc budget.
+  const p2 = [];
+  for (const w of pdfWanted) {
+    if (docBudget <= 0) break;
+    docBudget--; // reserve BEFORE the fetch so the cap holds even if a later company also wants PDFs
+    p2.push({ id: `${w.period}|${w.a.type}`, url: attachUrl(sym, w.period, w.a.type), w });
+  }
+  if (p2.length > 0 && !outOfTime()) {
+    reqs += p2.length;
+    const b2 = await curlBatch(p2.map(({ id, url }) => ({ id, url })));
+    for (const { id, w } of p2) {
+      const buf = readBuf(b2.get(id));
+      // Verify magic bytes: a 200 error-page must never be archived as a filing.
+      if (!buf || buf.subarray(0, 5).toString('latin1') !== '%PDF-') {
+        const st = b2.get(id)?.status ?? 0;
+        if (st === 0) noteErr(`${sym} ${w.period} ${w.a.seg}`, { status: 0 });
+        else log(`  ${sym} ${w.period} ${w.a.seg}: 200 but not a PDF — skipping`);
         continue;
       }
-      bytes += pdf.buf.length;
+      bytes += buf.length;
       if (!DRY) {
-        if (!(await uploadPdf(key, pdf.buf))) { log(`  ${sym} ${period} ${a.seg}: upload failed`); continue; }
-        await catalogPdf(sql, sym, period, key, a.label, filedAt);
+        if (!(await uploadPdf(w.key, buf))) { log(`  ${sym} ${w.period} ${w.a.seg}: upload failed`); continue; }
+        await catalogPdf(sql, sym, w.period, w.key, w.a.label, w.filedAt);
       }
-      ownedPdfs.add(key);
+      ownedPdfs.add(w.key);
       pdfArchived++;
     }
+    cleanup(b2);
   }
   return found;
 }
