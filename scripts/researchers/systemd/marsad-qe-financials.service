@@ -1,0 +1,12 @@
+[Unit]
+Description=Marsad QE financials researcher (XBRL-native JSON; plain HTTP — no proxy, no xvfb, no browser, $0)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /home/deploy/qe-financials-cron.sh
+TimeoutStartSec=900
+# Deliberately modest: this job holds JSON payloads (~10-20 KB each) and at most a couple of PDF
+# buffers (~1-2 MB) at a time. No Chromium, so none of the 2200-2600M the browser researchers need.
+# The box is 3.8 GB and co-resident marsad-worker holds MemoryMax=3G — stay well clear of it.
+MemoryHigh=600M

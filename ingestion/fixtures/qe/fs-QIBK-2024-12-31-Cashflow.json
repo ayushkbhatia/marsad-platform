@@ -1,0 +1,440 @@
+[
+  {
+    "xbrlID": "ifrs-full_AdjustmentsForDepreciationAndAmortisationExpense",
+    "Value": 74038000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_AdjustmentsForDepreciationAndAmortisationExpense",
+    "Value": 62733000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_AdjustmentsForImpairmentLossReversalOfImpairmentLossRecognisedInProfitOrLoss",
+    "Value": 1103303000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_AdjustmentsForImpairmentLossReversalOfImpairmentLossRecognisedInProfitOrLoss",
+    "Value": 982072000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_AdjustmentsForIncomeTaxExpense",
+    "Value": 12948000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_AdjustmentsForIncomeTaxExpense",
+    "Value": 29874000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_AdjustmentsForIncreaseDecreaseInEmployeeBenefitLiabilities",
+    "Value": -6873000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_AdjustmentsForIncreaseDecreaseInEmployeeBenefitLiabilities",
+    "Value": -11231000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_AdjustmentsForReconcileProfitLoss",
+    "Value": -5882002000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_AdjustmentsForReconcileProfitLoss",
+    "Value": 4023997000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_AdjustmentsForUndistributedProfitsOfAssociates",
+    "Value": 60045000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_AdjustmentsForUndistributedProfitsOfAssociates",
+    "Value": 66487000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_AdjustmentsToReconcileProfitLossOtherThanChangesInWorkingCapital",
+    "Value": -86226000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_AdjustmentsToReconcileProfitLossOtherThanChangesInWorkingCapital",
+    "Value": -200953000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_CashAndCashEquivalents",
+    "Value": 4836321000.0,
+    "FromDate": null,
+    "ToDate": "2022-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_CashAndCashEquivalents",
+    "Value": 4608722000.0,
+    "FromDate": null,
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_CashAndCashEquivalents",
+    "Value": 4624007000.0,
+    "FromDate": null,
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_CashFlowsFromUsedInFinancingActivities",
+    "Value": 3300880000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_CashFlowsFromUsedInFinancingActivities",
+    "Value": -1059734000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_CashFlowsFromUsedInInvestingActivities",
+    "Value": -1934404000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_CashFlowsFromUsedInInvestingActivities",
+    "Value": -7548890000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+    "Value": -1594075000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_CashFlowsFromUsedInOperatingActivities",
+    "Value": 8623909000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_CashFlowsFromUsedInOperations",
+    "Value": -1594075000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_CashFlowsFromUsedInOperations",
+    "Value": 8623909000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_CashFlowsFromUsedInOperationsBeforeChangesInWorkingCapital",
+    "Value": 1044018000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_CashFlowsFromUsedInOperationsBeforeChangesInWorkingCapital",
+    "Value": 807239000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_DividendsPaidToEquityHoldersOfParentClassifiedAsFinancingActivities",
+    "Value": 1476833000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_DividendsPaidToEquityHoldersOfParentClassifiedAsFinancingActivities",
+    "Value": 2303859000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_DividendsReceivedClassifiedAsInvestingActivities",
+    "Value": 129668000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_DividendsReceivedClassifiedAsInvestingActivities",
+    "Value": 147714000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_IncreaseDecreaseInCashAndCashEquivalents",
+    "Value": -227599000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_IncreaseDecreaseInCashAndCashEquivalents",
+    "Value": 15285000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_IncreaseDecreaseInCashAndCashEquivalentsBeforeEffectOfExchangeRateChanges",
+    "Value": -227599000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_IncreaseDecreaseInCashAndCashEquivalentsBeforeEffectOfExchangeRateChanges",
+    "Value": 15285000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_OtherAdjustmentsForNoncashItems",
+    "Value": 0.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_OtherAdjustmentsForNoncashItems",
+    "Value": 0.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_OtherCashPaymentsToAcquireEquityOrDebtInstrumentsOfOtherEntitiesClassifiedAsInvestingActivities",
+    "Value": 7873803000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_OtherCashPaymentsToAcquireEquityOrDebtInstrumentsOfOtherEntitiesClassifiedAsInvestingActivities",
+    "Value": 12736421000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_OtherCashReceiptsFromSalesOfEquityOrDebtInstrumentsOfOtherEntitiesClassifiedAsInvestingActivities",
+    "Value": 5821796000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_OtherCashReceiptsFromSalesOfEquityOrDebtInstrumentsOfOtherEntitiesClassifiedAsInvestingActivities",
+    "Value": 5107171000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_OtherInflowsOutflowsOfCashClassifiedAsFinancingActivities",
+    "Value": -25940000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_OtherInflowsOutflowsOfCashClassifiedAsFinancingActivities",
+    "Value": -6455000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ProceedsFromSalesOfInterestsInAssociates",
+    "Value": 75479000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ProceedsFromSalesOfInterestsInAssociates",
+    "Value": 0.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ProceedsFromSalesOfInvestmentProperty",
+    "Value": 0.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ProceedsFromSalesOfInvestmentProperty",
+    "Value": 9405000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ProfitLoss",
+    "Value": 4287927000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_ProfitLoss",
+    "Value": 4599912000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_PurchaseOfInvestmentProperty",
+    "Value": 17098000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_PurchaseOfInvestmentProperty",
+    "Value": 4420000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities",
+    "Value": 70446000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "ifrs-full_PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities",
+    "Value": 72339000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_AdjustmentsForDecreaseIncreaseInCashAndBalancesWithQatarCentralBank",
+    "Value": -406174000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_AdjustmentsForDecreaseIncreaseInCashAndBalancesWithQatarCentralBank",
+    "Value": 116738000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_AdjustmentsForDecreaseIncreaseInDueFromBanksAndFinancialInstitutions",
+    "Value": 18604000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_AdjustmentsForDecreaseIncreaseInDueFromBanksAndFinancialInstitutions",
+    "Value": 26436000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_AdjustmentsForDecreaseIncreaseInFinancingAssets",
+    "Value": -4154228000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_AdjustmentsForDecreaseIncreaseInFinancingAssets",
+    "Value": -3758495000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_AdjustmentsForIncreaseDecreaseInCustomersDepositsAndCurrentAccountsLiabilities",
+    "Value": -4372849000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_AdjustmentsForIncreaseDecreaseInCustomersDepositsAndCurrentAccountsLiabilities",
+    "Value": 1780943000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_AdjustmentsForIncreaseDecreaseInDueToBanksAndFinancialInstitutions",
+    "Value": 3051619000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_AdjustmentsForIncreaseDecreaseInDueToBanksAndFinancialInstitutions",
+    "Value": 3583083000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_AdjustmentsForOtherChangesInWorkingCapital",
+    "Value": -1056119000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_AdjustmentsForOtherChangesInWorkingCapital",
+    "Value": 1479284000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_ChangesInWorkingCapital",
+    "Value": -6926020000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_ChangesInWorkingCapital",
+    "Value": 3216758000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_DividendsCouponsPaidOnInstrumentsEligibleAsAdditionalCapitalClassifiedAsFinancingActivities",
+    "Value": 218643000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_DividendsCouponsPaidOnInstrumentsEligibleAsAdditionalCapitalClassifiedAsFinancingActivities",
+    "Value": 218643000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_InflowsOutflowsFromEquityOfInvestmentAccountHoldersClassifiedAsFinancingActivities",
+    "Value": 2836476000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_InflowsOutflowsFromEquityOfInvestmentAccountHoldersClassifiedAsFinancingActivities",
+    "Value": 2379223000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_ProceedsFromSukukIslamicBondsFinancing",
+    "Value": 2185820000.0,
+    "FromDate": "2023-01-01T00:00:00",
+    "ToDate": "2023-12-31T00:00:00"
+  },
+  {
+    "xbrlID": "qse-crc_ProceedsFromSukukIslamicBondsFinancing",
+    "Value": -910000000.0,
+    "FromDate": "2024-01-01T00:00:00",
+    "ToDate": "2024-12-31T00:00:00"
+  }
+]
