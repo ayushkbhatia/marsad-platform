@@ -836,6 +836,36 @@ part of the machine, not an implied default), surfaced as the market-closed trea
 (16c/m4f); the sweep additionally guards the filings poller, whose failure past 30 min raises
 a Desk item without touching quote badges.
 
+**`closed` suppresses, it does not reset** (`20260718105401`, applied live 2026-07-18). The sweep's two `feed:<venue>`
+incident rules were edge-triggered on the *previously stored* state — but the machine overwrites
+that state with `closed` at every market close, and `closed` means "no information about the
+feed", not "the feed changed". Letting it into the transition memory broke both edges on the next
+session's first tick, in mirror-image ways:
+
+- **Duplicate raise** — `v_new='offline' and v_old <> 'offline'`. A permanently-dead feed cycles
+  offline → `closed` → offline, and that last edge reads as a fresh transition, so it stacked a
+  **second incident on top of the still-open first — one per venue per trading day, forever**.
+  Live on 2026-07-17: two open `feed:ADX` rows, identical messages, ids 17879 / 18145, exactly 24 h
+  apart; ditto `feed:BHB`. The raise now dedupes on the **open incident** instead
+  (`not exists (… source = 'feed:'||code and resolved_at is null)`) — the same guard
+  `ops.heartbeat_sentinel` uses, so the state machine can wander freely in between. Not scoped to
+  `auto_expire`, also matching the sentinel: a desk-**pinned** open incident intentionally
+  suppresses the sweep's own raise, because something already says that feed is broken.
+- **Orphaned resolve** — `v_new='live' and v_old = 'offline'`. `enqueue_due_jobs()` enqueues
+  session-only feeds with a **10-min pre-open grace**, while the sweep's own gate takes **none**
+  (`venue_is_open(code, now())`, `p_grace_before` defaults to `0`). So a feed that recovers
+  overnight is *already fresh* on the sweep's first in-session tick: `closed → live` is the
+  **normal** recovery edge, and the resolve never fired. It now accepts `v_old in
+  ('offline','closed')`. `halted`/`auction` stay excluded — they are desk-set market states the
+  sweep must never clear (the same law the upsert's `WHERE` enforces), and a halted venue's board
+  still quotes, so `v_new` computes to `live` and `v_old` is the only thing protecting the halt
+  banner. That is why the resolve keeps its edge rather than going level-triggered.
+
+This is **not** session-awareness in the `ops.ingest_job_expected_silent` sense (§4.5): the sweep
+is already calendar-gated and never alerts off-session. Its bug was the memory, not the gate.
+Pinned by `supabase/tests/feed_status_sweep_incident_dedup.sql` (6 cases; D3 is the live duplicate,
+D5 the orphaned recovery).
+
 **Ticker-level states** are parse outputs, not fetch outputs: exchanges mark suspended
 securities on the board (⇒ `HALTED`, suppress change %, auto-draft a halt wire for the newsroom
 — halt alerts bypass quiet hours per platform rules); `AUCTION` is derived from the session
