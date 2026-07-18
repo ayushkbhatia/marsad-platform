@@ -836,7 +836,7 @@ part of the machine, not an implied default), surfaced as the market-closed trea
 (16c/m4f); the sweep additionally guards the filings poller, whose failure past 30 min raises
 a Desk item without touching quote badges.
 
-**`closed` suppresses, it does not reset** (`20260717143000`). The sweep's two `feed:<venue>`
+**`closed` suppresses, it does not reset** (`20260718105401`, applied live 2026-07-18). The sweep's two `feed:<venue>`
 incident rules were edge-triggered on the *previously stored* state — but the machine overwrites
 that state with `closed` at every market close, and `closed` means "no information about the
 feed", not "the feed changed". Letting it into the transition memory broke both edges on the next

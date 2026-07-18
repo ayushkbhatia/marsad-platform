@@ -1,5 +1,5 @@
 -- Regression: ingest.sweep_feed_status() feed:* incident dedupe + closed→live resolve
--- (migration 20260717143000_fix_feed_status_sweep_incident_dedup).
+-- (migration 20260718105401_fix_feed_status_sweep_incident_dedup).
 --
 -- Pins the duplicate-incident bug observed live 2026-07-17: ops.incidents held TWO open
 -- feed:ADX rows with identical messages, ids 17879 (07-16 06:00) and 18145 (07-17 06:00) —
