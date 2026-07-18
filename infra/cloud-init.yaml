@@ -33,6 +33,10 @@ packages:
   - unattended-upgrades
   # poppler-utils: pdftotext for filing parsing (01-ingestion.md); cheap to preinstall.
   - poppler-utils
+  # unzip: MSX ships each financial report as a ZIP of per-statement PDFs, so the msx-financials
+  # researcher shells out to `unzip` (scripts/researchers/msx-financials.mjs). NOT optional — the
+  # researcher preflights for it and exits 1 if absent.
+  - unzip
 
 write_files:
   # ---- worker environment (owner fills real values post-boot; see infra/README.md §4)

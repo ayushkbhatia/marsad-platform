@@ -1,0 +1,8 @@
+[Unit]
+Description=Marsad MSX financial-report archiver (zip->pdf into the lake; direct http, no proxy, no browser, no LLM)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /home/deploy/msx-financials-cron.sh
+TimeoutStartSec=900
