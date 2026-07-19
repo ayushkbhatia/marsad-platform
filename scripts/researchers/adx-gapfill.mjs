@@ -34,7 +34,7 @@ const postgres = (await import('/opt/marsad/worker/node_modules/postgres/src/ind
 const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_DB_URL, PROXY_SERVER, PROXY_USERNAME, PROXY_PASSWORD } = process.env;
 for (const [k, v] of Object.entries({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_DB_URL }))
   if (!v) { console.error(`missing env ${k}`); process.exit(1); }
-const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'sonnet';
+const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'haiku';
 const PDF_MAX = Number(process.env.ADX_PDF_MAX || 6); // new PDFs per run (rate-limit budget)
 const HEADLESS = process.env.ADX_HEADLESS !== '0'; // ADX loads headless from the VPS (bypass doc §1); no xvfb needed
 const USE_PROXY = process.env.ADX_USE_PROXY === '1' && !!PROXY_SERVER; // ADX does NOT need the metered proxy by default

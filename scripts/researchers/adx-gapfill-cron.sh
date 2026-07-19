@@ -27,7 +27,7 @@ set -a; source /etc/marsad/worker.env; set +a
 # env var over the OAuth subscription login if present, silently billing pay-as-you-go instead of the $0
 # subscription seat. Unset it so the spawned `claude` CLI falls back to the subscription auth.
 unset ANTHROPIC_API_KEY
-export CHUNK_START="$START" CHUNK_SIZE="$SIZE" ADX_PDF_MAX="${ADX_PDF_MAX:-6}" CLAUDE_MODEL="${CLAUDE_MODEL:-sonnet}"
+export CHUNK_START="$START" CHUNK_SIZE="$SIZE" ADX_PDF_MAX="${ADX_PDF_MAX:-6}" CLAUDE_MODEL="${CLAUDE_MODEL:-haiku}"
 cd /home/deploy
 OUT=$(timeout 800 node adx-gapfill.mjs 2>&1)
 echo "$OUT" | grep -E "adx-gapfill —|DONE" | tail -2

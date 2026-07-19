@@ -40,7 +40,7 @@ const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_DB_URL } = process.env
 for (const [k, v] of Object.entries({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_DB_URL }))
   if (!v) { console.error(`missing env ${k}`); process.exit(1); }
 
-const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'sonnet';
+const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'haiku';
 const FSPDF_MAX = Number(process.env.FSPDF_MAX || 48);      // total LLM extractions/run (global budget) — rate-limit guard
 const CONCURRENCY = Number(process.env.CONCURRENCY || 3);   // parallel `claude -p` extractions (async spawn); 3 balances speed vs the subscription's concurrent-session throttle (4 saw ~37% claude exit-1)
 const RUN_BUDGET_MS = Number(process.env.RUN_BUDGET_MS || 1000000); // self-stop ~16.7 min — well before the wrapper's timeout, so the DONE line always prints (a SIGKILLed run with no DONE holds the cursor at its current offset and retries)

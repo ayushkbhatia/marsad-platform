@@ -35,7 +35,7 @@ unset ANTHROPIC_API_KEY
 # self-stop (~16.7 min) well inside the `timeout` below so the DONE line always prints (no cursor reset).
 export CHUNK_START="$START" CHUNK_SIZE="$SIZE" \
        FSPDF_MAX="${FSPDF_MAX:-48}" CONCURRENCY="${CONCURRENCY:-3}" RUN_BUDGET_MS="${RUN_BUDGET_MS:-1000000}" \
-       CLAUDE_MODEL="${CLAUDE_MODEL:-sonnet}"
+       CLAUDE_MODEL="${CLAUDE_MODEL:-haiku}"
 cd /home/deploy
 OUT=$(timeout 1300 node dfm-backfill.mjs 2>&1)
 echo "$OUT" | grep -E "dfm-backfill —|DONE" | tail -2
