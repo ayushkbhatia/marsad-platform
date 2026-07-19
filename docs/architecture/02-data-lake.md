@@ -2157,3 +2157,32 @@ have been revised to reference these names.
   needs human judgment (conflict overrides, price-sensitive confirms, Hijri confirms,
   correction-note approval) stays in the owner's approval surfaces. The platform inherits a
   six-human newsroom's *features* with a one-human *staffing model*, and says so.
+
+## Landing visibility (ops monitoring views)
+
+Four read-only views (`migration 20260719160000_lake_landing_visibility_views`) answer
+"what's landing in storage + the lake right now?" across all three raw layers
+(`snapshots → staging_rows → objects`) plus the Storage buckets. They are the single source
+of truth for landing metrics — Supabase Studio, and any future admin route, read the same
+views. Plain (owner-privileged) views, so they bypass per-table RLS; **admin/ops only** —
+expose solely to the service role or an admin-gated route, never to `anon`.
+
+- **`lake.v_landing_recent`** — per pipeline layer × venue throughput, 1h/24h/7d windows +
+  freshness `age`. The primary "is data flowing?" board.
+- **`lake.v_landing_storage`** — per-bucket file count, total bytes, 1h/24h inflow, freshness.
+- **`lake.v_landing_types`** — canonical `object_type` × venue mix landed in the last 7d
+  (what *kinds* of datapoints, not just how many).
+- **`lake.v_landing_gaps`** — one row per venue with the newest timestamp at each layer +
+  health flags: `object_stale` (no object in 24h), `no_raw_trail` (a **fetched**,
+  non-`COMPUTED` object landed in 24h with **neither** a `lake.snapshots` blob **nor** a
+  `parse_run` — `untracked_fetched_24h` exposes the count), `stalled_extract` (snapshots
+  landing but staging not keeping up). **Lineage note:** the raw copy for ADX/DFM/QE filing
+  objects lives in the `filings` bucket, linked via the object's `parse_run` +
+  `public.filings.pdf_storage_key`, **not** in `lake.snapshots`; and `COMPUTED.*` objects
+  (ratios, scores) are derived, not fetched. Both are correctly excluded — an earlier naive
+  definition (snapshot-only) false-positived ADX+DFM before this was hardened. Live at apply
+  (2026-07-19): all 6 venues `no_raw_trail=false`.
+
+Usage: `select * from lake.v_landing_recent;` in Studio. The intended product surface is a
+future `src/app/admin/lake` server route reading these views via a server-only service-role
+client (RLS blocks the anon key from the underlying lake/storage tables).
