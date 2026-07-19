@@ -285,6 +285,42 @@ Full spec, per-family gap matrix, cadence table, and build sequence: **`docs/pla
 It is the consolidated **home** for the DEF-STMT-INGEST / DEF-SECTOR-DATA / DEF-VENUE-FILINGS /
 DEF-FILING-FACTS / DEF-SCORE-EVENTS-TRIGGER / DEF-ESTIMATES-AGG / DEF-STMT-LLM-PDF cluster (§7).
 
+### Phase C — extractors + identity producers (2026-07-19, in flight)
+The data-tier completion pass after the statement-pipeline Phase A+B: consume what the scrapers store.
+- ✅ **C1 — filing-facts extractor BUILT** (`scripts/researchers/filing-extractor.mjs` + cron/timer):
+  the `ops.filing_extract_queue` consumer that never existed (DEF-FILING-FACTS). SKIP LOCKED batch
+  claim → storage PDF → `pdftotext` (+page-by-page OCR fallback) → `filings.full_text` + `claude -p`
+  ($0 seat) → `ai_summary`/`is_market_moving`/`extracted_facts.ai` (MERGED — the MSX manifest under
+  `extracted_facts.msx_report` is never clobbered) + `filing_type` upgraded from `OTHER` only.
+  3-strikes → `failed`. Timer 45-min, `EXTRACT_MAX` 12/run, conc 2. **Validation pending first runs.**
+- ✅ **C2 — MSX statement extractor BUILT** (`scripts/researchers/msx-stmt-extract.mjs` + cron/timer,
+  DEF-MSX-STMT-EXTRACT): projects the 2,251+ ARCHIVED MSX report PDFs into `financial_statements` —
+  zero scraping, storage-only. Coverage-gated by the `msx_report` metadata (period known up front ⇒ a
+  served period costs no LLM), owned-marked via `extracted_facts.stmt_extract`, `filing_source_ref`
+  on every object (v3.1 link). Newest-first. Timer 1h, `MSX_MAX` 14/run, conc 2. **Validation pending.**
+- ✅ **C3/QE — LIVE + VERIFIED: QE identity complete in one call.** The mw.php MarketWatch board
+  carries `ISIN` + `SectorEN` + `SubscribedShares` for every listed company (probed 2026-07-19; the
+  DEF-SECTOR-DATA-DFM-QE "no reachable endpoint" premise is stale for QE). `qe-profile.mjs` one-shot
+  (curl transport — the QE undici-tarpit lesson) → 49 PROFILE.SECURITY objects → **securities: 49/49
+  ISIN, 49/49 shares_outstanding, 48/49 real sector** (the miss is the QATR ETF, correctly unknown).
+  **First venue with complete ratio inputs** — QE already has 3,755 statement rows, so the next
+  nightly produces real PE/PB/market_cap and score_batch gets its first fully-rationed cohort.
+  Re-run quarterly to refresh shares.
+- ✅ **C3/ADX — source 42 ACTIVATED** (`20260719101210`): quotes-gateway auth headers pinned onto the
+  profile source + source/schedule flipped. Curl-level Cloudflare 403 proves nothing (ADX-outage
+  lesson) — it rides the cookie-seated browser context the live quotes use. Watch the first daily
+  cycle; a fieldMap miss yields 0 rows + logs (then pin the real map from the captured snapshot —
+  data fix, no deploy).
+- ⚠️ **C3 probe findings (2026-07-19, all direct-from-VPS) — updates to the §7 rows:**
+  **TDWL shares (DEF-SECTOR-DATA / DEF-EXIT-MUBASHER):** owner approved Mubasher (direct HTTP, no
+  proxy), but the seeded `/api/1/stocks/{symbol}/profile` route 404s and the JS bundle exposes only
+  account routes — the real stock-profile XHR needs ONE live browser capture of a Mubasher stock page
+  (direct egress, no proxy cost). **MSX (id 43):** `/api/company/{symbol}` 302s to PageNotFound —
+  endpoint gone; MSX identity needs a fresh endpoint capture (GetPageData board has sector but no
+  ISIN/shares). **BHB:** webapi Quotes board carries no identity fields;
+  `DataExportCompanyProfile` returns "No items found" for a bare symbol — needs proc/param discovery.
+  **DFM:** dapi/fetch stocks board carries NO isin/shares (`capital` null) — DFM identity stays gapped.
+
 ### P2 — Reader core on real data (~4 wks)
 Ledger, 812 stock pages, newswire, screener, heatmap, search, SEO — all from the live lake, CDN-cached anonymous browsing. (Master plan P2.)
 

@@ -1,0 +1,9 @@
+[Unit]
+Description=Marsad filing-facts extractor (queue drain: full_text + ai_summary + facts via Claude Code subscription; storage-only, no scraping)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /opt/marsad/scripts/researchers/filing-extractor-cron.sh
+TimeoutStartSec=1200
+MemoryHigh=2200M
