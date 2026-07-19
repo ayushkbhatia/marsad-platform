@@ -1,8 +1,13 @@
 # Keep non-app trees out of Vercel builds/uploads. The worker deploys to the
 # VPS via worker-deploy.yml; infra is provisioning config; migrations apply
 # via supabase db push in CI (06-infra-cost.md §10).
-worker/
-ingestion/
-infra/
-docs/
-supabase/
+#
+# Patterns are ROOT-ANCHORED (leading slash) on purpose: a bare `supabase/`
+# uses gitignore semantics and matches a dir of that name at ANY depth, which
+# silently strips `src/lib/supabase/` (the app's Supabase clients) from the
+# Vercel build. Anchor to the top-level trees only.
+/worker/
+/ingestion/
+/infra/
+/docs/
+/supabase/
