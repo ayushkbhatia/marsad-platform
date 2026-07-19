@@ -31,7 +31,7 @@ const postgres = (await import('/opt/marsad/worker/node_modules/postgres/src/ind
 const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_DB_URL } = process.env;
 for (const [k, v] of Object.entries({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_DB_URL }))
   if (!v) { console.error(`missing env ${k}`); process.exit(1); }
-const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'sonnet';
+const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'haiku';
 const FSPDF_MAX = Number(process.env.FSPDF_MAX || 6); // new PDFs per run (subscription rate-limit budget)
 const RUN_BUDGET_MS = Number(process.env.RUN_BUDGET_MS || 680000); // self-stop before the cron SIGTERM
 const OCR_MAX_PAGES = Number(process.env.OCR_MAX_PAGES || 60); // scanned-PDF OCR page cap (bounds time/mem)

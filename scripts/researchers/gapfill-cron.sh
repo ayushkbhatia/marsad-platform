@@ -23,7 +23,7 @@ set -a; source /etc/marsad/worker.env; set +a
 # env, silently billing pay-as-you-go credits instead of the intended $0 subscription seat. Unset
 # it here so the spawned `claude` CLI falls back to the subscription auth.
 unset ANTHROPIC_API_KEY
-export CHUNK_START="$START" CHUNK_SIZE="$SIZE" FSPDF_MAX="${FSPDF_MAX:-6}" CLAUDE_MODEL="${CLAUDE_MODEL:-sonnet}"
+export CHUNK_START="$START" CHUNK_SIZE="$SIZE" FSPDF_MAX="${FSPDF_MAX:-6}" CLAUDE_MODEL="${CLAUDE_MODEL:-haiku}"
 cd /home/deploy
 OUT=$(timeout 800 xvfb-run -a node tadawul-gapfill.mjs 2>&1)
 echo "$OUT" | grep -E "gapfill —|DONE" | tail -2

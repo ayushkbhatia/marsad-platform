@@ -17,7 +17,7 @@ set -a; source /etc/marsad/worker.env; set +a
 # spawned `claude -p` prefers that env var over the OAuth subscription login if present — silently billing
 # pay-as-you-go credits. Unset it so `claude` falls back to the $0 subscription seat (same as gapfill-cron).
 unset ANTHROPIC_API_KEY
-export CHUNK_START="$START" CHUNK_SIZE="$SIZE" FSPDF_MAX="${FSPDF_MAX:-6}" CLAUDE_MODEL="${CLAUDE_MODEL:-sonnet}"
+export CHUNK_START="$START" CHUNK_SIZE="$SIZE" FSPDF_MAX="${FSPDF_MAX:-6}" CLAUDE_MODEL="${CLAUDE_MODEL:-haiku}"
 cd /home/deploy
 OUT=$(timeout 800 node bhb-financials.mjs 2>&1)
 echo "$OUT" | grep -E "bhb-financials —|DONE" | tail -2

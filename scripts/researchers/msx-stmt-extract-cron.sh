@@ -8,6 +8,6 @@ flock -n 9 || { echo "another msx-stmt-extract run holds the lock — skipping t
 
 set -a; source /etc/marsad/worker.env; set +a
 unset ANTHROPIC_API_KEY
-export MSX_MAX="${MSX_MAX:-14}" CONCURRENCY="${CONCURRENCY:-2}" CLAUDE_MODEL="${CLAUDE_MODEL:-sonnet}"
+export MSX_MAX="${MSX_MAX:-14}" CONCURRENCY="${CONCURRENCY:-2}" CLAUDE_MODEL="${CLAUDE_MODEL:-haiku}"
 OUT=$(timeout 1100 node /opt/marsad/scripts/researchers/msx-stmt-extract.mjs 2>&1)
 echo "$OUT" | grep -E "msx-stmt-extract —|DONE" | tail -2

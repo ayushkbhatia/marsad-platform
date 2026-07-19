@@ -20,7 +20,7 @@ const postgres = (await import('/opt/marsad/worker/node_modules/postgres/src/ind
 const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_DB_URL, PROXY_SERVER, PROXY_USERNAME, PROXY_PASSWORD } = process.env;
 for (const [k, v] of Object.entries({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_DB_URL, PROXY_SERVER, PROXY_USERNAME, PROXY_PASSWORD }))
   if (!v) { console.error(`missing env ${k}`); process.exit(1); }
-const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'sonnet';
+const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'haiku';
 const FSPDF_MAX = Number(process.env.FSPDF_MAX || 6); // new PDFs per run (rate-limit budget)
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);

@@ -32,7 +32,7 @@ const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_DB_URL } = process.env
 for (const [k, v] of Object.entries({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_DB_URL }))
   if (!v) { console.error(`missing env ${k}`); process.exit(1); }
 
-const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'sonnet';
+const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'haiku';
 const EXTRACT_MAX = Number(process.env.EXTRACT_MAX || 12);
 const CONCURRENCY = Number(process.env.CONCURRENCY || 2);
 const RUN_BUDGET_MS = Number(process.env.RUN_BUDGET_MS || 1000000);
