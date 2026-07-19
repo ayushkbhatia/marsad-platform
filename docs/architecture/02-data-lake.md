@@ -2157,3 +2157,46 @@ have been revised to reference these names.
   needs human judgment (conflict overrides, price-sensitive confirms, Hijri confirms,
   correction-note approval) stays in the owner's approval surfaces. The platform inherits a
   six-human newsroom's *features* with a one-human *staffing model*, and says so.
+
+## Landing visibility (ops monitoring views)
+
+Four read-only views (`migration 20260719160000_lake_landing_visibility_views`) answer
+"what's landing in storage + the lake right now?" across all three raw layers
+(`snapshots → staging_rows → objects`) plus the Storage buckets. They are the single source
+of truth for landing metrics — Supabase Studio, and any future admin route, read the same
+views. Plain (owner-privileged) views, so they bypass per-table RLS; **admin/ops only** —
+expose solely to the service role or an admin-gated route, never to `anon`.
+
+- **`lake.v_landing_recent`** — per pipeline layer × venue throughput, 1h/24h/7d windows +
+  freshness `age`. The primary "is data flowing?" board.
+- **`lake.v_landing_storage`** — per-bucket file count, total bytes, 1h/24h inflow, freshness.
+- **`lake.v_landing_types`** — canonical `object_type` × venue mix landed in the last 7d
+  (what *kinds* of datapoints, not just how many).
+- **`lake.v_landing_gaps`** — one row per venue with the newest timestamp at each layer +
+  health flags: `object_stale` (no object in 24h), `no_raw_trail` (a **fetched**,
+  non-`COMPUTED` object landed in 24h with **neither** a `lake.snapshots` blob **nor** a
+  `parse_run` — `untracked_fetched_24h` exposes the count), `stalled_extract` (snapshots
+  landing but staging not keeping up). **Lineage note:** the raw copy for ADX/DFM/QE filing
+  objects lives in the `filings` bucket, linked via the object's `parse_run` +
+  `public.filings.pdf_storage_key`, **not** in `lake.snapshots`; and `COMPUTED.*` objects
+  (ratios, scores) are derived, not fetched. Both are correctly excluded — an earlier naive
+  definition (snapshot-only) false-positived ADX+DFM before this was hardened. Live at apply
+  (2026-07-19): all 6 venues `no_raw_trail=false`.
+
+Usage (Studio, ad-hoc): `select * from lake.v_landing_recent;`.
+
+**Admin route (shipped 2026-07-19).** `src/app/admin/lake` is a dynamic server component that
+renders all four boards. It cannot read `lake` directly — that schema is not PostgREST-exposed
+(only `public` is) — so migration `20260719170000_lake_landing_public_wrappers` adds four
+`public.v_lake_landing_*` **`security_invoker` wrapper views** granted to `service_role` only
+(+ the matching `grant select` on the `lake` views to `service_role`). `security_invoker` is
+load-bearing: a plain owner-privileged wrapper would run as `postgres` and leak `lake` to any
+role granted the public view; the invoker wrapper instead requires the caller's own `lake`
+USAGE, which `anon`/`authenticated` lack. The route reads them via `createAdminClient()`
+(`src/lib/supabase/server-admin.ts`, service-role key, server-only, never shipped to browser).
+Access is gated in `src/proxy.ts` by **HTTP Basic Auth** (`ADMIN_USER` / `ADMIN_PASSWORD`,
+fails closed) — an interim gate because no login flow / roles exist yet; swap for an
+`ADMIN_EMAILS` / role check once Supabase Auth is wired. **Next 16 note:** the gate lives in
+`proxy.ts` with `export function proxy(...)`, not `middleware.ts` — the `middleware` file
+convention is deprecated in Next 16 (build emits `middleware-to-proxy`); the `config.matcher`
+export is unchanged.
