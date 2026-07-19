@@ -174,7 +174,7 @@ async function catalogPdf(sql, cs, key, fname) {
 // ── main ──
 const t0 = Date.now();
 // Self-terminate before the cron's 800s SIGTERM so DONE always prints (the wrapper advances the cursor by
-// the completed count; a killed run with no DONE line would reset it to 0 and lose progress).
+// the completed count; a killed run with no DONE line holds the cursor at its current offset and retries).
 const runDeadline = t0 + Number(process.env.RUN_BUDGET_MS || 680000);
 const sql = postgres(SUPABASE_DB_URL, { max: 6, prepare: false });
 let symbols;

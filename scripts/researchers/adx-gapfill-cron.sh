@@ -32,6 +32,13 @@ cd /home/deploy
 OUT=$(timeout 800 node adx-gapfill.mjs 2>&1)
 echo "$OUT" | grep -E "adx-gapfill —|DONE" | tail -2
 
-NUM=$(echo "$OUT" | grep -oE "companies [0-9]+/[0-9]+" | tail -1 | sed -E 's#companies ([0-9]+)/.*#\1#')
-if [ -z "$NUM" ] || [ "$NUM" -eq 0 ]; then echo 0 > "$STATE"; else echo $((START + NUM)) > "$STATE"; fi
+# Advance by companies ACTUALLY completed; split three end states so a transient failure (0 processed)
+# holds position instead of resetting to 0 (the old "any 0 -> wrap" wedged the walk — see researcher-cron.sh).
+STATS=$(echo "$OUT" | grep -oE "companies [0-9]+/[0-9]+" | tail -1)
+DONE_N=$(echo "$STATS" | sed -E 's#companies ([0-9]+)/([0-9]+)#\1#')
+FETCH_N=$(echo "$STATS" | sed -E 's#companies ([0-9]+)/([0-9]+)#\2#')
+if [ -z "$STATS" ]; then echo "$START" > "$STATE"; echo "no DONE line (crashed run) - holding cursor at $START"
+elif [ "$FETCH_N" -eq 0 ]; then echo 0 > "$STATE"; echo "end of universe - wrapping cursor to 0"
+elif [ "$DONE_N" -eq 0 ]; then echo "$START" > "$STATE"; echo "0 companies processed (fetch/nav failure) - holding cursor at $START"
+else echo $((START + DONE_N)) > "$STATE"; fi
 echo "next adx-gapfill chunk start: $(cat "$STATE")"
