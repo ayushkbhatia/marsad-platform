@@ -81,10 +81,7 @@ function runProc(cmd, args, input, timeoutMs) {
   });
 }
 
-async function extractViaClaude(buf, cs) {
-  let full = pdfToText(buf);
-  if (full.replace(/\s+/g, '').length < 400) full = ocrToText(buf);
-  if (full.replace(/\s+/g, '').length < 400) return { error: 'no text layer (OCR empty)', permanent: true };
+async function extractViaClaude(full, cs) {
   const userMsg = buildExtractionUserMessage(full, 120000);
   const prompt = `${EXTRACTION_SYSTEM}\n\nThe filing text is on stdin. Return ONLY the JSON object of shape {"currency","scale","statements":[...]} — no prose, no code fences.`;
   const args = ['-p', prompt, '--output-format', 'json', '--model', CLAUDE_MODEL];
@@ -153,7 +150,8 @@ const sql = postgres(SUPABASE_DB_URL, { max: CONCURRENCY + 2, prepare: false });
 const wantSyms = process.env.ACQUIRE_SYMBOLS ? process.env.ACQUIRE_SYMBOLS.split(',').map((s) => s.trim()).filter(Boolean) : null;
 const reports = await sql`
   select f.id, f.source_ref, f.pdf_storage_key, f.security_id, s.ticker,
-         f.extracted_facts -> 'msx_report' as rep
+         f.extracted_facts -> 'msx_report' as rep,
+         f.extracted_facts -> 'documents'  as docs
     from public.filings f
     join public.securities s on s.id = f.security_id
    where f.venue_code = 'MSX' and f.source_ref like 'MSX-FS-%'
@@ -161,6 +159,19 @@ const reports = await sql`
      and (f.extracted_facts -> 'stmt_extract') is null
      ${wantSyms ? sql`and s.ticker = any(${wantSyms})` : sql``}
    order by f.filed_at desc`;
+
+// The report's "company_report" member is the DIRECTORS' narrative letter, NOT the statements
+// (verified live on OMVS Q1-26 — claude correctly found 0 statements in it). The actual statements
+// are the PRE-SEGMENTED members; extract from those, with filing_information first (it carries the
+// currency/rounding header context).
+const STATEMENT_KINDS = ['filing_information', 'income_statement', 'balance_sheet', 'cash_flow', 'stockholder_equity'];
+function statementMembers(docs) {
+  const arr = Array.isArray(docs) ? docs : [];
+  const picked = STATEMENT_KINDS.flatMap((k) => arr.filter((d) => d?.kind === k && d?.storage_key));
+  if (picked.some((d) => d.kind !== 'filing_information')) return picked;
+  // Degenerate manifest (no per-statement members) → fall back to the primary member.
+  return null;
+}
 
 // Coverage gate: candidate period already served for that security ⇒ mark covered, spend nothing.
 const covered = new Map(); // secId → Set(fiscal_period)
@@ -187,21 +198,36 @@ async function worker(wid) {
       const cov = await coveredSet(f.security_id);
       if (per && cov.has(per)) {
         // Served already — mark so it never re-enters the candidate list (no LLM spent).
-        await sql`update public.filings set extracted_facts = coalesce(extracted_facts,'{}'::jsonb) || jsonb_build_object('stmt_extract', jsonb_build_object('state','covered','period',${per})) where id=${f.id}`;
+        await sql`update public.filings set extracted_facts = coalesce(extracted_facts,'{}'::jsonb) || jsonb_build_object('stmt_extract', ${sql.json({ state: 'covered', period: per })}::jsonb) where id=${f.id}`;
         skippedCovered++;
         continue;
       }
       budget--;
-      const buf = await fetchStoredPdf(f.pdf_storage_key);
-      if (!buf) {
-        await sql`update public.filings set extracted_facts = coalesce(extracted_facts,'{}'::jsonb) || jsonb_build_object('stmt_extract', jsonb_build_object('state','failed','error','storage fetch / not a pdf')) where id=${f.id}`;
+      // Concatenate the pre-segmented statement members' text (filing_information first for the
+      // currency/rounding header); fall back to the primary member on a degenerate manifest.
+      const members = statementMembers(f.docs);
+      let text = '';
+      if (members) {
+        for (const m of members) {
+          const mb = await fetchStoredPdf(m.storage_key);
+          if (!mb) continue;
+          let mt = pdfToText(mb);
+          if (mt.replace(/\s+/g, '').length < 100) mt = ocrToText(mb);
+          if (mt.trim()) text += `\n\n===== ${m.kind.toUpperCase()} (${m.name}) =====\n\n${mt}`;
+        }
+      } else {
+        const buf = await fetchStoredPdf(f.pdf_storage_key);
+        if (buf) { text = pdfToText(buf); if (text.replace(/\s+/g, '').length < 400) text = ocrToText(buf); }
+      }
+      if (text.replace(/\s+/g, '').length < 400) {
+        await sql`update public.filings set extracted_facts = coalesce(extracted_facts,'{}'::jsonb) || jsonb_build_object('stmt_extract', ${sql.json({ state: 'failed', error: 'no readable statement members' })}::jsonb) where id=${f.id}`;
         failedPerm++;
         continue;
       }
-      const ex = await extractViaClaude(buf, f.ticker);
+      const ex = await extractViaClaude(text, f.ticker);
       if (ex.error) {
         if (ex.permanent) {
-          await sql`update public.filings set extracted_facts = coalesce(extracted_facts,'{}'::jsonb) || jsonb_build_object('stmt_extract', jsonb_build_object('state','failed','error',${ex.error})) where id=${f.id}`;
+          await sql`update public.filings set extracted_facts = coalesce(extracted_facts,'{}'::jsonb) || jsonb_build_object('stmt_extract', ${sql.json({ state: 'failed', error: ex.error })}::jsonb) where id=${f.id}`;
           failedPerm++;
         } else {
           log(`  [w${wid}] ${f.source_ref} extract: ${ex.error} (transient — retry next run)`);
@@ -210,7 +236,7 @@ async function worker(wid) {
       }
       const n = await persist(sql, f.ticker, f.security_id, ex.statements, f.source_ref);
       for (const p of ex.statements.periods) cov.add(p.fiscalPeriod);
-      await sql`update public.filings set extracted_facts = coalesce(extracted_facts,'{}'::jsonb) || jsonb_build_object('stmt_extract', jsonb_build_object('state','done','periods',${ex.statements.periods.length},'rows',${n},'rejected',${ex.validation.rejected.length})) where id=${f.id}`;
+      await sql`update public.filings set extracted_facts = coalesce(extracted_facts,'{}'::jsonb) || jsonb_build_object('stmt_extract', ${sql.json({ state: 'done', periods: ex.statements.periods.length, rows: n, rejected: ex.validation.rejected.length })}::jsonb) where id=${f.id}`;
       extracted++; rowsW += n;
       log(`  [w${wid}] ✓ ${f.ticker} ${f.source_ref} → ${ex.statements.periods.length}p → ${n} rows (budget ${budget})`);
     } catch (e) { log(`  [w${wid}] ${f.source_ref} err ${String(e).slice(0, 80)}`); }
