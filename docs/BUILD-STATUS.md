@@ -293,6 +293,12 @@ The data-tier completion pass after the statement-pipeline Phase A+B: consume wh
   ($0 seat) → `ai_summary`/`is_market_moving`/`extracted_facts.ai` (MERGED — the MSX manifest under
   `extracted_facts.msx_report` is never clobbered) + `filing_type` upgraded from `OTHER` only.
   3-strikes → `failed`. Timer 45-min, `EXTRACT_MAX` 12/run, conc 2. **Validation pending first runs.**
+  **HARDENED 2026-07-19 (claude-exhaustion collateral fix):** a non-zero `claude` exit (rate-limit exit 1,
+  timeout, network) is now flagged `transient` → row stays `pending` AND the claim's `attempts++` is rolled
+  back (`greatest(attempts-1,0)`), so an outage can **never** 3-strike a good PDF into `failed`. Only real
+  content misses (`no json`/`bad json`/`no summary`) count toward the cap. Regression that motivated it: the
+  2026-07-17→19 Claude-limit exhaustion permanently `failed` **12 queue rows** (all `extract: claude 1`,
+  bytes already stored) before they could drain; reset to `pending` on the live DB (attempts=0) 2026-07-19.
 - ✅ **C2 — MSX statement extractor BUILT** (`scripts/researchers/msx-stmt-extract.mjs` + cron/timer,
   DEF-MSX-STMT-EXTRACT): projects the 2,251+ ARCHIVED MSX report PDFs into `financial_statements` —
   zero scraping, storage-only. Coverage-gated by the `msx_report` metadata (period known up front ⇒ a
@@ -320,6 +326,13 @@ The data-tier completion pass after the statement-pipeline Phase A+B: consume wh
   ISIN/shares). **BHB:** webapi Quotes board carries no identity fields;
   `DataExportCompanyProfile` returns "No items found" for a bare symbol — needs proc/param discovery.
   **DFM:** dapi/fetch stocks board carries NO isin/shares (`capital` null) — DFM identity stays gapped.
+- ✅ **Hardened `tadawul-gapfill.mjs` proxy-waste path (2026-07-19, DEF-RESEARCHER-GUARDRAILS):** fetch and
+  `claude -p` extract share one loop and the period-coverage gate keys off `financial_statements`, so on a
+  claude miss the fetched PDF was **discarded** and re-fetched from Tadawul over the metered proxy **every
+  run** until extraction finally succeeded — burning proxy bytes for zero gain during any Claude outage. Fix:
+  upload the PDF **and** record its `public.filings` owned-marker BEFORE extraction; a still-uncovered gap
+  candidate whose key is already owned is now pulled from **Supabase storage** (`downloadPdf`, no proxy),
+  never re-fetched from Tadawul. A claude miss costs one LLM attempt, never a re-download.
 
 ### P2 — Reader core on real data (~4 wks)
 Ledger, 812 stock pages, newswire, screener, heatmap, search, SEO — all from the live lake, CDN-cached anonymous browsing. (Master plan P2.)

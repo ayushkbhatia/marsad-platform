@@ -110,7 +110,10 @@ async function factsViaClaude(text) {
     await new Promise((res) => setTimeout(res, 3000 + Math.floor(Math.random() * 5000)));
     r = await runProc('claude', args, userMsg, 180000);
   }
-  if (r.code !== 0) return { error: `claude ${r.code}${r.err ? ' — ' + r.err : ''}` };
+  // Non-zero claude exit = infra/exhaustion (rate-limit exit 1, timeout, network) — NOT a content
+  // problem. Flag transient so the queue never 3-strikes a good PDF into permanent 'failed' during an
+  // outage. Content failures below ('no json'/'bad json'/'no summary') are real and DO count.
+  if (r.code !== 0) return { error: `claude ${r.code}${r.err ? ' — ' + r.err : ''}`, transient: true };
   let out = r.out.toString(); try { const env = JSON.parse(out); if (typeof env.result === 'string') out = env.result; } catch { /* raw */ }
   const mm = out.match(/\{[\s\S]*\}/); if (!mm) return { error: 'no json' };
   try {
@@ -160,7 +163,14 @@ async function worker(wid) {
     const i = cursor++;
     if (i >= claimed.length) return;
     const q = claimed[i];
-    const fail = async (err, permanent) => {
+    const fail = async (err, permanent, transient) => {
+      if (transient) {
+        // Infra/exhaustion (e.g. claude exit 1): keep pending AND roll back the claim's attempts++ so a
+        // prolonged outage can never accumulate toward the 3-strike cap. Never marked 'failed'.
+        await sql`update ops.filing_extract_queue set error=${String(err).slice(0, 300)}, attempts=greatest(attempts - 1, 0) where id=${q.id}`;
+        retried++;
+        return;
+      }
       if (permanent || q.attempts >= MAX_ATTEMPTS) {
         await sql`update ops.filing_extract_queue set state='failed', error=${String(err).slice(0, 300)}, done_at=now() where id=${q.id}`;
         failed++;
@@ -178,7 +188,7 @@ async function worker(wid) {
       text = text.slice(0, FULLTEXT_CAP);
 
       const fx = await factsViaClaude(text);
-      if (fx.error) { await fail(`extract: ${fx.error}`, false); continue; }
+      if (fx.error) { await fail(`extract: ${fx.error}`, false, fx.transient === true); continue; }
       const p = fx.parsed;
       const docType = String(p.doc_type || 'other').toLowerCase();
       const ftype = DOCTYPE_TO_FILING_TYPE[docType] || null;
