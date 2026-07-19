@@ -64,6 +64,17 @@ pgmq-consumer handlers on the same worker (event/cron-driven, not proxy, cheap):
 
 ### B. Browser researchers — dedicated `systemd` timers (the expensive class)
 
+> ▶️ **STATE 2026-07-19: RUNNING again — only `marsad-gapfill.timer` is disabled.** Paused 2026-07-17 for
+> Claude-subscription bandwidth, then restarted as the seat + Geonode proxy came back: `marsad-researcher`
+> (07-18) + `marsad-{dfm-backfill,adx-gapfill,bhb-financials}` (07-19) all fire on their cadences again;
+> only `marsad-gapfill.timer` stays `disabled` (the TDWL pre-XBRL `claude -p` path — re-enable when you
+> want the pre-XBRL long tail). `marsad-worker.service` (§A) never stopped. **All 5 wrapper cursors were
+> hardened 2026-07-19** — the old `any 0-completed → reset to 0` wedged the walk at offset 0 on a transient
+> proxy/nav failure (the 07-18 Geonode outage did exactly this to TDWL); now `fetched==0→wrap`,
+> `fetched>0 & done==0→hold+retry`, `done>0→advance`. See **DEF-LLM-BACKFILL-PAUSED** in `BUILD-STATUS.md`
+> §7 for the full history + the `dfm-backfill` cadence/concurrency caveat. Cadences below are the
+> *configured* schedule.
+
 | Worker | Targets & data-point | How it fetches | Cadence | Stop / rest | Config |
 |---|---|---|---|---|---|
 | **tadawul-researcher** (`marsad-researcher.timer` → `researcher-cron.sh` → `tadawul-researcher.mjs`) | TDWL financial statements: per company, click "Financial Statements & Reports" → scrape `XBRL_DOCS/*.html` + `fsPdf/*.pdf` → parse XBRL → `financial_statements` + archive PDFs to `filings` bucket | **headed Chromium through the Geonode proxy**; per company: `goto` market-watch SPA → click company anchor → click FS control → in-page `fetch` the XBRL/PDF | **6 h** (was 15 min — §5); walks the universe in chunks of 16, 2 concurrent sticky-IP browsers | `RUN_BUDGET_MS` (~680 s) + `PDF_ARCHIVE_MAX` (20/run) + chunk cursor; **incremental** — skips already-`owned` storage keys | env: `CHUNK_SIZE/CONCURRENCY/RUN_BUDGET_MS/PDF_ARCHIVE_MAX`; state `.researcher-chunk` |

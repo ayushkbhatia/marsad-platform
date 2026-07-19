@@ -29,8 +29,24 @@ cd /home/deploy
 OUT=$(timeout 800 xvfb-run -a node tadawul-researcher.mjs 2>&1)
 echo "$OUT" | grep -E "researcher —|DONE|rejected" | tail -3
 
-# Advance by companies ACTUALLY completed (not SIZE) so a mid-chunk timeout retries the rest instead of
-# skipping them. 0 completed = past the end of the universe (or a dead run) → wrap to 0.
-NUM=$(echo "$OUT" | grep -oE "companies [0-9]+/[0-9]+" | tail -1 | sed -E 's#companies ([0-9]+)/.*#\1#')
-if [ -z "$NUM" ] || [ "$NUM" -eq 0 ]; then echo 0 > "$STATE"; else echo $((START + NUM)) > "$STATE"; fi
+# Advance the cursor by companies ACTUALLY completed so a mid-chunk timeout retries the rest.
+# Parse BOTH counts from "companies <done>/<fetched>" and split three end states. The old code treated
+# ANY "0 completed" as end-of-universe and wrapped to 0 — so a transient browser/proxy failure (0
+# processed) silently reset the cursor and wedged the whole walk at offset 0 (observed 2026-07-18 when
+# the Geonode proxy went down: every run 0/16 → cursor pinned at 0, never reaching the uncovered tail).
+#   fetched == 0           -> past end of universe       -> wrap to 0 (rescan from top next fire)
+#   fetched > 0, done == 0 -> run failed (proxy/nav down) -> HOLD cursor, retry same offset
+#   done > 0               -> real progress              -> advance by done
+STATS=$(echo "$OUT" | grep -oE "companies [0-9]+/[0-9]+" | tail -1)
+DONE_N=$(echo "$STATS" | sed -E 's#companies ([0-9]+)/([0-9]+)#\1#')
+FETCH_N=$(echo "$STATS" | sed -E 's#companies ([0-9]+)/([0-9]+)#\2#')
+if [ -z "$STATS" ]; then
+  echo "$START" > "$STATE"; echo "no DONE line (crashed run) - holding cursor at $START"
+elif [ "$FETCH_N" -eq 0 ]; then
+  echo 0 > "$STATE"; echo "end of universe - wrapping cursor to 0"
+elif [ "$DONE_N" -eq 0 ]; then
+  echo "$START" > "$STATE"; echo "0 companies processed (proxy/nav failure) - holding cursor at $START"
+else
+  echo $((START + DONE_N)) > "$STATE"
+fi
 echo "next chunk start: $(cat "$STATE")"

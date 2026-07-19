@@ -23,8 +23,8 @@
  *
  * PARALLEL: CONCURRENCY (default 4) `claude -p` extractions run at once (async spawn), so a run clears
  * several names instead of ~1. FSPDF_MAX is the GLOBAL per-run extraction budget; RUN_BUDGET_MS self-stops
- * before the wrapper's `timeout` so the DONE line always prints (a SIGKILLed run with no DONE resets the
- * chunk cursor). Bounded by the Claude subscription rate limit — a throttled call logs `extract: claude …`
+ * before the wrapper's `timeout` so the DONE line always prints (a SIGKILLed run with no DONE holds the
+ * chunk cursor at its current offset and retries). Bounded by the Claude subscription rate limit — a throttled call logs `extract: claude …`
  * and retries next run (no data loss). Watch the box: CONCURRENCY parallel claude+pdftotext on the 3.8 GB
  * VPS — the systemd unit caps it with MemoryHigh so it can't OOM the co-resident marsad-worker.
  *
@@ -43,7 +43,7 @@ for (const [k, v] of Object.entries({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, S
 const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'sonnet';
 const FSPDF_MAX = Number(process.env.FSPDF_MAX || 48);      // total LLM extractions/run (global budget) — rate-limit guard
 const CONCURRENCY = Number(process.env.CONCURRENCY || 3);   // parallel `claude -p` extractions (async spawn); 3 balances speed vs the subscription's concurrent-session throttle (4 saw ~37% claude exit-1)
-const RUN_BUDGET_MS = Number(process.env.RUN_BUDGET_MS || 1000000); // self-stop ~16.7 min — well before the wrapper's timeout, so the DONE line always prints (a SIGKILLed run with no DONE resets the cursor)
+const RUN_BUDGET_MS = Number(process.env.RUN_BUDGET_MS || 1000000); // self-stop ~16.7 min — well before the wrapper's timeout, so the DONE line always prints (a SIGKILLed run with no DONE holds the cursor at its current offset and retries)
 const TAKE = Number(process.env.EFSAH_TAKE || 50);    // eFsah page size — 50 covers ~5y of quarterly+annual
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
