@@ -334,6 +334,33 @@ The data-tier completion pass after the statement-pipeline Phase A+B: consume wh
   candidate whose key is already owned is now pulled from **Supabase storage** (`downloadPdf`, no proxy),
   never re-fetched from Tadawul. A claude miss costs one LLM attempt, never a re-download.
 
+### Phase D — the first consumer: writer context pack + smoke agent (2026-07-19 ✅)
+The lake becomes READABLE — the 03 §5.2 layer, built + proven live in one pass:
+- ✅ **`lake.v_citable_objects`** (`20260719175050`): the citable-facts surface for writer agents.
+  Divergence from spec: exposes BOTH `VERIFIED` and single-source `PENDING` with `state` as a
+  column — this lake serves statements/filings at PENDING by design; the P3 rules engine gates
+  per fact class, visibility doesn't.
+- ✅ **`lake.fn_writer_context(security_id)`** → one jsonb pack: identity, price block (delayed
+  quote + 3m/12m returns off `ohlcv_daily`), ratios, score, statements (latest period FULL
+  line_items, older periods trimmed to the canonical overlay — token budget), the Phase B
+  equity/oci tiers, last filings w/ the Phase C `ai_summary`/facts, per-section freshness stamps.
+  Every block carries its serving row / lake object id (the `[cN]` citation contract).
+  **Validated: 60/60 sampled securities render all core sections; packs 2k–6.7k est. tokens**
+  (budget was 15k). Worker + service_role grants only.
+- ✅ **`ops.llm_runs` FINALLY EXISTS** (`20260719175458`) — specced since P0 ("no anonymous LLM
+  spend"), never migrated; the gateway's accounting had nowhere to write, discovered by the first
+  real call. Table + `public.record_llm_run(jsonb)` (the accounting.ts REST-path RPC,
+  service_role-only).
+- ✅ **First `chatComplete()` caller ever** (`scripts/agents/analyst-take-smoke.mts`, run live on
+  the VPS): QNBK pack → `analyst_take` → `anthropic:claude-sonnet-4-6` → a grounded one-page take
+  with EVERY number cited `[row_id:N]`/`[obj:…]`, the Q2-25 restatement flagged, missing ratios
+  declared instead of invented, and watch-items (impairment trajectory, hyperinflation drag)
+  that read like a real analyst. 3,417/2,200 tokens, **$0.0433, 43s — accounted as the first
+  `ops.llm_runs` row.** Output to file only — publishing stays behind P3's rules + approval.
+- **What this proves for P3:** the newsroom's writer agents have their retrieval layer, their
+  citation contract, their cost accounting, and a quality baseline. Next: pipeline conveyor +
+  rules engine + the TPL writers (P3 proper).
+
 ### P2 — Reader core on real data (~4 wks)
 Ledger, 812 stock pages, newswire, screener, heatmap, search, SEO — all from the live lake, CDN-cached anonymous browsing. (Master plan P2.)
 
