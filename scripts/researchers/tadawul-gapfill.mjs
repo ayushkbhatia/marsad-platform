@@ -62,6 +62,24 @@ async function uploadPdf(key, buf) {
   return r.ok;
 }
 
+async function downloadPdf(key) {
+  const r = await fetch(`${SUPABASE_URL}/storage/v1/object/filings/${key}`, { headers: { authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}` } });
+  if (!r.ok) return null;
+  const buf = Buffer.from(await r.arrayBuffer());
+  return buf.length >= 5 && buf.subarray(0, 5).toString('latin1') === '%PDF-' ? buf : null;
+}
+
+// Record the owned-PDF filing marker up-front (before extraction). `ownedPdf` is seeded from public.filings
+// each run, so persisting the marker at STORE time — not only inside persist() after a successful extract —
+// is what lets a later run pull the PDF from storage instead of re-fetching it from Tadawul over the proxy.
+async function recordFilingOwned(sql, cs, key, sourceRef) {
+  const sec = await sql`select id from public.securities where venue_code='TDWL' and ticker=${cs} limit 1`;
+  if (!sec[0]) return;
+  await sql`insert into public.filings (security_id, venue_code, source_ref, filing_type, title, filed_at, pdf_storage_key)
+            values (${sec[0].id}, 'TDWL', ${sourceRef}, 'RESULTS', ${sourceRef.slice(0, 200)}, now(), ${key})
+            on conflict (venue_code, source_ref) do update set pdf_storage_key=excluded.pdf_storage_key`;
+}
+
 async function persist(sql, cs, statements, storageKey, sourceRef) {
   const sec = await sql`select id from public.securities where venue_code='TDWL' and ticker=${cs} limit 1`;
   if (!sec[0]) return 0;
@@ -156,17 +174,27 @@ for (let attempt = 0; attempt < 3 && budget > 0 && !guards.over(); attempt++) {
         for (const u of gaps) {
           if (budget <= 0) break;
           const fn = u.split('/').pop();
-          const got = await fetchPdf(page, u);
-          if (got.err || got.status !== 200 || !got.magic?.startsWith('%PDF')) { log(`    ${fn} fetch fail`); continue; }
-          const buf = Buffer.from(got.b64, 'base64');
+          const key = `tdwl/${cs}/${fn}`;
+          const sourceRef = `TDWL-FSPDF-${fn.replace(/\.pdf$/i, '')}`;
+          // Reuse an already-archived PDF (a prior run stored it but a claude miss left the period
+          // uncovered, so it's STILL a gap candidate): pull from storage, NOT Tadawul, so a claude
+          // outage never re-burns proxy bytes on the same file.
+          let buf = null;
+          if (ownedPdf.has(key)) { buf = await downloadPdf(key); if (buf) log(`    ${fn} reuse stored PDF (no proxy)`); }
+          if (!buf) {
+            const got = await fetchPdf(page, u);
+            if (got.err || got.status !== 200 || !got.magic?.startsWith('%PDF')) { log(`    ${fn} fetch fail`); continue; }
+            buf = Buffer.from(got.b64, 'base64');
+            // Store + mark owned BEFORE extraction so a claude miss below can't force a re-fetch next run.
+            await uploadPdf(key, buf);
+            await recordFilingOwned(sql, cs, key, sourceRef);
+            ownedPdf.add(key); pdfNew++;
+          }
           const ex = extractViaClaude(buf);
           budget--;
-          if (ex.error) { log(`    ${fn} extract: ${ex.error}`); continue; } // transient — retry next run
-          // Store + record the PDF as owned regardless (board reports extract to 0 statements — still owned).
-          const key = `tdwl/${cs}/${fn}`;
-          await uploadPdf(key, buf);
-          const nrows = await persist(sql, cs, ex.statements, key, `TDWL-FSPDF-${fn.replace(/\.pdf$/i, '')}`);
-          ownedPdf.add(key); pdfNew++; rowsW += nrows;
+          if (ex.error) { log(`    ${fn} extract: ${ex.error} — PDF stored, retry from storage next run`); continue; }
+          const nrows = await persist(sql, cs, ex.statements, key, sourceRef);
+          rowsW += nrows;
           log(`    ${nrows ? '✓' : '·'} ${fn} → ${ex.statements.periods.length}p → ${nrows} new rows (budget ${budget})`);
         }
         companies++;
