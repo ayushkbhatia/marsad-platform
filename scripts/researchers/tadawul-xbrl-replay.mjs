@@ -16,7 +16,7 @@
  *
  * Run on the VPS (DB RTT — never from a laptop), detached via systemd-run (NOT nohup):
  *   systemd-run --unit=marsad-xbrl-replay --property=MemoryHigh=1500M \
- *     --property=EnvironmentFile=/home/deploy/researcher.env \
+ *     --property=EnvironmentFile=/etc/marsad/worker.env \
  *     /usr/bin/node /opt/marsad/scripts/researchers/tadawul-xbrl-replay.mjs
  * Resume after an interruption with REPLAY_START=<n> (the log prints `next replay start: n`).
  * Env: CONCURRENCY (default 4), REPLAY_START (default 0), REPLAY_LIMIT (default all),
