@@ -342,28 +342,58 @@ export interface NormalizedOhlcv {
 }
 
 /**
+ * The ONE statement_type vocabulary (public.financial_statements CHECK, migration
+ * 20260717120000). Every layer imports THIS union — statement-normalizer, the
+ * extraction contract, and the runtime payload previously each declared their own
+ * copy, so widening one and not the others compiled cleanly and failed at runtime/SQL.
+ * 'oci' (statement of other comprehensive income) and 'equity_change' (statement of
+ * changes in equity) are the P1.7 XBRL-enrichment types; capture producers arrive in
+ * Phase B — this union + the DB CHECK are widened ahead of them so nothing downstream
+ * silently drops the new types.
+ */
+export type StatementType = 'income' | 'balance' | 'cashflow' | 'oci' | 'equity_change';
+
+/**
+ * One row of a statement's PRESENTATION layer: the printed label, document order
+ * (array position), indent depth and subtotal flag — captured at parse time (free
+ * there, expensive to reconstruct later) so a renderer/agent can show the statement
+ * as filed instead of iterating jsonb key order. depth is 0 where the source markup
+ * carries no indent signal (Tadawul XBRL HTML does not); the PDF/LLM path may fill
+ * real depths later without a contract change.
+ */
+export interface StatementPresentationRow {
+  key: string; // the line_items key this row's value landed under (snake(label))
+  label: string; // the label as printed in the filing
+  depth: number; // indent level; 0 when the source has no indent signal
+  is_subtotal: boolean;
+}
+
+/**
  * §6.5 / 07 §P1.7b — one financial-statement PERIOD flattened for staging + projection.
  * The statement normalizer (lake/statement-normalizer.ts) emits NormalizedPeriod, which
  * carries NO identity (venue/ticker); a producing adapter enriches each period with
  * venue+ticker+basis via flattenStatements() so the PURE staging mapper (runtime.mapStatement)
  * can build a resolvable FILING.FINANCIALS natural_key and a projection-ready object payload
- * WITHOUT a DB handle. These payload keys are EXACTLY what lake.fn_financial_statement_project
- * reads (migration 20260716095100): venue/ticker → security_id, statementType/basis/periodKind/
- * fiscalPeriod/periodEnd/currency → the serving columns, lineItems → the §3.1 primitive jsonb.
- * The line_items vocabulary is the §3.1 canonical primitive keys (PRIMITIVE_KEYS in
- * statement-normalizer.ts) — a source that carries none of them stages nothing.
+ * WITHOUT a DB handle. These payload keys are EXACTLY what lake.fn_financials_project
+ * reads (migration 20260716120000, widened 20260717120000): venue/ticker → security_id,
+ * statementType/basis/periodKind/fiscalPeriod/periodEnd/currency → the serving columns,
+ * lineItems → the line_items jsonb, presentation → the presentation jsonb.
+ * line_items is an OPEN BAG of every printed line under a snake_case key; the §3.1
+ * PRIMITIVE_KEYS (statement-normalizer.ts) are the canonical OVERLAY the ratio engine
+ * reads on top — non-canonical keys are first-class data, not violations.
  */
 export interface NormalizedStatementRow {
   venue: VenueCode;
   ticker: string; // → resolves public.securities.id at projection time (venue+ticker unique)
-  statementType: 'income' | 'balance' | 'cashflow';
+  statementType: StatementType;
   basis: 'consolidated' | 'standalone';
   periodKind: 'quarter' | 'annual' | 'ttm';
   fiscalPeriod: string; // 'FY2023' | '2023-Q4' | 'TTM-2025-12-31'
   periodEnd: string; // 'YYYY-MM-DD'
   currency: string; // char(3)
-  lineItems: Record<string, number | null>; // the §3.1 primitive keys
+  lineItems: Record<string, number | null>; // open bag; §3.1 primitives as canonical overlay
   segments?: Record<string, unknown> | null;
+  presentation?: StatementPresentationRow[] | null; // printed labels in document order
 }
 
 /**

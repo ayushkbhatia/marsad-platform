@@ -96,3 +96,82 @@ test('IT sector maps to the technology key (migration 20260716190059)', () => {
   assert.equal(p?.rawSector, 'Information Technology | IT Services');
   assert.equal(p?.isin, 'SA0007879998');
 });
+
+// ─── Phase A: presentation capture (label + document order; depth 0 — no indent in XBRL HTML) ─
+
+test('parseTadawulXbrl: emits presentation rows in document order with subtotal flags', () => {
+  const fs = parseTadawulXbrl(readFileSync(resolve(here, '../../../fixtures/tdwl/sabic-2010-xbrl.source.html'), 'utf8'));
+  const bal = fs.statements.find((s) => s.statement_type === 'balance' && !s.is_comparative)!;
+  assert.ok(bal.presentation && bal.presentation.length > 10, 'balance presentation missing/too small');
+  // Every presentation key maps onto a landed line_items key; order is de-duplicated document order.
+  const keys = bal.presentation!.map((r) => r.key);
+  assert.equal(new Set(keys).size, keys.length, 'presentation keys must be unique');
+  for (const r of bal.presentation!) {
+    assert.ok(bal.line_items[r.key] !== undefined, `presentation key ${r.key} has no line_items value`);
+    assert.equal(r.depth, 0); // XBRL_DOCS HTML carries no indent markup
+    assert.equal(r.is_subtotal, /^total\b/i.test(r.label));
+  }
+  // 'Total assets' printed AFTER its components — document order preserved.
+  const ta = keys.indexOf('total_assets');
+  assert.ok(ta > 0, 'total_assets must not be first');
+});
+
+// ─── Phase B: oci + equity_change capture ─────────────────────────────────────
+
+test('Phase B: SABIC filing yields oci + equity_change statements (11 total, was 7)', () => {
+  const fs = parseTadawulXbrl(fx('sabic-2010-xbrl.source.html'));
+  const types = fs.statements.map((s) => s.statement_type);
+  assert.equal(fs.statements.length, 11);
+  assert.equal(types.filter((t) => t === 'oci').length, 2);
+  assert.equal(types.filter((t) => t === 'equity_change').length, 2);
+});
+
+test('Phase B oci: doc-predicted values land and the statement FOOTS (net_income + total_oci = TCI)', () => {
+  const fs = parseTadawulXbrl(fx('sabic-2010-xbrl.source.html'));
+  const oci = fs.statements.find((s) => s.statement_type === 'oci' && !s.is_comparative)!;
+  const li = oci.line_items as Record<string, number>;
+  assert.equal(li.net_income, 6_114_744);
+  assert.equal(li.remeasurement_gains_losses_on_defined_benefit_plans, 1_852_815);
+  // snake-160: the two associate rows ("will" / "will not" be reclassified) keep DISTINCT keys.
+  assert.equal(li.share_of_other_comprehensive_income_of_associates_and_joint_ventures_accounted_for_using_equity_method_that_will_not_be_reclassified_to_profit_or_loss, 130_530);
+  assert.equal(li.share_of_other_comprehensive_income_of_associates_and_joint_ventures_accounted_for_using_equity_method_that_will_be_reclassified_to_profit_or_loss, -977_698);
+  // foots exactly: 6,114,744 + 135,323 = 6,250,067, parent + NCI split intact (doc §1.3)
+  const totalOci = li.total_other_comprehensive_income_loss;
+  const tci = li.total_comprehensive_income_loss_for_period;
+  assert.equal(totalOci, 135_323);
+  assert.equal(tci, 6_250_067);
+  assert.equal(li.net_income + totalOci, tci);
+  assert.equal(li.total_comprehensive_income_loss_attributable_to_equity_holders_of_parent, 4_771_679);
+  assert.equal(li.total_comprehensive_income_loss_attributable_to_non_controlling_interests, 1_478_388);
+});
+
+test('Phase B equity_change: dimensional parse — member-qualified + bare Total-equity keys', () => {
+  const fs = parseTadawulXbrl(fx('sabic-2010-xbrl.source.html'));
+  const eq = fs.statements.find((s) => s.statement_type === 'equity_change' && !s.is_comparative)!;
+  const li = eq.line_items as Record<string, number>;
+  assert.equal(eq.fiscal_period, 'Q1 2021');
+  assert.equal(li.dividends_and_others, -540_138); // Total-equity member → bare key (doc §1.3)
+  assert.equal(li.dividends_and_others__non_controlling_interests, -540_138);
+  assert.equal(li.equity_balance_at_end_of_period, 199_947_053);
+  assert.equal(li.equity_balance_at_end_of_period__share_capital, 30_000_000);
+  // presentation carries ONLY bare keys, each resolvable in line_items, in document order.
+  assert.ok(eq.presentation!.length >= 8);
+  for (const r of eq.presentation!) assert.ok(li[r.key] !== undefined, `presentation key ${r.key} unresolvable`);
+  // comparative column got its own statement
+  const comp = fs.statements.find((s) => s.statement_type === 'equity_change' && s.is_comparative)!;
+  assert.equal(comp.fiscal_period, 'Q1 2020');
+});
+
+test('Phase B classify: combined P&L+OCI single statement now lands as income (was dropped)', () => {
+  const mk = (title: string) =>
+    `<table><tr><td>Start Date</td><td>2025-01-01</td></tr><tr><td>End Date</td><td>2025-03-31</td></tr>` +
+    `<tr><td>${title} [abstract]</td><td></td></tr><tr><td>Revenue</td><td>1,000</td></tr></table>`;
+  const combined = parseTadawulXbrl(mk('Statement of profit or loss and other comprehensive income'));
+  assert.equal(combined.statements.length, 1);
+  assert.equal(combined.statements[0]!.statement_type, 'income');
+  const pureOci = parseTadawulXbrl(mk('Statement of other comprehensive income, before tax'));
+  assert.equal(pureOci.statements[0]!.statement_type, 'oci');
+  // bare "comprehensive income" (no "other", no tax qualifier) stays unclassified — ambiguous
+  const bare = parseTadawulXbrl(mk('Statement of comprehensive income'));
+  assert.equal(bare.statements.length, 0);
+});

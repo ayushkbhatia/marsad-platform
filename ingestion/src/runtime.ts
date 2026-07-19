@@ -80,6 +80,8 @@ import type {
   NormalizedIpoEvent,
   NormalizedStatementRow,
   NormalizedProfile,
+  StatementType,
+  StatementPresentationRow,
 } from './core/types.js';
 
 // ── The narrow runtime surface the worker handlers call (mirrors
@@ -751,7 +753,7 @@ function mapIpo(source: SourceRecord, snapshotId: number, e: NormalizedIpoEvent,
 interface FinancialsObjectPayload {
   venue: string;
   ticker: string;
-  statement_type: 'income' | 'balance' | 'cashflow';
+  statement_type: StatementType;
   basis: 'consolidated' | 'standalone';
   period_kind: 'quarter' | 'annual' | 'ttm';
   fiscal_period: string;
@@ -759,6 +761,8 @@ interface FinancialsObjectPayload {
   currency: string;
   line_items: Record<string, number | null>;
   segments?: Record<string, unknown> | null;
+  /** Printed labels in document order (Phase A) → financial_statements.presentation. */
+  presentation?: StatementPresentationRow[];
 }
 
 function mapStatement(
@@ -779,6 +783,7 @@ function mapStatement(
     currency: s.currency,
     line_items: s.lineItems,
     ...(s.segments != null ? { segments: s.segments } : {}),
+    ...(s.presentation != null && s.presentation.length > 0 ? { presentation: s.presentation } : {}),
   };
   return {
     objectType: 'FILING.FINANCIALS',

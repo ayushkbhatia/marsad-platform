@@ -50,7 +50,11 @@ async function persist(sql, cs, statements, storageKey, sourceRef) {
   let n = 0;
   for (const p of statements.periods) {
     const nk = `FINANCIALS:TDWL:${cs}:${p.statementType}:${p.fiscalPeriod}`;
-    const payload = { statement_type: p.statementType, period_kind: p.periodKind, fiscal_period: p.fiscalPeriod, period_end: p.periodEnd, currency: p.currency, basis: 'consolidated', line_items: p.lineItems };
+    // Phase B: presentation (printed labels, document order) + filing_source_ref (→ projection resolves
+    // financial_statements.source_filing_id against public.filings). Both optional in the v3 contract.
+    const payload = { statement_type: p.statementType, period_kind: p.periodKind, fiscal_period: p.fiscalPeriod, period_end: p.periodEnd, currency: p.currency, basis: 'consolidated', line_items: p.lineItems,
+      ...(p.presentation && p.presentation.length ? { presentation: p.presentation } : {}),
+      ...(sourceRef ? { filing_source_ref: sourceRef } : {}) };
     const live = await sql`select id, revision, state from lake.objects where natural_key=${nk} and superseded_by is null limit 1`;
     if (live[0] && live[0].state === 'VERIFIED') {
       const nid = (await sql`select gen_random_uuid() as id`)[0].id;

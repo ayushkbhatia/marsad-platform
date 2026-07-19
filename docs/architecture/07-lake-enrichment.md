@@ -579,7 +579,19 @@ time cohort snapshots for backtesting (needed to ever publish the screener's "3Y
 > as **TS** `ingestion/src/lake/ratios-compute.ts`+`key-ratios.ts`, **not** a SQL `fn_recompute_key_ratios()`
 > — the code path chose TS; treat every "SQL fn"/"MV" reference in §3.2/§3.6 as satisfied by that TS service);
 > the **statement-normalizer** (§2/§3.1 primitive contract + Mubasher/Yahoo mappers + validation harness,
-> golden-tested; LLM/PDF path is a declared-throwing seam); the **Marsad Score engine + `score_batch`/`nightly`
+> golden-tested; LLM/PDF path is a declared-throwing seam — **contract update 2026-07-18, Phase A**:
+> `line_items` is an **open bag** of every printed line; the §3.1 primitives are the canonical ratio-engine
+> **overlay**, not a closed vocabulary — the "non-primitive key" warning is retired; `statement_type` is
+> the ONE `core/types.ts` union, now incl. `oci` + `equity_change`; statements carry an ordered
+> `presentation` jsonb (`[{key,label,depth,is_subtotal}]`) for faithful rendering; the projection is v3
+> (`20260718193005`): warn-on-skip instead of silent drops, content-vs-metadata change split so a
+> presentation/segments refresh never fake-restates, and `source_filing_id` now links statements→filings;
+> **Phase B same day**: the XBRL parser captures `oci` (title-matched, ordered before income; combined
+> P&L+OCI single statements rescued as `income`) and the dimensional `equity_change` table
+> (`{row}__{member}` keys + bare Total-equity roll-forward keys — dividends/buybacks/NCI movements),
+> `snake()` 80→160 (associate-row key collision), SABIC yield 7→11 statements/filing;
+> `tadawul-xbrl-replay.mjs` re-parses the ~2,969 owned storage HTMLs with zero scraping);
+> the **Marsad Score engine + `score_batch`/`nightly`
 > handlers** (§3.4/§3.5/§3.6, all owner D-1…D-10 encoded, freshness-gate abort); the **`public.filings`
 > publish path** (§1.1 F, `lake.fn_filing_project`, single-source rule — 86 filings published); and the
 > **`company_people`** table (§1.1 I); and — **added 2026-07-16** — the **source-agnostic statement
