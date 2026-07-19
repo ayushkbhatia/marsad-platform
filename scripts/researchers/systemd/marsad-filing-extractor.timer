@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Marsad filing-facts extractor periodically
+
+[Timer]
+OnBootSec=22min
+OnUnitActiveSec=45min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

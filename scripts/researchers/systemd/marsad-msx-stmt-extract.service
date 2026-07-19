@@ -1,0 +1,9 @@
+[Unit]
+Description=Marsad MSX statement extractor (archived PDFs -> financial_statements via Claude Code subscription; storage-only, no scraping)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /opt/marsad/scripts/researchers/msx-stmt-extract-cron.sh
+TimeoutStartSec=1200
+MemoryHigh=2200M

@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Marsad MSX statement extractor periodically
+
+[Timer]
+OnBootSec=28min
+OnUnitActiveSec=1h
+Persistent=true
+
+[Install]
+WantedBy=timers.target
