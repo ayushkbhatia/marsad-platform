@@ -37,7 +37,9 @@ function num(s: string | null | undefined): number | null {
   const n = Number(t);
   return Number.isFinite(n) ? n : null;
 }
-const snake = (label: string): string => label.toLowerCase().replace(/\[abstract\]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 80);
+// 160 (was 80): at 80, SABIC's two "share of OCI of associates … that will / will not be reclassified
+// to profit or loss" rows truncate onto ONE key and the second value silently overwrites nothing (Phase B).
+const snake = (label: string): string => label.toLowerCase().replace(/\[abstract\]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 160);
 
 // ── label → §3.1 canonical key (exact-ish IFRS labels; additive to the raw line_items) ──
 const CANON: ReadonlyArray<[RegExp, string]> = [
@@ -69,13 +71,19 @@ const CANON: ReadonlyArray<[RegExp, string]> = [
 const canonKey = (label: string): string | null => { for (const [re, k] of CANON) if (re.test(label)) return k; return null; };
 const PER_SHARE = /per share/i;
 
-/** Classify a statement table by its title/abstract rows. Returns null for notes/OCI/non-core tables. */
+/** Classify a statement table by its title/abstract rows. Returns null for notes/equity/non-core tables
+ *  (the dimensional changes-in-equity table is detected separately — see parseEquityTable). */
 function classify(table: string): StatementType | null {
   const head = stripTags(table).slice(0, 400);
   if (/statement of financial position/i.test(head)) return 'balance';
   if (/statement of cash flows/i.test(head)) return 'cashflow';
-  // income: the P&L, but NOT a pure "other comprehensive income" table
-  if (/statement of (income|profit or loss)/i.test(head) && !/statement of (comprehensive income|profit or loss and other comprehensive)/i.test(head)) return 'income';
+  // OCI — ordered BEFORE income and matched on TITLE, never code ([300300] is SABIC's income code but
+  // Al Rajhi's OCI code). Only the PURE other-comprehensive-income table: "other" or a tax qualifier.
+  // A bare "statement of comprehensive income" is left unclassified (ambiguous — often the combined P&L).
+  if (/statement of other comprehensive income|statement of comprehensive income,? (before|after) tax/i.test(head)) return 'oci';
+  // income: the P&L — INCLUDING the combined "profit or loss and other comprehensive income" single
+  // statement (the pre-Phase-B lookahead excluded it, so combined-statement filers were dropped entirely).
+  if (/statement of (income|profit or loss)/i.test(head)) return 'income';
   return null;
 }
 function periodKindOf(start: string, end: string): 'annual' | 'quarter' {
@@ -104,6 +112,98 @@ function detectScale(html: string): ExtractedFinancials['scale'] {
 
 interface XbrlPeriodCol { idx: number; start: string; end: string; kind: 'annual' | 'quarter'; fp: string; comparative: boolean }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Changes-in-equity (Phase B) — the DIMENSIONAL table the date-grid model can't read.
+// Shape (verified on SABIC): row 0 = one blank label cell + N member cells each
+// `colspan=P` ("Share capital [member]" … "Total equity [member]") + a Note cell;
+// then Start Date / End Date rows with P dates per member; then data rows of
+// 1 + N×P values. Column i ⇒ (member = expanded[i], period = endDates[i]).
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Raw cell strings WITH attributes (cellsOf strips tags — colspan would be lost). */
+const rawCellsOf = (tr: string): string[] => tr.match(/<t[dh][\s\S]*?<\/t[dh]>/gi) || [];
+const colspanOf = (cell: string): number => {
+  const m = /colspan=['"]?(\d+)/i.exec(cell);
+  const n = m ? Number(m[1]) : 1;
+  return Number.isFinite(n) && n > 0 ? n : 1;
+};
+const MEMBER_SUFFIX = /\s*\[member\]\s*$/i;
+const SKIP_LABEL = /\[abstract\]$|\[line items\]$/i;
+
+/** Detect + parse one changes-in-equity table into per-period ExtractedStatements.
+ *  Returns [] when the table is not an equity table. Encoding: every (row, member)
+ *  value lands under `${snake(row)}__${snake(member)}`; the "Total equity" member
+ *  ALSO lands under the bare `${snake(row)}` key — the roll-forward headline a
+ *  reader/agent wants (`dividends_and_others`, `equity_balance_at_end_of_period`) —
+ *  and only bare keys enter `presentation` (so every presentation key resolves). */
+function parseEquityTable(table: string): ExtractedStatement[] {
+  if (!/\[member\]/i.test(table)) return [];
+  if (!/statement of changes in equity/i.test(stripTags(table).slice(0, 3000))) return [];
+
+  const rawRows = rowsOf(table);
+  // Member header = the first row carrying [member] cells.
+  const memberRowIdx = rawRows.findIndex((r) => /\[member\]/i.test(r));
+  if (memberRowIdx < 0) return [];
+  const memberCells = rawCellsOf(rawRows[memberRowIdx]!);
+  // Expand by colspan; drop the leading label column. A non-member trailing cell ("Note No.")
+  // expands too and is excluded by the member-suffix test per column.
+  const memberByCol: (string | null)[] = [];
+  for (let c = 1; c < memberCells.length; c++) {
+    const raw = memberCells[c]!;
+    const text = stripTags(raw);
+    const isMember = MEMBER_SUFFIX.test(text);
+    const name = isMember ? text.replace(MEMBER_SUFFIX, '').trim() : null;
+    for (let k = 0; k < colspanOf(raw); k++) memberByCol.push(name);
+  }
+
+  const rows = rawRows.map(cellsOf);
+  const startRow = rows.find((c) => /^start date$/i.test(c[0] || ''));
+  const endRow = rows.find((c) => /^end date$/i.test(c[0] || ''));
+  if (!startRow || !endRow) return [];
+
+  // Column i (0-based over value columns) ⇒ endRow[i+1] / startRow[i+1] / memberByCol[i].
+  const nCols = Math.min(memberByCol.length, endRow.length - 1);
+  const newestEnd = endRow.slice(1, nCols + 1).filter(isDate).sort().pop() || '';
+
+  const acc = new Map<string, ExtractedStatement>();
+  const presSeen = new Map<string, Set<string>>();
+
+  for (const row of rows) {
+    const label = row[0] || '';
+    if (!label || SKIP_LABEL.test(label) || /^(start|end) date$/i.test(label)) continue;
+    const bare = snake(label);
+    if (!bare) continue;
+    for (let i = 0; i < nCols; i++) {
+      const member = memberByCol[i];
+      if (!member) continue; // Note column / non-member spans
+      const end = endRow[i + 1];
+      if (!isDate(end)) continue;
+      const v = num(row[i + 1]);
+      if (v === null) continue;
+      const start = isDate(startRow[i + 1]) ? startRow[i + 1] : `${end.slice(0, 4)}-01-01`;
+      const kind = periodKindOf(start, end);
+      let st = acc.get(end);
+      if (!st) {
+        st = { statement_type: 'equity_change', period_kind: kind, fiscal_period: fiscalPeriodOf(end, kind), period_end: end, is_comparative: end !== newestEnd, line_items: {}, presentation: [] };
+        acc.set(end, st);
+        presSeen.set(end, new Set());
+      }
+      const li = st.line_items as Record<string, number>;
+      const mk = `${bare}__${snake(member)}`;
+      if (li[mk] === undefined) li[mk] = v;
+      if (/^total equity$/i.test(member)) {
+        if (li[bare] === undefined) li[bare] = v;
+        const seen = presSeen.get(end)!;
+        if (!seen.has(bare)) {
+          seen.add(bare);
+          st.presentation!.push({ key: bare, label, depth: 0, is_subtotal: /^total\b/i.test(label) });
+        }
+      }
+    }
+  }
+  return [...acc.values()].filter((s) => Object.keys(s.line_items).length > 0);
+}
+
 /**
  * PURE. Parse a Tadawul XBRL_DOCS `.html` into ExtractedFinancials (actual units, scale from the header).
  * `currency` defaults to SAR (Tadawul); override via opts if a non-SAR filing appears.
@@ -119,7 +219,25 @@ export function parseTadawulXbrl(html: string, opts: { currency?: string } = {})
   const presSeen = new Map<string, Set<string>>();
   for (const table of tables) {
     const stype = classify(table);
-    if (!stype) continue;
+    if (!stype) {
+      // Phase B: the dimensional changes-in-equity table has no classifiable title in its head
+      // (row 0 is the member header) — detect + parse it separately, merge into the same acc.
+      for (const st of parseEquityTable(table)) {
+        const key = `${st.statement_type}|${st.period_end}`;
+        const prior = acc.get(key);
+        if (!prior) {
+          acc.set(key, st);
+        } else {
+          // Fragment merge: first value wins per key (mirrors the grid path).
+          for (const [k, v] of Object.entries(st.line_items)) {
+            if ((prior.line_items as Record<string, number | null>)[k] === undefined) (prior.line_items as Record<string, number | null>)[k] = v;
+          }
+          const seen = new Set((prior.presentation || []).map((r) => r.key));
+          for (const r of st.presentation || []) if (!seen.has(r.key)) { seen.add(r.key); prior.presentation!.push(r); }
+        }
+      }
+      continue;
+    }
     const rows = rowsOf(table).map(cellsOf);
     const startRow = rows.find((c) => /^start date$/i.test(c[0] || ''));
     const endRow = rows.find((c) => /^end date$/i.test(c[0] || ''));

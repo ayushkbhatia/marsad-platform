@@ -999,6 +999,443 @@
       ]
     },
     {
+      "statement_type": "oci",
+      "period_kind": "quarter",
+      "fiscal_period": "Q1 2021",
+      "period_end": "2021-03-31",
+      "is_comparative": false,
+      "line_items": {
+        "profit_loss_for_period": 6114744,
+        "net_income": 6114744,
+        "share_of_other_comprehensive_income_of_associates_and_joint_ventures_accounted_for_using_equity_method_that_will_not_be_reclassified_to_profit_or_loss": 130530,
+        "remeasurement_gains_losses_on_defined_benefit_plans": 1852815,
+        "total_other_comprehensive_income_that_will_not_be_reclassified_to_profit_or_loss": 1983345,
+        "share_of_other_comprehensive_income_of_associates_and_joint_ventures_accounted_for_using_equity_method_that_will_be_reclassified_to_profit_or_loss": -977698,
+        "gains_losses_on_exchange_differences_on_translation_of_foreign_operations": -870324,
+        "total_other_comprehensive_income_loss_foreign_currency_translation": -870324,
+        "total_other_comprehensive_income_loss_that_will_be_reclassified_to_profit_or_loss": -1848022,
+        "total_other_comprehensive_income_loss": 135323,
+        "total_comprehensive_income_loss_for_period": 6250067,
+        "total_comprehensive_income_loss_attributable_to_equity_holders_of_parent": 4771679,
+        "total_comprehensive_income_loss_attributable_to_non_controlling_interests": 1478388
+      },
+      "presentation": [
+        {
+          "key": "profit_loss_for_period",
+          "label": "Profit (loss) for period",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "share_of_other_comprehensive_income_of_associates_and_joint_ventures_accounted_for_using_equity_method_that_will_not_be_reclassified_to_profit_or_loss",
+          "label": "Share of other comprehensive income of associates and joint ventures accounted for using equity method that will not be reclassified to profit or loss",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "remeasurement_gains_losses_on_defined_benefit_plans",
+          "label": "Remeasurement gains (losses) on defined benefit plans",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_other_comprehensive_income_that_will_not_be_reclassified_to_profit_or_loss",
+          "label": "Total other comprehensive income that will not be reclassified to profit or loss",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "share_of_other_comprehensive_income_of_associates_and_joint_ventures_accounted_for_using_equity_method_that_will_be_reclassified_to_profit_or_loss",
+          "label": "Share of other comprehensive income of associates and joint ventures accounted for using equity method that will be reclassified to profit or loss",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "gains_losses_on_exchange_differences_on_translation_of_foreign_operations",
+          "label": "Gains (losses) on exchange differences on translation of foreign operations",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_other_comprehensive_income_loss_foreign_currency_translation",
+          "label": "Total other comprehensive income (loss), foreign currency translation",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "total_other_comprehensive_income_loss_that_will_be_reclassified_to_profit_or_loss",
+          "label": "Total other comprehensive income (loss), that will be reclassified to profit or loss",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "total_other_comprehensive_income_loss",
+          "label": "Total other comprehensive income (loss)",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "total_comprehensive_income_loss_for_period",
+          "label": "Total comprehensive income (loss) for period",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "total_comprehensive_income_loss_attributable_to_equity_holders_of_parent",
+          "label": "Total comprehensive income (loss), attributable to equity holders of parent",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "total_comprehensive_income_loss_attributable_to_non_controlling_interests",
+          "label": "Total comprehensive income (loss), attributable to non-controlling interests",
+          "depth": 0,
+          "is_subtotal": true
+        }
+      ]
+    },
+    {
+      "statement_type": "oci",
+      "period_kind": "quarter",
+      "fiscal_period": "Q1 2020",
+      "period_end": "2020-03-31",
+      "is_comparative": true,
+      "line_items": {
+        "profit_loss_for_period": -973010,
+        "net_income": -973010,
+        "share_of_other_comprehensive_income_of_associates_and_joint_ventures_accounted_for_using_equity_method_that_will_not_be_reclassified_to_profit_or_loss": -32962,
+        "remeasurement_gains_losses_on_defined_benefit_plans": -243089,
+        "total_other_comprehensive_income_that_will_not_be_reclassified_to_profit_or_loss": -276051,
+        "share_of_other_comprehensive_income_of_associates_and_joint_ventures_accounted_for_using_equity_method_that_will_be_reclassified_to_profit_or_loss": -92412,
+        "gains_losses_on_exchange_differences_on_translation_of_foreign_operations": -561495,
+        "total_other_comprehensive_income_loss_foreign_currency_translation": -561495,
+        "total_other_comprehensive_income_loss_that_will_be_reclassified_to_profit_or_loss": -653907,
+        "total_other_comprehensive_income_loss": -929958,
+        "total_comprehensive_income_loss_for_period": -1902968,
+        "total_comprehensive_income_loss_attributable_to_equity_holders_of_parent": -1911009,
+        "total_comprehensive_income_loss_attributable_to_non_controlling_interests": 8041
+      },
+      "presentation": [
+        {
+          "key": "profit_loss_for_period",
+          "label": "Profit (loss) for period",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "share_of_other_comprehensive_income_of_associates_and_joint_ventures_accounted_for_using_equity_method_that_will_not_be_reclassified_to_profit_or_loss",
+          "label": "Share of other comprehensive income of associates and joint ventures accounted for using equity method that will not be reclassified to profit or loss",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "remeasurement_gains_losses_on_defined_benefit_plans",
+          "label": "Remeasurement gains (losses) on defined benefit plans",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_other_comprehensive_income_that_will_not_be_reclassified_to_profit_or_loss",
+          "label": "Total other comprehensive income that will not be reclassified to profit or loss",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "share_of_other_comprehensive_income_of_associates_and_joint_ventures_accounted_for_using_equity_method_that_will_be_reclassified_to_profit_or_loss",
+          "label": "Share of other comprehensive income of associates and joint ventures accounted for using equity method that will be reclassified to profit or loss",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "gains_losses_on_exchange_differences_on_translation_of_foreign_operations",
+          "label": "Gains (losses) on exchange differences on translation of foreign operations",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_other_comprehensive_income_loss_foreign_currency_translation",
+          "label": "Total other comprehensive income (loss), foreign currency translation",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "total_other_comprehensive_income_loss_that_will_be_reclassified_to_profit_or_loss",
+          "label": "Total other comprehensive income (loss), that will be reclassified to profit or loss",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "total_other_comprehensive_income_loss",
+          "label": "Total other comprehensive income (loss)",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "total_comprehensive_income_loss_for_period",
+          "label": "Total comprehensive income (loss) for period",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "total_comprehensive_income_loss_attributable_to_equity_holders_of_parent",
+          "label": "Total comprehensive income (loss), attributable to equity holders of parent",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "total_comprehensive_income_loss_attributable_to_non_controlling_interests",
+          "label": "Total comprehensive income (loss), attributable to non-controlling interests",
+          "depth": 0,
+          "is_subtotal": true
+        }
+      ]
+    },
+    {
+      "statement_type": "equity_change",
+      "period_kind": "quarter",
+      "fiscal_period": "Q1 2021",
+      "period_end": "2021-03-31",
+      "is_comparative": false,
+      "line_items": {
+        "equity_balance_at_beginning_of_period_before_adjustments__share_capital": 30000000,
+        "equity_balance_at_beginning_of_period_before_adjustments__statutory_reserve": 15000000,
+        "equity_balance_at_beginning_of_period_before_adjustments__general_reserve": 110889032,
+        "equity_balance_at_beginning_of_period_before_adjustments__retained_earnings_accumulated_losses": 15071361,
+        "equity_balance_at_beginning_of_period_before_adjustments__miscellaneous_other_reserves": -3334020,
+        "equity_balance_at_beginning_of_period_before_adjustments__total_other_reserves": -3334020,
+        "equity_balance_at_beginning_of_period_before_adjustments__equity_attributable_to_owners_of_parent": 167626373,
+        "equity_balance_at_beginning_of_period_before_adjustments__non_controlling_interests": 26610751,
+        "equity_balance_at_beginning_of_period_before_adjustments__total_equity": 194237124,
+        "equity_balance_at_beginning_of_period_before_adjustments": 194237124,
+        "equity_balance_at_beginning_of_period_after_adjustments__share_capital": 30000000,
+        "equity_balance_at_beginning_of_period_after_adjustments__statutory_reserve": 15000000,
+        "equity_balance_at_beginning_of_period_after_adjustments__general_reserve": 110889032,
+        "equity_balance_at_beginning_of_period_after_adjustments__retained_earnings_accumulated_losses": 15071361,
+        "equity_balance_at_beginning_of_period_after_adjustments__miscellaneous_other_reserves": -3334020,
+        "equity_balance_at_beginning_of_period_after_adjustments__total_other_reserves": -3334020,
+        "equity_balance_at_beginning_of_period_after_adjustments__equity_attributable_to_owners_of_parent": 167626373,
+        "equity_balance_at_beginning_of_period_after_adjustments__non_controlling_interests": 26610751,
+        "equity_balance_at_beginning_of_period_after_adjustments__total_equity": 194237124,
+        "equity_balance_at_beginning_of_period_after_adjustments": 194237124,
+        "profit_loss_for_period__retained_earnings_accumulated_losses": 4862370,
+        "profit_loss_for_period__equity_attributable_to_owners_of_parent": 4862370,
+        "profit_loss_for_period__non_controlling_interests": 1252374,
+        "profit_loss_for_period__total_equity": 6114744,
+        "profit_loss_for_period": 6114744,
+        "other_comprehensive_income__miscellaneous_other_reserves": -90691,
+        "other_comprehensive_income__total_other_reserves": -90691,
+        "other_comprehensive_income__equity_attributable_to_owners_of_parent": -90691,
+        "other_comprehensive_income__non_controlling_interests": 226014,
+        "other_comprehensive_income__total_equity": 135323,
+        "other_comprehensive_income": 135323,
+        "total_comprehensive_income_loss_for_period__retained_earnings_accumulated_losses": 4862370,
+        "total_comprehensive_income_loss_for_period__miscellaneous_other_reserves": -90691,
+        "total_comprehensive_income_loss_for_period__total_other_reserves": -90691,
+        "total_comprehensive_income_loss_for_period__equity_attributable_to_owners_of_parent": 4771679,
+        "total_comprehensive_income_loss_for_period__non_controlling_interests": 1478388,
+        "total_comprehensive_income_loss_for_period__total_equity": 6250067,
+        "total_comprehensive_income_loss_for_period": 6250067,
+        "acquisition_of_non_controlling_interests__retained_earnings_accumulated_losses": -966805,
+        "acquisition_of_non_controlling_interests__equity_attributable_to_owners_of_parent": -966805,
+        "acquisition_of_non_controlling_interests__non_controlling_interests": 966805,
+        "acquisition_of_non_controlling_interests__total_equity": 0,
+        "acquisition_of_non_controlling_interests": 0,
+        "dividends_and_others__non_controlling_interests": -540138,
+        "dividends_and_others__total_equity": -540138,
+        "dividends_and_others": -540138,
+        "total_changes_in_shareholders_equity__retained_earnings_accumulated_losses": 3895565,
+        "total_changes_in_shareholders_equity__miscellaneous_other_reserves": -90691,
+        "total_changes_in_shareholders_equity__total_other_reserves": -90691,
+        "total_changes_in_shareholders_equity__equity_attributable_to_owners_of_parent": 3804874,
+        "total_changes_in_shareholders_equity__non_controlling_interests": 1905055,
+        "total_changes_in_shareholders_equity__total_equity": 5709929,
+        "total_changes_in_shareholders_equity": 5709929,
+        "equity_balance_at_end_of_period__share_capital": 30000000,
+        "equity_balance_at_end_of_period__statutory_reserve": 15000000,
+        "equity_balance_at_end_of_period__general_reserve": 110889032,
+        "equity_balance_at_end_of_period__retained_earnings_accumulated_losses": 18966926,
+        "equity_balance_at_end_of_period__miscellaneous_other_reserves": -3424711,
+        "equity_balance_at_end_of_period__total_other_reserves": -3424711,
+        "equity_balance_at_end_of_period__equity_attributable_to_owners_of_parent": 171431247,
+        "equity_balance_at_end_of_period__non_controlling_interests": 28515806,
+        "equity_balance_at_end_of_period__total_equity": 199947053,
+        "equity_balance_at_end_of_period": 199947053
+      },
+      "presentation": [
+        {
+          "key": "equity_balance_at_beginning_of_period_before_adjustments",
+          "label": "Equity balance at beginning of period (before adjustments)",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "equity_balance_at_beginning_of_period_after_adjustments",
+          "label": "Equity balance at beginning of period (after adjustments)",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "profit_loss_for_period",
+          "label": "Profit (loss) for period",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "other_comprehensive_income",
+          "label": "Other comprehensive income",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_comprehensive_income_loss_for_period",
+          "label": "Total comprehensive income (loss) for period",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "acquisition_of_non_controlling_interests",
+          "label": "Acquisition of non-controlling interests",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "dividends_and_others",
+          "label": "Dividends and others",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_changes_in_shareholders_equity",
+          "label": "Total changes in shareholders equity",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "equity_balance_at_end_of_period",
+          "label": "Equity balance at end of period",
+          "depth": 0,
+          "is_subtotal": false
+        }
+      ]
+    },
+    {
+      "statement_type": "equity_change",
+      "period_kind": "quarter",
+      "fiscal_period": "Q1 2020",
+      "period_end": "2020-03-31",
+      "is_comparative": true,
+      "line_items": {
+        "equity_balance_at_beginning_of_period_before_adjustments__share_capital": 30000000,
+        "equity_balance_at_beginning_of_period_before_adjustments__statutory_reserve": 15000000,
+        "equity_balance_at_beginning_of_period_before_adjustments__general_reserve": 110889032,
+        "equity_balance_at_beginning_of_period_before_adjustments__retained_earnings_accumulated_losses": 26097576,
+        "equity_balance_at_beginning_of_period_before_adjustments__miscellaneous_other_reserves": -3265084,
+        "equity_balance_at_beginning_of_period_before_adjustments__total_other_reserves": -3265084,
+        "equity_balance_at_beginning_of_period_before_adjustments__equity_attributable_to_owners_of_parent": 178721524,
+        "equity_balance_at_beginning_of_period_before_adjustments__non_controlling_interests": 28091139,
+        "equity_balance_at_beginning_of_period_before_adjustments__total_equity": 206812663,
+        "equity_balance_at_beginning_of_period_before_adjustments": 206812663,
+        "equity_balance_at_beginning_of_period_after_adjustments__share_capital": 30000000,
+        "equity_balance_at_beginning_of_period_after_adjustments__statutory_reserve": 15000000,
+        "equity_balance_at_beginning_of_period_after_adjustments__general_reserve": 110889032,
+        "equity_balance_at_beginning_of_period_after_adjustments__retained_earnings_accumulated_losses": 26097576,
+        "equity_balance_at_beginning_of_period_after_adjustments__miscellaneous_other_reserves": -3265084,
+        "equity_balance_at_beginning_of_period_after_adjustments__total_other_reserves": -3265084,
+        "equity_balance_at_beginning_of_period_after_adjustments__equity_attributable_to_owners_of_parent": 178721524,
+        "equity_balance_at_beginning_of_period_after_adjustments__non_controlling_interests": 28091139,
+        "equity_balance_at_beginning_of_period_after_adjustments__total_equity": 206812663,
+        "equity_balance_at_beginning_of_period_after_adjustments": 206812663,
+        "profit_loss_for_period__retained_earnings_accumulated_losses": -1045944,
+        "profit_loss_for_period__equity_attributable_to_owners_of_parent": -1045944,
+        "profit_loss_for_period__non_controlling_interests": 72934,
+        "profit_loss_for_period__total_equity": -973010,
+        "profit_loss_for_period": -973010,
+        "other_comprehensive_income__miscellaneous_other_reserves": -865065,
+        "other_comprehensive_income__total_other_reserves": -865065,
+        "other_comprehensive_income__equity_attributable_to_owners_of_parent": -865065,
+        "other_comprehensive_income__non_controlling_interests": -64893,
+        "other_comprehensive_income__total_equity": -929958,
+        "other_comprehensive_income": -929958,
+        "total_comprehensive_income_loss_for_period__retained_earnings_accumulated_losses": -1045944,
+        "total_comprehensive_income_loss_for_period__miscellaneous_other_reserves": -865065,
+        "total_comprehensive_income_loss_for_period__total_other_reserves": -865065,
+        "total_comprehensive_income_loss_for_period__equity_attributable_to_owners_of_parent": -1911009,
+        "total_comprehensive_income_loss_for_period__non_controlling_interests": 8041,
+        "total_comprehensive_income_loss_for_period__total_equity": -1902968,
+        "total_comprehensive_income_loss_for_period": -1902968,
+        "dividends_and_others__non_controlling_interests": -979877,
+        "dividends_and_others__total_equity": -979877,
+        "dividends_and_others": -979877,
+        "total_changes_in_shareholders_equity__retained_earnings_accumulated_losses": -1045944,
+        "total_changes_in_shareholders_equity__miscellaneous_other_reserves": -865065,
+        "total_changes_in_shareholders_equity__total_other_reserves": -865065,
+        "total_changes_in_shareholders_equity__equity_attributable_to_owners_of_parent": -1911009,
+        "total_changes_in_shareholders_equity__non_controlling_interests": -971836,
+        "total_changes_in_shareholders_equity__total_equity": -2882845,
+        "total_changes_in_shareholders_equity": -2882845,
+        "equity_balance_at_end_of_period__share_capital": 30000000,
+        "equity_balance_at_end_of_period__statutory_reserve": 15000000,
+        "equity_balance_at_end_of_period__general_reserve": 110889032,
+        "equity_balance_at_end_of_period__retained_earnings_accumulated_losses": 25051632,
+        "equity_balance_at_end_of_period__miscellaneous_other_reserves": -4130149,
+        "equity_balance_at_end_of_period__total_other_reserves": -4130149,
+        "equity_balance_at_end_of_period__equity_attributable_to_owners_of_parent": 176810515,
+        "equity_balance_at_end_of_period__non_controlling_interests": 27119303,
+        "equity_balance_at_end_of_period__total_equity": 203929818,
+        "equity_balance_at_end_of_period": 203929818
+      },
+      "presentation": [
+        {
+          "key": "equity_balance_at_beginning_of_period_before_adjustments",
+          "label": "Equity balance at beginning of period (before adjustments)",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "equity_balance_at_beginning_of_period_after_adjustments",
+          "label": "Equity balance at beginning of period (after adjustments)",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "profit_loss_for_period",
+          "label": "Profit (loss) for period",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "other_comprehensive_income",
+          "label": "Other comprehensive income",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_comprehensive_income_loss_for_period",
+          "label": "Total comprehensive income (loss) for period",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "dividends_and_others",
+          "label": "Dividends and others",
+          "depth": 0,
+          "is_subtotal": false
+        },
+        {
+          "key": "total_changes_in_shareholders_equity",
+          "label": "Total changes in shareholders equity",
+          "depth": 0,
+          "is_subtotal": true
+        },
+        {
+          "key": "equity_balance_at_end_of_period",
+          "label": "Equity balance at end of period",
+          "depth": 0,
+          "is_subtotal": false
+        }
+      ]
+    },
+    {
       "statement_type": "cashflow",
       "period_kind": "quarter",
       "fiscal_period": "Q1 2021",
@@ -1035,7 +1472,7 @@
         "dividends_to_shareholders_and_non_controlling_interests": -454898,
         "net_cash_flows_from_used_in_financing_activities": 986048,
         "cff": 986048,
-        "increase_decrease_in_cash_and_cash_equivalents_before_effect_of_exchange_rate_ch": 5785603,
+        "increase_decrease_in_cash_and_cash_equivalents_before_effect_of_exchange_rate_changes": 5785603,
         "net_increase_decrease_in_cash_and_cash_equivalents": 5785603,
         "cash_and_cash_equivalents_at_beginning_of_period": 28838342,
         "cash_and_cash_equivalents_at_end_of_period": 34623945
@@ -1198,7 +1635,7 @@
           "is_subtotal": false
         },
         {
-          "key": "increase_decrease_in_cash_and_cash_equivalents_before_effect_of_exchange_rate_ch",
+          "key": "increase_decrease_in_cash_and_cash_equivalents_before_effect_of_exchange_rate_changes",
           "label": "Increase (decrease) in cash and cash equivalents before effect of exchange rate changes",
           "depth": 0,
           "is_subtotal": false
@@ -1260,7 +1697,7 @@
         "dividends_to_shareholders_and_non_controlling_interests": -81720,
         "net_cash_flows_from_used_in_financing_activities": 1442445,
         "cff": 1442445,
-        "increase_decrease_in_cash_and_cash_equivalents_before_effect_of_exchange_rate_ch": -382206,
+        "increase_decrease_in_cash_and_cash_equivalents_before_effect_of_exchange_rate_changes": -382206,
         "net_increase_decrease_in_cash_and_cash_equivalents": -382206,
         "cash_and_cash_equivalents_at_beginning_of_period": 35292318,
         "cash_and_cash_equivalents_at_end_of_period": 34910112
@@ -1423,7 +1860,7 @@
           "is_subtotal": false
         },
         {
-          "key": "increase_decrease_in_cash_and_cash_equivalents_before_effect_of_exchange_rate_ch",
+          "key": "increase_decrease_in_cash_and_cash_equivalents_before_effect_of_exchange_rate_changes",
           "label": "Increase (decrease) in cash and cash equivalents before effect of exchange rate changes",
           "depth": 0,
           "is_subtotal": false
