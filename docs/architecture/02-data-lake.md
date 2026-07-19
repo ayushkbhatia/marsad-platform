@@ -2183,6 +2183,20 @@ expose solely to the service role or an admin-gated route, never to `anon`.
   definition (snapshot-only) false-positived ADX+DFM before this was hardened. Live at apply
   (2026-07-19): all 6 venues `no_raw_trail=false`.
 
-Usage: `select * from lake.v_landing_recent;` in Studio. The intended product surface is a
-future `src/app/admin/lake` server route reading these views via a server-only service-role
-client (RLS blocks the anon key from the underlying lake/storage tables).
+Usage (Studio, ad-hoc): `select * from lake.v_landing_recent;`.
+
+**Admin route (shipped 2026-07-19).** `src/app/admin/lake` is a dynamic server component that
+renders all four boards. It cannot read `lake` directly — that schema is not PostgREST-exposed
+(only `public` is) — so migration `20260719170000_lake_landing_public_wrappers` adds four
+`public.v_lake_landing_*` **`security_invoker` wrapper views** granted to `service_role` only
+(+ the matching `grant select` on the `lake` views to `service_role`). `security_invoker` is
+load-bearing: a plain owner-privileged wrapper would run as `postgres` and leak `lake` to any
+role granted the public view; the invoker wrapper instead requires the caller's own `lake`
+USAGE, which `anon`/`authenticated` lack. The route reads them via `createAdminClient()`
+(`src/lib/supabase/server-admin.ts`, service-role key, server-only, never shipped to browser).
+Access is gated in `src/proxy.ts` by **HTTP Basic Auth** (`ADMIN_USER` / `ADMIN_PASSWORD`,
+fails closed) — an interim gate because no login flow / roles exist yet; swap for an
+`ADMIN_EMAILS` / role check once Supabase Auth is wired. **Next 16 note:** the gate lives in
+`proxy.ts` with `export function proxy(...)`, not `middleware.ts` — the `middleware` file
+convention is deprecated in Next 16 (build emits `middleware-to-proxy`); the `config.matcher`
+export is unchanged.
