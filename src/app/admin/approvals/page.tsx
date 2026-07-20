@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { listApprovals } from "@/lib/desk/approvals";
@@ -7,9 +8,9 @@ export const metadata: Metadata = {
   description: "Agent-drafted pieces awaiting an owner decision.",
 };
 
-// Live queue — never cache.
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+// Live queue — never cache. Under cacheComponents the request-time read runs
+// inside a <Suspense> boundary (see default export) so the route prerenders a
+// static shell and streams the queue.
 
 function ago(iso: string | null): string {
   if (!iso) return "—";
@@ -25,7 +26,26 @@ function ago(iso: string | null): string {
 const TH = "px-3 py-1.5 text-left font-ui text-[11px] font-semibold uppercase tracking-wide text-ink-muted";
 const TD = "px-3 py-2 font-mono text-[13px] text-ink-mid";
 
-export default async function ApprovalsPage({
+export default function ApprovalsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ err?: string; done?: string }>;
+}) {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-paper-tint px-6 py-8 sm:px-10">
+          <h1 className="font-display text-2xl font-semibold text-ink">Approval queue</h1>
+          <p className="mt-2 font-mono text-[13px] text-ink-faint">Loading queue…</p>
+        </main>
+      }
+    >
+      <ApprovalsBody searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+async function ApprovalsBody({
   searchParams,
 }: {
   searchParams: Promise<{ err?: string; done?: string }>;

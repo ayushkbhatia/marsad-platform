@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -5,8 +6,6 @@ import { getApprovalDetail } from "@/lib/desk/approvals";
 import { decideAction } from "../actions";
 
 export const metadata: Metadata = { title: "Desk — review piece" };
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 const stateTone: Record<string, string> = {
   VERIFIED: "text-positive",
@@ -15,7 +14,27 @@ const stateTone: Record<string, string> = {
   RETIRED: "text-ink-faint",
 };
 
-export default async function ApprovalDetailPage({
+export default function ApprovalDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ err?: string }>;
+}) {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-paper-tint px-6 py-8 sm:px-10">
+          <p className="font-mono text-[13px] text-ink-faint">Loading piece…</p>
+        </main>
+      }
+    >
+      <ApprovalDetailBody params={params} searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+async function ApprovalDetailBody({
   params,
   searchParams,
 }: {

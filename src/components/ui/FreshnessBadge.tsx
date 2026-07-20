@@ -1,4 +1,5 @@
 import type { Surface } from "./types";
+import { toBadgeState, type FreshnessBlock } from "@/lib/market/freshness";
 
 export type FreshnessState =
   | "live"
@@ -13,6 +14,13 @@ export interface FreshnessBadgeProps {
   /** Optional suffix appended as " · DETAIL", e.g. "AS OF 15:12 GST" */
   detail?: string;
   surface?: Surface;
+  /**
+   * A pulse `freshness` block from `/api/pulse/*` (venue_feed_status). When
+   * supplied it drives the badge: the DB `state` is mapped onto the 6-state
+   * machine via `toBadgeState` (e.g. `closed` → `delayed`, never `live`), and
+   * `block.detail` fills the suffix unless an explicit `detail` overrides it.
+   */
+  block?: FreshnessBlock;
 }
 
 const LABELS: Record<FreshnessState, string> = {
@@ -58,8 +66,13 @@ export function FreshnessBadge({
   state = "live",
   detail = "",
   surface = "light",
+  block,
 }: FreshnessBadgeProps) {
-  const look = LOOKS[surface][state];
+  // A freshness block overrides the explicit state; an explicit `detail` still
+  // wins over the block's detail so callers can format their own suffix.
+  const effectiveState: FreshnessState = block ? toBadgeState(block.state) : state;
+  const effectiveDetail = detail || block?.detail || "";
+  const look = LOOKS[surface][effectiveState];
   const shape =
     look.shape === "diamond"
       ? "rotate-45"
@@ -71,8 +84,8 @@ export function FreshnessBadge({
     <span className="inline-flex items-center gap-[6px]">
       <span className={`h-[6px] w-[6px] flex-none ${look.dot} ${shape}`} />
       <span className={`font-mono text-[9.5px] tracking-[0.08em] ${look.text}`}>
-        {LABELS[state]}
-        {detail ? ` · ${detail}` : ""}
+        {LABELS[effectiveState]}
+        {effectiveDetail ? ` · ${effectiveDetail}` : ""}
       </span>
     </span>
   );

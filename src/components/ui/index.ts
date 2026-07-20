@@ -5,6 +5,7 @@ export {
   type FreshnessBadgeProps,
   type FreshnessState,
 } from "./FreshnessBadge";
+export type { FreshnessBlock, VenueFeedState } from "@/lib/market/freshness";
 export {
   DataTableRow,
   type DataTableRowProps,

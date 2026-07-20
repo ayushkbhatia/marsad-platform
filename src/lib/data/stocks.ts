@@ -1,0 +1,216 @@
+import "server-only";
+import { cacheLife, cacheTag } from "next/cache";
+import { createAnonClient } from "@/lib/supabase/public";
+import type { FreshnessBlock } from "@/lib/market/freshness";
+import { toFreshnessBlock, toNum, toInt, type VenueFeedRow } from "./util";
+
+/**
+ * Public per-security reads. Every export is a `use cache` function reading only
+ * anon-RLS tables (securities, quotes_latest, ohlcv_daily, venue_feed_status)
+ * plus the headline wrapper `public.v_scores_public`. Financials + the factor
+ * grades are premium-gated and are NOT read here.
+ *
+ * Cached with `stock:{id}` tags so the score batch / filings ingest can call
+ * `revalidateTag('stock:'+id)` from a job on update.
+ */
+
+export interface QuoteLite {
+  last: number | null;
+  change: number | null;
+  changePct: number | null;
+  open: number | null;
+  high: number | null;
+  low: number | null;
+  volume: number | null;
+  vwap: number | null;
+  week52High: number | null;
+  week52Low: number | null;
+  asOf: string | null;
+  delayMinutes: number | null;
+  /** -1 down · 0 flat · +1 up (quotes_latest.tick_dir). */
+  tickDir: number | null;
+}
+
+export interface HeadlineScore {
+  securityId: number;
+  score: number | null;
+  /** BUY | OVERWEIGHT | HOLD | UNDERWEIGHT | SELL (uppercase, from public.scores). */
+  rating: string | null;
+  weeklyDelta: number | null;
+  computedAt: string | null;
+}
+
+export interface StockHeader {
+  securityId: number;
+  ticker: string;
+  venueCode: string;
+  name: string;
+  currency: string | null;
+  sector: string | null;
+  status: string;
+  quote: QuoteLite | null;
+  freshness: FreshnessBlock | null;
+}
+
+export interface StockOverview extends StockHeader {
+  /** Last-N daily closes, oldest → newest, for the inline server sparkline. */
+  sparkline: number[];
+  sparklineFrom: string | null;
+  sparklineTo: string | null;
+  score: HeadlineScore | null;
+}
+
+interface SecurityRow {
+  id: number;
+  venue_code: string;
+  ticker: string;
+  name_en: string;
+  sector: string | null;
+  currency: string | null;
+  status: string;
+}
+
+interface QuoteRow {
+  security_id: number;
+  last: unknown; change: unknown; change_pct: unknown;
+  open: unknown; high: unknown; low: unknown; volume: unknown; vwap: unknown;
+  week52_high: unknown; week52_low: unknown;
+  as_of: string | null; delay_minutes: number | null; tick_dir: number | null;
+}
+
+function mapQuote(q: QuoteRow | null | undefined): QuoteLite | null {
+  if (!q) return null;
+  return {
+    last: toNum(q.last),
+    change: toNum(q.change),
+    changePct: toNum(q.change_pct),
+    open: toNum(q.open),
+    high: toNum(q.high),
+    low: toNum(q.low),
+    volume: toNum(q.volume),
+    vwap: toNum(q.vwap),
+    week52High: toNum(q.week52_high),
+    week52Low: toNum(q.week52_low),
+    asOf: q.as_of ?? null,
+    delayMinutes: toInt(q.delay_minutes),
+    tickDir: toInt(q.tick_dir),
+  };
+}
+
+const QUOTE_COLS =
+  "security_id,last,change,change_pct,open,high,low,volume,vwap,week52_high,week52_low,as_of,delay_minutes,tick_dir";
+
+/**
+ * Lightweight header: identity + latest quote + venue freshness. Feeds the stock
+ * page's quote header (which then polls /api/pulse/quote client-side). ~60s.
+ */
+export async function getStockHeader(securityId: number): Promise<StockHeader | null> {
+  "use cache";
+  cacheLife({ stale: 30, revalidate: 60, expire: 3600 });
+  cacheTag(`stock:${securityId}`);
+
+  const sb = createAnonClient();
+  const { data: sec } = await sb
+    .from("securities")
+    .select("id,venue_code,ticker,name_en,sector,currency,status")
+    .eq("id", securityId)
+    .maybeSingle<SecurityRow>();
+
+  if (!sec) return null;
+
+  const [{ data: quote }, { data: feed }] = await Promise.all([
+    sb.from("quotes_latest").select(QUOTE_COLS).eq("security_id", securityId).maybeSingle<QuoteRow>(),
+    sb
+      .from("venue_feed_status")
+      .select("venue_code,state,detail,last_sync_at,latency_ms")
+      .eq("venue_code", sec.venue_code)
+      .maybeSingle<VenueFeedRow>(),
+  ]);
+
+  return {
+    securityId: sec.id,
+    ticker: sec.ticker,
+    venueCode: sec.venue_code,
+    name: sec.name_en,
+    currency: sec.currency ?? null,
+    sector: sec.sector ?? null,
+    status: sec.status,
+    quote: mapQuote(quote),
+    freshness: toFreshnessBlock(feed),
+  };
+}
+
+/**
+ * Full overview: header + a server-rendered sparkline (last 30 closes) + the
+ * headline Marsad Score (number/rating/weekly delta only — grades stay gated).
+ * ~10 min, tagged `stock:{id}`.
+ */
+export async function getStockOverview(securityId: number): Promise<StockOverview | null> {
+  "use cache";
+  cacheLife({ stale: 300, revalidate: 600, expire: 86400 });
+  cacheTag(`stock:${securityId}`);
+
+  const sb = createAnonClient();
+  const { data: sec } = await sb
+    .from("securities")
+    .select("id,venue_code,ticker,name_en,sector,currency,status")
+    .eq("id", securityId)
+    .maybeSingle<SecurityRow>();
+
+  if (!sec) return null;
+
+  const [{ data: quote }, { data: feed }, { data: bars }, { data: scoreRow }] = await Promise.all([
+    sb.from("quotes_latest").select(QUOTE_COLS).eq("security_id", securityId).maybeSingle<QuoteRow>(),
+    sb
+      .from("venue_feed_status")
+      .select("venue_code,state,detail,last_sync_at,latency_ms")
+      .eq("venue_code", sec.venue_code)
+      .maybeSingle<VenueFeedRow>(),
+    // Newest-first in the query (keyset on date, never a JS date compare); reversed below.
+    sb
+      .from("ohlcv_daily")
+      .select("trade_date,close")
+      .eq("security_id", securityId)
+      .order("trade_date", { ascending: false })
+      .limit(30),
+    sb
+      .from("v_scores_public")
+      .select("security_id,score,rating,weekly_delta,computed_at")
+      .eq("security_id", securityId)
+      .maybeSingle<{
+        security_id: number; score: number | null; rating: string | null;
+        weekly_delta: number | null; computed_at: string | null;
+      }>(),
+  ]);
+
+  const ordered = ((bars as Array<{ trade_date: string; close: unknown }> | null) ?? [])
+    .slice()
+    .reverse();
+  const sparkline = ordered.map((b) => toNum(b.close)).filter((n): n is number => n !== null);
+
+  const score: HeadlineScore | null = scoreRow
+    ? {
+        securityId: scoreRow.security_id,
+        score: toInt(scoreRow.score),
+        rating: scoreRow.rating ?? null,
+        weeklyDelta: toInt(scoreRow.weekly_delta),
+        computedAt: scoreRow.computed_at ?? null,
+      }
+    : null;
+
+  return {
+    securityId: sec.id,
+    ticker: sec.ticker,
+    venueCode: sec.venue_code,
+    name: sec.name_en,
+    currency: sec.currency ?? null,
+    sector: sec.sector ?? null,
+    status: sec.status,
+    quote: mapQuote(quote),
+    freshness: toFreshnessBlock(feed),
+    sparkline,
+    sparklineFrom: ordered.length ? ordered[0].trade_date : null,
+    sparklineTo: ordered.length ? ordered[ordered.length - 1].trade_date : null,
+    score,
+  };
+}

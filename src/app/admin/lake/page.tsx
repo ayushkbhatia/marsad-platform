@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase/server-admin";
 
@@ -6,9 +7,9 @@ export const metadata: Metadata = {
   description: "What's landing in storage + the datalake, per layer / venue / bucket.",
 };
 
-// Live ops view — never cache.
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+// Live ops view — never cache. Under cacheComponents, pages are dynamic by
+// default; the request-time DB read lives in a <Suspense> boundary below so
+// the route has a static shell and streams the live table.
 
 type RecentRow = {
   layer: string;
@@ -85,7 +86,24 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
 const TH = "px-3 py-1.5 text-left font-ui text-[11px] font-semibold uppercase tracking-wide text-ink-muted";
 const TD = "px-3 py-1.5 font-mono text-[13px] text-ink-mid tabular-nums";
 
-export default async function LakeLandingPage() {
+export default function LakeLandingPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-paper-tint px-6 py-8 sm:px-10">
+          <h1 className="font-display text-2xl font-semibold text-ink">
+            Data Lake — landing visibility
+          </h1>
+          <p className="mt-2 font-mono text-[13px] text-ink-faint">Loading live landing…</p>
+        </main>
+      }
+    >
+      <LakeLandingBody />
+    </Suspense>
+  );
+}
+
+async function LakeLandingBody() {
   const sb = createAdminClient();
   const [recent, storage, types, gaps] = await Promise.all([
     sb.from("v_lake_landing_recent").select("*"),

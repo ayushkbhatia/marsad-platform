@@ -456,6 +456,15 @@ ruleset v9, `ops.pipeline_items` state machine, `fn_enforce_agent_publish_gate`,
   GitHub-billing unblock needed for CI + auto-deploy (Vercel deploys independently; the VPS worker still
   deploys by hand).
 
+### P2 — Reader app (foundation landed 2026-07-20)
+The public reader was pure greenfield (only `/admin/*` + `/styleguide` existed). Foundation now in:
+- ✅ **`cacheComponents: true`** (`next.config.ts`, the stable 16.2.10 key — replaces `experimental.ppr/useCache/dynamicIO`) unlocks function-level `use cache` + `cacheLife`/`cacheTag`. **Side-effect handled:** the flag is incompatible with route-segment `export const dynamic/revalidate`, so the 3 existing `/admin/*` pages were migrated to the documented pattern (static shell + a `<Suspense>`-wrapped async body); semantics unchanged (still live/uncached), build green + PPR.
+- ✅ **Cookieless anon client** `src/lib/supabase/public.ts#createAnonClient()` — plain `createClient(url, anonKey)`, no `cookies()` binding, so cached reads don't silently opt out to per-visitor dynamic (the #1 cost bug in `04-reader-app.md §3.1`).
+- ✅ **Data layer** `src/lib/data/{stocks,markets,filings,util}.ts` (`use cache` + `cacheLife`, all reads via the anon client over the 12 anon-readable public tables) + **`src/lib/securities/resolve.ts`** (venue+ticker resolver — the 4 collisions AMAN/GFH/ITHMR/ORDS make ticker-only ambiguous) + **market state** (`market/hours.ts` client mirror + `getMarketState()` holiday-aware server gate).
+- ✅ **Pulse endpoints** `src/app/api/pulse/[surface]/route.ts` (`quote`/`indices`/`wire`/`heatmap`, CDN cache headers per §4, freshness block from `venue_feed_status`, anon client so responses are CDN-shareable) + **`usePulse` hook** (`document.hidden` pause, market-closed stop) + `FreshnessBadge` `block` prop (maps `closed`→`delayed`, never renders `live` for a shut venue). **Verified live** on the dev server: `/api/pulse/{indices,quote?t=9615,wire}` all return correct JSON, 0 server errors.
+- ✅ **`public.v_scores_public`** (`20260720161000`) — the anon-readable HEADLINE of the Marsad Score (5 cols: security_id/score/rating/weekly_delta/computed_at; owner-privileged `security_invoker=false` view over the premium `public.scores`). **Financials + factor grades stay premium-gated per owner decision** — the reader's Financials tab + screener render as premium stubs, not public data.
+- ⏳ **Next (Wave 2):** stock pages (shell + quote-header island + Overview/Chart/Filings tabs + Financials premium stub), markets/index-strip + interim sector heatmap, screener (3-row teaser), newswire off `public.filings`, SEO. Then the index tape lights up once the index-levels producer (§7) fills `index_levels`.
+
 ### P4 — Marsad Desk (~3 wks)
 Dashboard, approval review, agents console, lake browser, rules UI, data-desk ops, audit chain.
 
