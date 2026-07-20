@@ -405,11 +405,25 @@ ruleset v9, `ops.pipeline_items` state machine, `fn_enforce_agent_publish_gate`,
   ACCOUNTING**: `ops.llm_runs` was RLS-blocked (grant without policy) — worker_all policy added, so
   newsroom LLM spend now records + feeds the budget ladder. Regression `supabase/tests/p3_4_approval.sql`
   (eic-block, RULES_STALE, owner-approve→live, publish-sweep) passes live.
-- ⏳ **Remaining (P3 tuning + P3.5):** wire-first (TPL-01) is the easier first pass than a story; the
-  writer prompt needs stronger "every number carries a [cN]" enforcement for stories
-  (DEF-WRITER-NUMBER-MARKING). Then P3.5 (bare `/desk/approvals` UI calling `desk_decide_approval`) —
-  the reader/Desk surface is otherwise P4. The conveyor + its tail are complete; what remains is the
-  human-facing approval screen and prompt tuning to land the first clean auto-published wire.
+- ✅ **P3.5 `/admin/approvals`** (`20260720151411`, live — first real Desk UI): the human approval
+  screen, following the existing `/admin` pattern (HTTP Basic Auth via `proxy.ts` + service-role
+  client; per-user Supabase Auth is P5). ops/lake aren't PostgREST-exposed, so the app reaches them
+  through public wrappers: **DESK-OWNER** principal (kind `system`) + owner role (the founder's audit
+  identity behind the gate); `public.v_desk_approvals` (queue + SLA + rules-stale + counts);
+  `public.desk_approval_detail(item)` (blocks + citations resolved to their object's live state +
+  rule log); `public.desk_approve(...)` (stamps DESK-OWNER → `ops.desk_decide_approval`). Routes:
+  `/admin/approvals` (queue list, SLA/rules badges) + `/admin/approvals/[id]` (body, state-coloured
+  citations, rule log, 4 decision buttons → Server Action → `desk_approve` → revalidate). `next build`
+  + lint clean; Vercel auto-deploys. A real QNBK wire sits at `approval` as a live demo row.
+- **P3 backend + Desk approval surface COMPLETE.** The whole conveyor runs: VERIFIED object → classify
+  → draft → edit → rules → approval → owner decision → publish, with sweeps, SLA, dead-letter loops,
+  budget accounting, and a working approval screen.
+- ⏳ **Remaining (tuning, not blocking):** the writer prompt needs stronger "every number carries a
+  [cN]" enforcement so a story clears R-03 rather than looping to human (DEF-WRITER-NUMBER-MARKING) —
+  wire-first (TPL-01, single fact) is the easier first clean piece. To arm the live newsroom: enable
+  `pipeline_intake_enabled` (trigger fires on VERIFIED objects) and, once wires are trusted,
+  `auto_publish_wires`. GitHub-billing unblock needed for CI + auto-deploy (Vercel deploys
+  independently; the VPS worker still deploys by hand).
 
 ### P4 — Marsad Desk (~3 wks)
 Dashboard, approval review, agents console, lake browser, rules UI, data-desk ops, audit chain.
