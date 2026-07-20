@@ -96,13 +96,17 @@ import type {
   RawResponse,
   SourceRecord,
 } from '../../core/types.js';
+import { FetchError } from '../../core/types.js';
 
 const TOKEN_PAGE = 'https://www.bahrainbourse.com/en';
 const WEBAPI = 'https://webapi.bahrainbourse.com/api/data/GetTabularData?storedProcdure=Quotes';
 const BOARD = JSON.stringify({ status: 1, data: [{ symbol: 'ABC', 'Last Price': 0.3, VOLUME: 100 }] });
 
 /** Mock BHB origin: homepage serves `APIKey = '<currentKey>'`; the webapi 200s only when the request's
- *  Bearer matches currentKey, else 401. `currentKey` can be rotated to exercise the re-scrape path. */
+ *  Bearer matches currentKey, else THROWS like the real fetcher (ctx.http.get never returns a 4xx
+ *  RawResponse — see core/fetcher.ts — it throws FetchError('HTTP_4XX', …, {status}) instead; a prior
+ *  version of this mock returned a 401 RawResponse, which let bhbWebapiGet's dead retry-on-401 branch
+ *  ship unnoticed — root-caused 2026-07-20). `currentKey` can be rotated to exercise the re-scrape path. */
 class BhbHttp implements HttpClient {
   public gets: string[] = [];
   constructor(public currentKey: string) {}
@@ -113,11 +117,13 @@ class BhbHttp implements HttpClient {
       return { url, status: 200, headers: { 'content-type': 'text/html' }, body: Buffer.from(html), fromCache304: false };
     }
     const auth = (opts?.headers?.['authorization'] ?? '') as string;
-    const ok = auth === `Bearer ${this.currentKey}`;
+    if (auth !== `Bearer ${this.currentKey}`) {
+      throw new FetchError('HTTP_4XX', `401 client error for ${url}`, { status: 401 });
+    }
     return {
-      url, status: ok ? 200 : 401,
+      url, status: 200,
       headers: { 'content-type': 'application/json' },
-      body: Buffer.from(ok ? BOARD : ''), fromCache304: false,
+      body: Buffer.from(BOARD), fromCache304: false,
     };
   }
   async request(url: string, opts: FetchOptions): Promise<RawResponse> { return this.get(url, opts); }
