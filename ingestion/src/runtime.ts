@@ -32,7 +32,7 @@ import {
   isPdfResponse,
   type FilingPdfResolver,
 } from './adapters/filings-detail.js';
-import { createHttpClient } from './core/fetcher.js';
+import { createHttpClient, makeCurlTransport } from './core/fetcher.js';
 import { createBrowserClient } from './core/browser.js';
 import { createPlaywrightDriver } from './core/playwright-driver.js';
 import { createStorageUploader, type StorageUploader } from './core/storage.js';
@@ -1054,6 +1054,26 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
     const concurrency = isBackfill ? base.backfillConcurrency : base.globalConcurrency;
     const ratePerSec = isBackfill ? base.backfillRatePerSec : base.perHostRateLimitPerSec;
     const budget = isBackfill ? base.backfillBudgetPerHostPerDay : base.requestBudgetPerHostPerDay;
+
+    // Opt-in curl transport (endpoint_config.use_curl): some origins RESET undici's TLS handshake from
+    // the VPS IP but accept curl's (QE's Akamai on the live board). DIRECT only — a use_curl source must
+    // not also be use_proxy (curl+proxy is unwired); if both are set, curl wins and egresses direct.
+    if ((source.endpointConfig as { use_curl?: unknown }).use_curl === true) {
+      const key = `curl|c${concurrency}|r${ratePerSec}`;
+      let client = httpClientCache.get(key);
+      if (!client) {
+        client = createHttpClient({
+          ratePerSec,
+          budgetPerHostPerDay: budget,
+          globalConcurrency: concurrency,
+          defaultTimeoutMs: base.defaultTimeoutMs,
+          logger,
+          transport: makeCurlTransport(),
+        });
+        httpClientCache.set(key, client);
+      }
+      return client;
+    }
 
     let proxy: ProxyConfig | undefined;
     try {

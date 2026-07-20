@@ -1,4 +1,5 @@
 import { gunzipSync, inflateSync, inflateRawSync, brotliDecompressSync } from 'node:zlib';
+import { execFile } from 'node:child_process';
 import type { HttpClient, FetchOptions, RawResponse, Logger } from './types.js';
 import { FetchError } from './types.js';
 import {
@@ -296,6 +297,98 @@ const defaultTransport: LowLevelTransport = async (url, opts) => {
     body: { arrayBuffer: () => res.body.arrayBuffer() },
   };
 };
+
+/**
+ * Runs `curl` once and returns its raw stdout. Injectable so the transport is unit-testable
+ * without shelling out. The default shells the system `curl` via execFile (argv array — no shell,
+ * so header/body values can't inject). Rejects on a non-zero curl exit (→ NETWORK upstream).
+ */
+export type CurlExec = (args: string[], opts: { signal?: AbortSignal }) => Promise<Buffer>;
+
+const defaultCurlExec: CurlExec = (args, { signal }) =>
+  new Promise<Buffer>((resolve, reject) => {
+    execFile(
+      'curl',
+      args,
+      {
+        encoding: 'buffer',
+        maxBuffer: 64 * 1024 * 1024, // a full market board is ~200 KB; 64 MB is headroom, not a limit we expect to hit
+        ...(signal ? { signal } : {}),
+      },
+      (err, stdout) => (err ? reject(err) : resolve(stdout as unknown as Buffer)),
+    );
+  });
+
+// A distinctive trailer curl appends via -w AFTER the body, so we recover status + content-type
+// without parsing header blocks. Unlikely to collide with a JSON/text board body.
+const CURL_META = '\n__MARSAD_CURL_META_9f3a17__';
+
+/**
+ * A LowLevelTransport that fetches through the system `curl` binary instead of undici.
+ *
+ * WHY: some GCC origins (QE's Akamai on www.qe.com.qa) RESET undici's TLS handshake from the VPS
+ * datacenter IP but ACCEPT curl's OpenSSL handshake — the live QE board is unreachable via undici yet
+ * fine via curl (proven by the QE financials researcher). Opt-in per source via endpoint_config.use_curl
+ * (see runtime.httpClientForSource). DIRECT egress only — no proxy path (curl+proxy is unused today).
+ *
+ * SHAPE PARITY with defaultTransport: `--compressed` lets curl decode gzip/deflate so we return PLAIN
+ * bytes and surface NO content-encoding header — the fetcher's decodeContentEncoding step then no-ops,
+ * exactly as intended. Only content-type is surfaced (no etag/last-modified), so a curl source can't do
+ * a 304 conditional GET — fine for the always-changing quote board. Text bodies only (the QE POST body is
+ * a small form string); a Buffer body is sent as utf8.
+ */
+export function makeCurlTransport(deps: { exec?: CurlExec } = {}): LowLevelTransport {
+  const exec = deps.exec ?? defaultCurlExec;
+  return async (url, opts) => {
+    const args = [
+      '-sS', // silent, but still print transport errors to stderr
+      '--compressed', // curl negotiates + decodes gzip/deflate → we hand back plain bytes
+      '--http1.1',
+      '-L',
+      '--max-redirs',
+      '5',
+      '--max-time',
+      '120', // hard backstop; the real bound is opts.signal (fetcher's per-request AbortController)
+      '-X',
+      opts.method,
+    ];
+    for (const [k, v] of Object.entries(opts.headers ?? {})) {
+      // Skip accept-encoding: --compressed owns content negotiation; forwarding it would advertise an
+      // encoding curl then transparently strips, leaving a misleading header.
+      if (k.toLowerCase() === 'accept-encoding') continue;
+      args.push('-H', `${k}: ${v}`);
+    }
+    if (opts.body !== undefined) {
+      args.push('--data-binary', typeof opts.body === 'string' ? opts.body : opts.body.toString('utf8'));
+    }
+    args.push('-w', `${CURL_META}%{http_code}\t%{content_type}`, '--', url);
+
+    const out = await exec(args, opts.signal ? { signal: opts.signal } : {});
+    const idx = out.lastIndexOf(CURL_META);
+    if (idx === -1) {
+      // No trailer means curl never completed the transfer (connection reset before -w ran).
+      throw new FetchError('NETWORK', `curl produced no response metadata for ${url}`);
+    }
+    const bodyBuf = out.subarray(0, idx);
+    const [codeStr = '', contentType = ''] = out
+      .subarray(idx + CURL_META.length)
+      .toString('utf8')
+      .split('\t');
+    return {
+      statusCode: Number(codeStr) || 0,
+      headers: { 'content-type': contentType.trim() },
+      body: {
+        // Copy into a fresh ArrayBuffer (Buffer's underlying buffer types as ArrayBufferLike /
+        // possibly SharedArrayBuffer, which the LowLevelResponse contract rejects).
+        arrayBuffer: async () => {
+          const ab = new ArrayBuffer(bodyBuf.byteLength);
+          new Uint8Array(ab).set(bodyBuf);
+          return ab;
+        },
+      },
+    };
+  };
+}
 
 /**
  * A LowLevelTransport that routes every request through an undici ProxyAgent.
