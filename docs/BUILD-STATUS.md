@@ -364,8 +364,42 @@ The lake becomes READABLE — the 03 §5.2 layer, built + proven live in one pas
 ### P2 — Reader core on real data (~4 wks)
 Ledger, 812 stock pages, newswire, screener, heatmap, search, SEO — all from the live lake, CDN-cached anonymous browsing. (Master plan P2.)
 
-### P3 — Newsroom pipeline (~3 wks)
+### P3 — Newsroom pipeline (backend conveyor ✅ PROVEN END-TO-END 2026-07-20)
 VERIFIED object → classify → draft (cite VERIFIED only) → edit → rules → owner approval / TPL-01 auto-wire. (Master plan P3.)
+
+Most of the P3 scaffolding was already seeded in P0 (templates TPL-01..08, story blocks, R-01..R-10
+ruleset v9, `ops.pipeline_items` state machine, `fn_enforce_agent_publish_gate`, kill switches,
+`lake.citations`, `content_items/_blocks/_tickers`). P3 built the agents that move a piece along it.
+
+- ✅ **Gateway seam** (PR #65) — the LLM gateway ported `src/lib/llm` → `ingestion/src/llm/` (the
+  worker's only package dep; `.js` NodeNext extensions, accounting → postgres-direct, drops
+  `@supabase/supabase-js`). Worker reaches `chatComplete` via the `marsad-ingestion` barrel.
+- ✅ **P3.1 intake** (`20260720110829`) — `ops.materiality_prefilter` + `classifier_verdicts`,
+  `pipeline_items` extensions (+`dead`, SLA 3min→3h), `ops.fn_transition` (DB-enforced stage
+  adjacency, illegal moves RAISE), `lake.fn_verified_enqueue` trigger (both arms → `q_pipeline`).
+  Regression `supabase/tests/p3_pipeline_intake.sql`.
+- ✅ **P3.2 rules engine** (PR #65) — R-01..R-10 pure fns + `runRules` in `ingestion/src/rules/`,
+  12 golden tests; R-03 body-cite, R-04 numbers-match-lake (0.5% + live drift), ≥2-lineage-root
+  auto-publish gate (never blocks — drops to approval).
+- ✅ **P3.3 handlers** (PR #66/#70/#71, live on VPS) — `pipeline_classify` (prefilter + LLM tier),
+  `pipeline_draft` (WRITER-N: `fn_writer_context` → `chatComplete('writer')` → blocks+citations, no
+  invented sources), `pipeline_edit` (EDITOR-1: tighten + template auto-select), `pipeline_rules`
+  (`runRules` → approval / auto-publish gate / rules-fail loop cap 2 → human). Registered on
+  `q_pipeline` at boot.
+- ✅ **SLICE TEST PROVEN LIVE 2026-07-20** (QNBK Q2-2026 income object): the full conveyor ran —
+  classify→**material/TPL-03**→draft (writer, sonnet, headline *"QNB posts QAR 4.43bn net profit in
+  Q2 2026, revenue up 11.2%"*, 10 citations)→edit (tightened)→rules→**BLOCKED (R-03 unmarked number
+  + R-04)**→back to draft ×2→**reassigned_human**. The guardrail correctly refused a story whose body
+  left a number uncited and whose statement citations are single-source PENDING (not VERIFIED-now).
+  Every stage, the state machine, the LLM agents, the rules engine, and the loop cap fired exactly to
+  spec. **Intake trigger + auto-publish both remain OFF** (owner steer): messages are driven manually
+  until the wire path is tuned.
+- ⏳ **Remaining (P3 tuning + P3.4/P3.5):** wire-first (TPL-01) is the easier first pass than a
+  story; the writer prompt needs stronger "every number carries a [cN]" enforcement for stories
+  (DEF-WRITER-NUMBER-MARKING). Newsroom LLM spend is currently **unaccounted** — the ported
+  `accounting.ts` can't resolve `postgres` from ingestion's node_modules, so `ops.llm_runs` gets no
+  row (calls + cost still work) — DEF-NEWSROOM-LLM-ACCOUNTING. Then P3.4 (SLA sweep + publish handler
+  + budget ladder) and P3.5 (bare `/desk/approvals`).
 
 ### P4 — Marsad Desk (~3 wks)
 Dashboard, approval review, agents console, lake browser, rules UI, data-desk ops, audit chain.
