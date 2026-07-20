@@ -56,10 +56,19 @@ export function webapiHeaders(cfg: BhbWebapiConfig, token: string): Record<strin
   return out;
 }
 
+const AUTH_FAILURE_STATUSES = new Set([400, 401, 403]);
+
 /**
  * GET a BHB webapi URL with the dynamic Bearer: reuse the cached APIKey (else scrape one), and on an
  * auth failure (401/403, or the Cloudflare 400) re-scrape ONCE and retry with the fresh key. Caches
- * the working key in-process. Throws HTTP_4XX only when no key can be obtained at all.
+ * the working key in-process. Throws HTTP_4XX only when no key can be obtained at all, or the retry
+ * also fails.
+ *
+ * ctx.http.get THROWS FetchError('HTTP_4XX', …, {status}) on any >=400 response — it never returns a
+ * RawResponse for one — so the retry-on-401 branch must catch that throw, not branch on `res.status`
+ * (a prior version did the latter, which made the retry dead code: the first call always threw before
+ * any status check could run, so a rotated APIKey wedged every BHB webapi call — quotes AND filings —
+ * for good until the whole worker process restarted and re-scraped cold. Root-caused 2026-07-20).
  */
 export async function bhbWebapiGet(
   ctx: FetchContext,
@@ -73,14 +82,16 @@ export async function bhbWebapiGet(
       'bhb webapi: could not obtain an APIKey from the BHB homepage (scrape found no `APIKey = …`)',
     );
   }
-  let res = await ctx.http.get(url, { headers: webapiHeaders(cfg, token) });
-  if (res.status === 401 || res.status === 403 || res.status === 400) {
+  try {
+    const res = await ctx.http.get(url, { headers: webapiHeaders(cfg, token) });
+    cachedApiKey = token; // remember the working key
+    return res;
+  } catch (err) {
+    if (!(err instanceof FetchError) || !AUTH_FAILURE_STATUSES.has(err.status ?? 0)) throw err;
     const fresh = await scrapeApiKey(ctx, cfg);
-    if (fresh && fresh !== token) {
-      token = fresh;
-      res = await ctx.http.get(url, { headers: webapiHeaders(cfg, token) });
-    }
+    if (!fresh || fresh === token) throw err; // no better key available — surface the original failure
+    const res = await ctx.http.get(url, { headers: webapiHeaders(cfg, fresh) }); // let a second failure throw
+    cachedApiKey = fresh;
+    return res;
   }
-  if (res.status >= 200 && res.status < 300) cachedApiKey = token; // remember the working key
-  return res;
 }
