@@ -280,10 +280,24 @@ The **derived data path is built + tested**; it goes live the moment `financial_
 - ✅ **Earnings-actuals projection** (`20260720160500`, `lake.fn_project_earnings_from_income`) — the
   quarterly `income` tier → `public.earnings_events` (**all venues**, ~505 secs; **4,055 rows** live,
   1,716 `confirmed` date_state from a linked filing's `filed_at`). Actuals-only: `eps_actual`
-  (DISTINCT-ON consolidated; **TDWL-EPS landmine guarded** `abs(eps)>100000 → null`, DEF-TDWL-EPS-MAPPING),
+  (DISTINCT-ON consolidated; **TDWL-EPS landmine guarded** — projection nulls implausible eps; **root fix
+  landed** below, DEF-TDWL-EPS-MAPPING),
   `revenue_actual`, `report_date`, `eps_prior` (prior-year same-quarter). `verdict`/consensus/`surprise`
   stay **NULL on purpose** (no consensus source — DEF-ESTIMATES-AGG — and writing `verdict` would wake
   the Score Revisions recompute). Nightly cron 01:35 GST.
+- ✅ **DEF-TDWL-EPS-MAPPING root fix** (2026-07-20) — the extractor was mis-writing net-income into per-share
+  EPS on **340 income rows / 76 secs** (BHB 166 / TDWL 120 / DFM 39 / QE 10 / MSX 3 / ADX 2; 39 `key_ratios.pe`
+  pinned in (0, 0.01] → names silently mis-ranked "cheap"). Two defects fixed: (1) `adapters/tadawul/xbrl.ts`
+  — the inline basic→diluted fallback ran in document order BEFORE the genuine "Total diluted EPS" row, so
+  `eps_diluted` was never the true diluted value; moved to a post-pass so the real diluted wins (recovers 23
+  TDWL rows' true diluted). (2) `lake/statement-extraction.ts` `scaleLineItems` — added a **relative**
+  per-share guard `|eps| > |net_income|/1e6 ⇒ drop the key` (currency-invariant; covers XBRL AND every LLM
+  path; spares fils-denominated EPS like ORIENT/ALBH/MKHZN, which an absolute bound would falsely flag).
+  (3) `lake/ratios-compute.ts` — a downstream **belt** rejects an implausible explicit epsTtm and falls back
+  to net_income/shares, so no legacy garbage yields pe≈0. 549 ingestion tests (+5), SABIC goldens byte-identical.
+  A deterministic reproject (`scripts/researchers/tadawul-eps-reproject.mjs`) re-parses the owned TDWL XBRLs
+  through the fixed parser to correct the landed rows; non-TDWL rows converge on re-ingestion, the belt covers
+  `pe` immediately on the next ratios recompute.
 - ⏳ **Deferred**: full-text/`extracted_facts`/`ai_summary` (the one bounded LLM cost, §7);
   `DIVIDEND.DECLARED` dated-declaration feed to arm TPL-04 wires (§7).
 

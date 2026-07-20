@@ -69,7 +69,6 @@ const CANON: ReadonlyArray<[RegExp, string]> = [
   [/^dividends paid/i, 'dividends_paid'],
 ];
 const canonKey = (label: string): string | null => { for (const [re, k] of CANON) if (re.test(label)) return k; return null; };
-const PER_SHARE = /per share/i;
 
 /** Classify a statement table by its title/abstract rows. Returns null for notes/equity/non-core tables
  *  (the dimensional changes-in-equity table is detected separately — see parseEquityTable). */
@@ -277,10 +276,18 @@ export function parseTadawulXbrl(html: string, opts: { currency?: string } = {})
         // raw label always; canonical key when matched (per-share values pass through unscaled downstream)
         if (li[sk] === undefined) li[sk] = v;
         if (ck && li[ck] === undefined) li[ck] = v;
-        // if only basic EPS exists, also satisfy the ratio engine's eps_diluted
-        if (ck === 'eps_basic' && li['eps_diluted'] === undefined && PER_SHARE.test(label)) li['eps_diluted'] = v;
+        // (DEFECT A) the basic→diluted fallback used to fire HERE, inline. Rows arrive in document order
+        // and "Total basic EPS" always precedes "Total diluted EPS", so setting eps_diluted from the basic
+        // row clobbered the genuine diluted value before its own row was seen. Moved to a POST-PASS below.
       }
     }
+  }
+  // (DEFECT A fix) basic→diluted fallback, run ONCE per accumulated income statement AFTER the table loop,
+  // so a genuine "Total diluted EPS" row (which the loop maps to eps_diluted directly) always wins. Only
+  // fills eps_diluted when the filing carried no diluted line at all — then the ratio engine reads basic.
+  for (const st of acc.values()) {
+    const li = st.line_items as Record<string, number>;
+    if (li['eps_diluted'] === undefined && typeof li['eps_basic'] === 'number') li['eps_diluted'] = li['eps_basic'];
   }
   const statements = [...acc.values()].filter((s) => Object.keys(s.line_items).length > 0);
   return { currency, scale, statements };

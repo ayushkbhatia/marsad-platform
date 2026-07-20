@@ -170,6 +170,20 @@ function scaleLineItems(lines: Record<string, unknown>, factor: number): Record<
   for (const [alias, canon] of Object.entries(CANONICAL_ALIAS)) {
     if (out[alias] !== undefined && out[canon] === undefined) out[canon] = out[alias];
   }
+  // RELATIVE per-share sanity guard (DEF-TDWL-EPS-MAPPING) — shared across EVERY path (XBRL + LLM
+  // gapfill/bhb/qe/msx), since some filers mis-tag the basic-EPS element with the net-income AMOUNT and
+  // no absolute bound catches a value that is merely net_income/1000. Because eps and net_income are the
+  // SAME currency within a statement, |eps| > |net_income| / MIN_SHARES ⇔ implied share count < MIN_SHARES
+  // — impossible for a listed equity (no GCC name has <~1M shares; fils-denominated EPS on ORIENT/ALBH/
+  // MKHZN implies millions of shares and is spared). Delete the offending per-share key (not the whole
+  // statement); the rest of the line item is sound. Currency-unit invariant.
+  const MIN_SHARES = 1e6;
+  const ni = out.net_income;
+  if (typeof ni === 'number' && ni !== 0) {
+    for (const k of PER_SHARE_KEYS) {
+      if (typeof out[k] === 'number' && Math.abs(out[k]) > Math.abs(ni) / MIN_SHARES) delete out[k];
+    }
+  }
   // Derived capital_employed (§3.1) onto the balance line_items.
   if (typeof out.total_assets === 'number' && typeof out.current_liabilities === 'number' && out.capital_employed === undefined) {
     out.capital_employed = out.total_assets - out.current_liabilities;

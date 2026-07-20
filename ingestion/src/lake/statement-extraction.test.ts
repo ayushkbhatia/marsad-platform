@@ -66,6 +66,40 @@ test('comma-thousands / parenthesised strings coerce; blanks & dashes drop (toNu
   assert.equal(li.dash, undefined);
 });
 
+// ── relative per-share guard (DEF-TDWL-EPS-MAPPING) ──────────────────────────
+test('guard drops a net-income-magnitude eps; keeps fils-denominated eps; no-op when net_income 0/absent', () => {
+  // Defect B: eps_basic mis-tagged with the net-income AMOUNT (32,357,040) ⇒ implied shares < 1M ⇒ dropped.
+  // The genuinely clean diluted (0.3236) survives — this is the per-key delete, not a whole-statement reject.
+  const garbage = assembleFromExtraction(
+    fin('units', [stmt({ statement_type: 'income', line_items: { net_income: 32357040, eps_basic: 32357040, eps_diluted: 0.3236 } })]),
+    'TDWL', '1183',
+  );
+  assert.equal(garbage.periods[0]!.lineItems.eps_basic, undefined);
+  assert.equal(garbage.periods[0]!.lineItems.eps_diluted, 0.3236);
+
+  // fils-denominated (ALBH-style): ni 451,870,000 fils, eps 319 fils ⇒ implied shares ~1.4M (> 1M) ⇒ KEPT.
+  const fils = assembleFromExtraction(
+    fin('units', [stmt({ statement_type: 'income', line_items: { net_income: 451870000, eps_diluted: 319, dps: 100 } })]),
+    'BHB', 'ALBH',
+  );
+  assert.equal(fils.periods[0]!.lineItems.eps_diluted, 319);
+  assert.equal(fils.periods[0]!.lineItems.dps, 100);
+
+  // net_income == 0 ⇒ guard is a no-op (cannot bound); a small eps is untouched.
+  const zero = assembleFromExtraction(
+    fin('units', [stmt({ statement_type: 'income', line_items: { net_income: 0, eps_basic: 5 } })]),
+    'TDWL', '1',
+  );
+  assert.equal(zero.periods[0]!.lineItems.eps_basic, 5);
+
+  // no net_income at all ⇒ guard cannot fire; eps rides through (scale test at L40 depends on this).
+  const noNi = assembleFromExtraction(
+    fin('units', [stmt({ statement_type: 'income', line_items: { revenue: 100, eps_diluted: 2.5 } })]),
+    'TDWL', '1',
+  );
+  assert.equal(noNi.periods[0]!.lineItems.eps_diluted, 2.5);
+});
+
 // ── canonical aliasing ───────────────────────────────────────────────────────
 test('alias folds onto the canonical key only when it is absent', () => {
   const folded = assembleFromExtraction(fin('units', [stmt({ line_items: { total_equity: 500 } })]), 'TDWL', '1');

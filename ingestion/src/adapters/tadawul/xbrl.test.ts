@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 import { parseTadawulXbrl, parseTadawulProfile } from './xbrl.js';
+import { extractToStatements } from '../../lake/statement-extraction.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fx = (p: string) => readFileSync(resolve(here, '../../../fixtures/tdwl/', p), 'utf8');
@@ -174,4 +175,53 @@ test('Phase B classify: combined P&L+OCI single statement now lands as income (w
   // bare "comprehensive income" (no "other", no tax qualifier) stays unclassified — ambiguous
   const bare = parseTadawulXbrl(mk('Statement of comprehensive income'));
   assert.equal(bare.statements.length, 0);
+});
+
+// ─── DEF-TDWL-EPS-MAPPING: Defect A (basic clobbered diluted) + Defect B (net-income-magnitude eps) ──
+// Reproduces the real ticker-1183 Q1-2022 shape: the "Total basic EPS" cell is mis-tagged with the
+// net-income AMOUNT (32,357,040), while the genuine "Total diluted EPS" row carries the true 0.3236.
+// Rows are in document order (basic BEFORE diluted), the exact condition the old inline fallback broke on.
+const epsIncomeTable = (basicCell: string, dilutedCell: string) =>
+  '<table>' +
+  '<tr><td>Statement of profit or loss [abstract]</td><td></td></tr>' +
+  '<tr><td>Start Date</td><td>2022-01-01</td></tr>' +
+  '<tr><td>End Date</td><td>2022-03-31</td></tr>' +
+  '<tr><td>Revenue</td><td>500,000,000</td></tr>' +
+  '<tr><td>Profit (loss) for the period</td><td>32,357,040</td></tr>' +
+  `<tr><td>Total basic earnings (loss) per share</td><td>${basicCell}</td></tr>` +
+  `<tr><td>Total diluted earnings (loss) per share</td><td>${dilutedCell}</td></tr>` +
+  '</table>';
+
+test('DEF-TDWL-EPS-MAPPING Defect A: the genuine diluted row WINS — eps_diluted 0.3236, not clobbered by basic', () => {
+  const fs = parseTadawulXbrl(epsIncomeTable('32,357,040', '0.3236'));
+  const inc = fs.statements.find((s) => s.statement_type === 'income')!;
+  const li = inc.line_items as Record<string, number>;
+  // the true diluted value survives (old inline fallback set it to the basic value BEFORE the diluted row)
+  assert.equal(li.eps_diluted, 0.3236);
+  assert.equal(li.total_diluted_earnings_loss_per_share, 0.3236);
+  // parseTadawulXbrl still carries the mis-tagged basic (net-income magnitude) — the drop is the shared guard
+  assert.equal(li.eps_basic, 32357040);
+});
+
+test('DEF-TDWL-EPS-MAPPING Defect B: extractToStatements guard drops the net-income-magnitude basic, keeps diluted', () => {
+  const { statements } = extractToStatements(parseTadawulXbrl(epsIncomeTable('32,357,040', '0.3236')), 'TDWL', '1183');
+  const p = statements.periods.find((x) => x.statementType === 'income')!;
+  assert.equal(p.fiscalPeriod, 'Q1 2022');
+  assert.equal(p.lineItems.eps_diluted, 0.3236); // clean per-share value passes the guard
+  assert.equal(p.lineItems.eps_basic, undefined); // 32,357,040 > net_income/1e6 (32.36) ⇒ dropped
+});
+
+test('DEF-TDWL-EPS-MAPPING: a filing with NO diluted row still fills eps_diluted from basic (post-pass fallback)', () => {
+  // SABIC-shape: only "Total basic EPS" is printed. eps_diluted must fall back to the basic value.
+  const fs = parseTadawulXbrl(
+    '<table>' +
+    '<tr><td>Statement of profit or loss [abstract]</td><td></td></tr>' +
+    '<tr><td>Start Date</td><td>2021-01-01</td></tr><tr><td>End Date</td><td>2021-03-31</td></tr>' +
+    '<tr><td>Profit (loss) for the period</td><td>6,114,744</td></tr>' +
+    '<tr><td>Total basic earnings (loss) per share</td><td>1.62</td></tr>' +
+    '</table>',
+  );
+  const li = fs.statements.find((s) => s.statement_type === 'income')!.line_items as Record<string, number>;
+  assert.equal(li.eps_basic, 1.62);
+  assert.equal(li.eps_diluted, 1.62); // fallback fired (no diluted row existed)
 });

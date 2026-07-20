@@ -171,8 +171,13 @@ export function computeKeyRatios(input: RatioInputs): KeyRatios {
   const earningAssets = nn(input.avgEarningAssets);
 
   const marketCap = mul(last, shares);
-  // eps: explicit line wins; else derived from net income / shares.
-  const epsTtm = nn(input.epsTtm) ?? safeDiv(netIncome, shares);
+  // eps: explicit line wins; else derived from net income / shares. BELT (DEF-TDWL-EPS-MAPPING): reject an
+  // implausible explicit eps — |eps| must be ≤ |net_income| / 1e6 (implied shares ≥ 1M) or it is a mis-tagged
+  // net-income magnitude that leaked past the extractor guard. A rejected eps falls back to net_income/shares,
+  // so a legacy garbage value can never produce pe ≈ 0 (which is in-range and would silently mis-rank a name).
+  const rawEps = nn(input.epsTtm);
+  const epsOk = rawEps !== null && (netIncome === null || Math.abs(rawEps) <= Math.abs(netIncome) / 1e6);
+  const epsTtm = (epsOk ? rawEps : null) ?? safeDiv(netIncome, shares);
   const epsPrior = nn(input.epsTtmPrior);
   const bookValuePs = safeDiv(equity, shares);
   const capitalEmployed = assets !== null && curLiab !== null ? assets - curLiab : null;

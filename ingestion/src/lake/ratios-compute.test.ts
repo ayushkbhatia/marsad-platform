@@ -23,6 +23,28 @@ test('eps derived from net income / shares when no explicit eps', () => {
   assert.equal(r.pe, 20);
 });
 
+test('DEF-TDWL-EPS-MAPPING belt: an implausible explicit eps is rejected, falls back to ni/shares (pe not ≈0)', () => {
+  // Legacy garbage leaked into financial_statements: epsTtm = net-income magnitude (32,357,040).
+  // Without the belt, pe = last/eps ≈ 0.0000031 — in-range, passes fitToColumnBudget, mis-ranks the name
+  // as ultra-cheap. The belt rejects |eps| > |ni|/1e6 and derives eps = ni/shares instead.
+  const r = computeKeyRatios({
+    ...base, last: 100, sharesOutstanding: 1_000_000, netIncomeTtm: 32_357_040, epsTtm: 32_357_040,
+  });
+  assert.equal(r.epsTtm, 32.35704); // ni / shares, NOT the garbage explicit value
+  assert.equal(r.pe, 100 / 32.35704);
+  assert.ok(r.pe! > 3 && r.pe! < 4, 'pe must be a sane ~3, never ≈0');
+
+  // A plausible explicit eps (fils-denominated: eps 319 vs ni 451.87M ⇒ implied shares ~1.4M) is KEPT.
+  const ok = computeKeyRatios({ ...base, last: 500, sharesOutstanding: 1_400_000, netIncomeTtm: 451_870_000, epsTtm: 319 });
+  assert.equal(ok.epsTtm, 319);
+  assert.equal(ok.pe, 500 / 319);
+
+  // Belt cannot bound without net income ⇒ explicit eps rides through unchanged (back-compat).
+  const noNi = computeKeyRatios({ ...base, last: 100, sharesOutstanding: 10, epsTtm: 5 });
+  assert.equal(noNi.epsTtm, 5);
+  assert.equal(noNi.pe, 20);
+});
+
 test('book value per share and pb', () => {
   const r = computeKeyRatios({ ...base, last: 20, sharesOutstanding: 100, totalEquity: 1000 });
   assert.equal(r.bookValuePs, 10);
