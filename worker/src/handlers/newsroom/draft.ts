@@ -53,12 +53,19 @@ export function makeDraft(): Handler {
 
     const userMsg = `TRIGGER object:\n${JSON.stringify({ object_id: trig[0].id, type: trig[0].object_type, payload: trig[0].payload })}\n\nCONTEXT pack:\n${JSON.stringify(pack[0]?.p ?? {}).slice(0, 12000)}`;
 
-    const res = await chatComplete('writer', [{ role: 'user', content: userMsg }],
-      { system: WRITER_SYSTEM, json: true, maxTokens: 900, temperature: 0.2, runContext: { agentId: writerId, pipelineItemId: String(item.id), purpose: `draft:${item.template_hint ?? 'TPL'}:${trig[0].object_type}` } });
-
     let draft: { headline?: string; dek?: string | null; blocks?: { kind?: string; body?: string }[]; citations?: Record<string, { object_id?: string; quoted_value?: unknown; claim?: string }> };
-    try { draft = parseJsonReply(res.text) as typeof draft; }
-    catch (err) { log.error('draft: unparseable writer JSON — kicking back to human', { err: String(err).slice(0, 160) }); await reassignHuman(sql, item.id, writerId, 'writer JSON unparseable'); return; }
+    try {
+      const res = await chatComplete('writer', [{ role: 'user', content: userMsg }],
+        { system: WRITER_SYSTEM, json: true, maxTokens: 2500, temperature: 0.2, runContext: { agentId: writerId, pipelineItemId: String(item.id), purpose: `draft:${item.template_hint ?? 'TPL'}:${trig[0].object_type}` } });
+      draft = (res.parsed ?? parseJsonReply(res.text)) as typeof draft;
+      log.info('draft: writer replied', { cost: res.costUsd, model: res.model });
+    } catch (err) {
+      // A quality failure (LlmJsonError) or provider outage (LlmUnavailableError) is not a crash —
+      // route to a human rather than redeliver the message forever.
+      log.error('draft: writer LLM failed — kicking back to human', { err: String(err).slice(0, 200) });
+      await reassignHuman(sql, item.id, writerId, `writer LLM: ${String(err).slice(0, 160)}`);
+      return;
+    }
 
     const headline = String(draft.headline ?? '').trim().slice(0, 90);
     const blocks = Array.isArray(draft.blocks) ? draft.blocks : [];
@@ -96,9 +103,9 @@ export function makeDraft(): Handler {
       }
     });
 
-    await transition(sql, item.id, 'edit', writerId, { headline, word_count: wc, cost_usd: res.costUsd });
+    await transition(sql, item.id, 'edit', writerId, { headline, word_count: wc });
     await enqueueStage(sql, 'pipeline_edit', item.id);
-    log.info('draft: written → edit', { headline, wc, citations: Object.keys(citations).length, cost: res.costUsd });
+    log.info('draft: written → edit', { headline, wc, citations: Object.keys(citations).length });
   };
   return handler;
 }
