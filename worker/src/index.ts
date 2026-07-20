@@ -7,6 +7,7 @@ import { createHeartbeatWriter } from "./heartbeat.js";
 import { createHealthcheckPinger } from "./healthcheck.js";
 import { registeredHandlers } from "./handlers/index.js";
 import { createIngestionRuntime, registerIngestionHandlers } from "./handlers.js";
+import { registerNewsroomHandlers } from "./handlers/newsroom/register.js";
 
 /**
  * marsad-worker entrypoint (06 §3): the single resident Node process on the
@@ -47,6 +48,10 @@ async function main(): Promise<void> {
   const runtime = await createIngestionRuntime({ sql, config });
   const ingestionHandlers = registerIngestionHandlers(runtime);
   log.info("ingestion handlers registered", { handlers: ingestionHandlers });
+
+  // P3.3 newsroom pipeline handlers on q_pipeline (no runtime dep — DB + LLM gateway only).
+  const newsroomHandlers = registerNewsroomHandlers();
+  log.info("newsroom handlers registered", { handlers: newsroomHandlers });
 
   const jobNames = QUEUES.map((q) => `worker:${q}`);
   heartbeat.start(["worker:alive", ...jobNames]);
