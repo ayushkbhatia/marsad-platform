@@ -356,3 +356,73 @@ test('QUOTE.LAST second poll ⇒ live object refreshed IN PLACE to NEWEST print,
   assert.equal(state.datapointFanoutCalls.length, 0);       // PENDING ⇒ no fan-out
   assert.equal(state.staging.every((s) => s.consumed_at !== null), true);
 });
+
+// ── INDEX.LEVEL live-latest refresh (single-source index tape) ───────────────
+// Regression guard mirroring the QUOTE.LAST case: a single-source INDEX.LEVEL is
+// the venue's own headline index (no second exchange to corroborate), so it must
+// NOT freeze at the day's first print. Each poll refreshes the day-keyed live
+// object IN PLACE with the newest level (no new revision, no supersession) so
+// lake.fn_index_level_project advances public.index_levels / index_levels_daily;
+// its staging rows are consumed so the next poll gathers only genuinely-new prints.
+const INK = 'INDEX.LEVEL:TDWL:TASI:2026-07-15';
+const IOT = 'INDEX.LEVEL';
+
+function istg(over: Partial<StagingRow<Record<string, unknown>>>): StagingRow<Record<string, unknown>> {
+  return stg({
+    objectType: IOT,
+    naturalKey: INK,
+    sourceId: 1,
+    sourceRank: 20,
+    unit: null,
+    effectiveDate: '2026-07-15',
+    priceSensitive: false,
+    // Index objects carry no ticker → resolveSecurityId leaves security_id null (indices
+    // are not securities); the projection keys on payload.indexCode, not security_id.
+    ...over,
+  });
+}
+
+test('INDEX.LEVEL single source ⇒ first print creates PENDING object, staging consumed', async () => {
+  const state = newState();
+  await seed(state, [
+    istg({ numericValue: 11000.0, payload: { indexCode: 'TASI', level: 11000.0, asOf: '2026-07-15T11:00:00Z' } }),
+  ]);
+  const cc = new LakeCrossCheck(createFakeDb(state));
+  const res = await cc.resolve({ naturalKey: INK, objectType: IOT });
+  assert.equal(res.state, 'PENDING');
+  assert.equal(state.objects.length, 1);
+  assert.equal(Number(state.objects[0].numeric_value), 11000.0);
+  assert.equal(state.objects[0].security_id, null);           // an index is not a security
+  // live tape consumes each pass (no corroboration hold) so the next poll is fresh
+  assert.equal(state.staging.every((s) => s.consumed_at !== null), true);
+});
+
+test('INDEX.LEVEL second poll ⇒ live object refreshed IN PLACE to NEWEST print, no new revision', async () => {
+  const state = newState();
+  // Poll 1: first print of the day.
+  await seed(state, [
+    istg({ numericValue: 11000.0, payload: { indexCode: 'TASI', level: 11000.0, asOf: '2026-07-15T11:00:00Z' } }),
+  ]);
+  const cc = new LakeCrossCheck(createFakeDb(state));
+  await cc.resolve({ naturalKey: INK, objectType: IOT });
+  const firstId = state.objects[0].id;
+
+  // Poll 2: two new prints since — the tape must land on the NEWEST (11090), not
+  // the oldest (11060, which primaryOf would otherwise pick).
+  await seed(state, [
+    istg({ numericValue: 11060.0, payload: { indexCode: 'TASI', level: 11060.0, asOf: '2026-07-15T11:15:00Z' } }),
+    istg({ numericValue: 11090.0, payload: { indexCode: 'TASI', level: 11090.0, asOf: '2026-07-15T11:30:00Z' } }),
+  ]);
+  const res = await cc.resolve({ naturalKey: INK, objectType: IOT });
+
+  assert.equal(state.objects.length, 1);                    // no new object / no supersession
+  const live = state.objects[0];
+  assert.equal(live.id, firstId);                           // same object, refreshed in place
+  assert.equal(live.superseded_by, null);
+  assert.equal(live.state, 'PENDING');                      // still single-source PENDING
+  assert.equal(res.revision, 1);                            // a tick, not a correction
+  assert.equal(Number(live.numeric_value), 11090.0);        // NEWEST print won
+  assert.equal((live.payload as Record<string, unknown>).level, 11090.0);
+  assert.equal(state.datapointFanoutCalls.length, 0);       // PENDING ⇒ no fan-out
+  assert.equal(state.staging.every((s) => s.consumed_at !== null), true);
+});

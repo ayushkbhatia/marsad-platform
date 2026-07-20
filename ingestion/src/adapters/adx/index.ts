@@ -6,6 +6,7 @@
 
 import type { VenueAdapter } from "../../core/types.js";
 import { adxQuotes } from "./quotes.js";
+import { adxIndices } from "./indices.js";
 import { adxFilingsList, adxFilingDetail } from "./filings.js";
 import { adxEodBulletin } from "./eod.js";
 import { adxProfile } from "./profile.js";
@@ -14,12 +15,17 @@ export const adxAdapter: VenueAdapter = {
   venue: "ADX",
   agentAccount: "DATA-ADX",
   quotes: adxQuotes,
+  // Index-tape scaffold (FADGI). Type-correct and folded into the indices path, but DORMANT until the
+  // real index endpoint is pinned (see adapters/adx/indices.ts // PIN) and an `indices` ingest.sources
+  // row is seeded (owner step). Mounting it here does NOT make it run — resolveTasksForSource only
+  // dispatches it for a live source of data_type 'indices'/'quotes' on ADX.
+  indices: adxIndices,
   filingsList: adxFilingsList,
   filingDetail: adxFilingDetail,
   eodBulletin: adxEodBulletin,
   securitiesProfile: adxProfile,
 };
 
-export { adxQuotes, adxFilingsList, adxFilingDetail, adxEodBulletin, adxProfile };
+export { adxQuotes, adxIndices, adxFilingsList, adxFilingDetail, adxEodBulletin, adxProfile };
 export { DEFAULT_ADX_PROFILE_MAP } from "./profile.js";
 export default adxAdapter;

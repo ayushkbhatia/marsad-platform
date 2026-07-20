@@ -69,13 +69,23 @@ interface LiveObjectRow {
 /**
  * Live-latest object types: single-source-authoritative time series where the
  * venue IS the source of truth and the printed value MUST refresh on every poll.
- * These are day-keyed (one object per security per day) and updated IN PLACE, so
- * the 2-source "a lone new source must not retire a value" rule that protects
- * static facts (filings/financials) does NOT apply — a live quote has no second
+ * These are day-keyed (one object per key per day) and updated IN PLACE, so the
+ * 2-source "a lone new source must not retire a value" rule that protects static
+ * facts (filings/financials) does NOT apply — a live quote/index has no second
  * exchange to corroborate it, and holding the day's first print would freeze the
- * intraday feed (public.quotes_latest / quotes_intraday never advance).
+ * intraday feed (public.quotes_latest/quotes_intraday, public.index_levels never
+ * advance).
+ *
+ * INDEX.LEVEL is the index-tape analogue of QUOTE.LAST (natural_key
+ * INDEX.LEVEL:{venue}:{indexCode}:{session-date}, one object per index per trading
+ * day, runtime.mapIndex). The venue publishes the index level and there is no
+ * second venue to cross-check a bourse's own headline index against — so a lone
+ * source is authoritative and its printed level must fold in on every poll. Without
+ * this, the very first level of the day would freeze and lake.fn_index_level_project
+ * (migration 20260720163000) would never advance public.index_levels / the daily
+ * OHLC — the documented QUOTE.LAST freeze fix, applied to the index tape.
  */
-const LIVE_LATEST_TYPES = new Set(['QUOTE.LAST']);
+const LIVE_LATEST_TYPES = new Set(['QUOTE.LAST', 'INDEX.LEVEL']);
 
 export class LakeCrossCheck implements CrossCheck {
   private readonly verifierHandle: string;
