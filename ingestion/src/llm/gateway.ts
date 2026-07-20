@@ -66,7 +66,7 @@ export async function chatComplete(
   }
 
   const env: EnvBag = process.env;
-  const targets = resolveRoleTargets(role, env);
+  const targets = applyBudgetDemotion(resolveRoleTargets(role, env), opts.budgetDegraded);
   const { requestTimeoutMs, ollamaHealthTimeoutMs } = getTimeouts(env);
   const timeoutMs = opts.timeoutMs ?? requestTimeoutMs;
 
@@ -128,6 +128,18 @@ export async function chatComplete(
   }
 
   throw new LlmUnavailableError(role, failures);
+}
+
+// ── Budget ladder (03 §1.7) ─────────────────────────────────────────────────
+
+/**
+ * Apply the budget-ladder demotion to a resolved target chain. When `degraded` is set the
+ * premium PRIMARY target is dropped so the role runs on its cheaper fallback chain — but only
+ * when a fallback exists, so a role with a single configured target is never stranded.
+ * Pure and exported for unit testing (the network path is not).
+ */
+export function applyBudgetDemotion<T>(targets: T[], degraded: boolean | undefined): T[] {
+  return degraded && targets.length > 1 ? targets.slice(1) : targets;
 }
 
 // ── Per-target retry loop ───────────────────────────────────────────────────

@@ -63,6 +63,13 @@ export interface ChatOptions {
   json?: boolean | Record<string, unknown>;
   /** Per-call override of LLM_TIMEOUT_MS (default 60_000 ms). */
   timeoutMs?: number;
+  /**
+   * Budget-ladder demotion (03 §1.7, P3.4). When true — the worker sets it from
+   * ops.newsroom_budget_state() ≠ 'ok' — the gateway DROPS the premium primary target so the
+   * role runs on its cheaper fallback chain. Never strands a role: ignored when the role has
+   * no fallback configured. Undefined/false (the 'ok' path) leaves target resolution unchanged.
+   */
+  budgetDegraded?: boolean;
   runContext: RunContext;
 }
 

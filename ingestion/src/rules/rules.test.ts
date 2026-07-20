@@ -59,6 +59,19 @@ test('R-04 passes a number within 0.5% of the citation', async () => {
   assert.equal(r.results.find((x) => x.rule_key === 'R-04')!.outcome, 'passed');
 });
 
+test('R-04 recognises a trillion-scale figure and matches its citation', async () => {
+  // "QAR 1.44 trillion" must parse to 1.44e12 so it matches a cite frozen at that value
+  // (regression guard for the trillion/tn unit added for the QNBK total-assets dek).
+  const r = await runRules(ctx({
+    headline: 'QNB total assets pass a milestone', word_count: 14,
+    dek: 'Total assets crossed QAR 1.44 trillion [c1].',
+    blocks: [{ seq: 1, block_kind: 'text', body: 'Total assets reached QAR 1.44 trillion [c1].', bound_object_id: null, gated: false }],
+    citations: [cite({ cited_value: 'QAR 1.44 trillion' })],
+  }), BASE_OPTS);
+  assert.equal(r.results.find((x) => x.rule_key === 'R-03')!.outcome, 'passed', JSON.stringify(r.results.find((x) => x.rule_key === 'R-03')!.detail));
+  assert.equal(r.results.find((x) => x.rule_key === 'R-04')!.outcome, 'passed', JSON.stringify(r.results.find((x) => x.rule_key === 'R-04')!.detail));
+});
+
 test('R-05 blocks a banned phrase (diacritic/case-normalized)', async () => {
   const r = await runRules(ctx({ headline: 'QNB: Guaranteed  Returns for holders', word_count: 6, citations: [], blocks: [] }), BASE_OPTS);
   assert.ok(r.results.find((x) => x.rule_key === 'R-05' && x.outcome === 'blocked'));

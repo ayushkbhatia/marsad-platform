@@ -33,6 +33,20 @@ export async function outputHalted(sql: Sql): Promise<boolean> {
   return (await switchOn(sql, 'pause_all_agents')) || (await switchOn(sql, 'kill_all_output'));
 }
 
+/** LLM budget-ladder state (03 §1.7). 'degraded' past the soft cap ($60) → cheaper chain;
+ *  'halted' past the hard cap ($120) → non-wire drafting parks. Any unexpected value or a
+ *  read error fails OPEN to 'ok' — a budget probe must never itself stall the pipeline. */
+export type BudgetState = 'ok' | 'degraded' | 'halted';
+export async function budgetState(sql: Sql): Promise<BudgetState> {
+  try {
+    const rows = (await sql`select ops.newsroom_budget_state() as state`) as unknown as Array<{ state: string | null }>;
+    const s = rows[0]?.state;
+    return s === 'halted' || s === 'degraded' ? s : 'ok';
+  } catch {
+    return 'ok';
+  }
+}
+
 /** Enqueue the next stage of the conveyor for an item. */
 export async function enqueueStage(sql: Sql, handler: string, pipelineItemId: number): Promise<void> {
   await pgmqSend(sql, Q_PIPELINE, { handler, pipeline_item_id: pipelineItemId });

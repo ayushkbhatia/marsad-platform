@@ -77,7 +77,7 @@ export function r03(ctx: RuleContext): RuleResult {
 // R-04 — numbers match the lake (BLOCK). Each marker's sentence must contain a magnitude
 // within 0.5% of the citation's frozen cited_value; and the frozen value must still match
 // the live object payload (catches mid-pipeline correction drift).
-const MAG_RE = /-?\d[\d,]*(?:\.\d+)?\s*(?:%|bn|billion|mn|m|million|k|thousand)?/gi;
+const MAG_RE = /-?\d[\d,]*(?:\.\d+)?\s*(?:%|trillion|tn|bn|billion|mn|m|million|k|thousand)?/gi;
 
 export function r04(ctx: RuleContext): RuleResult {
   const byKey = citationByKey(ctx);
@@ -104,7 +104,7 @@ export function r04(ctx: RuleContext): RuleResult {
         if (!cit) continue; // R-03 already flagged the unresolved marker
         const citedMag = parseMagnitude(typeof cit.cited_value === 'object' ? JSON.stringify(cit.cited_value) : String(cit.cited_value));
         if (citedMag === null) continue; // non-numeric citation (e.g. a date/label) — nothing to match
-        const mags = (sentence.match(/-?\d[\d,]*(?:\.\d+)?\s*(?:%|bn|billion|mn|m|million|k|thousand)?/gi) ?? [])
+        const mags = (sentence.match(/-?\d[\d,]*(?:\.\d+)?\s*(?:%|trillion|tn|bn|billion|mn|m|million|k|thousand)?/gi) ?? [])
           .map(parseMagnitude)
           .filter((n): n is number => n !== null);
         const near = mags.some((m) => relDiff(m, citedMag) <= DRIFT_TOL);

@@ -435,12 +435,26 @@ ruleset v9, `ops.pipeline_items` state machine, `fn_enforce_agent_publish_gate`,
 - **P3 backend + Desk approval surface COMPLETE.** The whole conveyor runs: VERIFIED object → classify
   → draft → edit → rules → approval → owner decision → publish, with sweeps, SLA, dead-letter loops,
   budget accounting, and a working approval screen.
-- ⏳ **Remaining (tuning, not blocking):** the writer prompt needs stronger "every number carries a
-  [cN]" enforcement so a story clears R-03 rather than looping to human (DEF-WRITER-NUMBER-MARKING) —
-  wire-first (TPL-01, single fact) is the easier first clean piece. To arm the live newsroom: enable
-  `pipeline_intake_enabled` (trigger fires on VERIFIED objects) and, once wires are trusted,
-  `auto_publish_wires`. GitHub-billing unblock needed for CI + auto-deploy (Vercel deploys
-  independently; the VPS worker still deploys by hand).
+- ✅ **DEF-WRITER-NUMBER-MARKING addressed 2026-07-20** — writer citation discipline hardened three ways:
+  (1) `WRITER_SYSTEM` prompt (`worker/src/handlers/newsroom/draft.ts`) now explicitly citation-scans the
+  **dek** like the body, requires a `[cN]` on every number sentence incl. restatements/comparisons, bars
+  derived figures + markers from the headline, and forbids any number lacking a backing object_id;
+  **wire mode** (priority=wire / TPL-01) forces `dek=null` (removes the dek R-03 surface) + one-fact/one-`[c1]`.
+  (2) a deterministic post-draft **auto-marker** (`ingestion/src/rules/automark.ts`, wired into `draft.ts`
+  over every block body + the dek before persistence) attaches an **existing** citation key to a bare number
+  **only** when exactly one frozen cite value matches within 0.5% — it can never invent a marker or a source,
+  so a genuinely unsourced number is left bare and R-03 still blocks it. (3) `text.ts`/`rules.ts` widened to
+  recognise `trillion`/`tn` (1e12), keeping R-03/R-04/automark aligned on real "QAR 1.44 trillion" deks.
+  (4) the LLM **budget ladder is now ENFORCED not just observed** — `ops.newsroom_budget_state()` is read in
+  the writer path (fails open to `ok`): `degraded` drops the premium primary to the cheaper fallback chain,
+  `halted` parks non-wire drafts. 544 ingestion tests green (9 new automark goldens incl. the mandatory
+  "unsourced number stays bare + R-03 still blocks"). **Both switches remain OFF** — this is the pre-arm
+  tuning, not the arming. To arm the live newsroom: enable `pipeline_intake_enabled` (trigger fires on
+  VERIFIED objects → all route to `/admin/approvals`), and — **only with owner sign-off, an irreversible
+  outward-facing action** — `auto_publish_wires` (needs a ≥2-lineage-root VERIFIED object; the current clean
+  wire has 1 root, so a `DIVIDEND.DECLARED`-style double-sourced feed is the precondition, tracked in §7).
+  GitHub-billing unblock needed for CI + auto-deploy (Vercel deploys independently; the VPS worker still
+  deploys by hand).
 
 ### P4 — Marsad Desk (~3 wks)
 Dashboard, approval review, agents console, lake browser, rules UI, data-desk ops, audit chain.

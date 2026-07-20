@@ -4,9 +4,11 @@
  * No I/O; every function is a pure transform for golden tests.
  */
 
-/** A sentence carries a number if it has a digit run that is a magnitude, %, or currency. */
-const NUMBER_TOKEN =
-  /(?<![\w])(?:SAR|AED|QAR|OMR|BHD|KWD|USD|﷼|\$)?\s?-?\d[\d,]*(?:\.\d+)?\s?(?:%|percent|bn|billion|mn|m|million|k|thousand|SAR|AED|QAR|OMR|BHD|KWD|USD)?/gi;
+/** A sentence carries a number if it has a digit run that is a magnitude, %, or currency.
+ *  Exported so the deterministic auto-marker (automark.ts) tokenizes numbers with the
+ *  EXACT same pattern R-03's hasNumber uses — one source of truth for "what is a number". */
+export const NUMBER_TOKEN =
+  /(?<![\w])(?:SAR|AED|QAR|OMR|BHD|KWD|USD|﷼|\$)?\s?-?\d[\d,]*(?:\.\d+)?\s?(?:%|percent|trillion|tn|bn|billion|mn|m|million|k|thousand|SAR|AED|QAR|OMR|BHD|KWD|USD)?/gi;
 
 /** [c1], [c2], … citation markers. */
 const MARKER = /\[c(\d+)\]/gi;
@@ -46,16 +48,18 @@ const SCALE: Record<string, number> = {
   k: 1e3, thousand: 1e3,
   m: 1e6, mn: 1e6, million: 1e6,
   bn: 1e9, billion: 1e9,
+  tn: 1e12, trillion: 1e12,
 };
 
 /**
  * Parse the FIRST magnitude in a string to an absolute number (unit-aware), or null.
- * "SAR 6.25bn" → 6.25e9; "11,801,234" → 11801234; "5.6%" → 5.6 (percents are not scaled).
+ * "SAR 6.25bn" → 6.25e9; "QAR 1.44 trillion" → 1.44e12; "11,801,234" → 11801234;
+ * "5.6%" → 5.6 (percents are not scaled).
  */
 export function parseMagnitude(s: string): number | null {
   const str = String(s);
   const m = str.match(
-    /(-?\d[\d,]*(?:\.\d+)?)\s*(%|percent|bn|billion|mn|m|million|k|thousand)?/i,
+    /(-?\d[\d,]*(?:\.\d+)?)\s*(%|percent|trillion|tn|bn|billion|mn|m|million|k|thousand)?/i,
   );
   if (!m) return null;
   const base = Number(m[1].replace(/,/g, ''));

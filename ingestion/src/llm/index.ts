@@ -3,7 +3,7 @@
  * the worker's tsconfig path alias — and use chatComplete only.
  */
 
-export { chatComplete } from "./gateway.js";
+export { chatComplete, applyBudgetDemotion } from "./gateway.js";
 export { resolveRoleTargets, parseModelSpec, getProviderConfig } from "./providers.js";
 export { DEFAULT_MODELS, DEFAULT_FALLBACKS, envKeyForRole } from "./roles.js";
 export { PRICE_TABLE, estimateCostUsd } from "./pricing.js";
