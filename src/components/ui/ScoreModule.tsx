@@ -1,12 +1,21 @@
 import type { Rating, Surface } from "./types";
 
-/* TODO(spec gap — 04-reader-app.md §9.2): two required faces are missing.
- *   - `locked`  — paywall-gate face for screen 4b
- *   - `pending` — 90-day pending state for screen 22c
- * ScoreModule.dc.html contains no markup for either, so they cannot be
- * ported pixel-faithfully yet. Design + implementation must land before the
- * 4b (paywall) and 22c screen builders mount this component. The gap is
- * also surfaced on /styleguide under the ScoreModule section. */
+/* Faces (04-reader-app.md §9.2):
+ *   - `full`   — hero numeral + AI rating pill + 5 factor grade bars (DC port).
+ *   - `locked` — paywall gate (screen 4b): the PUBLIC headline (score / rating /
+ *                weekly delta) stays visible, but the five factor GRADES are
+ *                replaced by a locked affordance. No grade data is rendered — the
+ *                caller passes none, and the bars show the inert "off" tone only.
+ *   - `pending`— pre-score state (screen 22c): a security with no Marsad Score
+ *                yet (new listing / not score-eligible). No numeral.
+ *
+ * The `locked`/`pending` faces are deliberately built from the existing DC
+ * chrome + primitives rather than net-new design tokens, so they read as the
+ * same component. The public reader (anon) mounts `locked` when a score exists
+ * and `pending` when it does not; factor grades are premium-gated and never
+ * reach the client on those surfaces. */
+export type ScoreFace = "full" | "locked" | "pending";
+
 export interface ScoreModuleProps {
   /** 0–100 */
   score?: number;
@@ -18,6 +27,8 @@ export interface ScoreModuleProps {
   footnote?: string;
   /** DC default is dark — the Score card lives in data rooms first */
   surface?: Surface;
+  /** Which face to render (default `full`). */
+  variant?: ScoreFace;
 }
 
 const FACTOR_NAMES = [
@@ -43,11 +54,13 @@ export function ScoreModule({
   grades = "B+,B−,A,C+,B",
   footnote = "84TH PERCENTILE OF 61 ENERGY NAMES · UPDATED 05 JUL 04:00 GST",
   surface = "dark",
+  variant = "full",
 }: ScoreModuleProps) {
   const dark = surface === "dark";
   const buyish = rating === "Buy" || rating === "Overweight";
   const sellish = rating === "Sell" || rating === "Underweight";
   const deltaDown = delta.startsWith("▼");
+  const pending = variant === "pending";
 
   const gradeList = grades.split(",");
   const factors = FACTOR_NAMES.map((name, i) => {
@@ -70,6 +83,10 @@ export function ScoreModule({
     : dark
       ? "text-positive-dark"
       : "text-positive";
+
+  const offCell = dark ? "bg-[#33312a]" : "bg-hairline-soft"; // DC cell-off tone
+  const onCell = dark ? "bg-paper-tint" : "bg-ink";
+  const factorLabel = dark ? "text-hairline-strong" : "text-ink-muted";
 
   return (
     <div
@@ -103,57 +120,105 @@ export function ScoreModule({
 
       <div className="mt-[14px] flex items-baseline gap-[10px]">
         <span className="font-display text-[62px] leading-[0.9] font-bold">
-          {score}
+          {pending ? "—" : score}
         </span>
         <span className="font-mono text-[12px] text-ink-faint">/100</span>
         <div className="ml-auto text-right">
-          <span
-            className={`inline-block text-[11px] font-bold uppercase tracking-[0.14em] ${ratingPill}`}
-          >
-            {rating}
-          </span>
-          <div className={`mt-[6px] font-mono text-[9.5px] ${deltaColor}`}>
-            {delta}
-          </div>
+          {pending ? (
+            <span
+              className={`inline-block text-[11px] font-bold uppercase tracking-[0.14em] ${
+                dark ? "border border-paper-tint px-[11px] py-[4px]" : "border border-ink px-[11px] py-[4px]"
+              }`}
+            >
+              Pending
+            </span>
+          ) : (
+            <>
+              <span
+                className={`inline-block text-[11px] font-bold uppercase tracking-[0.14em] ${ratingPill}`}
+              >
+                {rating}
+              </span>
+              <div className={`mt-[6px] font-mono text-[9.5px] ${deltaColor}`}>
+                {delta}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
-      <div
-        className={`mt-4 flex flex-col gap-[9px] border-t pt-[14px] ${
-          dark ? "border-ink-soft" : "border-hairline-faint"
-        }`}
-      >
-        {factors.map((f) => (
-          <div key={f.name} className="flex items-center gap-[10px]">
+      {variant === "full" ? (
+        <div
+          className={`mt-4 flex flex-col gap-[9px] border-t pt-[14px] ${
+            dark ? "border-ink-soft" : "border-hairline-faint"
+          }`}
+        >
+          {factors.map((f) => (
+            <div key={f.name} className="flex items-center gap-[10px]">
+              <span className={`w-[86px] flex-none text-[11px] ${factorLabel}`}>
+                {f.name}
+              </span>
+              <span className="w-[26px] font-mono text-[11px] font-semibold">
+                {f.grade}
+              </span>
+              <span className="ml-auto flex gap-[3px]">
+                {[1, 2, 3, 4, 5].map((k) => (
+                  <span
+                    key={k}
+                    className={`h-[9px] w-[9px] ${k <= f.filled ? onCell : offCell}`}
+                  />
+                ))}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : variant === "locked" ? (
+        <div
+          className={`relative mt-4 border-t pt-[14px] ${
+            dark ? "border-ink-soft" : "border-hairline-faint"
+          }`}
+        >
+          {/* Factor names stay legible; grade values + bars are inert (no data
+              rendered) and dimmed behind the lock overlay. */}
+          <div className="flex flex-col gap-[9px] opacity-40 blur-[1.5px] select-none">
+            {FACTOR_NAMES.map((name) => (
+              <div key={name} className="flex items-center gap-[10px]">
+                <span className={`w-[86px] flex-none text-[11px] ${factorLabel}`}>
+                  {name}
+                </span>
+                <span className="w-[26px] font-mono text-[11px] font-semibold">
+                  ▓▓
+                </span>
+                <span className="ml-auto flex gap-[3px]">
+                  {[1, 2, 3, 4, 5].map((k) => (
+                    <span key={k} className={`h-[9px] w-[9px] ${offCell}`} />
+                  ))}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-[6px] pt-[14px]">
+            <span className="font-mono text-[13px]" aria-hidden>
+              🔒
+            </span>
             <span
-              className={`w-[86px] flex-none text-[11px] ${
+              className={`font-mono text-[9px] font-semibold tracking-[0.18em] uppercase ${
                 dark ? "text-hairline-strong" : "text-ink-muted"
               }`}
             >
-              {f.name}
-            </span>
-            <span className="w-[26px] font-mono text-[11px] font-semibold">
-              {f.grade}
-            </span>
-            <span className="ml-auto flex gap-[3px]">
-              {[1, 2, 3, 4, 5].map((k) => (
-                <span
-                  key={k}
-                  className={`h-[9px] w-[9px] ${
-                    k <= f.filled
-                      ? dark
-                        ? "bg-paper-tint"
-                        : "bg-ink"
-                      : dark
-                        ? "bg-[#33312a]" // one-off DC cell-off tone, not a token
-                        : "bg-hairline-soft"
-                  }`}
-                />
-              ))}
+              Factor grades · Premium
             </span>
           </div>
-        ))}
-      </div>
+        </div>
+      ) : (
+        <div
+          className={`mt-4 border-t pt-[14px] font-mono text-[9.5px] leading-[1.7] ${
+            dark ? "border-ink-soft text-hairline-strong" : "border-hairline-faint text-ink-muted"
+          }`}
+        >
+          SCORE PENDING · awaiting the first Marsad Score for this security.
+        </div>
+      )}
 
       <div className="mt-[14px] font-mono text-[9px] leading-[1.6] text-ink-faint">
         {footnote}

@@ -114,6 +114,85 @@ export async function getFilingsForSecurity(
   return ((rows as FilingRow[] | null) ?? []).map((r) => mapFiling(r, sec ?? undefined));
 }
 
+export interface FilingDetail extends FilingItem {
+  sourceRef: string | null;
+  /** Present on only ~152 rows; else null (show the PDF link instead). */
+  fullText: string | null;
+  /** jsonb — arbitrary extracted facts (~2.3k rows). Rendered as data, not code. */
+  extractedFacts: unknown;
+  aiSummaryModel: string | null;
+  pdfStorageKey: string | null;
+  pdfEnPath: string | null;
+  createdAt: string | null;
+}
+
+const FILING_DETAIL_COLS =
+  "id,security_id,venue_code,source_ref,form_code,filing_type,title,filed_at,full_text,extracted_facts,is_market_moving,pdf_pages,ai_summary,ai_summary_model,pdf_storage_key,pdf_en_path,created_at";
+
+/**
+ * One filing's full record (includes `full_text` + `extracted_facts` + the PDF
+ * storage key). anon has column SELECT on these. Newest-value cached ~5 min,
+ * tagged `filings` and (when known) `stock:{id}`.
+ */
+export async function getFilingDetail(filingId: number): Promise<FilingDetail | null> {
+  "use cache";
+  cacheLife({ stale: 120, revalidate: 300, expire: 3600 });
+  cacheTag("filings");
+
+  const sb = createAnonClient();
+  const { data: row } = await sb
+    .from("filings")
+    .select(FILING_DETAIL_COLS)
+    .eq("id", filingId)
+    .maybeSingle<FilingRow & {
+      source_ref: string | null;
+      full_text: string | null;
+      extracted_facts: unknown;
+      ai_summary_model: string | null;
+      pdf_storage_key: string | null;
+      pdf_en_path: string | null;
+      created_at: string | null;
+    }>();
+
+  if (!row) return null;
+
+  let sec: SecLite | undefined;
+  if (row.security_id != null) {
+    const { data } = await sb
+      .from("securities")
+      .select("id,ticker,venue_code,name_en")
+      .eq("id", row.security_id)
+      .maybeSingle<SecLite>();
+    sec = data ?? undefined;
+  }
+
+  return {
+    ...mapFiling(row, sec),
+    sourceRef: row.source_ref ?? null,
+    fullText: row.full_text ?? null,
+    extractedFacts: row.extracted_facts ?? null,
+    aiSummaryModel: row.ai_summary_model ?? null,
+    pdfStorageKey: row.pdf_storage_key ?? null,
+    pdfEnPath: row.pdf_en_path ?? null,
+    createdAt: row.created_at ?? null,
+  };
+}
+
+/** Exact count of filings for one security (for the overview header stat). */
+export async function getFilingsCountForSecurity(securityId: number): Promise<number> {
+  "use cache";
+  cacheLife({ stale: 60, revalidate: 120, expire: 3600 });
+  cacheTag(`stock:${securityId}`);
+  cacheTag("filings");
+
+  const sb = createAnonClient();
+  const { count } = await sb
+    .from("filings")
+    .select("id", { count: "exact", head: true })
+    .eq("security_id", securityId);
+  return count ?? 0;
+}
+
 /**
  * Global filings register / wire feed, newest first. Keyset pagination by
  * `filed_at` (compared server-side — never a JS date string compare). Pass the
@@ -144,4 +223,38 @@ export async function getGlobalFilings(
   const nextCursor = rows.length === take ? rows[rows.length - 1]?.filed_at ?? null : null;
 
   return { items, nextCursor };
+}
+
+/**
+ * Register filtered to a bare ticker. Tickers are ambiguous across venues
+ * (AMAN/GFH/ITHMR/ORDS), so this returns filings for EVERY security carrying
+ * that ticker, newest first — the ticker chips disambiguate by venue. ~30s.
+ */
+export async function getFilingsByTicker(ticker: string, limit = 100): Promise<FilingItem[]> {
+  "use cache";
+  cacheLife({ stale: 30, revalidate: 30, expire: 3600 });
+  cacheTag("filings");
+
+  const t = (ticker ?? "").trim().toUpperCase();
+  if (!t) return [];
+
+  const sb = createAnonClient();
+  const { data: secs } = await sb
+    .from("securities")
+    .select("id,ticker,venue_code,name_en")
+    .eq("ticker", t);
+  const secList = (secs as SecLite[] | null) ?? [];
+  if (secList.length === 0) return [];
+
+  const secById = new Map<number, SecLite>(secList.map((s) => [s.id, s]));
+  const { data: rows } = await sb
+    .from("filings")
+    .select(FILING_COLS)
+    .in("security_id", secList.map((s) => s.id))
+    .order("filed_at", { ascending: false })
+    .limit(Math.min(Math.max(limit, 1), 200));
+
+  return ((rows as FilingRow[] | null) ?? []).map((r) =>
+    mapFiling(r, r.security_id ? secById.get(r.security_id) : undefined),
+  );
 }

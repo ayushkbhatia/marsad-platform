@@ -60,6 +60,47 @@ export interface StockOverview extends StockHeader {
   score: HeadlineScore | null;
 }
 
+/** A single daily bar for the server-rendered price chart (chart tab). */
+export interface OhlcvPoint {
+  date: string;
+  open: number | null;
+  high: number | null;
+  low: number | null;
+  close: number | null;
+  volume: number | null;
+}
+
+export interface OhlcvSeries {
+  points: OhlcvPoint[];
+  range: OhlcvRange;
+  from: string | null;
+  to: string | null;
+  /** True when the range was capped (older bars exist beyond `points`). */
+  capped: boolean;
+}
+
+export type OhlcvRange = "1M" | "3M" | "6M" | "1Y" | "5Y" | "MAX";
+
+/** Lower-bound day windows per range. `MAX` has no lower bound (cap only). */
+const RANGE_DAYS: Record<OhlcvRange, number | null> = {
+  "1M": 31,
+  "3M": 93,
+  "6M": 186,
+  "1Y": 372,
+  "5Y": 1830,
+  MAX: null,
+};
+
+/** Hard cap on points returned to the SVG chart (keeps the payload/DOM sane). */
+const OHLCV_CAP = 2000;
+
+export function normalizeRange(raw: string | null | undefined): OhlcvRange {
+  const up = (raw ?? "").trim().toUpperCase();
+  return (["1M", "3M", "6M", "1Y", "5Y", "MAX"] as const).includes(up as OhlcvRange)
+    ? (up as OhlcvRange)
+    : "1Y";
+}
+
 interface SecurityRow {
   id: number;
   venue_code: string;
@@ -212,5 +253,63 @@ export async function getStockOverview(securityId: number): Promise<StockOvervie
     sparklineFrom: ordered.length ? ordered[0].trade_date : null,
     sparklineTo: ordered.length ? ordered[ordered.length - 1].trade_date : null,
     score,
+  };
+}
+
+/** Compute a `YYYY-MM-DD` lower bound `days` before today (UTC). */
+function cutoffDate(days: number): string {
+  return new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
+}
+
+/**
+ * Daily OHLCV series for the server-rendered price chart. Newest-first keyset in
+ * the query (date filtering stays in SQL — never a JS Date compare), capped at
+ * `OHLCV_CAP`, then reversed to oldest→newest for the SVG path. `ohlcv_daily`
+ * holds ~571k bars, so most names return a rich series; empty for names without
+ * bars (the chart page renders an empty state). Tagged `stock:{id}`. ~10 min.
+ */
+export async function getOhlcvSeries(
+  securityId: number,
+  range: OhlcvRange = "1Y",
+): Promise<OhlcvSeries> {
+  "use cache";
+  cacheLife({ stale: 300, revalidate: 600, expire: 86400 });
+  cacheTag(`stock:${securityId}`);
+
+  const sb = createAnonClient();
+  const days = RANGE_DAYS[range];
+
+  let q = sb
+    .from("ohlcv_daily")
+    .select("trade_date,open,high,low,close,volume")
+    .eq("security_id", securityId)
+    .order("trade_date", { ascending: false })
+    .limit(OHLCV_CAP + 1);
+  if (days != null) q = q.gte("trade_date", cutoffDate(days));
+
+  const { data } = await q;
+  const rows = (data as Array<{
+    trade_date: string; open: unknown; high: unknown; low: unknown; close: unknown; volume: unknown;
+  }> | null) ?? [];
+
+  const capped = rows.length > OHLCV_CAP;
+  const points: OhlcvPoint[] = rows
+    .slice(0, OHLCV_CAP)
+    .reverse()
+    .map((r) => ({
+      date: r.trade_date,
+      open: toNum(r.open),
+      high: toNum(r.high),
+      low: toNum(r.low),
+      close: toNum(r.close),
+      volume: toNum(r.volume),
+    }));
+
+  return {
+    points,
+    range,
+    from: points.length ? points[0].date : null,
+    to: points.length ? points[points.length - 1].date : null,
+    capped,
   };
 }

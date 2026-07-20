@@ -11,5 +11,5 @@ export {
   type DataTableRowProps,
   type DataTableRowState,
 } from "./DataTableRow";
-export { ScoreModule, type ScoreModuleProps } from "./ScoreModule";
+export { ScoreModule, type ScoreModuleProps, type ScoreFace } from "./ScoreModule";
 export type { Rating, Surface } from "./types";

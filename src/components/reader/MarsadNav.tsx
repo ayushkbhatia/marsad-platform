@@ -1,0 +1,50 @@
+import Link from "next/link";
+
+/**
+ * Reader masthead (server component). Editorial ink-and-paper chrome: wordmark,
+ * a few section links, a disabled search affordance, and a persistent
+ * DELAYED-data indicator — every reader surface is 15-minute delayed by owner
+ * decision, so the badge lives in the global chrome, not just on quote panels.
+ *
+ * No user-specific / request-time reads — this renders identically for every
+ * anon visitor and prerenders with the shell.
+ */
+export function MarsadNav() {
+  return (
+    <header className="sticky top-0 z-30 border-b border-hairline bg-paper/95 backdrop-blur-sm">
+      <div className="mx-auto flex max-w-[1180px] items-center gap-5 px-5 py-2.5 sm:px-8">
+        <Link href="/" className="group flex items-baseline gap-2">
+          <span className="h-2.5 w-2.5 flex-none rotate-45 bg-ink" aria-hidden />
+          <span className="font-display text-[19px] font-bold tracking-[-0.01em] text-ink">
+            Marsad
+          </span>
+          <span className="hidden font-mono text-[8.5px] tracking-[0.22em] text-ink-faint sm:inline">
+            GCC MARKETS
+          </span>
+        </Link>
+
+        <nav className="ml-2 hidden items-center gap-4 font-ui text-[12.5px] text-ink-muted sm:flex">
+          <Link href="/" className="hover:text-ink hover:underline underline-offset-4">
+            Markets
+          </Link>
+          <Link href="/filings" className="hover:text-ink hover:underline underline-offset-4">
+            Wire
+          </Link>
+          <span className="cursor-not-allowed text-ink-faint" title="Search — coming soon">
+            Search
+          </span>
+        </nav>
+
+        <div className="ml-auto flex items-center gap-3">
+          {/* Persistent delayed-data indicator (never "live" — scrape-only, 15-min delayed). */}
+          <span className="inline-flex items-center gap-[6px]" title="All market data is delayed 15 minutes">
+            <span className="h-[6px] w-[6px] flex-none rounded-full bg-caution" aria-hidden />
+            <span className="font-mono text-[9.5px] tracking-[0.08em] text-ink-faint">
+              DELAYED 15 MIN
+            </span>
+          </span>
+        </div>
+      </div>
+    </header>
+  );
+}
