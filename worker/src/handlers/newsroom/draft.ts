@@ -98,8 +98,11 @@ export function makeDraft(): Handler {
       }
       for (const [key, c] of Object.entries(citations)) {
         if (!c.object_id) continue; // validated above; guard for the type narrower
-        await tx`insert into lake.citations (content_id, object_id, claim_key, claim_text, quoted_value, cited_by)
-          values (${item.content_id}::uuid, ${c.object_id}::uuid, ${key}, ${c.claim ?? null}, ${c.quoted_value == null ? null : String(c.quoted_value)}, ${writerId}::uuid)`;
+        // block_key ALSO carries the claim key: the citations_uni index is
+        // (content_id, object_id, coalesce(block_key,'')), so two markers citing the
+        // SAME object need distinct block_keys to both persist (a legitimate case).
+        await tx`insert into lake.citations (content_id, object_id, block_key, claim_key, claim_text, quoted_value, cited_by)
+          values (${item.content_id}::uuid, ${c.object_id}::uuid, ${key}, ${key}, ${c.claim ?? null}, ${c.quoted_value == null ? null : String(c.quoted_value)}, ${writerId}::uuid)`;
       }
     });
 
