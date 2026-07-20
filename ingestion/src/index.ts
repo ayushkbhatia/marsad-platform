@@ -45,3 +45,11 @@ export type {
   ProviderName,
   RunContext,
 } from './llm/index.js';
+
+// P3.2 rules engine (03 §8) — R-01..R-10 as pure functions + the runRules orchestrator.
+// The worker's rules handler assembles a RuleContext and calls runRules; same code path
+// will serve the Desk "RUN RULES NOW" (P4) via a worker RPC.
+export { runRules, blockingFailures, splitSentences, markersIn, parseMagnitude, normalizePhrase } from './rules/index.js';
+export type {
+  RuleContext, CitationRow, BlockRow, RuleResult, EngineOptions, EngineResult, RuleLlm,
+} from './rules/index.js';
