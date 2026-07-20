@@ -394,12 +394,22 @@ ruleset v9, `ops.pipeline_items` state machine, `fn_enforce_agent_publish_gate`,
   Every stage, the state machine, the LLM agents, the rules engine, and the loop cap fired exactly to
   spec. **Intake trigger + auto-publish both remain OFF** (owner steer): messages are driven manually
   until the wire path is tuned.
-- ⏳ **Remaining (P3 tuning + P3.4/P3.5):** wire-first (TPL-01) is the easier first pass than a
-  story; the writer prompt needs stronger "every number carries a [cN]" enforcement for stories
-  (DEF-WRITER-NUMBER-MARKING). Newsroom LLM spend is currently **unaccounted** — the ported
-  `accounting.ts` can't resolve `postgres` from ingestion's node_modules, so `ops.llm_runs` gets no
-  row (calls + cost still work) — DEF-NEWSROOM-LLM-ACCOUNTING. Then P3.4 (SLA sweep + publish handler
-  + budget ladder) and P3.5 (bare `/desk/approvals`).
+- ✅ **P3.4 conveyor tail** (`20260720142331`, live — all SQL + pg_cron, no worker deploy):
+  `ops.desk_decide_approval` (lock at approval → role-capability check owner=full / eic=send_back+
+  reassign via `iam.role_grants`→`capability_grants` → RULES_STALE guard → approve→live /
+  approve_scheduled / send_back→draft+revise / reassign); `newsroom_publish_sweep` (*/1, scheduled→
+  live as SYSTEM); `newsroom_sla_sweep` (*/5, flag approval breaches, quiet-hours 22:00–07:00 Riyadh
+  paused, escalate-never-publish); `newsroom_stalled_sweep` (*/5, re-enqueue stuck draft/edit/rules
+  >20min, idempotent); budget ladder (`fn_rollup_llm_costs` nightly + `ops.llm_cost_daily` +
+  `ops.newsroom_budget_state()` → ok/degraded $60/halted $120). **Also fixed DEF-NEWSROOM-LLM-
+  ACCOUNTING**: `ops.llm_runs` was RLS-blocked (grant without policy) — worker_all policy added, so
+  newsroom LLM spend now records + feeds the budget ladder. Regression `supabase/tests/p3_4_approval.sql`
+  (eic-block, RULES_STALE, owner-approve→live, publish-sweep) passes live.
+- ⏳ **Remaining (P3 tuning + P3.5):** wire-first (TPL-01) is the easier first pass than a story; the
+  writer prompt needs stronger "every number carries a [cN]" enforcement for stories
+  (DEF-WRITER-NUMBER-MARKING). Then P3.5 (bare `/desk/approvals` UI calling `desk_decide_approval`) —
+  the reader/Desk surface is otherwise P4. The conveyor + its tail are complete; what remains is the
+  human-facing approval screen and prompt tuning to land the first clean auto-published wire.
 
 ### P4 — Marsad Desk (~3 wks)
 Dashboard, approval review, agents console, lake browser, rules UI, data-desk ops, audit chain.
