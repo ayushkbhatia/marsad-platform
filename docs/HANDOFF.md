@@ -54,6 +54,20 @@ An **agent-run GCC equity-research platform**. Scrapers/researchers keep a data 
 
 ---
 
+## 2b. What this build cycle shipped (the delta a returning colleague needs)
+
+All merged to `main`; full detail per phase in `BUILD-STATUS.md`. In order:
+
+- **XBRL enrichment, Phases A–D** (PRs #55/#56/#58/#64) — widened `statement_type` to add `oci` + `equity_change`; projection v3 (warn-on-skip instead of silent drops, content-vs-metadata change split, `source_filing_id` links); `presentation` jsonb (printed labels in document order); the dimensional changes-in-equity parser; the offline replay over ~2,975 owned XBRL HTMLs (statements 12k → 32k). Then the **writer-context pack** (`lake.fn_writer_context`) + `lake.v_citable_objects` + `ops.llm_runs` (created — was specced P0, never migrated) + the first-ever `chatComplete()` caller (a cited QNBK analyst take).
+- **Extractors / identity (Phase C)** (PRs #58/#59) — `filing-extractor.mjs` (drains `ops.filing_extract_queue` → `ai_summary`/facts/`is_market_moving`); `msx-stmt-extract.mjs` (archived MSX PDFs → statements, reads the pre-segmented member PDFs not the narrative); `qe-profile.mjs` (QE identity 49/49 ISIN+shares from the mw.php board — the first complete-identity venue); ADX profile source activated.
+- **P3 newsroom conveyor** (PRs #65/#66/#70/#71/#72) — the LLM gateway ported into `ingestion/src/llm/` (worker seam); **P3.1** intake (materiality prefilter, `ops.fn_transition` DB-enforced state machine, `lake.fn_verified_enqueue` trigger); **P3.2** rules engine `ingestion/src/rules/` (R-01..R-10, 12 golden tests); **P3.3** the four worker handlers (`pipeline_classify/draft/edit/rules`), **proven live end-to-end** (a QNBK object drove classify→draft→edit→rules→loop→human, the guardrail correctly blocking a story with an uncited number).
+- **P3.4 conveyor tail** (PR #73) — `ops.desk_decide_approval` (capability + RULES_STALE guarded); `newsroom_publish/sla/stalled` sweeps (pg_cron); the LLM budget ladder (`fn_rollup_llm_costs` + `ops.newsroom_budget_state`); **fixed the `ops.llm_runs` RLS-policy gap** so newsroom spend is finally accounted.
+- **P3.5 approval screen** (PR #75) — **`/admin/approvals`, the first real Desk UI.** Follows the `/admin` pattern (Basic Auth via `proxy.ts` + service-role). Public wrappers (`ops`/`lake` aren't PostgREST-exposed): `v_desk_approvals` (queue), `desk_approval_detail(item)` (blocks + citations resolved to each object's live state + rule log), `desk_approve(...)` (stamps the **DESK-OWNER** `system`-kind principal → `ops.desk_decide_approval`). Next 16 routes: queue list + `[id]` detail with body, state-coloured citations, rule log, and 4 decision buttons (approve/schedule/send-back/reassign) as a Server Action. Verified: `next build` + lint clean, both wrappers return the exact render shapes, item 7 is a live demo row.
+
+**Net:** the entire chain from a scraped fact to a human-approvable published piece is built and proven. What is NOT done is arming it (switches OFF), tuning the writer for clean auto-wires, the identity/dividends data gaps, and the whole reader app.
+
+---
+
 ## 3. The road ahead — build ledger
 
 Ordered by leverage. Each item: what, why, where to start.
