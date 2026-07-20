@@ -267,8 +267,25 @@ The **derived data path is built + tested**; it goes live the moment `financial_
   FILING.REF lake objects → `public.filings` (single-source PENDING publish rule, owner D-src-1;
   title→`filing_type` keyword classifier, venue-scoped, `security_id` NULL until detail-fetch). **86
   announcements now published** (was 0), auto-projecting on every new FILING.REF.
-- ⏳ **Deferred**: full-text/`extracted_facts`/`ai_summary` (the one bounded LLM cost) and the
-  dividends/earnings-actuals parse that rides on it (§7).
+- ✅ **Dividends-history projection** (`20260720160000`, `lake.fn_project_dividends_from_equity`) —
+  the `equity_change` statement tier's per-period dividend **cash TOTALS** → `public.dividends`
+  (TDWL-only today, 245 secs; **1,147 rows** live: 671 FINAL / 476 INTERIM). Lands `amount_total`
+  (new col; `dps` relaxed nullable — derived only where `shares_outstanding` known, NULL on all today);
+  `payout_ratio` where a same-period income NI exists (784). NCI-filtered + `is_restated`-filtered +
+  never-clobber-live guard; nightly cron 01:30 GST. **All rows land `state='pending_confirm'`** — the
+  `dividends_confirm_guard` gate means they are **not anon-visible** (world_read is `state='live'`)
+  until a human confirms via Desk, OR the owner decides to surface retrospective paid-history publicly.
+  This is the reader dividend **history** tier — it does NOT arm TPL-04 wires (those need a dated
+  `DIVIDEND.DECLARED` feed with DPS+ex_date, a distinct follow-on off the filing-facts extraction).
+- ✅ **Earnings-actuals projection** (`20260720160500`, `lake.fn_project_earnings_from_income`) — the
+  quarterly `income` tier → `public.earnings_events` (**all venues**, ~505 secs; **4,055 rows** live,
+  1,716 `confirmed` date_state from a linked filing's `filed_at`). Actuals-only: `eps_actual`
+  (DISTINCT-ON consolidated; **TDWL-EPS landmine guarded** `abs(eps)>100000 → null`, DEF-TDWL-EPS-MAPPING),
+  `revenue_actual`, `report_date`, `eps_prior` (prior-year same-quarter). `verdict`/consensus/`surprise`
+  stay **NULL on purpose** (no consensus source — DEF-ESTIMATES-AGG — and writing `verdict` would wake
+  the Score Revisions recompute). Nightly cron 01:35 GST.
+- ⏳ **Deferred**: full-text/`extracted_facts`/`ai_summary` (the one bounded LLM cost, §7);
+  `DIVIDEND.DECLARED` dated-declaration feed to arm TPL-04 wires (§7).
 
 ### P1.7e — Exchange-native + ownership + people (table landed 2026-07-14)
 - ✅ **`company_people`** created (0038) — the `02-data-lake.md` "Missing entity" (board/management,
