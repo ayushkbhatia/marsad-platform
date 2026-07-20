@@ -24,6 +24,11 @@ const postgres = (await import('/opt/marsad/worker/node_modules/postgres/src/ind
 
 const { SUPABASE_DB_URL } = process.env;
 if (!SUPABASE_DB_URL) { console.error('missing env SUPABASE_DB_URL'); process.exit(1); }
+// venue_code → Mubasher market-path code (they differ: BHB→BB, MSX→MSM). Same "Current Total Shares"
+// SSR block on every venue's company page; tickers are the venue symbols (EMAAR/ADCB/BKMB/…).
+const VENUE = process.env.VENUE || 'TDWL';
+const MARKET = { TDWL: 'TDWL', ADX: 'ADX', DFM: 'DFM', BHB: 'BB', MSX: 'MSM' }[VENUE];
+if (!MARKET) { console.error(`unknown VENUE ${VENUE} (expect TDWL|ADX|DFM|BHB|MSX)`); process.exit(1); }
 const REFRESH = process.env.REFRESH === '1';
 const DELAY_MS = Number(process.env.DELAY_MS || 350);
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
@@ -37,7 +42,7 @@ function scrapeShares(ticker) {
     '-s', '-m', '30', '--compressed',
     '-H', `user-agent: ${UA}`,
     '-H', 'accept: text/html',
-    `https://english.mubasher.info/markets/TDWL/stocks/${ticker}`,
+    `https://english.mubasher.info/markets/${MARKET}/stocks/${ticker}`,
   ], { maxBuffer: 5e7 });
   if (r.status !== 0) return { err: `curl ${r.status}` };
   const html = r.stdout.toString();
@@ -50,13 +55,13 @@ function scrapeShares(ticker) {
 const sql = postgres(SUPABASE_DB_URL, { max: 2, prepare: false });
 const only = (process.env.TICKERS || '').split(',').map((s) => s.trim()).filter(Boolean);
 const universe = only.length
-  ? await sql`select ticker, id from public.securities where venue_code='TDWL' and ticker = any(${only}) order by ticker`
+  ? await sql`select ticker, id from public.securities where venue_code=${VENUE} and ticker = any(${only}) order by ticker`
   : REFRESH
-    ? await sql`select ticker, id from public.securities where venue_code='TDWL' and status='listed' order by ticker`
-    : await sql`select ticker, id from public.securities where venue_code='TDWL' and status='listed' and shares_outstanding is null order by ticker`;
+    ? await sql`select ticker, id from public.securities where venue_code=${VENUE} and status='listed' order by ticker`
+    : await sql`select ticker, id from public.securities where venue_code=${VENUE} and status='listed' and shares_outstanding is null order by ticker`;
 const agent = await sql`select id from iam.principals where handle='SYSTEM' limit 1`;
-const pr = await sql`insert into lake.parse_runs (agent_id, parser_key, parser_version, status) values (${agent[0].id}, 'tdwl_mubasher_shares', '1', 'succeeded') returning id`;
-log(`tdwl-shares — ${universe.length} tickers to scrape (REFRESH=${REFRESH})`);
+const pr = await sql`insert into lake.parse_runs (agent_id, parser_key, parser_version, status) values (${agent[0].id}, ${'mubasher_shares_' + VENUE.toLowerCase()}, '1', 'succeeded') returning id`;
+log(`mubasher-shares ${VENUE} (market ${MARKET}) — ${universe.length} tickers to scrape (REFRESH=${REFRESH})`);
 
 let written = 0, notfound = 0, failed = 0, i = 0;
 for (const { ticker: t, id: secId } of universe) {
@@ -68,17 +73,17 @@ for (const { ticker: t, id: secId } of universe) {
     await sleep(DELAY_MS);
     continue;
   }
-  const nk = `PROFILE.SECURITY:TDWL:${t}`;
-  const payload = { venue: 'TDWL', ticker: t, sector: null, rawSector: null, isin: null, sharesOutstanding: res.shares, industry: null };
+  const nk = `PROFILE.SECURITY:${VENUE}:${t}`;
+  const payload = { venue: VENUE, ticker: t, sector: null, rawSector: null, isin: null, sharesOutstanding: res.shares, industry: null };
   const live = await sql`select id, revision, state from lake.objects where natural_key=${nk} and superseded_by is null limit 1`;
   if (live[0] && live[0].state === 'VERIFIED') {
     const nid = (await sql`select gen_random_uuid() as id`)[0].id;
     await sql`update lake.objects set superseded_by=${nid}, state='RETIRED' where id=${live[0].id}`;
-    await sql`insert into lake.objects (id,object_type,natural_key,security_id,venue_code,payload,state,revision,parse_run_id,source_rank) values (${nid},'PROFILE.SECURITY',${nk},${secId},'TDWL',${sql.json(payload)},'PENDING',${live[0].revision + 1},${pr[0].id},10)`;
+    await sql`insert into lake.objects (id,object_type,natural_key,security_id,venue_code,payload,state,revision,parse_run_id,source_rank) values (${nid},'PROFILE.SECURITY',${nk},${secId},${VENUE},${sql.json(payload)},'PENDING',${live[0].revision + 1},${pr[0].id},10)`;
   } else if (live[0]) {
     await sql`update lake.objects set payload=${sql.json(payload)}, revision=${live[0].revision + 1}, parse_run_id=${pr[0].id}, source_rank=10 where id=${live[0].id}`;
   } else {
-    await sql`insert into lake.objects (object_type,natural_key,security_id,venue_code,payload,state,revision,parse_run_id,source_rank) values ('PROFILE.SECURITY',${nk},${secId},'TDWL',${sql.json(payload)},'PENDING',1,${pr[0].id},10)`;
+    await sql`insert into lake.objects (object_type,natural_key,security_id,venue_code,payload,state,revision,parse_run_id,source_rank) values ('PROFILE.SECURITY',${nk},${secId},${VENUE},${sql.json(payload)},'PENDING',1,${pr[0].id},10)`;
   }
   written++;
   if (i % 25 === 0) log(`  [${i}/${universe.length}] ${written} written · ${notfound} no-shares · ${failed} fetch-fail`);
