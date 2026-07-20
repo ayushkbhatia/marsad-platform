@@ -2,7 +2,8 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFilingDetail } from "@/lib/data/filings";
-import { pdfPublicUrl, fmtDateTime, venueName } from "@/lib/reader/format";
+import { JsonLd } from "@/components/reader/JsonLd";
+import { pdfPublicUrl, fmtDateTime, venueName, siteUrl } from "@/lib/reader/format";
 
 /**
  * Filing detail. No `generateStaticParams` (13.5k rows), so params are runtime →
@@ -83,8 +84,32 @@ async function FilingDetailBody({ params }: { params: Promise<Params> }) {
 
   const pdfUrl = pdfPublicUrl(f.pdfStorageKey);
 
+  // Public filing metadata only (title / date / summary / issuer identity).
+  const jsonLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": ["NewsArticle", "Report"],
+    headline: (f.title ?? "Untitled filing").slice(0, 110),
+    url: `${siteUrl()}/filings/${f.id}`,
+    inLanguage: "en",
+    ...(f.filedAt ? { datePublished: f.filedAt } : {}),
+    ...(f.aiSummary ? { description: f.aiSummary } : {}),
+    ...(f.ticker
+      ? {
+          about: {
+            "@type": "Corporation",
+            name: f.name ?? f.ticker,
+            tickerSymbol: f.ticker,
+            url: `${siteUrl()}/stocks/${f.venueCode}/${f.ticker}`,
+          },
+        }
+      : {}),
+    publisher: { "@type": "Organization", name: venueName(f.venueCode) },
+    isAccessibleForFree: true,
+  };
+
   return (
     <article>
+      <JsonLd data={jsonLd} />
       <Link
         href="/filings"
         className="font-mono text-[10px] tracking-[0.06em] text-ink-muted hover:text-ink hover:underline underline-offset-2"

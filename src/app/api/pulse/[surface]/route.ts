@@ -143,6 +143,8 @@ async function surfaceIndices(sb: SB): Promise<Response> {
 async function surfaceWire(sb: SB, params: URLSearchParams): Promise<Response> {
   const after = params.get("after");
   const limit = Math.min(Math.max(Number(params.get("limit")) || 30, 1), 100);
+  const venue = params.get("venue")?.trim().toUpperCase();
+  const type = (params.get("type") ?? params.get("filing_type"))?.trim().toUpperCase();
 
   let q = sb
     .from("filings")
@@ -151,6 +153,10 @@ async function surfaceWire(sb: SB, params: URLSearchParams): Promise<Response> {
     .limit(limit);
   // filed_at compared server-side (timestamptz) — never a JS date string compare.
   if (after) q = q.gt("filed_at", after);
+  // Optional newswire facets (mirror getWireFilings) so the poll appender stays
+  // scoped to the same filter the server page rendered.
+  if (venue) q = q.eq("venue_code", venue);
+  if (type) q = q.eq("filing_type", type);
 
   const { data: rows } = await q;
   const filings = (rows as Array<Record<string, unknown>> | null) ?? [];

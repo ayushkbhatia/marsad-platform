@@ -82,12 +82,17 @@ export interface OhlcvSeries {
 export type OhlcvRange = "1M" | "3M" | "6M" | "1Y" | "5Y" | "MAX";
 
 /** Lower-bound day windows per range. `MAX` has no lower bound (cap only). */
-const RANGE_DAYS: Record<OhlcvRange, number | null> = {
-  "1M": 31,
-  "3M": 93,
-  "6M": 186,
-  "1Y": 372,
-  "5Y": 1830,
+// Approx TRADING BARS per range (calendar days × ~5/7). getOhlcvSeries is `use cache` and MUST
+// stay cached (ohlcv_daily is 571k rows — the big per-visitor cost lever), so it cannot read the
+// wall clock: a Date.now()-based calendar cutoff would be the cacheComponents blocking-route
+// violation. We bound by a deterministic newest-first row LIMIT instead — the chart shows the last
+// N trading bars (≈ the range), no clock read, fully cacheable.
+const RANGE_BARS: Record<OhlcvRange, number | null> = {
+  "1M": 22,
+  "3M": 66,
+  "6M": 132,
+  "1Y": 265,
+  "5Y": 1305,
   MAX: null,
 };
 
@@ -256,11 +261,6 @@ export async function getStockOverview(securityId: number): Promise<StockOvervie
   };
 }
 
-/** Compute a `YYYY-MM-DD` lower bound `days` before today (UTC). */
-function cutoffDate(days: number): string {
-  return new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
-}
-
 /**
  * Daily OHLCV series for the server-rendered price chart. Newest-first keyset in
  * the query (date filtering stays in SQL — never a JS Date compare), capped at
@@ -277,24 +277,25 @@ export async function getOhlcvSeries(
   cacheTag(`stock:${securityId}`);
 
   const sb = createAnonClient();
-  const days = RANGE_DAYS[range];
+  const bars = RANGE_BARS[range];
+  const limit = Math.min(bars ?? OHLCV_CAP, OHLCV_CAP);
 
-  let q = sb
+  // Newest-first keyset bounded by a deterministic row LIMIT (no wall-clock cutoff — see RANGE_BARS).
+  const q = sb
     .from("ohlcv_daily")
     .select("trade_date,open,high,low,close,volume")
     .eq("security_id", securityId)
     .order("trade_date", { ascending: false })
-    .limit(OHLCV_CAP + 1);
-  if (days != null) q = q.gte("trade_date", cutoffDate(days));
+    .limit(limit + 1);
 
   const { data } = await q;
   const rows = (data as Array<{
     trade_date: string; open: unknown; high: unknown; low: unknown; close: unknown; volume: unknown;
   }> | null) ?? [];
 
-  const capped = rows.length > OHLCV_CAP;
+  const capped = rows.length > limit;
   const points: OhlcvPoint[] = rows
-    .slice(0, OHLCV_CAP)
+    .slice(0, limit)
     .reverse()
     .map((r) => ({
       date: r.trade_date,

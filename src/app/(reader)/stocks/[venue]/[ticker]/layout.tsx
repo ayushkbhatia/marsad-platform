@@ -4,6 +4,8 @@ import { resolveSecurity, listSecurityParams } from "@/lib/securities/resolve";
 import { getStockHeader } from "@/lib/data/stocks";
 import { QuoteHeader } from "@/components/reader/QuoteHeader";
 import { StockTabs } from "@/components/reader/StockTabs";
+import { JsonLd } from "@/components/reader/JsonLd";
+import { siteUrl, venueName } from "@/lib/reader/format";
 
 /**
  * Stock-page segment layout. Resolves (venue, ticker) → security (404 if none),
@@ -50,9 +52,35 @@ export default async function StockLayout({
   if (!header) notFound();
 
   const base = `/stocks/${header.venueCode}/${header.ticker}`;
+  const pageUrl = `${siteUrl()}${base}`;
+
+  // Public identity structured data only (no financials / ratios / grades).
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": ["Corporation", "FinancialProduct"],
+    name: header.name,
+    tickerSymbol: header.ticker,
+    url: pageUrl,
+    category: "Exchange-listed equity",
+    identifier: [
+      { "@type": "PropertyValue", propertyID: "ticker", value: header.ticker },
+      { "@type": "PropertyValue", propertyID: "venue", value: header.venueCode },
+    ],
+    ...(header.currency ? { currency: header.currency } : {}),
+    subjectOf: {
+      "@type": "WebPage",
+      url: pageUrl,
+      name: `${header.ticker} — ${header.name}`,
+    },
+    provider: {
+      "@type": "Organization",
+      name: venueName(header.venueCode),
+    },
+  };
 
   return (
     <div className="mx-auto max-w-[1180px] px-5 pt-6 sm:px-8">
+      <JsonLd data={jsonLd} />
       <section className="border-b border-hairline pb-5">
         <QuoteHeader
           venueCode={header.venueCode}

@@ -37,6 +37,16 @@ export function pdfPublicUrl(storageKey: string | null | undefined): string | nu
   return `${base.replace(/\/$/, "")}/storage/v1/object/public/filings/${encoded}`;
 }
 
+// ── Canonical site origin (SEO: sitemap / robots / JSON-LD / metadataBase) ────
+// Prefer an explicit NEXT_PUBLIC_SITE_URL; fall back to the Vercel production
+// host, then the marsad.com apex. Always returned without a trailing slash.
+export function siteUrl(): string {
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL;
+  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  const raw = explicit || (vercel ? `https://${vercel}` : "https://marsad.com");
+  return raw.replace(/\/+$/, "");
+}
+
 // ── Venue / sector labels ─────────────────────────────────────────────────────
 const VENUE_NAMES: Record<string, string> = {
   TDWL: "Tadawul",

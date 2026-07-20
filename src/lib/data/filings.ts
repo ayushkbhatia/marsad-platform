@@ -226,6 +226,97 @@ export async function getGlobalFilings(
 }
 
 /**
+ * Faceted newswire page: newest filings optionally narrowed by `venue` and/or
+ * `filing_type`, keyset-paged by `filed_at` (compared server-side — never a JS
+ * date string compare). Facets are applied in SQL via `.eq`, so the payload only
+ * ever contains matching rows. The client `WireStream` island then appends newer
+ * items from `/api/pulse/wire` using the same facets. ~30s, tagged `filings`.
+ */
+export async function getWireFilings(opts: {
+  venue?: string;
+  type?: string;
+  cursor?: string;
+  limit?: number;
+} = {}): Promise<FilingsPage> {
+  "use cache";
+  cacheLife({ stale: 30, revalidate: 30, expire: 3600 });
+  cacheTag("filings");
+
+  const sb = createAnonClient();
+  const take = Math.min(Math.max(opts.limit ?? 40, 1), 100);
+  const venue = (opts.venue ?? "").trim().toUpperCase();
+  const type = (opts.type ?? "").trim().toUpperCase();
+
+  let q = sb
+    .from("filings")
+    .select(FILING_COLS)
+    .order("filed_at", { ascending: false })
+    .limit(take);
+  if (venue) q = q.eq("venue_code", venue);
+  if (type) q = q.eq("filing_type", type);
+  if (opts.cursor) q = q.lt("filed_at", opts.cursor);
+
+  const { data } = await q;
+  const rows = (data as FilingRow[] | null) ?? [];
+  const secs = await securityMap(sb, rows.map((r) => r.security_id).filter((n): n is number => n != null));
+
+  const items = rows.map((r) => mapFiling(r, r.security_id ? secs.get(r.security_id) : undefined));
+  const nextCursor = rows.length === take ? rows[rows.length - 1]?.filed_at ?? null : null;
+  return { items, nextCursor };
+}
+
+/**
+ * The distinct `filing_type` vocabulary present on the wire, for the newswire
+ * facet control. Ordered by frequency so the busiest types surface first.
+ * Reads only `public.filings`. Cached ~10 min, tagged `filings`.
+ */
+export async function getFilingTypeFacets(): Promise<Array<{ type: string; count: number }>> {
+  "use cache";
+  cacheLife({ stale: 300, revalidate: 600, expire: 86400 });
+  cacheTag("filings");
+
+  const sb = createAnonClient();
+  // Bounded scan of recent rows — enough to enumerate the live type vocabulary
+  // without counting all 13k filings on every render.
+  const { data } = await sb
+    .from("filings")
+    .select("filing_type")
+    .order("filed_at", { ascending: false })
+    .limit(4000);
+
+  const counts = new Map<string, number>();
+  for (const r of (data as Array<{ filing_type: string | null }> | null) ?? []) {
+    const t = (r.filing_type ?? "").trim().toUpperCase();
+    if (!t) continue;
+    counts.set(t, (counts.get(t) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([type, count]) => ({ type, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+/** Recent filing ids + timestamps for the sitemap. `use cache`, tagged `filings`. */
+export async function listRecentFilingRefs(
+  limit = 10000,
+): Promise<Array<{ id: number; filedAt: string | null }>> {
+  "use cache";
+  cacheLife({ stale: 3600, revalidate: 3600, expire: 86400 });
+  cacheTag("filings");
+
+  const sb = createAnonClient();
+  const { data } = await sb
+    .from("filings")
+    .select("id,filed_at")
+    .order("filed_at", { ascending: false })
+    .limit(Math.min(Math.max(limit, 1), 45000));
+
+  return ((data as Array<{ id: number; filed_at: string | null }> | null) ?? []).map((r) => ({
+    id: r.id,
+    filedAt: r.filed_at,
+  }));
+}
+
+/**
  * Register filtered to a bare ticker. Tickers are ambiguous across venues
  * (AMAN/GFH/ITHMR/ORDS), so this returns filings for EVERY security carrying
  * that ticker, newest first — the ticker chips disambiguate by venue. ~30s.

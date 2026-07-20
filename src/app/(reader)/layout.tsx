@@ -37,11 +37,16 @@ export default function ReaderLayout({
             </p>
           </div>
           <div className="flex flex-col gap-1.5 tracking-[0.1em] uppercase">
+            <Link href="/markets" className="hover:text-ink-muted hover:underline underline-offset-4">
+              Markets
+            </Link>
+            <Link href="/wire" className="hover:text-ink-muted hover:underline underline-offset-4">
+              Newswire
+            </Link>
             <Link href="/filings" className="hover:text-ink-muted hover:underline underline-offset-4">
-              Filings wire
+              Filings register
             </Link>
             <span className="text-hairline-strong">Methodology · soon</span>
-            <span className="text-hairline-strong">Terms · soon</span>
           </div>
         </div>
       </footer>

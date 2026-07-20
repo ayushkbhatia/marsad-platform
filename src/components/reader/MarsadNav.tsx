@@ -24,11 +24,17 @@ export function MarsadNav() {
         </Link>
 
         <nav className="ml-2 hidden items-center gap-4 font-ui text-[12.5px] text-ink-muted sm:flex">
-          <Link href="/" className="hover:text-ink hover:underline underline-offset-4">
+          <Link href="/markets" className="hover:text-ink hover:underline underline-offset-4">
             Markets
           </Link>
-          <Link href="/filings" className="hover:text-ink hover:underline underline-offset-4">
+          <Link href="/wire" className="hover:text-ink hover:underline underline-offset-4">
             Wire
+          </Link>
+          <Link href="/screener" className="hover:text-ink hover:underline underline-offset-4">
+            Screener
+          </Link>
+          <Link href="/filings" className="hover:text-ink hover:underline underline-offset-4">
+            Register
           </Link>
           <span className="cursor-not-allowed text-ink-faint" title="Search — coming soon">
             Search
