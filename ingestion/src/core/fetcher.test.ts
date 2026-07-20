@@ -5,6 +5,8 @@ import {
   createHttpClient,
   decodeContentEncoding,
   parseRetryAfter,
+  makeCurlTransport,
+  type CurlExec,
   type LowLevelTransport,
   type LowLevelResponse,
 } from './fetcher.js';
@@ -199,4 +201,66 @@ test('HttpClient: a gzip-encoded response is decoded before it reaches the calle
   assert.equal(res.headers['content-encoding'], undefined, 'stale content-encoding header dropped');
   // Proves the real bug is gone: JSON.parse now succeeds on the returned body.
   assert.equal(JSON.parse(res.body.toString('utf8')).chart.result[0].meta.symbol, '2222.SR');
+});
+
+// ── curl transport (QE-quotes fix) ─────────────────────────────────────────────
+// Mimics real curl: emit the body to stdout, then append the -w trailer (curl substitutes the
+// %{...} placeholders after the transfer). Reading the marker from the -w arg keeps the fake
+// decoupled from the transport's internal marker constant.
+function fakeCurl(
+  body: string,
+  status: number,
+  contentType: string,
+  capture?: { args?: string[] },
+): CurlExec {
+  return async (args) => {
+    if (capture) capture.args = args;
+    const w = args[args.indexOf('-w') + 1] ?? '';
+    const trailer = w.replace('%{http_code}', String(status)).replace('%{content_type}', contentType);
+    return Buffer.from(body + trailer, 'utf8');
+  };
+}
+
+test('curl transport: recovers status, content-type, and body from curl output', async () => {
+  const t = makeCurlTransport({ exec: fakeCurl('{"rows":[]}', 200, 'application/json') });
+  const res = await t('https://qe/board', { method: 'POST', headers: {} });
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.headers['content-type'], 'application/json');
+  assert.equal(Buffer.from(await res.body.arrayBuffer()).toString('utf8'), '{"rows":[]}');
+});
+
+test('curl transport: builds args (method, headers, body, --compressed; skips accept-encoding)', async () => {
+  const cap: { args?: string[] } = {};
+  const t = makeCurlTransport({ exec: fakeCurl('ok', 200, 'text/plain', cap) });
+  await t('https://qe/board', {
+    method: 'POST',
+    headers: { 'user-agent': 'UA', 'accept-encoding': 'gzip, deflate', 'x-test': '1' },
+    body: 'f=MarketWatch',
+  });
+  const a = cap.args!;
+  assert.ok(a.includes('--compressed'), 'curl decodes compression itself');
+  assert.equal(a[a.indexOf('-X') + 1], 'POST');
+  assert.ok(a.includes('user-agent: UA') && a.includes('x-test: 1'), 'headers forwarded');
+  assert.ok(!a.some((x) => x.toLowerCase().startsWith('accept-encoding:')), 'accept-encoding dropped');
+  assert.ok(a.includes('--data-binary') && a.includes('f=MarketWatch'), 'POST body sent');
+  assert.equal(a[a.length - 1], 'https://qe/board', 'url passed after -- terminator');
+});
+
+test('curl transport: no trailer (connection reset mid-transfer) throws NETWORK', async () => {
+  const t = makeCurlTransport({ exec: async () => Buffer.from('partial body, curl died', 'utf8') });
+  await assert.rejects(
+    () => t('https://qe/board', { method: 'GET', headers: {} }),
+    (e: unknown) => e instanceof FetchError && e.errorClass === 'NETWORK',
+  );
+});
+
+test('curl transport: end-to-end through createHttpClient hands the parser plaintext', async () => {
+  const c = createHttpClient({
+    transport: makeCurlTransport({ exec: fakeCurl('{"ok":true}', 200, 'application/json') }),
+    sleep: noSleep,
+    ...FAST,
+  });
+  const res = await c.request('https://qe/board', { method: 'POST', body: 'f=MarketWatch' });
+  assert.equal(res.status, 200);
+  assert.equal(JSON.parse(res.body.toString('utf8')).ok, true);
 });
