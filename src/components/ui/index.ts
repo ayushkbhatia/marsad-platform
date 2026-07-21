@@ -15,4 +15,5 @@ export { ScoreModule, type ScoreModuleProps, type ScoreFace } from "./ScoreModul
 export { SectionBar, type SectionBarProps } from "./SectionBar";
 export { StatStrip, type StatStripProps, type StatItem } from "./StatStrip";
 export { EmptyState, type EmptyStateProps } from "./EmptyState";
+export { PromoCard, type PromoCardProps } from "./PromoCard";
 export type { Rating, Surface } from "./types";

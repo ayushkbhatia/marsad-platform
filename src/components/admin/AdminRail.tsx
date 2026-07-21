@@ -48,7 +48,7 @@ function RailNavFallback() {
     <nav className="flex-1 py-1.5 pb-3" aria-hidden>
       {RAIL_NAV.map((g) => (
         <div key={g.group}>
-          <div className="px-[18px] pt-[18px] pb-[7px] font-mono text-[7.5px] tracking-[0.18em] text-dark-hairline-strong">
+          <div className="px-[18px] pt-[18px] pb-[7px] font-mono text-[7.5px] tracking-[0.18em] text-ink-muted">
             {g.group}
           </div>
           {g.items.map((it) => (
@@ -86,18 +86,18 @@ export function AdminRail({ operator = "Desk Owner", role = "Owner" }: AdminRail
   const isProd = process.env.VERCEL_ENV === "production";
 
   return (
-    <div className="flex h-full min-h-[900px] w-[240px] flex-none flex-col bg-dark-bg font-ui text-dark-text">
-      <div className="border-b border-dark-hairline px-[18px] pt-[18px] pb-3.5">
+    <div className="flex h-full min-h-[900px] w-[240px] flex-none flex-col bg-ink font-ui text-paper-tint">
+      <div className="border-b border-ink-soft px-[18px] pt-[18px] pb-3.5">
         <div className="flex items-center gap-2">
-          <span className="h-2 w-2 flex-none rotate-45 bg-dark-text" aria-hidden />
+          <span className="h-2 w-2 flex-none rotate-45 bg-paper-tint" aria-hidden />
           <span className="font-mono text-[12px] font-semibold tracking-[0.18em]">MARSAD</span>
-          <span className="bg-dark-text px-1.5 py-px font-mono text-[12px] font-semibold tracking-[0.18em] text-dark-bg">
+          <span className="bg-paper-tint px-1.5 py-px font-mono text-[12px] font-semibold tracking-[0.18em] text-ink">
             DESK
           </span>
         </div>
         <div className="mt-2.5 flex items-center gap-1.5">
           <span className={`h-1.5 w-1.5 rounded-full ${isProd ? "bg-positive-dark" : "bg-caution"}`} />
-          <span className={`font-mono text-[7.5px] tracking-[0.16em] ${isProd ? "text-dark-text-faint" : "text-caution"}`}>
+          <span className={`font-mono text-[7.5px] tracking-[0.16em] ${isProd ? "text-ink-faint" : "text-caution"}`}>
             {isProd ? "PRODUCTION" : "STAGING"}
           </span>
         </div>
@@ -107,7 +107,7 @@ export function AdminRail({ operator = "Desk Owner", role = "Owner" }: AdminRail
         <nav className="flex-1 py-1.5 pb-3">
           {RAIL_NAV.map((g) => (
             <div key={g.group}>
-              <div className="px-[18px] pt-[18px] pb-[7px] font-mono text-[7.5px] tracking-[0.18em] text-dark-hairline-strong">
+              <div className="px-[18px] pt-[18px] pb-[7px] font-mono text-[7.5px] tracking-[0.18em] text-ink-muted">
                 {g.group}
               </div>
               {g.items.map((it) => (
@@ -130,14 +130,14 @@ export function AdminRail({ operator = "Desk Owner", role = "Owner" }: AdminRail
         </nav>
       </Suspense>
 
-      <div className="border-t border-dark-hairline px-[18px] py-3.5">
+      <div className="border-t border-ink-soft px-[18px] py-3.5">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-7 w-7 flex-none items-center justify-center bg-dark-text font-ui text-[11px] font-bold text-dark-bg">
+          <span className="flex h-7 w-7 flex-none items-center justify-center bg-paper-tint font-ui text-[11px] font-bold text-ink">
             {initialsOf(operator)}
           </span>
           <span className="min-w-0">
             <span className="block truncate font-ui text-[12px] font-semibold">{operator}</span>
-            <span className="mt-0.5 block font-mono text-[8px] tracking-[0.12em] text-dark-text-faint">
+            <span className="mt-0.5 block font-mono text-[8px] tracking-[0.12em] text-ink-faint">
               {role.toUpperCase()}
             </span>
           </span>

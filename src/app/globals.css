@@ -44,6 +44,7 @@
   /* Paper */
   --color-paper: #fdfcf9;
   --color-paper-tint: #f6f4ee;
+  --color-paper-board: #e8e5dc;
 
   /* Direction — light surfaces */
   --color-positive: #0a7a3c;
@@ -108,6 +109,23 @@
   --text-display--line-height: 1.05;
   --text-display--letter-spacing: -0.015em;
   --text-display--font-weight: 700;
+
+  /* Additive steps for the SectionBar/StatStrip fidelity pass (fixed against
+     1b/8a/1d/23a specimens) — do not repurpose --text-heading/-lg above,
+     these are distinct roles even where the px values are close. */
+  /* Section H1 (e.g. "Earnings calendar", "Dividend calendar" page titles). */
+  --text-section-title: 27px;
+  --text-section-title--line-height: 1.2;
+  --text-section-title--font-weight: 700;
+  /* Article H1 (lead story headline, article/wire page hero). */
+  --text-article-title: 41px;
+  --text-article-title--line-height: 1.1;
+  --text-article-title--letter-spacing: -0.015em;
+  --text-article-title--font-weight: 700;
+  /* StatStrip KPI value. */
+  --text-stat-value: 24px;
+  --text-stat-value--line-height: 1;
+  --text-stat-value--font-weight: 700;
 
   /* Elevation */
   --shadow-card-raised: 0 2px 14px rgba(20, 18, 14, 0.08);

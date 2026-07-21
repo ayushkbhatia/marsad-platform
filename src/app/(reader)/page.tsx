@@ -2,21 +2,26 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { getIndexTape, getTopMovers } from "@/lib/data/markets";
 import { getGlobalFilings } from "@/lib/data/filings";
+import { listNewsroomContent } from "@/lib/data/newsroom";
 import { IndexTape } from "@/components/reader/IndexTape";
 import { TopMovers } from "@/components/reader/TopMovers";
 import { FilingsList } from "@/components/reader/FilingsList";
+import { WireCard } from "@/components/reader/newsroom/WireCard";
+import { SectionBar, EmptyState } from "@/components/ui";
 
 /**
  * Ledger front page (1b) — the reader's home, inside the (reader) editorial
- * shell. There are zero published articles yet, so the front deliberately leads
- * with MARKET DATA + the filings wire, never fabricated stories: the index tape,
- * the latest disclosures, and top movers, with routes into /markets, /wire and
- * the stock pages.
+ * shell. Leads with the autonomous newsroom's own published WIRE(s) when any
+ * exist ("From the newsroom" — the first place a reader sees the agent
+ * pipeline's output, 03-agent-newsroom.md), then MARKET DATA + the filings
+ * wire: the index tape, the latest disclosures, and top movers, with routes
+ * into /markets, /wire and the stock pages.
  *
  * Sync page = static shell (the masthead). The request-time reads (quotes for
- * movers, the wire, the index tape) stream inside a <Suspense> boundary so the
- * shell prerenders and the whole route never blocks on a dynamic read
- * (cacheComponents blocking-route rule) — the stock page / admin lake pattern.
+ * movers, the wire, the index tape, the newsroom wires) stream inside a
+ * <Suspense> boundary so the shell prerenders and the whole route never
+ * blocks on a dynamic read (cacheComponents blocking-route rule) — the stock
+ * page / admin lake pattern.
  */
 export default function LedgerFrontPage() {
   return (
@@ -59,10 +64,11 @@ function LedgerSkeleton() {
 }
 
 async function LedgerBody() {
-  const [tape, movers, wire] = await Promise.all([
+  const [tape, movers, wire, newsroomWires] = await Promise.all([
     getIndexTape(),
     getTopMovers(6),
     getGlobalFilings(undefined, 10),
+    listNewsroomContent({ contentTypes: ["WIRE"], limit: 3 }),
   ]);
 
   const tapeVenues = [...new Set(tape.map((t) => t.venueCode))];
@@ -77,6 +83,25 @@ async function LedgerBody() {
 
   return (
     <>
+      {/* From the newsroom — the autonomous pipeline's own published wires */}
+      <section className="mb-8">
+        <SectionBar label="From the newsroom" right={<Link href="/wire" className="hover:underline underline-offset-2">Full newswire →</Link>} />
+        {newsroomWires.length > 0 ? (
+          <div className="mt-3 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {newsroomWires.map((item) => (
+              <WireCard key={item.id} item={item} />
+            ))}
+          </div>
+        ) : (
+          <div className="mt-3">
+            <EmptyState
+              title="The newsroom hasn't published today."
+              body="The autonomous pipeline publishes here the moment its first wire clears rules."
+            />
+          </div>
+        )}
+      </section>
+
       {/* Index tape */}
       <section className="mb-8">
         <IndexTape initial={tapeSeed} venues={tapeVenues} />

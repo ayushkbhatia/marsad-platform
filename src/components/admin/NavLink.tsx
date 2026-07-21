@@ -28,8 +28,8 @@ export function NavLink({ href, label, exact = false, badge }: NavLinkProps) {
       href={href}
       className={
         active
-          ? "flex items-center gap-[9px] border-l-2 border-dark-text bg-dark-panel-alt px-4 py-[9px] text-dark-text no-underline"
-          : "flex items-center gap-[9px] border-l-2 border-transparent px-4 py-[9px] text-dark-text-faint no-underline hover:bg-dark-panel hover:text-dark-text-mid"
+          ? "flex items-center gap-[9px] border-l-2 border-paper-tint bg-ink-soft px-4 py-[9px] text-paper-tint no-underline"
+          : "flex items-center gap-[9px] border-l-2 border-transparent px-4 py-[9px] text-dark-text-faint no-underline hover:bg-[#1c1b17] hover:text-hairline-strong"
       }
     >
       <span className={`font-ui text-[11.5px] ${active ? "font-semibold" : "font-medium"}`}>{label}</span>
@@ -37,8 +37,8 @@ export function NavLink({ href, label, exact = false, badge }: NavLinkProps) {
         <span
           className={`ml-auto font-mono text-[8px] ${
             active
-              ? "border border-dark-hairline-strong px-[5px] py-px text-dark-text-mid"
-              : "border border-dark-hairline px-[5px] py-px text-dark-text-faint"
+              ? "border border-ink-muted px-[5px] py-px text-hairline-strong"
+              : "border border-dark-hairline-strong px-[5px] py-px text-ink-faint"
           }`}
         >
           {badge}

@@ -18,10 +18,10 @@ export function DeskTopBar({ crumbs, right }: DeskTopBarProps) {
   const last = crumbs[crumbs.length - 1];
   const lead = crumbs.slice(0, -1);
   return (
-    <div className="flex h-[42px] flex-none items-center gap-3.5 bg-dark-bg px-[22px]">
+    <div className="flex h-[42px] flex-none items-center gap-3.5 bg-ink px-[22px]">
       <span className="font-mono text-[9px] tracking-[0.14em] text-dark-text-faint">
         {lead.length > 0 ? `${lead.join(" / ")} / ` : ""}
-        <span className="text-dark-text">{last}</span>
+        <span className="text-paper-tint">{last}</span>
       </span>
       <span className="ml-auto flex items-center gap-3">
         {right}

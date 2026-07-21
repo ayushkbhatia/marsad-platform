@@ -2,17 +2,27 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getWireFilings, getFilingTypeFacets } from "@/lib/data/filings";
+import { listNewsroomContent } from "@/lib/data/newsroom";
 import { WireStream } from "@/components/reader/WireStream";
+import { WireCard } from "@/components/reader/newsroom/WireCard";
+import { SectionBar } from "@/components/ui";
 import { venueName } from "@/lib/reader/format";
 
 /**
- * Newswire (1d) — the filings feed as a live wire. Facets (`?venue=`, `?type=`)
- * are runtime searchParams, so the data body runs inside a <Suspense> boundary
- * (cacheComponents rule); the server renders the first faceted page from the
- * `use cache` `getWireFilings`, then the `WireStream` client island appends
- * newer items from `/api/pulse/wire` every 30s while a venue is open.
+ * Newswire (1d) — two feeds sharing one page: the autonomous newsroom's own
+ * published WIRE content_items (headline + dek + cited body — what the agent
+ * pipeline actually wrote) above the raw `public.filings` disclosure feed
+ * (the venue-sourced register this page has always shown). Facets
+ * (`?venue=`, `?type=`) apply only to the filings feed below, as before.
  *
- * Items link to /filings/[id]; /filings remains the formal register.
+ * Facets are runtime searchParams, so the data body runs inside a <Suspense>
+ * boundary (cacheComponents rule); the server renders the first faceted page
+ * from the `use cache` `getWireFilings` (+ the newsroom wires from
+ * `listNewsroomContent`), then the `WireStream` client island appends newer
+ * filings from `/api/pulse/wire` every 30s while a venue is open.
+ *
+ * Filing items link to /filings/[id]; newsroom wire items link to
+ * /wire/[slug]. /filings remains the formal disclosure register.
  */
 
 const WIRE_TITLE = "Newswire";
@@ -102,13 +112,26 @@ async function WireBody({ searchParams }: { searchParams: Promise<Search> }) {
   const type = (sp.type ?? "").trim().toUpperCase();
   const current: Search = { venue: venue || undefined, type: type || undefined };
 
-  const [page, typeFacets] = await Promise.all([
+  const [page, typeFacets, newsroomWires] = await Promise.all([
     getWireFilings({ venue, type, limit: 40 }),
     getFilingTypeFacets(),
+    listNewsroomContent({ contentTypes: ["WIRE"], limit: 5 }),
   ]);
 
   return (
     <div className="flex flex-col gap-4">
+      {/* From the newsroom — the agent pipeline's own published wires */}
+      {newsroomWires.length > 0 ? (
+        <section>
+          <SectionBar label="From the newsroom" />
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            {newsroomWires.map((item) => (
+              <WireCard key={item.id} item={item} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       {/* Facets */}
       <div className="flex flex-col gap-2 border border-hairline bg-paper px-3 py-3">
         <div className="flex flex-wrap items-center gap-1.5">

@@ -177,7 +177,8 @@ Default is **React Server Components everywhere**; client components are leaf is
 | Surface | Server-rendered (cached) | Client islands |
 |---|---|---|
 | Ledger `/` | Whole page shell, story grid, Select teaser — `use cache`, `cacheLife({revalidate: 60})` keyed on `front_page_config.version` | Index rail poller, wire module poller |
-| Newswire `/wire` | First page of items per facet combination (`use cache` 30s) | Infinite scroll + 30s poll appender, "save view as alert" |
+| Newswire `/wire` | "From the newsroom" section (the agent pipeline's own published `WIRE` `content_items`, `use cache`, `src/lib/data/newsroom.ts#listNewsroomContent`) above the first page of raw `public.filings` items per facet combination (`use cache` 30s) | Infinite scroll + 30s poll appender on the filings feed, "save view as alert" |
+| Wire permalink `/wire/[slug]` | Full WIRE render — headline, dek, cited body (`[cN]` markers resolved via `public.v_content_citations`), ticker rail, `NewsArticle` JSON-LD (`use cache`, `src/lib/data/newsroom.ts#getNewsroomItemBySlugOrId`, resolves by slug or raw `content_items.id`). Never premium (WIRE/TPL-01 is always free) — no premium cut, unlike `/articles/[slug]` | none — fully static per request, no client islands |
 | Heatmap | Treemap geometry computed server-side from `sector_aggregates` (cache 60s) | Treemap interaction (hover, drilldown), period tabs, poll |
 | Screener | Page shell, saved-screen list | Entire filter/results grid (calls `/api/screener/run`) |
 | Stock pages | Everything except the quote header: stats, score card, financials, filings list, ownership (cache 10 min, tag `stock:2222`) | Quote header poller, lightweight-charts candle chart, ratio-strip editor |

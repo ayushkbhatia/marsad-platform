@@ -91,13 +91,14 @@ export default async function StockLayout({
           venueCode={header.venueCode}
           ticker={header.ticker}
           name={header.name}
+          sector={header.sector}
           currency={header.currency}
           initialQuote={header.quote}
           initialFreshness={header.freshness}
         />
       </section>
 
-      <div className="mt-1 border-b border-hairline">
+      <div className="mt-1 border-b-2 border-ink">
         <StockTabs base={base} />
       </div>
 

@@ -50,6 +50,10 @@
       "value": "#f6f4ee",
       "usage": "Page background, tinted panels/callouts, hover row fill"
     },
+    "paper.board": {
+      "value": "#e8e5dc",
+      "usage": "Board/backdrop behind the 1440px canvas and email bodies — not a content-surface color"
+    },
     "positive": {
       "value": "#0a7a3c",
       "usage": "Price up, gains, buy ratings, positive deltas (light surfaces)"
@@ -193,6 +197,25 @@
         "weight": 700,
         "letterSpacing": "-0.015em",
         "usage": "Lead story headline, splash wordmark"
+      },
+      "section.title": {
+        "size": "27px",
+        "family": "display",
+        "weight": 700,
+        "usage": "Page H1 for calendars/hubs (e.g. 'Earnings calendar', 'Dividend calendar') — the low end of the heading range, given its own named step because SectionBar/StatStrip callers key off it directly"
+      },
+      "article.title": {
+        "size": "41px",
+        "family": "display",
+        "weight": 700,
+        "letterSpacing": "-0.015em",
+        "usage": "Lead story / article page H1 — the low end of the display range, named for the same reason as section.title"
+      },
+      "stat.value": {
+        "size": "22–26px, token at 24px",
+        "family": "display",
+        "weight": 700,
+        "usage": "StatStrip KPI value"
       }
     }
   },

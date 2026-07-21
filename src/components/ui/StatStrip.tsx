@@ -49,10 +49,10 @@ export function StatStrip({ items, surface = "light", className = "" }: StatStri
                 : "text-ink-muted";
         return (
           <div key={`${it.label}-${i}`} className="flex min-w-[104px] flex-1 flex-col gap-1 px-3.5 py-2.5">
-            <dt className={`font-mono text-[8px] font-medium tracking-[0.14em] uppercase ${label}`}>
+            <dt className={`font-mono text-[8px] font-medium tracking-[0.1em] uppercase ${label}`}>
               {it.label}
             </dt>
-            <dd className={`font-display text-[23px] leading-none tabular-nums ${value}`}>
+            <dd className={`font-display text-stat-value font-bold leading-none tabular-nums ${value}`}>
               {it.value}
             </dd>
             {it.delta != null && (

@@ -107,7 +107,12 @@ Tokens are frozen in `src/app/globals.css @theme` (mirror of `src/styles/design-
 
 - **Type:** `font-display` (Newsreader — heds, big KPI numerals), `font-ui` (Libre Franklin — all
   interface/body), `font-mono` (IBM Plex Mono — numbers, tickers, timestamps, letterspaced
-  uppercase section labels). `tabular-nums` on every column of aligned numbers.
+  uppercase section labels). `tabular-nums` on every column of aligned numbers. Heading/stat steps
+  added `2026-07-22` (fidelity pass, additive-only — compose these, don't hand-roll arbitrary
+  sizes): `text-section-title` (27px/700, page H1 for calendars/hubs), `text-article-title`
+  (41px/700/-0.015em, lead-story/article H1), `text-stat-value` (24px/700, `StatStrip` value —
+  design range is 22–26px). `--color-paper-board` (`#e8e5dc`) is the board/backdrop behind the
+  1440px canvas, not a content-surface color.
 - **Color law:** near-monochrome ink-and-paper. Color is reserved for **price direction**
   (`text-positive`/`text-negative`, dark variants `-dark`) and **one caution amber**
   (`text-caution`) for data-freshness only — **amber is never used for price**. Structural black
@@ -118,10 +123,19 @@ Tokens are frozen in `src/app/globals.css @theme` (mirror of `src/styles/design-
 - **Surface is a prop, not a theme.** Data rooms (`(dataroom)`) are always dark; editorial
   (`(reader)`) is always light. Components take `surface="light"|"dark"`. No `dark:` variants, no
   ThemeProvider. Dark tokens are `--color-dark-*` (`bg-dark-bg`, `text-dark-text`, etc.).
-- **Motifs:** the diamond mark = a 6–8px square `rotate-45 bg-ink`. Section headers = a black
-  `bg-ink` band with a `font-mono` letterspaced (`tracking-[0.08em]+`) uppercase label — use the
-  `SectionBar` primitive. Stat strips = bordered `bg-paper-tint` bands of cells (mono micro-label
-  over Newsreader value) — use the `StatStrip` primitive.
+- **Motifs:** the diamond mark = a 6–8px square `rotate-45 bg-ink`. Section headers have **two**
+  `SectionBar` treatments — pick per screen, both are load-bearing:
+  - `variant="band"` (default): a black `bg-ink` band, `font-mono` 10px/600/`tracking-[0.1em]`
+    uppercase label, optional `right` (count/link) in `text-dark-text-faint` 9px mono. Used for
+    day-group headers (calendars), filter-chip active state, etc.
+  - `variant="rule"`: no fill — an 11px/700/`tracking-[0.18em]` uppercase `font-sans` label over a
+    2px solid ink bottom rule. This is the **dominant** data-section header in the design ("Live
+    markets", "The wire", "Exchange filings", "Corporate actions", rail sections on calendars) —
+    reach for this one first on new screens; the black band is the exception, not the default.
+
+  Stat strips = bordered `bg-paper-tint` bands of cells (mono 8px micro-label,
+  `tracking-[0.1em]`, over a `text-stat-value` (24px/700) Newsreader value) — use the `StatStrip`
+  primitive.
 - Desktop content column is `max-w-[1180px]` (see the reader layout). Design canvas is 1440px;
   scale to the existing container.
 
