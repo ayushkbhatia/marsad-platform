@@ -138,8 +138,8 @@ export async function getCompareEntity(securityId: number): Promise<CompareEntit
       .eq("id", securityId)
       .maybeSingle<SecurityIdRow>(),
     sb.from("quotes_latest").select("security_id,last,change_pct").eq("security_id", securityId).maybeSingle<QuoteLastRow>(),
-    // Free columns only — see file header. Resolves to `null` today (anon-RLS gap on key_ratios).
-    sb.from("key_ratios").select(KEY_RATIOS_FREE_COLS).eq("security_id", securityId).maybeSingle<KeyRatiosFreeRow>(),
+    // Free columns only, via the anon-safe wrapper view (20260722140500_v_key_ratios_public).
+    sb.from("v_key_ratios_public").select(KEY_RATIOS_FREE_COLS).eq("security_id", securityId).maybeSingle<KeyRatiosFreeRow>(),
     sb.from("v_scores_public").select("security_id,score,rating").eq("security_id", securityId).maybeSingle<ScorePublicRow>(),
     getFxUsdRates(),
   ]);
@@ -344,7 +344,7 @@ export async function getHolderDetail(slug: string): Promise<HolderDetail | null
   if (secIds.length > 0) {
     const [{ data: secs }, { data: krs }] = await Promise.all([
       sb.from("securities").select("id,venue_code,ticker,name_en,sector,currency").in("id", secIds),
-      sb.from("key_ratios").select("security_id,market_cap,currency_computed").in("security_id", secIds),
+      sb.from("v_key_ratios_public").select("security_id,market_cap,currency_computed").in("security_id", secIds),
     ]);
     for (const s of (secs as SecurityIdRow[] | null) ?? []) secMap.set(s.id, s);
     for (const k of (krs as Array<{ security_id: number; market_cap: unknown; currency_computed: string | null }> | null) ?? [])
