@@ -5,13 +5,16 @@ import { usePathname } from "next/navigation";
 
 /**
  * Stock-page tab bar (client island — needs `usePathname` to mark the active
- * tab). Overview / Chart / Filings / Financials. `base` is the security's route
- * root, e.g. `/stocks/ADX/FAB`.
+ * tab). Overview / Chart / Dividends / Earnings / Ownership / Filings /
+ * Financials. `base` is the security's route root, e.g. `/stocks/ADX/FAB`.
  */
 
 const TABS = [
   { seg: "", label: "Overview" },
   { seg: "chart", label: "Chart" },
+  { seg: "dividends", label: "Dividends" },
+  { seg: "earnings", label: "Earnings" },
+  { seg: "ownership", label: "Ownership" },
   { seg: "filings", label: "Filings" },
   { seg: "financials", label: "Financials" },
 ] as const;

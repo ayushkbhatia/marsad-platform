@@ -23,7 +23,7 @@ export function MarsadNav() {
           </span>
         </Link>
 
-        <nav className="ml-2 hidden items-center gap-4 font-ui text-[12.5px] text-ink-muted sm:flex">
+        <nav className="ml-2 hidden items-center gap-4 font-ui text-[12.5px] text-ink-muted lg:flex">
           <Link href="/markets" className="hover:text-ink hover:underline underline-offset-4">
             Markets
           </Link>
@@ -32,6 +32,15 @@ export function MarsadNav() {
           </Link>
           <Link href="/screener" className="hover:text-ink hover:underline underline-offset-4">
             Screener
+          </Link>
+          <Link href="/earnings" className="hover:text-ink hover:underline underline-offset-4">
+            Earnings
+          </Link>
+          <Link href="/dividends" className="hover:text-ink hover:underline underline-offset-4">
+            Dividends
+          </Link>
+          <Link href="/ipo" className="hover:text-ink hover:underline underline-offset-4">
+            IPOs
           </Link>
           <Link href="/filings" className="hover:text-ink hover:underline underline-offset-4">
             Register

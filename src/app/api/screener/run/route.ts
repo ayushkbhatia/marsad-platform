@@ -39,12 +39,22 @@ function num(v: string | null): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-/** Parse a comma list, upper-case, intersect with an allowed set. */
+/**
+ * Parse a comma list and intersect it with an allowed set **case-insensitively**,
+ * returning the allowed set's canonical casing. Venue/rating keys are stored
+ * upper-case (TDWL, BUY) but sector keys are lower-case (banks, energy) — a blanket
+ * `.toUpperCase()` here silently dropped every `?sector=` filter (and the live
+ * screener's own sector chips). Matching on a case-folded key fixes all three.
+ */
 function csvAllowed(v: string | null, allowed: Set<string>): string[] {
   if (!v) return [];
-  return [...new Set(v.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean))].filter((s) =>
-    allowed.has(s),
-  );
+  const canon = new Map([...allowed].map((a) => [a.toUpperCase(), a]));
+  const out = new Set<string>();
+  for (const s of v.split(",").map((x) => x.trim()).filter(Boolean)) {
+    const hit = canon.get(s.toUpperCase());
+    if (hit) out.add(hit);
+  }
+  return [...out];
 }
 
 /** The public row shape sent to clients — no premium fields exist on it. */
