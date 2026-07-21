@@ -7,6 +7,53 @@ to launch the front-end in parallel toward a production-ready app from the desig
 
 ---
 
+## 0. Strategic read — pick the north star before you fan out
+
+The lists below are a **parallel-everything** menu — correct if you have build capacity, but it hides a
+choice. There are three finish lines, with different critical paths:
+
+- **A · Public reader launch** (free, SEO/growth) — fan out the reader surfaces (§3, S1-S5). No owner gates.
+  High effort (weeks × workers) and it's the *commoditized* part — many GCC finance sites exist.
+- **B · Monetized product** — auth + Stripe + entitlements. **Entirely owner-gated** (GitHub billing,
+  `custom_access_token_hook`, pricing model). Nothing here moves until those three land.
+- **C · The autonomous newsroom live** — `DIVIDEND.DECLARED` → soak → auto-publish sign-off. Medium effort,
+  **~90% already built**, and it's the actual moat: "agent-run GCC research" is a thing no competitor has.
+
+**Recommended north star: C first, then A, with B unblocked in parallel via owner items.** Rationale: the
+newsroom is done-but-dark; arming it makes the platform *produce original cited content autonomously*, which
+(a) is the differentiator, (b) fills the already-live reader stock pages with fresh content, (c) drives the
+SEO a static reader alone won't. A (reader breadth) makes that content bigger surface area — so **A serves C,
+not the reverse.** Reader breadth is easy to add later; the moat is the newsroom.
+
+### The three concurrent tracks (they barely touch)
+- **Track 0 — owner items, fire TODAY** (they gate whole downstream tracks; every day pending is a day B can't
+  start): GitHub billing, `custom_access_token_hook`, and the **33c entitlement/pricing model** (the sneaky-
+  critical one — it gates *both* member surfaces *and* the financials free-vs-premium call).
+- **Track A+C — the content flywheel (no owner, do first):** `DIVIDEND.DECLARED` feed → arm
+  `pipeline_intake_enabled` **human-gated** → soak in `/admin/approvals` → owner sign-off → flip
+  `auto_publish_wires`. This is ~1 focused build, not a fan-out. The first auto-wire is the milestone; it's
+  naturally last because it's the one irreversible step.
+- **Track B — reader breadth (no owner, do AFTER the flywheel):** write `docs/frontend/CONVENTIONS.md` +
+  freeze the seams (serial, §3.1), THEN fan out — leading with the **data-ready** slices (S4 data-room over the
+  *full* `key_ratios`; the stock-page dividends/earnings tabs, now populated). Hold S1-ownership / S5-entities
+  until their producers land.
+
+### Three risks the mechanics below under-flag
+1. **Do NOT fan out 5 front-end workers before the content engine runs.** Highest-regret move: weeks of reader
+   surfaces over a platform that isn't yet producing its differentiated content. Sequence content (C) ahead of
+   breadth (A).
+2. **Data-quality debt from the SA cross-check is a publish-correctness risk.** 16.4k rows now carry
+   `stockanalysis-spg` numbers + a ~2.3k conflict queue. Both the reader AND the newsroom **cite the lake** — a
+   wrong number there becomes a wrong *published* number. **Run the Desk conflict-queue QA pass BEFORE the
+   newsroom cites SA-sourced financials or the reader leans on them.** This ranks higher than its §2 placement.
+3. **Auto-publish is irreversible reputation risk.** The human-gated soak is correct — don't let milestone
+   excitement shortcut the flip. Eyeball enough wires first.
+
+**What NOT to do yet:** member surfaces (S6/S7), P5, transcripts, estimates — all gated (auth or no cheap
+source); parking them is right. And no wide reader fan-out before `CONVENTIONS.md` + a live content stream.
+
+---
+
 ## 1. Where things stand (post 2026-07-20/21 build)
 
 **The data spine is rich and flowing.** Everything from a scraped fact → serving tables → derived →
@@ -60,7 +107,9 @@ group (watchlist/alerts/notebook/AI) + `(auth)` group, and the P4 Desk (~19 scre
   `company_people` (board/mgmt), `transcripts`, `estimates`, `ipo_offers`.
 
 ### Data quality / ops
-- `[READY]` **Desk conflict-queue review** — 2.3k real SA-vs-golden diffs (sign flips/scope); some are genuine extraction bugs.
+- `[READY]` **Desk conflict-queue review — PREREQUISITE, not a nice-to-have** (§0 risk 2). 2.3k real
+  SA-vs-golden diffs (sign flips/scope); some are genuine extraction bugs. The reader + newsroom both cite the
+  lake, so **do this before either leans on SA-sourced financials.**
 - `[READY]` **Financials un-gate decision** — SA now fills the non-XBRL venues; decide free-vs-premium per the pricing model.
 
 ### Newsroom — arm gradually
@@ -83,8 +132,11 @@ group (watchlist/alerts/notebook/AI) + `(auth)` group, and the P4 Desk (~19 scre
   IPO/dividends/earnings suites → analyst hub → infographics (`[OWNER]` decide scope, net-new).
 - Hardening: RLS/authz pen pass, restore drills, runbooks, ads, second-VPS/PITR.
 
-**If picking the next 3:** (1) `DIVIDEND.DECLARED` → first auto-wire; (2) SA symbol-drift + weekly lane →
-lock the financials win; (3) fan out the reader public surfaces per §3.
+**If picking the next 3 (per the §0 north star — content flywheel first):** (1) `DIVIDEND.DECLARED` → arm the
+newsroom human-gated → first auto-wire; (2) the **SA conflict-queue QA pass** (§0 risk 2) so the content the
+newsroom publishes is trustworthy; (3) SA symbol-drift + weekly lane → lock the financials win. Fan out the
+reader public surfaces (§3) **after** the flywheel is turning + `CONVENTIONS.md` exists — leading with the
+data-ready slices (S4 data-room, stock-page dividends/earnings tabs).
 
 ---
 

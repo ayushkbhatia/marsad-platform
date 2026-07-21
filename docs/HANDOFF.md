@@ -8,7 +8,9 @@ _Written 2026-07-20 at the end of the data-tier + newsroom build. Read this, the
 
 A large build cycle shipped since the original handoff. **The go-forward plan + the front-end
 parallelization playbook now live in [`docs/FORWARD-BUILD.md`](FORWARD-BUILD.md) — start there for what to build next.**
-Deltas that change the picture below:
+Read its **§0 (strategic read: pick the north star)** first — the recommended sequence is **content flywheel
+(newsroom) → reader breadth → monetization**, NOT a wide reader fan-out day one, and the SA cross-check
+conflict-queue QA is a publish-correctness prerequisite, not a nice-to-have. Deltas that change the picture below:
 
 - **Fundamentals essentially solved.** `shares_outstanding` 49 → **728/762 (96%)** (Mubasher page scrape,
   all 6 venues, `scripts/researchers/tadawul-shares.mjs`) → unblocked **market-cap 668 / PE 497 / PB 490 /
