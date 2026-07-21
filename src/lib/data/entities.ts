@@ -27,11 +27,11 @@ import { toNum, toInt } from "./util";
  *     from public.key_ratios;
  *   grant select on public.v_key_ratios_public to anon, authenticated;
  * (Never add pe/pb/roe/dividend_yield/roce/nim/ev_ebitda/net_debt_ebitda/payout_ratio/ps/
- * book_value_ps to that view — those stay premium-only, read exclusively by `marsad_worker` /
- * the `fn_screener_run` SECURITY DEFINER RPC.) Once shipped, swap `getCompareEntity`'s
- * `.from("key_ratios")` below to `.from("v_key_ratios_public")` — the rest of the function is
- * already correct and needs no other change. Until then this file NEVER selects a premium
- * column, matching `screener.ts`'s "no code path can reach a premium table" contract.
+ * book_value_ps to that view — those stay premium-only, read exclusively by `marsad_worker`.)
+ * STATUS: `v_key_ratios_public` is LIVE (migration 20260722140500) and this file reads it below;
+ * the premium-leaking `fn_screener_run` SECURITY DEFINER RPC had its anon/authenticated EXECUTE
+ * revoked (migration 20260722141000). This file NEVER selects a premium column, matching
+ * `screener.ts`'s "no code path can reach a premium table" contract.
  */
 
 // ── FX (USD normalization for Compare's market-cap row) ────────────────────────

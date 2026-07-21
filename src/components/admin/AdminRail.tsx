@@ -17,6 +17,54 @@ function initialsOf(name: string): string {
     .slice(0, 2);
 }
 
+/** Rail nav model — shared by the live (usePathname) render and the static
+ * prerender fallback so they never drift. */
+const RAIL_NAV: ReadonlyArray<{
+  group: string;
+  items: ReadonlyArray<{ href: string; label: string; exact?: boolean; badge?: boolean }>;
+}> = [
+  {
+    group: "OPERATE",
+    items: [
+      { href: "/admin", label: "Dashboard", exact: true },
+      { href: "/admin/approvals", label: "Approvals", badge: true },
+      { href: "/admin/agents", label: "Agents" },
+    ],
+  },
+  {
+    group: "DATA DESK",
+    items: [
+      { href: "/admin/lake", label: "Data lake" },
+      { href: "/admin/ops", label: "Market ops" },
+    ],
+  },
+];
+
+/** Static (non-active) rail nav for the prerender shell — NavLink reads
+ * usePathname (request-time), so the live nav must sit under a Suspense
+ * boundary and this paints until it hydrates (cacheComponents rule). */
+function RailNavFallback() {
+  return (
+    <nav className="flex-1 py-1.5 pb-3" aria-hidden>
+      {RAIL_NAV.map((g) => (
+        <div key={g.group}>
+          <div className="px-[18px] pt-[18px] pb-[7px] font-mono text-[7.5px] tracking-[0.18em] text-dark-hairline-strong">
+            {g.group}
+          </div>
+          {g.items.map((it) => (
+            <span
+              key={it.href}
+              className="flex items-center gap-[9px] border-l-2 border-transparent px-4 py-[9px] text-dark-text-faint"
+            >
+              <span className="font-ui text-[11.5px] font-medium">{it.label}</span>
+            </span>
+          ))}
+        </div>
+      ))}
+    </nav>
+  );
+}
+
 /**
  * The dark 240px operator rail (05-desk-admin.md §1, design handoff
  * `AdminRail.dc.html`): wordmark, PRODUCTION/STAGING dot, grouped nav, and
@@ -55,28 +103,32 @@ export function AdminRail({ operator = "Desk Owner", role = "Owner" }: AdminRail
         </div>
       </div>
 
-      <nav className="flex-1 py-1.5 pb-3">
-        <div className="px-[18px] pt-[18px] pb-[7px] font-mono text-[7.5px] tracking-[0.18em] text-dark-hairline-strong">
-          OPERATE
-        </div>
-        <NavLink href="/admin" label="Dashboard" exact />
-        <NavLink
-          href="/admin/approvals"
-          label="Approvals"
-          badge={
-            <Suspense fallback={null}>
-              <ApprovalsBadge />
-            </Suspense>
-          }
-        />
-        <NavLink href="/admin/agents" label="Agents" />
-
-        <div className="px-[18px] pt-[18px] pb-[7px] font-mono text-[7.5px] tracking-[0.18em] text-dark-hairline-strong">
-          DATA DESK
-        </div>
-        <NavLink href="/admin/lake" label="Data lake" />
-        <NavLink href="/admin/ops" label="Market ops" />
-      </nav>
+      <Suspense fallback={<RailNavFallback />}>
+        <nav className="flex-1 py-1.5 pb-3">
+          {RAIL_NAV.map((g) => (
+            <div key={g.group}>
+              <div className="px-[18px] pt-[18px] pb-[7px] font-mono text-[7.5px] tracking-[0.18em] text-dark-hairline-strong">
+                {g.group}
+              </div>
+              {g.items.map((it) => (
+                <NavLink
+                  key={it.href}
+                  href={it.href}
+                  label={it.label}
+                  exact={it.exact}
+                  badge={
+                    it.badge ? (
+                      <Suspense fallback={null}>
+                        <ApprovalsBadge />
+                      </Suspense>
+                    ) : undefined
+                  }
+                />
+              ))}
+            </div>
+          ))}
+        </nav>
+      </Suspense>
 
       <div className="border-t border-dark-hairline px-[18px] py-3.5">
         <div className="flex items-center gap-2.5">

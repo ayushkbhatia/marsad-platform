@@ -1,5 +1,20 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { MobileNavDrawer } from "./MobileNavDrawer";
+
+/** Static hamburger shown during prerender / before the client drawer hydrates.
+ * Visual match for MobileNavDrawer's closed button; non-interactive. */
+function MobileNavFallback() {
+  return (
+    <span className="flex h-11 w-11 flex-none items-center justify-center lg:hidden" aria-hidden>
+      <span className="block h-[11px] w-[18px]">
+        <span className="block h-[1.5px] w-full bg-ink" />
+        <span className="mt-[3.5px] block h-[1.5px] w-full bg-ink" />
+        <span className="mt-[3.5px] block h-[1.5px] w-full bg-ink" />
+      </span>
+    </span>
+  );
+}
 
 /**
  * Reader masthead (server component). Editorial ink-and-paper chrome: wordmark,
@@ -59,8 +74,12 @@ export function MarsadNav() {
               DELAYED 15 MIN
             </span>
           </span>
-          {/* Mobile section menu (below lg the inline nav is hidden). */}
-          <MobileNavDrawer />
+          {/* Mobile section menu (below lg the inline nav is hidden). usePathname is a
+              request-time read, so it needs a Suspense boundary to prerender under
+              cacheComponents on dynamic routes (no generateStaticParams). */}
+          <Suspense fallback={<MobileNavFallback />}>
+            <MobileNavDrawer />
+          </Suspense>
         </div>
       </div>
     </header>
