@@ -4,6 +4,32 @@ _Written 2026-07-20 at the end of the data-tier + newsroom build. Read this, the
 
 ---
 
+## ⟳ Update — 2026-07-21 (read this first; the sections below predate it)
+
+A large build cycle shipped since the original handoff. **The go-forward plan + the front-end
+parallelization playbook now live in [`docs/FORWARD-BUILD.md`](FORWARD-BUILD.md) — start there for what to build next.**
+Deltas that change the picture below:
+
+- **Fundamentals essentially solved.** `shares_outstanding` 49 → **728/762 (96%)** (Mubasher page scrape,
+  all 6 venues, `scripts/researchers/tadawul-shares.mjs`) → unblocked **market-cap 668 / PE 497 / PB 490 /
+  Scores 465**. So the §3.A.1 "shares is the binding gap" item below is **DONE**.
+- **Financials 613/762 secs (80%)** via a **stockanalysis.com / S&P Global cross-check + gap-enrich** tier
+  (`FINANCIALS.XCHECK`, isolated so golden stays sacrosanct; 16.7k rows tagged `source='stockanalysis-spg'`,
+  reversible; a 2.3k Desk conflict/QA queue). Owner accepted the SPG/TradingView-class licensing risk.
+  **The PDF-LLM extractors were NOT retired** — SA is the auditor + gap-filler; TDWL XBRL stays golden/citable.
+- **`dividends`** 1,147 (TDWL history, gated) + **`earnings_events`** 4,190 (actuals) projections live;
+  **index tape LIVE** for all 6 (Yahoo + tradingeconomics, 10-min timer — §3.A.3 DONE); **TDWL-EPS mis-map root-fixed**.
+- **Reader (P2) is LIVE on Vercel** — foundation + stock pages (Overview/Chart/Filings, **Financials
+  premium-gated**) + markets/screener/newswire/SEO. 13 of ~50 routes built; the rest is the §3.C work, now
+  parallelizable per FORWARD-BUILD §3.
+- **Newsroom** writer number-marking fixed + budget ladder enforced; **switches still OFF** (un-armed).
+- **Still owner-blocked:** GitHub billing, `custom_access_token_hook`, auto-publish sign-off, the 33c
+  entitlement/pricing model. **Still open data:** `DIVIDEND.DECLARED` feed (→ first auto-wire), SA symbol-drift
+  (~10%), ISIN/sector for DFM/ADX/MSX/BHB (no cheap source — Mubasher/SA both lack ISIN), the empty tiers
+  (holders/ownership/company_people/transcripts/estimates/ipo_offers).
+
+---
+
 ## 0. What Marsad is
 
 An **agent-run GCC equity-research platform**. Scrapers/researchers keep a data lake of all 6 Gulf exchanges (TDWL/DFM/ADX/QE/MSX/BHB, ~762 listed securities) fresh; an autonomous newsroom writes cited articles/wires off that lake; a reader app (mostly unbuilt) will surface it. Owner is ex-hedge-fund, ME-based. Delayed data only (scrape-only, 15-min), English only, cheapest-run-cost with swappable LLM providers. Design set (181 screens) exists; most of the reader/Desk UI is greenfield.
