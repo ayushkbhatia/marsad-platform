@@ -707,8 +707,14 @@ function mapFiling(source: SourceRecord, snapshotId: number, f: NormalizedFiling
 function mapDividend(source: SourceRecord, snapshotId: number, d: NormalizedDividend, extractedAt: string): StagingRow<NormalizedDividend> {
   const fiscal = d.fiscalRef ?? 'NA';
   return {
-    objectType: 'DIVIDEND.DPS',
-    naturalKey: `DIVIDEND.DPS:${d.venue}:${d.ticker}:${d.divType}:${fiscal}`,
+    // DIVIDEND.EXDATE is the frozen dividend object_type (CONTRACT §6.5 example
+    // `DIVIDEND.EXDATE:TDWL:7010:2026-INT1`; docs 01 §942, 02 §297, seed.sql, staging.test.ts,
+    // worker pipeline.test.ts) — it is exactly what edit.ts autoSelectTemplate maps to TPL-04 and
+    // what the ops.materiality_prefilter DIVIDEND.EXDATE row routes material→wire→TPL-04. The earlier
+    // 'DIVIDEND.DPS' here diverged from that contract (and matched no prefilter rule → fell to the LLM
+    // classifier); corrected so a venue dividends TaskSpec landing NormalizedDividend rows arms TPL-04.
+    objectType: 'DIVIDEND.EXDATE',
+    naturalKey: `DIVIDEND.EXDATE:${d.venue}:${d.ticker}:${d.divType}:${fiscal}`,
     venue: d.venue,
     sourceId: source.id,
     snapshotId,

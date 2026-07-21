@@ -18,6 +18,35 @@ export {
 export { ADAPTERS } from './adapters/index.js';
 export * from './core/index.js';
 
+// DIVIDEND.EXDATE dated-declaration normalization (03 §6/§7) — the PURE core the
+// dividend-declared producer (scripts/researchers/dividend-declared.mjs) imports to turn a
+// DIVIDEND filing's extracted facts into a NormalizedDividend + lake-object payload + reader row.
+export {
+  extractDividend,
+  normalizeDivType,
+  normalizeCurrency,
+  venueCurrency,
+  parseIsoDate,
+  toDps,
+  deriveFiscalRef,
+  dividendNaturalKey,
+  disclosureRoot,
+  buildLineageRoots,
+  dividendObjectPayload,
+  dividendUpsertRow,
+  REGISTRAR_RANK,
+  EXCHANGE_RANK,
+  AGGREGATOR_RANK,
+} from './lake/dividend-declared.js';
+export type {
+  FilingAiDividend,
+  DividendFilingRow,
+  LineageRoot,
+  LineageResult,
+  DividendObjectPayload,
+  DividendUpsertRow,
+} from './lake/dividend-declared.js';
+
 // P3 newsroom: the provider-agnostic LLM gateway (03 §1), ported worker-side so
 // the pipeline handlers reach chatComplete via the package root (the ingestion
 // exports map is root-only). Same contract as src/lib/llm/ — the Next app keeps

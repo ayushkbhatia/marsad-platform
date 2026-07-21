@@ -24,6 +24,7 @@ import type {
   NormalizedFilingRef,
   NormalizedStatementRow,
   NormalizedProfile,
+  NormalizedDividend,
   Logger,
   TaskSpec,
 } from '../core/types.js';
@@ -285,6 +286,38 @@ test('profile → PROFILE.SECURITY keyed by venue+ticker; single-source PENDING,
   )[0]!;
   assert.equal(refreshed.naturalKey, r.naturalKey);
   assert.notEqual(contentHash(refreshed.payload), contentHash(r.payload));
+});
+
+test('dividend → DIVIDEND.EXDATE (arms TPL-04) keyed by venue+ticker+type+fiscal; 33b price-sensitive', () => {
+  const divSource = source({ id: 9, venue: 'TDWL', dataType: 'dividends' });
+  const div: NormalizedDividend = {
+    venue: 'TDWL',
+    ticker: '7010',
+    divType: 'INTERIM',
+    fiscalRef: '2026-INT1',
+    dps: 1.25,
+    currency: 'SAR',
+    exDate: '2026-08-01',
+    recordDate: '2026-08-03',
+    payDate: '2026-08-15',
+    verification: 'disclosure',
+  };
+  const rows = mapRowsToStaging(divSource, stubTask, SNAP_ID, [div], noopLogger, SNAP_FETCHED_AT);
+  assert.equal(rows.length, 1);
+  const r = rows[0]!;
+  // The object_type edit.ts autoSelectTemplate + the DIVIDEND.EXDATE prefilter row key on (→ TPL-04).
+  assert.equal(r.objectType, 'DIVIDEND.EXDATE');
+  assert.equal(r.naturalKey, 'DIVIDEND.EXDATE:TDWL:7010:INTERIM:2026-INT1');
+  assert.equal(r.numericValue, 1.25); // DPS is the scalar
+  assert.equal(r.unit, 'SAR');
+  assert.equal(r.effectiveDate, '2026-08-01'); // ex_date is the business date
+  assert.equal(r.priceSensitive, true); // dividends are always a 33b human-confirm fact
+  // A registrar-verified dividend is the one payload-driven registrar-rank (10) exception (CONTRACT §6.5).
+  const registrar = mapRowsToStaging(
+    divSource, stubTask, SNAP_ID, [{ ...div, verification: 'registrar' }], noopLogger, SNAP_FETCHED_AT,
+  )[0]!;
+  assert.equal(registrar.sourceRank, 10);
+  assert.equal(r.sourceRank, 20); // disclosure → exchange rank
 });
 
 test('empty batch ⇒ no rows; unknown shape ⇒ dropped, none fabricated', () => {
