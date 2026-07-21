@@ -298,6 +298,27 @@ The **derived data path is built + tested**; it goes live the moment `financial_
   A deterministic reproject (`scripts/researchers/tadawul-eps-reproject.mjs`) re-parses the owned TDWL XBRLs
   through the fixed parser to correct the landed rows; non-TDWL rows converge on re-ingestion, the belt covers
   `pe` immediately on the next ratios recompute.
+- ✅ **stockanalysis / S&P Global financials cross-check + gap-enrich** (`20260721090000` / `100000` /
+  `110000`, 2026-07-20/21) — a SECOND financials source (stockanalysis.com's `__data.json`, which re-serves
+  S&P Global Market Intelligence; **owner accepted the SPG/TradingView-class licensing risk** to persist+enrich).
+  Covers **all 6 venues** (path map TDWL→tadawul, DFM→dfm, QE→qse, ADX→adx, MSX→msm, **BHB→bax**). Because
+  `fn_financials_project` keys by the accounting tuple + ignores source, a 2nd `FILING.FINANCIALS` would restate/
+  clobber golden — so SA lands under a DISTINCT `FINANCIALS.XCHECK` object_type (`scripts/researchers/stockanalysis-
+  financials.mjs`, source_rank 90, PENDING) that never fires the golden trigger. `lake.fn_financials_xcheck_reconcile`
+  → `public.financial_statement_xcheck` (agree/conflict/gap) → raises the existing `lake.object_conflicts` Desk
+  queue on a CORE-key disagreement (`v_financials_xcheck_conflicts`, service_role only — SPG data is licensing-
+  sensitive). **Reconcile v2** pass/fails ONLY definition-stable core keys (income revenue/net_income; balance
+  total_assets/liabilities/equity) — `total_debt`/`ebit`/`cash` + cashflow subtotals are recorded `definitional`,
+  never conflict. Result on the corroboration set: **~82.5% core-agree**, 562 real conflicts (sign flips / scope —
+  the free QA queue, would've caught the EPS bug). **Gap-enrich** (`fn_enrich_financials_from_xcheck`) promotes
+  SA statements for accounting keys we lack into golden tagged `financial_statements.source='stockanalysis-spg'`
+  (reversible; a real filing supersedes on arrival; ON CONFLICT DO NOTHING) — biggest lift on the LLM-PDF-pain
+  venues (BHB/MSX/DFM). **Extractors NOT retired** (owner challenge answered): SA is a derived aggregator with
+  no citations + licensing exposure, so it's the auditor + gap-filler; TDWL XBRL stays the golden/citable source,
+  the paused `claude -p` PDF-LLM bulk extraction stays demoted to on-demand, the PDF archiver stays. `sa_symbol`/
+  `sa_has_financials` columns seed the researcher's path map (~10% symbol drift, mostly BHB cross-listings, via
+  `/api/search`, follow-up). DEPTH note: SA caps at 5 FY / 20 quarters — it WIDENS coverage, never deepens the
+  XBRL tail (to 2013).
 - ⏳ **Deferred**: full-text/`extracted_facts`/`ai_summary` (the one bounded LLM cost, §7);
   `DIVIDEND.DECLARED` dated-declaration feed to arm TPL-04 wires (§7).
 
