@@ -26,9 +26,14 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const { offerSlug } = await params;
   const offer = await getIpoOffer(offerSlug);
   if (!offer) return { title: "IPO Center" };
+  const title = `${offer.companyName} — IPO`;
+  const description = `${offer.companyName} (${venueName(offer.venueCode)}) IPO — pricing, offer facts and subscription window.`;
+  const ogImage = `/api/og/ipo/${offerSlug}`;
   return {
-    title: `${offer.companyName} — IPO`,
-    description: `${offer.companyName} (${venueName(offer.venueCode)}) IPO — pricing, offer facts and subscription window.`,
+    title,
+    description,
+    openGraph: { title, description, images: [{ url: ogImage, width: 1200, height: 630, alt: title }] },
+    twitter: { card: "summary_large_image", title, description, images: [ogImage] },
   };
 }
 

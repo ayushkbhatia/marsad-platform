@@ -28,9 +28,14 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   if (!Number.isInteger(id) || id <= 0) return { title: "Not found" };
   const ev = await getEarningsEvent(id);
   if (!ev) return { title: "Not found" };
+  const title = `${ev.ticker} ${ev.fiscalPeriod} results`;
+  const description = `${ev.name} (${ev.ticker}, ${venueName(ev.venueCode)}) — ${ev.fiscalPeriod} earnings, reported ${fmtDate(ev.reportDate)}.`;
+  const ogImage = `/api/og/earnings/${ev.id}`;
   return {
-    title: `${ev.ticker} ${ev.fiscalPeriod} results`,
-    description: `${ev.name} (${ev.ticker}, ${venueName(ev.venueCode)}) — ${ev.fiscalPeriod} earnings, reported ${fmtDate(ev.reportDate)}.`,
+    title,
+    description,
+    openGraph: { title, description, type: "article", images: [{ url: ogImage, width: 1200, height: 630, alt: title }] },
+    twitter: { card: "summary_large_image", title, description, images: [ogImage] },
   };
 }
 

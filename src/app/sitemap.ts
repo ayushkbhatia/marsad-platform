@@ -2,14 +2,24 @@ import type { MetadataRoute } from "next";
 import { listSecurityParams } from "@/lib/securities/resolve";
 import { listRecentFilingRefs } from "@/lib/data/filings";
 import { siteUrl } from "@/lib/reader/format";
+import { LEARN_DOCS } from "@/lib/learn/docs";
+
+/** Indexable subpages under every `/stocks/[venue]/[ticker]` (04-reader-app §8
+ * calls out "stock pages + subpages"). `financials` is a premium STUB page
+ * (no statement data ever reaches it — see that route's header comment) but
+ * still a real, unique-per-ticker page, so it stays indexable like the rest. */
+const STOCK_SUBPAGES = ["chart", "filings", "financials", "dividends", "earnings", "ownership"] as const;
 
 /**
  * Split-ish sitemap (04-reader-app.md §8): the indexable public surface —
- * static entries, every public stock page (`/stocks/[venue]/[ticker]`, the SEO
- * backbone), and recent filing detail pages (machine-extracted text is strong
- * long-tail SEO). Both data reads go through `use cache` readers over the anon
- * client, so this special file stays cached (no request-time API) and is cheap
- * to regenerate. `noindex` surfaces (screener) are intentionally excluded.
+ * static entries (ledger, markets, wire, the calendars, filings register),
+ * every public stock page + its subpages (`/stocks/[venue]/[ticker]/...`, the
+ * SEO backbone), and recent filing detail pages (machine-extracted text is
+ * strong long-tail SEO). All data reads go through `use cache` readers over
+ * the anon client, so this special file stays cached (no request-time API)
+ * and is cheap to regenerate. `noindex` surfaces (heatmap, screener, screens,
+ * compare) are intentionally excluded — they opt out via per-page `robots`
+ * metadata instead (robots.ts explains why they aren't blocked outright).
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
@@ -24,13 +34,35 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/markets`, changeFrequency: "hourly", priority: 0.9 },
     { url: `${base}/wire`, changeFrequency: "hourly", priority: 0.8 },
     { url: `${base}/filings`, changeFrequency: "hourly", priority: 0.7 },
+    { url: `${base}/earnings`, changeFrequency: "daily", priority: 0.6 },
+    { url: `${base}/dividends`, changeFrequency: "daily", priority: 0.6 },
+    { url: `${base}/ipo`, changeFrequency: "daily", priority: 0.5 },
+    { url: `${base}/research`, changeFrequency: "daily", priority: 0.6 },
+    { url: `${base}/analysts`, changeFrequency: "weekly", priority: 0.5 },
+    { url: `${base}/learn`, changeFrequency: "monthly", priority: 0.5 },
   ];
 
-  const stockRoutes: MetadataRoute.Sitemap = secs.map((s) => ({
-    url: `${base}/stocks/${s.venue}/${s.ticker}`,
-    changeFrequency: "daily",
-    priority: 0.7,
+  // Learn hub docs — only the FINAL factual docs are indexable; the draft-legal
+  // skeletons (terms/privacy) set their own `noindex` and are excluded here.
+  const learnRoutes: MetadataRoute.Sitemap = LEARN_DOCS.filter(
+    (d) => d.status === "final",
+  ).map((d) => ({
+    url: `${base}/learn/${d.slug}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.4,
   }));
+
+  const stockRoutes: MetadataRoute.Sitemap = secs.flatMap((s) => {
+    const base_ = `${base}/stocks/${s.venue}/${s.ticker}`;
+    return [
+      { url: base_, changeFrequency: "daily" as const, priority: 0.7 },
+      ...STOCK_SUBPAGES.map((sub) => ({
+        url: `${base_}/${sub}`,
+        changeFrequency: "daily" as const,
+        priority: 0.5,
+      })),
+    ];
+  });
 
   const filingRoutes: MetadataRoute.Sitemap = filings.map((f) => ({
     url: `${base}/filings/${f.id}`,
@@ -39,5 +71,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.4,
   }));
 
-  return [...staticRoutes, ...stockRoutes, ...filingRoutes];
+  return [...staticRoutes, ...learnRoutes, ...stockRoutes, ...filingRoutes];
 }

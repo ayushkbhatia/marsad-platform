@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MobileNavDrawer } from "./MobileNavDrawer";
 
 /**
  * Reader masthead (server component). Editorial ink-and-paper chrome: wordmark,
@@ -45,19 +46,21 @@ export function MarsadNav() {
           <Link href="/filings" className="hover:text-ink hover:underline underline-offset-4">
             Register
           </Link>
-          <span className="cursor-not-allowed text-ink-faint" title="Search — coming soon">
+          <Link href="/search" className="hover:text-ink hover:underline underline-offset-4">
             Search
-          </span>
+          </Link>
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
           {/* Persistent delayed-data indicator (never "live" — scrape-only, 15-min delayed). */}
           <span className="inline-flex items-center gap-[6px]" title="All market data is delayed 15 minutes">
             <span className="h-[6px] w-[6px] flex-none rounded-full bg-caution" aria-hidden />
-            <span className="font-mono text-[9.5px] tracking-[0.08em] text-ink-faint">
+            <span className="hidden font-mono text-[9.5px] tracking-[0.08em] text-ink-faint sm:inline">
               DELAYED 15 MIN
             </span>
           </span>
+          {/* Mobile section menu (below lg the inline nav is hidden). */}
+          <MobileNavDrawer />
         </div>
       </div>
     </header>

@@ -46,7 +46,12 @@ export default function ReaderLayout({
             <Link href="/filings" className="hover:text-ink-muted hover:underline underline-offset-4">
               Filings register
             </Link>
-            <span className="text-hairline-strong">Methodology · soon</span>
+            <Link href="/learn/methodology" className="hover:text-ink-muted hover:underline underline-offset-4">
+              Methodology
+            </Link>
+            <Link href="/learn" className="hover:text-ink-muted hover:underline underline-offset-4">
+              Learn &amp; legal
+            </Link>
           </div>
         </div>
       </footer>

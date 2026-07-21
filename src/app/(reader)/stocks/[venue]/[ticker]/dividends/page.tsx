@@ -128,21 +128,27 @@ export default async function DividendsPage({ params }: { params: Promise<Params
               label="Dividend history"
               right={<span>OWN BEFORE EX-DATE TO RECEIVE · DPS IN LOCAL CCY</span>}
             />
-            <div
-              className={`${ROW_GRID} border-b border-hairline bg-paper-tint font-mono text-[8px] tracking-[0.08em] text-ink-faint uppercase`}
-            >
-              <span>Type</span>
-              <span>Fiscal</span>
-              <span>Ex-date</span>
-              <span>Record</span>
-              <span>Pay date</span>
-              <span className="text-right">DPS</span>
-              <span className="text-right">Yield</span>
-              <span className="text-right">Payout</span>
+            {/* ROW_GRID is a fixed-px 8-column track (~670px min) — narrower
+                than a 390px mobile viewport. Scope the scroll to this table
+                (not the page), same pattern as the earnings tab's ROW_GRID
+                (WCAG 1.4.10 Reflow). */}
+            <div className="overflow-x-auto">
+              <div
+                className={`${ROW_GRID} border-b border-hairline bg-paper-tint font-mono text-[8px] tracking-[0.08em] text-ink-faint uppercase`}
+              >
+                <span>Type</span>
+                <span>Fiscal</span>
+                <span>Ex-date</span>
+                <span>Record</span>
+                <span>Pay date</span>
+                <span className="text-right">DPS</span>
+                <span className="text-right">Yield</span>
+                <span className="text-right">Payout</span>
+              </div>
+              {dividends.map((d) => (
+                <DividendRow key={d.id} d={d} />
+              ))}
             </div>
-            {dividends.map((d) => (
-              <DividendRow key={d.id} d={d} />
-            ))}
           </div>
         </>
       ) : (

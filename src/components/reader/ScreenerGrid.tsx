@@ -107,8 +107,13 @@ const chipBase =
   "cursor-pointer border px-2 py-1 font-mono text-[10px] tracking-[0.04em] uppercase transition-colors";
 const chipOn = "border-dark-text bg-dark-text text-dark-bg";
 const chipOff = "border-dark-hairline-strong text-dark-text-mid hover:text-dark-text";
+// `focus:outline-none` alone (no replacement ring) fails WCAG 2.4.7 Focus
+// Visible — a 1px border-color change is too weak a focus indicator on its
+// own. Keep the border change but restore a real ring via `focus-visible`
+// (keyboard-only, so a mouse click doesn't add visual noise) using the same
+// dark-surface text token for AA contrast against `bg-dark-bg`.
 const inputCls =
-  "w-full border border-dark-hairline-strong bg-dark-bg px-2 py-1.5 font-mono text-[12px] text-dark-text placeholder:text-dark-text-faint focus:border-dark-text focus:outline-none";
+  "w-full border border-dark-hairline-strong bg-dark-bg px-2 py-1.5 font-mono text-[12px] text-dark-text placeholder:text-dark-text-faint focus:border-dark-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-dark-text";
 
 const TH = "px-3 py-2 text-left font-mono text-[9px] font-semibold tracking-[0.12em] uppercase";
 const TD = "px-3 py-2 font-mono text-[12px] tabular-nums";

@@ -31,9 +31,14 @@ export async function generateMetadata({
   const { venue, ticker } = await params;
   const sec = await resolveSecurity(venue, ticker);
   if (!sec) return { title: "Not found" };
+  const title = `${sec.ticker} — ${sec.name}`;
+  const description = `${sec.name} (${sec.ticker}, ${sec.venueCode}) — delayed price, filings, and the Marsad Score.`;
+  const ogImage = `/api/og/stock/${sec.venueCode}/${sec.ticker}`;
   return {
-    title: `${sec.ticker} — ${sec.name}`,
-    description: `${sec.name} (${sec.ticker}, ${sec.venueCode}) — delayed price, filings, and the Marsad Score.`,
+    title,
+    description,
+    openGraph: { title, description, images: [{ url: ogImage, width: 1200, height: 630, alt: title }] },
+    twitter: { card: "summary_large_image", title, description, images: [ogImage] },
   };
 }
 

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFilingDetail } from "@/lib/data/filings";
@@ -13,6 +14,32 @@ import { pdfPublicUrl, fmtDateTime, venueName, siteUrl } from "@/lib/reader/form
  */
 
 type Params = { filingId: string };
+
+/** `generateMetadata` reads the same `use cache` fn the body calls — the extra
+ * invocation costs nothing beyond the shared cache lookup (see CONVENTIONS §2
+ * "memoizing data requests"). Machine-extracted filing text is strong
+ * long-tail SEO (04-reader-app §8) so every one of the ~13.5k filings gets a
+ * real title/description instead of inheriting the site default. */
+export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+  const { filingId } = await params;
+  const id = Number(filingId);
+  if (!Number.isInteger(id) || id <= 0) return { title: "Not found" };
+  const f = await getFilingDetail(id);
+  if (!f) return { title: "Not found" };
+
+  const title = (f.title ?? "Untitled filing").slice(0, 100);
+  const description = (
+    f.aiSummary ?? (f.ticker ? `${f.ticker} disclosure on ${venueName(f.venueCode)}.` : "GCC filing disclosure.")
+  ).slice(0, 155);
+  const ogImage = `/api/og/filing/${f.id}`;
+
+  return {
+    title,
+    description,
+    openGraph: { title, description, type: "article", images: [{ url: ogImage, width: 1200, height: 630, alt: title }] },
+    twitter: { card: "summary_large_image", title, description, images: [ogImage] },
+  };
+}
 
 export default function FilingDetailPage({ params }: { params: Promise<Params> }) {
   return (

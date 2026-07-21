@@ -15,9 +15,18 @@ import { venueName } from "@/lib/reader/format";
  * Items link to /filings/[id]; /filings remains the formal register.
  */
 
+const WIRE_TITLE = "Newswire";
+const WIRE_DESCRIPTION = "The live wire of GCC disclosures — filter by venue and type, delayed.";
+
 export const metadata: Metadata = {
-  title: "Newswire",
-  description: "The live wire of GCC disclosures — filter by venue and type, delayed.",
+  title: WIRE_TITLE,
+  description: WIRE_DESCRIPTION,
+  openGraph: {
+    title: WIRE_TITLE,
+    description: WIRE_DESCRIPTION,
+    images: [{ url: "/api/og/wire", width: 1200, height: 630, alt: WIRE_TITLE }],
+  },
+  twitter: { card: "summary_large_image", title: WIRE_TITLE, description: WIRE_DESCRIPTION, images: ["/api/og/wire"] },
 };
 
 const VENUES = ["TDWL", "DFM", "ADX", "QE", "MSX", "BHB"] as const;

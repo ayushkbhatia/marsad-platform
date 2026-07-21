@@ -14,6 +14,10 @@ import {
 export const metadata: Metadata = {
   title: "Styleguide — Marsad",
   description: "Design tokens and core components — P0 visual verification.",
+  // Internal dev-only verification page, never a public reader surface —
+  // same noindex pattern as the data-room's screener/heatmap (04-reader-app
+  // §8): stays crawlable so bots can see the tag, just never indexed.
+  robots: { index: false, follow: false },
 };
 
 interface Swatch {

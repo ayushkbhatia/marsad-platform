@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { resolveSecurity } from "@/lib/securities/resolve";
 import { getFilingsForSecurity, getFilingsCountForSecurity } from "@/lib/data/filings";
@@ -10,6 +11,13 @@ import { FilingsList } from "@/components/reader/FilingsList";
  */
 
 type Params = { venue: string; ticker: string };
+
+export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+  const { venue, ticker } = await params;
+  const sec = await resolveSecurity(venue, ticker);
+  if (!sec) return { title: "Not found" };
+  return { title: `Filings · ${sec.name}` };
+}
 
 export default async function StockFilingsPage({ params }: { params: Promise<Params> }) {
   const { venue, ticker } = await params;

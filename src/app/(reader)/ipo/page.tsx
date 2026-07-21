@@ -24,9 +24,18 @@ import { fmtDate } from "@/lib/reader/format";
  * `src/lib/data/calendars.ts`).
  */
 
+const IPO_TITLE = "IPO Center";
+const IPO_DESCRIPTION = "The Gulf listings pipeline — subscriptions, pricing and debuts across the six GCC venues.";
+
 export const metadata: Metadata = {
-  title: "IPO Center",
-  description: "The Gulf listings pipeline — subscriptions, pricing and debuts across the six GCC venues.",
+  title: IPO_TITLE,
+  description: IPO_DESCRIPTION,
+  openGraph: {
+    title: IPO_TITLE,
+    description: IPO_DESCRIPTION,
+    images: [{ url: "/api/og/ipo", width: 1200, height: 630, alt: IPO_TITLE }],
+  },
+  twitter: { card: "summary_large_image", title: IPO_TITLE, description: IPO_DESCRIPTION, images: ["/api/og/ipo"] },
 };
 
 const STAGE_LABELS: Record<Exclude<IpoStageBucket, "listed">, string> = {
@@ -196,10 +205,18 @@ async function IpoBody() {
                     label={STAGE_LABELS[bucket]}
                     right={`${offers.length} OFFER${offers.length === 1 ? "" : "S"}`}
                   />
-                  <IpoHeaderRow />
-                  {offers.map((offer) => (
-                    <IpoOfferRow key={offer.id} offer={offer} />
-                  ))}
+                  {/* ROW_GRID is a fixed-px 6-column track — narrower than a
+                      390px mobile viewport. Scope the scroll to this row
+                      region (not the page) so mobile gets a normal,
+                      single-axis page instead of the whole layout overflowing
+                      horizontally (WCAG 1.4.10 Reflow). The stage-band label
+                      above stays put. */}
+                  <div className="overflow-x-auto">
+                    <IpoHeaderRow />
+                    {offers.map((offer) => (
+                      <IpoOfferRow key={offer.id} offer={offer} />
+                    ))}
+                  </div>
                 </div>
               );
             })

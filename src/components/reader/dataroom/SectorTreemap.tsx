@@ -22,12 +22,67 @@ import { fmtSignedPct, fmtPrice } from "@/lib/reader/format";
 
 type Surface = "light" | "dark";
 
-/** 9-step dark scale — `globals.css` scopes `--color-heatmap-*` to "dark data-room only". */
-function darkHeatVar(pct: number | null): string {
-  if (pct == null || !Number.isFinite(pct)) return "var(--color-dark-panel)";
+/**
+ * 9-step dark scale, literal hex — copied 1:1 from `globals.css`'s
+ * `--color-heatmap-1..9` (keep in sync if that palette ever changes; this
+ * file does not edit globals.css). This used to reference the tokens via
+ * `var(--color-heatmap-${bucket})`, which renders as a fully TRANSPARENT
+ * background: Tailwind v4 only emits an `@theme` color's CSS custom property
+ * when something in the scanned source matches it as a utility class
+ * (`bg-heatmap-8` etc.); a plain runtime `var()` string built from a computed
+ * bucket number is invisible to that static scan, so `--color-heatmap-*`
+ * never made it into the compiled stylesheet at all (verified: zero
+ * occurrences of "heatmap" in the built CSS, confirmed with devtools against
+ * the running preview) — every tile has been rendering with NO background
+ * color, not just a subtle one. Inlining the hex values sidesteps the
+ * indirection entirely and needs no globals.css change.
+ *
+ * On top of that, the caption below reads "1D change, −3% → +3%" (a real,
+ * intentional domain — do not change it here), but real GCC daily moves
+ * cluster tightly inside that ±3% band (median well under ±1%). A LINEAR
+ * map from pct → bucket crowds almost every tile into the three near-black
+ * center buckets (4/5/6). A signed square-root curve pushes small moves
+ * outward toward the red/green ends faster, while ±3% (the labeled domain
+ * edge) still maxes out bucket 1/9 exactly as before — same domain, same 9
+ * colors, more perceptible intensity at the magnitudes that actually occur.
+ */
+const HEATMAP_HEX: Record<number, string> = {
+  1: "#7a291f",
+  2: "#5c261f",
+  3: "#32241e",
+  4: "#232e22",
+  5: "#203a27",
+  6: "#1a5c32",
+  7: "#1c6b38",
+  8: "#1f7a3f",
+  9: "#1f8a45",
+};
+
+/** Bucket 1..9, or `null` for a missing/non-finite move (renders the neutral panel color). */
+function darkHeatBucket(pct: number | null): number | null {
+  if (pct == null || !Number.isFinite(pct)) return null;
   const clamped = Math.max(-3, Math.min(3, pct));
-  const bucket = Math.max(1, Math.min(9, Math.round(5 + (clamped / 3) * 4)));
-  return `var(--color-heatmap-${bucket})`;
+  const pushed = Math.sign(clamped) * Math.sqrt(Math.abs(clamped) / 3) * 3;
+  return Math.max(1, Math.min(9, Math.round(5 + (pushed / 3) * 4)));
+}
+
+function darkHeatVar(bucket: number | null): string {
+  return bucket == null ? "var(--color-dark-panel)" : HEATMAP_HEX[bucket];
+}
+
+/**
+ * Ticker/price text sits directly on the tile fill, so it needs its own
+ * contrast check against each of the 9 background colors, not just against
+ * `--color-dark-bg`. `text-dark-text` (#f0ede2) clears 4.5:1 (WCAG AA, small
+ * text) on 8 of the 9 buckets — only the brightest green (bucket 9,
+ * #1f8a45) drops it to 3.75:1. Ink-black text does better there (4.26:1,
+ * still short of 4.5 — the palette itself cannot reach AA on that single
+ * swatch at mono ticker sizes; flagged to the lead, a token-level fix is
+ * out of scope here) but is worse everywhere else, so it's used only for
+ * that one bucket rather than globally.
+ */
+function darkHeatTextClass(bucket: number | null): string {
+  return bucket === 9 ? "text-ink" : "text-dark-text";
 }
 
 /**
@@ -61,12 +116,17 @@ function ConstituentTile({
   size?: "sm" | "lg";
 }) {
   const dark = surface === "dark";
+  const bucket = dark ? darkHeatBucket(c.changePct) : null;
   const style: CSSProperties = {
     flexGrow: tileGrow(c.changePct),
-    ...(dark ? { backgroundColor: darkHeatVar(c.changePct) } : {}),
+    ...(dark ? { backgroundColor: darkHeatVar(bucket) } : {}),
   };
   const bgClass = dark ? "" : lightHeatClass(c.changePct);
-  const text = dark ? "text-dark-text" : "text-ink";
+  const text = dark ? darkHeatTextClass(bucket) : "text-ink";
+  // Bucket 9 (brightest green) also needs the muted name label bumped to the
+  // same high-contrast ink text — `text-dark-text-mid` drops under 3:1 there
+  // (see `darkHeatTextClass`).
+  const mutedText = dark ? (bucket === 9 ? "text-ink" : "text-dark-text-mid") : "text-ink-muted";
   const border = dark ? "border-dark-hairline/60" : "border-hairline-soft";
   const lg = size === "lg";
 
@@ -81,7 +141,7 @@ function ConstituentTile({
         {c.ticker}
       </span>
       {lg && (
-        <span className={`truncate font-ui text-[11px] ${dark ? "text-dark-text-mid" : "text-ink-muted"}`}>
+        <span className={`truncate font-ui text-[11px] ${mutedText}`}>
           {c.name}
         </span>
       )}

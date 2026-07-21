@@ -28,9 +28,24 @@ import { fmtSignedPct, venueName } from "@/lib/reader/format";
  * (cacheComponents rule) — the market page / stock page pattern.
  */
 
+const EARNINGS_TITLE = "Earnings calendar";
+const EARNINGS_DESCRIPTION =
+  "The GCC reporting calendar — confirmed and estimated report dates, actuals vs prior, across all six venues.";
+
 export const metadata: Metadata = {
-  title: "Earnings calendar",
-  description: "The GCC reporting calendar — confirmed and estimated report dates, actuals vs prior, across all six venues.",
+  title: EARNINGS_TITLE,
+  description: EARNINGS_DESCRIPTION,
+  openGraph: {
+    title: EARNINGS_TITLE,
+    description: EARNINGS_DESCRIPTION,
+    images: [{ url: "/api/og/earnings", width: 1200, height: 630, alt: EARNINGS_TITLE }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: EARNINGS_TITLE,
+    description: EARNINGS_DESCRIPTION,
+    images: ["/api/og/earnings"],
+  },
 };
 
 type Search = { cursor?: string };
@@ -204,10 +219,17 @@ async function EarningsBody({ searchParams }: { searchParams: Promise<Search> })
                   label={fmtDayBand(day.date)}
                   right={`${day.count} EVENT${day.count === 1 ? "" : "S"}`}
                 />
-                <EarningsHeaderRow />
-                {day.rows.map((r) => (
-                  <EarningsRow key={r.id} r={r} />
-                ))}
+                {/* ROW_GRID is a fixed-px 7-column track (~450px min) — narrower
+                    than a 390px mobile viewport. Scope the scroll to this row
+                    region (not the page) so mobile gets a normal, single-axis
+                    page instead of the whole layout overflowing horizontally
+                    (WCAG 1.4.10 Reflow). The day-band label above stays put. */}
+                <div className="overflow-x-auto">
+                  <EarningsHeaderRow />
+                  {day.rows.map((r) => (
+                    <EarningsRow key={r.id} r={r} />
+                  ))}
+                </div>
               </div>
             ))
           )}

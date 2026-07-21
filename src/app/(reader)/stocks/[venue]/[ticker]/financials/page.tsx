@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { resolveSecurity } from "@/lib/securities/resolve";
 import { PremiumLock } from "@/components/reader/PremiumLock";
@@ -13,6 +14,13 @@ import { PremiumLock } from "@/components/reader/PremiumLock";
  */
 
 type Params = { venue: string; ticker: string };
+
+export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+  const { venue, ticker } = await params;
+  const sec = await resolveSecurity(venue, ticker);
+  if (!sec) return { title: "Not found" };
+  return { title: `Financials · ${sec.name}` };
+}
 
 const STATEMENT_TABS = ["Income statement", "Balance sheet", "Cash flow"];
 

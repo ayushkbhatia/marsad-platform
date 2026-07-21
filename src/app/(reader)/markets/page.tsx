@@ -28,10 +28,19 @@ import { fmtClock } from "@/lib/reader/format";
  * names + "awaiting data"; a `closed` venue reads DELAYED (never "live").
  */
 
+const MARKETS_TITLE = "Markets";
+const MARKETS_DESCRIPTION =
+  "Index levels, venue freshness, sector breadth and top movers across the six GCC venues — delayed data.";
+
 export const metadata: Metadata = {
-  title: "Markets",
-  description:
-    "Index levels, venue freshness, sector breadth and top movers across the six GCC venues — delayed data.",
+  title: MARKETS_TITLE,
+  description: MARKETS_DESCRIPTION,
+  openGraph: {
+    title: MARKETS_TITLE,
+    description: MARKETS_DESCRIPTION,
+    images: [{ url: "/api/og/markets", width: 1200, height: 630, alt: MARKETS_TITLE }],
+  },
+  twitter: { card: "summary_large_image", title: MARKETS_TITLE, description: MARKETS_DESCRIPTION, images: ["/api/og/markets"] },
 };
 
 /** Floor a feed block to a badge state that can never read "live" (delayed product). */

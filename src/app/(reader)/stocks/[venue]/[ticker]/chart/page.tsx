@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { resolveSecurity } from "@/lib/securities/resolve";
@@ -20,6 +21,13 @@ type Params = { venue: string; ticker: string };
 type Search = { range?: string };
 
 const RANGES: OhlcvRange[] = ["1M", "3M", "6M", "1Y", "5Y", "MAX"];
+
+export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+  const { venue, ticker } = await params;
+  const sec = await resolveSecurity(venue, ticker);
+  if (!sec) return { title: "Not found" };
+  return { title: `Price chart · ${sec.name}` };
+}
 
 export default function ChartPage({
   params,

@@ -25,9 +25,23 @@ import { fmtDate } from "@/lib/reader/format";
  * query/grouping/pagination below is correct and will light up unmodified.
  */
 
+const DIVIDENDS_TITLE = "Dividend calendar";
+const DIVIDENDS_DESCRIPTION = "Ex-dates, pay dates and yields across the six GCC venues — delayed, confirmed-only.";
+
 export const metadata: Metadata = {
-  title: "Dividend calendar",
-  description: "Ex-dates, pay dates and yields across the six GCC venues — delayed, confirmed-only.",
+  title: DIVIDENDS_TITLE,
+  description: DIVIDENDS_DESCRIPTION,
+  openGraph: {
+    title: DIVIDENDS_TITLE,
+    description: DIVIDENDS_DESCRIPTION,
+    images: [{ url: "/api/og/dividends", width: 1200, height: 630, alt: DIVIDENDS_TITLE }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: DIVIDENDS_TITLE,
+    description: DIVIDENDS_DESCRIPTION,
+    images: ["/api/og/dividends"],
+  },
 };
 
 type Search = { cursor?: string };
@@ -191,10 +205,17 @@ async function DividendsBody({ searchParams }: { searchParams: Promise<Search> }
             calendar.days.map((day) => (
               <div key={day.date} className="mt-2.5">
                 <SectionBar label={fmtDayBand(day.date)} right={`${day.count} EX-DATE${day.count === 1 ? "" : "S"}`} />
-                <DividendHeaderRow />
-                {day.rows.map((r) => (
-                  <DividendRow key={r.id} r={r} />
-                ))}
+                {/* ROW_GRID is a fixed-px 6-column track — narrower than a
+                    390px mobile viewport. Scope the scroll to this row region
+                    (not the page) so mobile gets a normal, single-axis page
+                    instead of the whole layout overflowing horizontally
+                    (WCAG 1.4.10 Reflow). The day-band label above stays put. */}
+                <div className="overflow-x-auto">
+                  <DividendHeaderRow />
+                  {day.rows.map((r) => (
+                    <DividendRow key={r.id} r={r} />
+                  ))}
+                </div>
               </div>
             ))
           )}
