@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { newsreader, libreFranklin, plexMono } from "@/lib/fonts";
+import { newsreader, libreFranklin, plexMono, notoNaskh } from "@/lib/fonts";
 import { siteUrl } from "@/lib/reader/format";
 import "./globals.css";
 
@@ -48,7 +48,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${newsreader.variable} ${libreFranklin.variable} ${plexMono.variable} h-full antialiased`}
+      className={`${newsreader.variable} ${libreFranklin.variable} ${plexMono.variable} ${notoNaskh.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

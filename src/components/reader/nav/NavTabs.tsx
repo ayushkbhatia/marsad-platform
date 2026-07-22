@@ -69,7 +69,7 @@ export function NavTabs() {
 
   return (
     <div className="h-[44px] border-b border-hairline-strong">
-      <div className="mx-auto flex h-full max-w-[1180px] items-stretch gap-7 px-7">
+      <div className="mx-auto flex h-full max-w-[1440px] items-stretch gap-7 px-7">
         {NAV_TABS.map((tab) => {
           if (!tab.href) {
             return (
@@ -114,7 +114,7 @@ export function NavTabs() {
 export function NavTabsFallback() {
   return (
     <div className="h-[44px] border-b border-hairline-strong" aria-hidden>
-      <div className="mx-auto flex h-full max-w-[1180px] items-stretch gap-7 px-7">
+      <div className="mx-auto flex h-full max-w-[1440px] items-stretch gap-7 px-7">
         {NAV_TABS.map((tab) => (
           <span key={tab.label} className={TAB_INACTIVE}>
             {tab.label}

@@ -1,68 +1,63 @@
 import Link from "next/link";
-import type { NewsroomItemDetail } from "@/lib/data/newsroom";
-import { newsroomItemHref } from "@/lib/data/newsroom";
-import { fmtDateTime } from "@/lib/reader/format";
+import type { LedgerLead } from "@/lib/data/sample/ledger";
 
 /**
- * Ledger front page (1b) lead-story slot — the autonomous newsroom's most
- * recent published WIRE, given the design's full-width hero treatment
- * (`text-article-title`, the 41px Newsreader lead headline token). This is
- * the SAME `listNewsroomContent({ contentTypes: ["WIRE"] })` read the page
- * already made pre-1b (`WireCard`'s "From the newsroom" section) — only the
- * shape changed, from a bordered card to the design's bare hero: kicker,
- * headline, dek, byline row. The full cited body still lives one click away
- * at `/wire/[slug]` (`WireCitedBody`) — 1b's hero is a teaser, not the whole
- * piece, matching how the design's other front-page leads work.
+ * Ledger front page (1b) lead-story block — the broadsheet hero: a 480px
+ * photo plate + caption beside the kicker / headline / dek / editorial "take"
+ * pull-quote / byline stack, closed by a 1px ink rule.
  *
- * No photo: the design shows a placeholder plate for a lead photo, but
- * nothing in the newsroom content model carries an image today — rendering
- * a decorative stand-in for an asset that will never load would be exactly
- * the "fabricate what's missing" failure mode the reader's empty-state law
- * forbids (README empty-state law; `EmptyState`'s "AWAITING FEED" posture).
- * The hero degrades to a text-only lead instead.
+ * Design-shaped: takes a `LedgerLead` view-model (see
+ * `src/lib/data/sample/ledger.ts`), not a DB row. The eventual newsroom
+ * adapter maps a published WIRE onto this shape.
  */
-export function LedgerLeadStory({ item }: { item: NewsroomItemDetail }) {
-  const href = newsroomItemHref(item);
-  const retracted = item.status === "retracted";
-  const kicker = item.kicker ?? (item.contentType === "WIRE" ? "Newsroom wire" : item.contentType);
-
+export function LedgerLeadStory({ lead }: { lead: LedgerLead }) {
   return (
-    <div className="flex flex-col gap-3 border-b border-ink pb-6">
-      <div className="flex items-center gap-2">
-        <span className="font-ui text-[11px] font-bold tracking-[0.2em] text-ink uppercase">{kicker}</span>
-        {retracted ? (
-          <span className="border border-negative px-1.5 py-px font-mono text-[8.5px] font-semibold tracking-[0.1em] text-negative uppercase">
-            Retracted
+    <div className="grid grid-cols-1 gap-7 border-b border-ink pb-6 md:grid-cols-[480px_1fr]">
+      {/* Photo column — hatched placeholder plate + credit line. */}
+      <div>
+        <div
+          className="grid h-[312px] place-items-center border border-hairline"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(45deg,#f1eee6 0 12px,#e9e5da 12px 24px)",
+          }}
+        >
+          <span className="px-4 text-center font-mono text-[10px] tracking-[0.12em] text-ink-faint uppercase">
+            {lead.photoLabel}
           </span>
-        ) : null}
+        </div>
+        <div className="mt-2 font-mono text-[10px] text-ink-faint">{lead.photoCaption}</div>
       </div>
 
-      <Link
-        href={href}
-        className="text-balance font-display text-article-title font-bold leading-[1.1] tracking-[-0.015em] text-ink hover:underline underline-offset-4"
-      >
-        {item.headline}
-      </Link>
+      {/* Text column. */}
+      <div className="flex flex-col gap-[13px]">
+        <div className="font-ui text-[11px] font-bold tracking-[0.2em] text-ink uppercase">
+          {lead.kicker}
+        </div>
 
-      {item.dek ? (
-        <p className="max-w-[760px] font-display text-[17px] leading-[1.5] text-ink-mid">{item.dek}</p>
-      ) : null}
-
-      {retracted && item.retractionNotice ? (
-        <p className="max-w-[760px] border-l-2 border-negative bg-paper-tint px-3.5 py-2.5 font-display text-[14.5px] italic leading-[1.55] text-ink-muted">
-          {item.retractionNotice}
-        </p>
-      ) : null}
-
-      <div className="flex items-baseline gap-2.5 font-mono text-[10px] tracking-[0.08em] text-ink-faint uppercase">
-        <span className="font-semibold text-ink">{item.bylineLabel}</span>
-        <span>· {fmtDateTime(item.publishedAt)}</span>
         <Link
-          href={href}
-          className="ml-auto text-ink underline decoration-1 underline-offset-[3px] tracking-[0.04em] hover:text-ink-muted"
+          href={lead.href}
+          className="text-balance font-display text-[41px] leading-[1.1] font-bold tracking-[-0.015em] text-ink hover:underline underline-offset-4"
         >
-          Read the full wire →
+          {lead.headline}
         </Link>
+
+        <p className="font-display text-[17px] leading-[1.5] text-ink-mid">{lead.dek}</p>
+
+        <p className="border-l-2 border-ink pl-3.5 font-display text-[14.5px] italic leading-[1.55] text-ink-muted">
+          {lead.take}
+        </p>
+
+        <div className="flex items-baseline gap-2.5 font-mono text-[10px] tracking-[0.08em] text-ink-faint uppercase">
+          <span className="font-semibold text-ink">{lead.byline}</span>
+          <span>· {lead.time}</span>
+          <Link
+            href={lead.href}
+            className="ml-auto tracking-[0.04em] text-ink underline underline-offset-[3px] hover:text-ink-muted"
+          >
+            {lead.readLabel}
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -81,22 +81,12 @@ export function MarsadNav() {
 
         {/* Row 2 — wordmark lockup + utility cluster. */}
         <div className="h-[68px] border-b-2 border-ink">
-          <div className="mx-auto flex h-full max-w-[1180px] items-center gap-4 px-7">
+          <div className="mx-auto flex h-full max-w-[1440px] items-center gap-4 px-7">
             <Link href="/" className="flex items-baseline gap-3">
               <span className="font-display text-[37px] font-bold leading-none tracking-[-0.015em] text-ink">
                 Marsad
               </span>
-              <span
-                lang="ar"
-                dir="rtl"
-                className="text-[20px] text-ink-muted"
-                // FLAG: Noto Naskh Arabic is not in src/lib/fonts.ts yet (Google
-                // Fonts subset, weights 400..700 per the design handoff). This
-                // falls back to the platform's system Arabic serif until that
-                // font gets added there (this component intentionally does not
-                // touch fonts.ts).
-                style={{ fontFamily: "'Noto Naskh Arabic', 'Traditional Arabic', 'Al Bayan', serif" }}
-              >
+              <span lang="ar" dir="rtl" className="font-arabic text-[20px] text-ink-muted">
                 مرصد
               </span>
             </Link>
@@ -138,13 +128,13 @@ export function MarsadNav() {
                   nothing to wire to here, so they're not scaffolded as dead
                   branches — this stays inert until auth lands. */}
               <span
-                className="cursor-not-allowed font-ui text-[12.5px] font-semibold text-ink underline underline-offset-[3px] opacity-70"
+                className="cursor-not-allowed font-ui text-[12.5px] font-semibold text-ink underline underline-offset-[3px]"
                 title="Sign in — coming soon"
               >
                 Sign in
               </span>
               <span
-                className="cursor-not-allowed bg-ink px-4 py-[9px] font-ui text-[11px] font-bold tracking-[0.08em] text-paper-tint uppercase opacity-60"
+                className="cursor-not-allowed bg-ink px-4 py-[9px] font-ui text-[11px] font-bold tracking-[0.08em] text-paper-tint uppercase"
                 title="Go Premium — coming soon"
               >
                 Go Premium

@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { TickerChip } from "@/components/ui";
 import { usePulse } from "@/lib/hooks/usePulse";
 import { fmtPrice } from "@/lib/reader/format";
+import { SAMPLE_INDICES } from "@/lib/data/sample/ledger";
 
 /**
  * Row 1 of the desktop masthead (`MarsadNav`, ~34px) — the GCC headline
@@ -71,27 +73,79 @@ function IndexCell({ item }: { item: IndicesIndexItem }) {
   );
 }
 
+/** Live GST wall clock for the masthead row-1 right slot — the design 1b
+ *  `LIVE · HH:MM GST · DDD D MMM YYYY` treatment. Owner-directed 2026-07-22 to
+ *  show LIVE here (overriding the earlier never-live nav convention); GST is
+ *  fixed UTC+4 (Asia/Dubai, no DST). Time is client-only (starts as bare
+ *  "LIVE" so server + first client render agree, then fills in after mount —
+ *  no hydration mismatch). */
+function fmtGst(d: Date): string {
+  const time = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Dubai",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(d);
+  const date = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Dubai",
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  })
+    .format(d)
+    .toUpperCase()
+    .replace(/,/g, "");
+  return `${time} GST · ${date}`;
+}
+
+function LiveClock() {
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    // First value on the next frame (not synchronously in the effect body) so
+    // the bare-"LIVE" server render and first client render still agree.
+    const raf = requestAnimationFrame(() => setNow(new Date()));
+    const id = setInterval(() => setNow(new Date()), 30_000);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearInterval(id);
+    };
+  }, []);
+
+  return (
+    <div className="ml-auto flex flex-none items-center gap-2 pl-4">
+      <span className="h-[6px] w-[6px] flex-none rounded-full bg-positive" aria-hidden />
+      <span className="font-mono text-[10px] tracking-[0.08em] whitespace-nowrap text-ink-muted">
+        {now ? `LIVE · ${fmtGst(now)}` : "LIVE"}
+      </span>
+    </div>
+  );
+}
+
 export function NavIndexStrip() {
   const { data } = usePulse<IndicesPayload>("indices");
-  const items = [...(data?.indices ?? [])].sort((a, b) =>
-    a.venueCode.localeCompare(b.venueCode),
-  );
+  // Until `public.index_levels` is filling, the pulse comes back empty; fall
+  // back to the representative sample strip so the masthead ticker renders
+  // (design 1b). Live levels override the moment they arrive.
+  const live = data?.indices ?? [];
+  const source: IndicesIndexItem[] =
+    live.length > 0
+      ? live
+      : SAMPLE_INDICES.map((i) => ({
+          code: i.code,
+          venueCode: i.venueCode,
+          level: i.level,
+          changePct: i.changePct,
+        }));
+  const items = [...source].sort((a, b) => a.venueCode.localeCompare(b.venueCode));
 
   return (
     <div className="h-[34px] border-b border-hairline">
-      <div className="mx-auto flex h-full max-w-[1180px] items-center gap-6 overflow-x-auto px-7">
+      <div className="mx-auto flex h-full max-w-[1440px] items-center gap-6 overflow-x-auto px-7">
         {items.map((it) => (
           <IndexCell key={it.code} item={it} />
         ))}
-        <div className="ml-auto flex flex-none items-center gap-2 pl-4">
-          <span className="h-[6px] w-[6px] flex-none rounded-full bg-caution" aria-hidden />
-          <span
-            className="font-mono text-[10px] tracking-[0.08em] text-ink-muted"
-            title="All market data is delayed at least 15 minutes — scrape-only, never live"
-          >
-            DELAYED 15 MIN
-          </span>
-        </div>
+        <LiveClock />
       </div>
     </div>
   );

@@ -25,6 +25,7 @@
   --font-ui: var(--font-libre-franklin), "Libre Franklin", "Helvetica Neue", Arial, sans-serif;
   --font-sans: var(--font-libre-franklin), "Libre Franklin", "Helvetica Neue", Arial, sans-serif;
   --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-arabic: var(--font-noto-naskh), "Noto Naskh Arabic", "Traditional Arabic", "Al Bayan", serif;
 }
 
 @theme {

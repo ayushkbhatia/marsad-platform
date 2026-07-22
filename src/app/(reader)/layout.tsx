@@ -27,7 +27,7 @@ export default function ReaderLayout({
       <MarsadNav />
       <main className="flex-1">{children}</main>
       <footer className="border-t border-hairline bg-paper">
-        <div className="mx-auto flex max-w-[1180px] flex-col gap-3 px-5 py-8 font-mono text-[10px] leading-[1.7] text-ink-faint sm:flex-row sm:items-start sm:justify-between sm:px-8">
+        <div className="mx-auto flex max-w-[1440px] flex-col gap-3 px-7 py-8 font-mono text-[10px] leading-[1.7] text-ink-faint sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-[440px]">
             <span className="font-display text-[13px] font-bold not-italic text-ink">Marsad</span>
             <p className="mt-1.5 tracking-[0.02em]">
