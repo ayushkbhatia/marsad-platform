@@ -41,7 +41,12 @@ export const NAV_TABS: readonly NavTab[] = [
     match: (p) => section("/screener")(p) || section("/screens")(p),
   },
   { label: "IPOs", href: "/ipo", match: section("/ipo") },
-  { label: "Research", href: "/research", match: section("/research") },
+  {
+    label: "Research",
+    href: "/research",
+    // Article pages (/articles/[slug]) are research detail — keep Research lit there too.
+    match: (p) => section("/research")(p) || section("/articles")(p),
+  },
   { label: "Analysts", href: "/analysts", match: section("/analysts") },
   { label: "Watchlist", href: "/watchlist", match: section("/watchlist") },
 ];
