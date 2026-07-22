@@ -1,45 +1,42 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { getIndexTape, getTopMovers } from "@/lib/data/markets";
+import { getIndexTape, getTopMovers, getMarketState } from "@/lib/data/markets";
 import { getGlobalFilings } from "@/lib/data/filings";
 import { listNewsroomContent } from "@/lib/data/newsroom";
 import { IndexTape } from "@/components/reader/IndexTape";
-import { TopMovers } from "@/components/reader/TopMovers";
-import { FilingsList } from "@/components/reader/FilingsList";
-import { WireCard } from "@/components/reader/newsroom/WireCard";
-import { SectionBar, EmptyState } from "@/components/ui";
+import { LedgerLeadStory } from "@/components/reader/ledger/LeadStory";
+import { LedgerSecondaryStories } from "@/components/reader/ledger/SecondaryStories";
+import { LedgerWireRail } from "@/components/reader/ledger/WireRail";
+import { LedgerMovers } from "@/components/reader/ledger/LedgerMovers";
+import { SectionBar, PromoCard, EmptyState } from "@/components/ui";
 
 /**
- * Ledger front page (1b) — the reader's home, inside the (reader) editorial
- * shell. Leads with the autonomous newsroom's own published WIRE(s) when any
- * exist ("From the newsroom" — the first place a reader sees the agent
- * pipeline's output, 03-agent-newsroom.md), then MARKET DATA + the filings
- * wire: the index tape, the latest disclosures, and top movers, with routes
- * into /markets, /wire and the stock pages.
+ * Ledger front page — design screen 1b. A broadsheet split running the full
+ * page: an editorial main column (the newsroom's lead WIRE at hero weight,
+ * `text-article-title`, plus its remaining wires as a two-up story grid,
+ * `border-r`) beside a 372px data rail (live index tape, the filings wire,
+ * top movers, a Marsad Select teaser) — "From the newsroom" is still the
+ * first place a reader sees the agent pipeline's own output
+ * (03-agent-newsroom.md), just reshaped into 1b's lead-story slot instead of
+ * a separate hero + card section.
  *
- * Sync page = static shell (the masthead). The request-time reads (quotes for
- * movers, the wire, the index tape, the newsroom wires) stream inside a
- * <Suspense> boundary so the shell prerenders and the whole route never
+ * "Analyst calls today" (1b's fourth main-column module) is deliberately not
+ * built here — there is no analyst-call data source in this codebase yet
+ * (RatingBadge/ScoreModule cover a security's *current* score, not a dated
+ * call feed), and fabricating one would violate the reader's empty-state law.
+ * Parked as DEF-LEDGER-ANALYST-CALLS (`docs/BUILD-STATUS.md` §7).
+ *
+ * Sync page = static shell (just the max-width container). The request-time
+ * reads (quotes for movers, the wire, the index tape, the newsroom wires,
+ * market open/closed) stream inside a <Suspense> boundary so the route never
  * blocks on a dynamic read (cacheComponents blocking-route rule) — the stock
- * page / admin lake pattern.
+ * page / admin lake / Markets-page pattern. `getMarketState()` in particular
+ * reads the current wall clock (not `use cache`), which is exactly why it's
+ * documented as safe to call from "Markets/Ledger bodies" in markets.ts.
  */
 export default function LedgerFrontPage() {
   return (
     <div className="mx-auto max-w-[1180px] px-5 py-8 sm:px-8">
-      {/* Masthead line (static shell) */}
-      <header className="mb-6 border-b-2 border-ink pb-4">
-        <p className="font-mono text-[9px] tracking-[0.22em] text-ink-faint uppercase">
-          The Ledger · Independent GCC market research
-        </p>
-        <h1 className="mt-2 max-w-[760px] font-display text-heading-lg font-bold leading-[1.1] text-ink">
-          Gulf markets, read closely.
-        </h1>
-        <p className="mt-2 max-w-[620px] font-ui text-[13.5px] leading-[1.55] text-ink-muted">
-          Delayed prices, disclosures, and the Marsad Score across Tadawul, DFM, ADX, QE, MSX and
-          BHB. No noise — the filings wire and the tape, first.
-        </p>
-      </header>
-
       <Suspense fallback={<LedgerSkeleton />}>
         <LedgerBody />
       </Suspense>
@@ -49,26 +46,25 @@ export default function LedgerFrontPage() {
 
 function LedgerSkeleton() {
   return (
-    <div className="space-y-8">
-      <div className="h-[64px] w-full animate-pulse bg-hairline-soft" />
-      <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-        <div className="space-y-3">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-12 w-full animate-pulse bg-hairline-soft" />
-          ))}
-        </div>
-        <div className="h-[260px] w-full animate-pulse bg-hairline-soft" />
+    <div className="grid gap-8 lg:grid-cols-[1fr_372px]">
+      <div className="space-y-3">
+        <div className="h-[220px] w-full animate-pulse bg-hairline-soft" />
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-16 w-full animate-pulse bg-hairline-soft" />
+        ))}
       </div>
+      <div className="h-[520px] w-full animate-pulse bg-hairline-soft" />
     </div>
   );
 }
 
 async function LedgerBody() {
-  const [tape, movers, wire, newsroomWires] = await Promise.all([
+  const [tape, movers, wire, newsroomWires, marketState] = await Promise.all([
     getIndexTape(),
     getTopMovers(6),
-    getGlobalFilings(undefined, 10),
-    listNewsroomContent({ contentTypes: ["WIRE"], limit: 3 }),
+    getGlobalFilings(undefined, 6),
+    listNewsroomContent({ contentTypes: ["WIRE"], limit: 7 }),
+    getMarketState(),
   ]);
 
   const tapeVenues = [...new Set(tape.map((t) => t.venueCode))];
@@ -81,92 +77,80 @@ async function LedgerBody() {
     changePct: t.changePct,
   }));
 
+  const [lead, ...secondary] = newsroomWires;
+
   return (
-    <>
-      {/* From the newsroom — the autonomous pipeline's own published wires */}
-      <section className="mb-8">
-        <SectionBar label="From the newsroom" right={<Link href="/wire" className="hover:underline underline-offset-2">Full newswire →</Link>} />
-        {newsroomWires.length > 0 ? (
-          <div className="mt-3 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {newsroomWires.map((item) => (
-              <WireCard key={item.id} item={item} />
-            ))}
-          </div>
+    <div className="grid gap-10 lg:grid-cols-[1fr_372px] lg:gap-0">
+      {/* Main column — the newsroom lead + its remaining wires */}
+      <section className="lg:border-r lg:border-hairline lg:pr-[30px]">
+        {lead ? (
+          <LedgerLeadStory item={lead} />
         ) : (
-          <div className="mt-3">
+          <div className="border-b border-ink pb-6">
             <EmptyState
+              variant="awaitingFeed"
               title="The newsroom hasn't published today."
               body="The autonomous pipeline publishes here the moment its first wire clears rules."
             />
           </div>
         )}
+
+        {secondary.length > 0 ? <LedgerSecondaryStories items={secondary} /> : null}
       </section>
 
-      {/* Index tape */}
-      <section className="mb-8">
-        <IndexTape initial={tapeSeed} venues={tapeVenues} />
-      </section>
-
-      {/* Wire + movers */}
-      <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+      {/* Data rail — live markets, the filings wire, movers, the Select teaser */}
+      <aside className="flex flex-col gap-6 lg:pl-[26px]">
         <section>
-          <div className="mb-2 flex items-baseline justify-between border-b border-hairline pb-1.5">
-            <h2 className="font-display text-heading-sm font-semibold text-ink">On the wire</h2>
-            <Link
-              href="/wire"
-              className="font-mono text-[10px] text-ink-muted hover:text-ink hover:underline underline-offset-2"
-            >
-              Full newswire →
-            </Link>
+          <SectionBar
+            variant="rule"
+            label="Live markets"
+            right={
+              <span
+                className={`font-mono text-[9.5px] tracking-[0.08em] ${
+                  marketState.anyOpen ? "text-positive" : "text-ink-faint"
+                }`}
+              >
+                ● {marketState.anyOpen ? "OPEN" : "CLOSED"}
+              </span>
+            }
+          />
+          <div className="mt-3">
+            <IndexTape initial={tapeSeed} venues={tapeVenues} />
           </div>
-          <FilingsList items={wire.items} showTicker showSummary emptyLabel="No filings on the wire yet." />
         </section>
 
-        <aside className="flex flex-col gap-8">
-          <section>
-            <div className="mb-2 flex items-baseline justify-between border-b border-hairline pb-1.5">
-              <h2 className="font-display text-heading-sm font-semibold text-ink">Movers</h2>
+        <section>
+          <SectionBar
+            variant="rule"
+            label="The wire"
+            right={
               <Link
-                href="/markets"
-                className="font-mono text-[10px] text-ink-muted hover:text-ink hover:underline underline-offset-2"
+                href="/wire"
+                className="font-ui text-[11px] font-semibold text-ink-muted underline underline-offset-[3px] hover:text-ink"
               >
-                Markets →
+                All items →
               </Link>
-            </div>
-            <div className="grid grid-cols-1 gap-6">
-              <TopMovers gainers={movers.gainers} losers={movers.losers} />
-            </div>
-          </section>
+            }
+          />
+          <div className="mt-1">
+            <LedgerWireRail items={wire.items} emptyLabel="No filings on the wire yet." />
+          </div>
+        </section>
 
-          <section className="border border-hairline bg-paper p-4">
-            <h3 className="font-mono text-[10px] font-semibold tracking-[0.16em] text-ink-muted uppercase">
-              Explore
-            </h3>
-            <ul className="mt-2 flex flex-col gap-1.5 font-ui text-[13px] text-ink">
-              <li>
-                <Link href="/markets" className="hover:underline underline-offset-2">
-                  → Markets front (tape · heatmap · movers)
-                </Link>
-              </li>
-              <li>
-                <Link href="/wire" className="hover:underline underline-offset-2">
-                  → Filings newswire
-                </Link>
-              </li>
-              <li>
-                <Link href="/screener" className="hover:underline underline-offset-2">
-                  → Equity screener
-                </Link>
-              </li>
-              <li>
-                <Link href="/filings" className="hover:underline underline-offset-2">
-                  → Filings register
-                </Link>
-              </li>
-            </ul>
-          </section>
-        </aside>
-      </div>
-    </>
+        <section>
+          <SectionBar variant="rule" label="Movers" />
+          <LedgerMovers gainers={movers.gainers} losers={movers.losers} />
+        </section>
+
+        <PromoCard
+          label="Marsad Select"
+          headline="Five AI-ranked Gulf names for H2, rebalanced monthly."
+          body="Premium members see the full list and every rebalance note."
+          ctaText="Unlock with Premium"
+          disabled
+          hint="Subscription required"
+        />
+      </aside>
+    </div>
   );
 }

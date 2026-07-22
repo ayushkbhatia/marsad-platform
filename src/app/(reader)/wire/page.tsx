@@ -1,28 +1,34 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { getWireFilings, getFilingTypeFacets } from "@/lib/data/filings";
+import { getWireVenueFacets, getFilingsTodayCount, getQuotesForSecurities } from "@/lib/data/wire";
 import { listNewsroomContent } from "@/lib/data/newsroom";
 import { WireStream } from "@/components/reader/WireStream";
-import { WireCard } from "@/components/reader/newsroom/WireCard";
-import { SectionBar } from "@/components/ui";
-import { venueName } from "@/lib/reader/format";
+import { WireHeader } from "@/components/reader/wire/WireHeader";
+import { WireLeftRail } from "@/components/reader/wire/WireLeftRail";
+import { WireRightRail } from "@/components/reader/wire/WireRightRail";
+import { filingToWireItem, newsroomToWireItem, sortWireFeed } from "@/components/reader/wire/feed";
 
 /**
- * Newswire (1d) — two feeds sharing one page: the autonomous newsroom's own
- * published WIRE content_items (headline + dek + cited body — what the agent
- * pipeline actually wrote) above the raw `public.filings` disclosure feed
- * (the venue-sourced register this page has always shown). Facets
- * (`?venue=`, `?type=`) apply only to the filings feed below, as before.
+ * Newswire (1d) — the 3-column broadsheet: a FILTER/VENUE left rail, the
+ * center "Wire" feed (the newsroom's own published WIRE content_items
+ * merged with the raw `public.filings` disclosure feed into one date-grouped
+ * timeline — the newsroom items render with the design's "DEVELOPING"
+ * treatment, filings render plain), and a right rail of the raw filings
+ * feed + (scaffolded, honestly-empty) corporate actions / most-read.
  *
- * Facets are runtime searchParams, so the data body runs inside a <Suspense>
- * boundary (cacheComponents rule); the server renders the first faceted page
- * from the `use cache` `getWireFilings` (+ the newsroom wires from
- * `listNewsroomContent`), then the `WireStream` client island appends newer
- * filings from `/api/pulse/wire` every 30s while a venue is open.
+ * Facets are runtime searchParams (`?venue=`, `?type=`, `?cursor=`), so the
+ * data body runs inside a <Suspense> boundary (cacheComponents rule); the
+ * server renders the first faceted page, then `WireStream` appends newer
+ * filings from `/api/pulse/wire` every 30s while the relevant venue is open.
+ * `?cursor=` (the design's "Load earlier items") is a plain keyset-paged
+ * navigation — same pattern as `/filings` — and, while paging into history,
+ * suppresses both live polling and the newsroom cards (neither is meaningful
+ * mid-history).
  *
  * Filing items link to /filings/[id]; newsroom wire items link to
- * /wire/[slug]. /filings remains the formal disclosure register.
+ * /wire/[slug]. /filings remains the formal disclosure register (reachable
+ * from the header's WIRE | FILINGS REGISTER toggle).
  */
 
 const WIRE_TITLE = "Newswire";
@@ -39,21 +45,11 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", title: WIRE_TITLE, description: WIRE_DESCRIPTION, images: ["/api/og/wire"] },
 };
 
-const VENUES = ["TDWL", "DFM", "ADX", "QE", "MSX", "BHB"] as const;
-
-type Search = { venue?: string; type?: string };
+type Search = { venue?: string; type?: string; cursor?: string };
 
 export default function WirePage({ searchParams }: { searchParams: Promise<Search> }) {
   return (
-    <div className="mx-auto max-w-[900px] px-5 py-8 sm:px-8">
-      <header className="mb-4 border-b border-hairline pb-3">
-        <h1 className="font-display text-heading font-bold text-ink">Newswire</h1>
-        <p className="mt-1 font-ui text-[13px] text-ink-muted">
-          Every disclosure across the six GCC venues, newest first — delayed. Filter by venue and
-          type; the wire updates itself during market hours.
-        </p>
-      </header>
-
+    <div className="mx-auto max-w-[1180px] px-5 py-8 sm:px-8">
       <Suspense fallback={<WireFallback />}>
         <WireBody searchParams={searchParams} />
       </Suspense>
@@ -63,40 +59,22 @@ export default function WirePage({ searchParams }: { searchParams: Promise<Searc
 
 function WireFallback() {
   return (
-    <div className="space-y-3">
-      <div className="h-8 w-full animate-pulse bg-hairline-soft" />
-      {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="h-12 w-full animate-pulse bg-hairline-soft" />
-      ))}
+    <div className="grid grid-cols-1 gap-y-6 lg:grid-cols-[232px_1fr_300px] lg:gap-x-[30px] lg:gap-y-0">
+      <div className="h-[420px] w-full animate-pulse bg-hairline-soft" />
+      <div className="space-y-3">
+        <div className="h-8 w-full animate-pulse bg-hairline-soft" />
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="h-14 w-full animate-pulse bg-hairline-soft" />
+        ))}
+      </div>
+      <div className="h-[420px] w-full animate-pulse bg-hairline-soft" />
     </div>
   );
 }
 
-function FacetChip({
-  href,
-  active,
-  children,
-}: {
-  href: string;
-  active: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      className={`border px-2 py-1 font-mono text-[10px] tracking-[0.04em] uppercase transition-colors ${
-        active
-          ? "border-ink bg-ink text-paper-tint"
-          : "border-hairline-strong text-ink-muted hover:text-ink"
-      }`}
-    >
-      {children}
-    </Link>
-  );
-}
-
-/** Build a /wire URL preserving the other facet. */
-function wireHref(next: Partial<Search>, current: Search): string {
+/** Build a /wire URL preserving the other facet — never carries `cursor`
+ *  forward, since changing a facet always starts back at the live edge. */
+function wireHref(next: { venue?: string; type?: string }, current: { venue?: string; type?: string }): string {
   const venue = next.venue !== undefined ? next.venue : current.venue;
   const type = next.type !== undefined ? next.type : current.type;
   const p = new URLSearchParams();
@@ -110,62 +88,50 @@ async function WireBody({ searchParams }: { searchParams: Promise<Search> }) {
   const sp = await searchParams;
   const venue = (sp.venue ?? "").trim().toUpperCase();
   const type = (sp.type ?? "").trim().toUpperCase();
-  const current: Search = { venue: venue || undefined, type: type || undefined };
+  const cursor = (sp.cursor ?? "").trim() || undefined;
+  const current = { venue: venue || undefined, type: type || undefined };
 
-  const [page, typeFacets, newsroomWires] = await Promise.all([
-    getWireFilings({ venue, type, limit: 40 }),
+  const [page, typeFacets, venueFacets, newsroomWires, todayCount] = await Promise.all([
+    getWireFilings({ venue, type, cursor, limit: 40 }),
     getFilingTypeFacets(),
-    listNewsroomContent({ contentTypes: ["WIRE"], limit: 5 }),
+    getWireVenueFacets(),
+    cursor ? Promise.resolve([]) : listNewsroomContent({ contentTypes: ["WIRE"], limit: 5 }),
+    getFilingsTodayCount({ venue, type }),
   ]);
 
-  return (
-    <div className="flex flex-col gap-4">
-      {/* From the newsroom — the agent pipeline's own published wires */}
-      {newsroomWires.length > 0 ? (
-        <section>
-          <SectionBar label="From the newsroom" />
-          <div className="mt-3 grid gap-3 md:grid-cols-2">
-            {newsroomWires.map((item) => (
-              <WireCard key={item.id} item={item} />
-            ))}
-          </div>
-        </section>
-      ) : null}
+  const secIds = page.items.map((f) => f.securityId).filter((n): n is number => n != null);
+  const quotes = await getQuotesForSecurities(secIds);
 
-      {/* Facets */}
-      <div className="flex flex-col gap-2 border border-hairline bg-paper px-3 py-3">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="mr-1 font-mono text-[9px] tracking-[0.12em] text-ink-faint uppercase">Venue</span>
-          <FacetChip href={wireHref({ venue: undefined }, current)} active={!venue}>
-            All
-          </FacetChip>
-          {VENUES.map((v) => (
-            <FacetChip key={v} href={wireHref({ venue: v }, current)} active={venue === v}>
-              {venueName(v).split(" · ").pop() ?? v}
-            </FacetChip>
-          ))}
-        </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="mr-1 font-mono text-[9px] tracking-[0.12em] text-ink-faint uppercase">Type</span>
-          <FacetChip href={wireHref({ type: undefined }, current)} active={!type}>
-            All
-          </FacetChip>
-          {typeFacets.slice(0, 9).map((t) => (
-            <FacetChip key={t.type} href={wireHref({ type: t.type }, current)} active={type === t.type}>
-              {t.type}
-            </FacetChip>
-          ))}
-        </div>
+  const initialFeed = sortWireFeed([
+    ...page.items.map((f) => filingToWireItem(f, f.securityId != null ? quotes.get(f.securityId) : null)),
+    ...newsroomWires.map(newsroomToWireItem),
+  ]);
+
+  const emptyLabel = venue || type ? "No items match this filter yet." : "No items on the wire yet.";
+
+  return (
+    <div className="grid grid-cols-1 gap-y-8 lg:grid-cols-[232px_1fr_300px] lg:gap-x-[30px] lg:gap-y-0">
+      <WireLeftRail
+        categories={typeFacets}
+        venues={venueFacets}
+        activeType={type || undefined}
+        activeVenue={venue || undefined}
+        hrefFor={(next) => wireHref(next, current)}
+      />
+
+      <div>
+        <WireHeader todayCount={todayCount} venue={venue || undefined} />
+        <WireStream
+          initial={initialFeed}
+          venue={venue || undefined}
+          type={type || undefined}
+          cursor={cursor}
+          nextCursor={page.nextCursor}
+          emptyLabel={emptyLabel}
+        />
       </div>
 
-      <WireStream
-        initial={page.items}
-        venue={venue || undefined}
-        type={type || undefined}
-        emptyLabel={
-          venue || type ? "No filings match this filter yet." : "No filings on the wire yet."
-        }
-      />
+      <WireRightRail rawFilings={page.items.slice(0, 6)} />
     </div>
   );
 }
