@@ -14,12 +14,12 @@ import { useMarketOpen } from "@/lib/hooks/usePulse";
  * `<Suspense fallback={<NavTabsFallback />}>` — the same cacheComponents
  * rule already applied to `MobileNavDrawer` in this file's sibling.
  *
- * `Watchlist` has no route yet — member surfaces (`(member)/watchlist`) are
- * `[BLOCKED-BY: auth]` (docs/FORWARD-BUILD.md §S6/S7, no `(auth)` group
- * exists in this build). It renders as an inert stub using the same
- * `cursor-not-allowed` + `title="… — coming soon"` convention already used
- * for other not-yet-built affordances (`(reader)/compare`,
- * `(reader)/analysts/apply`) rather than linking to a 404.
+ * `Watchlist` now links to `/watchlist` — the design-1h page, sample-seeded
+ * for the pixel pass (DEF-WATCHLIST-LIVE-DATA). It is a MEMBER surface in the
+ * real product; there is still no `(auth)` group, so the route ships ungated
+ * with a shared sample list until auth + per-user lists land. The
+ * `href: null` inert-stub branch below is retained for any future
+ * not-yet-built tab.
  */
 
 interface NavTab {
@@ -43,7 +43,7 @@ export const NAV_TABS: readonly NavTab[] = [
   { label: "IPOs", href: "/ipo", match: section("/ipo") },
   { label: "Research", href: "/research", match: section("/research") },
   { label: "Analysts", href: "/analysts", match: section("/analysts") },
-  { label: "Watchlist", href: null, match: () => false },
+  { label: "Watchlist", href: "/watchlist", match: section("/watchlist") },
 ];
 
 const TAB_BASE = "flex items-center font-ui text-[13.5px]";
