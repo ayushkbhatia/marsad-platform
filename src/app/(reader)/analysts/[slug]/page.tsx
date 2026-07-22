@@ -1,63 +1,38 @@
-import { Suspense } from "react";
 import type { Metadata } from "next";
-import Link from "next/link";
-import { getAnalystProfileBySlug } from "@/lib/data/editorial";
-import { EmptyState } from "@/components/ui";
+import { SAMPLE_PROFILE, COVERAGE_DESK } from "@/lib/data/sample/analysts";
+import { AnalystProfile } from "@/components/reader/analysts/AnalystProfile";
 
 /**
- * Analyst profile (1j) — awaiting-feed shell. `public.analysts` has no
- * `slug`/`display_name` column at all (only `principal_id -> iam.principals`,
- * which anon cannot read — see `src/lib/data/editorial.ts` header), so no
- * analyst profile can be resolved by URL today regardless of row count. This
- * is the same "whole tier not launched yet" situation as `ipo/[offerSlug]` —
- * every slug renders `EmptyState awaitingFeed`, not `notFound()`, because the
- * surface itself is pre-launch rather than one bad URL.
+ * Analyst Profile (1j) — the one reusable track-record template every 1i
+ * leaderboard row routes to. Header + stat strip + a 2-column body
+ * (performance chart & coverage table | pinned call, published research,
+ * disclosure).
  *
- * No `generateStaticParams` — there is nothing to enumerate yet.
+ * Content is SAMPLE / PLACEHOLDER (`src/lib/data/sample/analysts.ts`). For the
+ * fidelity pass EVERY slug renders the single fully-resolved `SAMPLE_PROFILE`
+ * (Noor Al-Suwaidi) — the one profile the design bakes end-to-end — since 1j
+ * is a layout, not a one-off. Real per-analyst content (`getAnalystProfileBySlug`
+ * is a stub today: `public.analysts` carries no `slug`/`display_name` anon can
+ * read) re-wires by mapping onto the `AnalystProfile` view-model and swapping
+ * the sample (DEF-ANALYSTS-LIVE-DATA). Fully static — the six desk slugs
+ * prerender via `generateStaticParams`; any other slug renders the template on
+ * demand.
  */
-
-type Params = { slug: string };
-
-export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
-  const { slug } = await params;
-  return { title: `Analyst · ${slug}` };
+export function generateStaticParams(): Array<{ slug: string }> {
+  return COVERAGE_DESK.analysts.map((a) => ({ slug: a.slug }));
 }
 
-export default function AnalystProfilePage({ params }: { params: Promise<Params> }) {
+export const metadata: Metadata = {
+  title: `${SAMPLE_PROFILE.name} — Coverage Desk`,
+  description: SAMPLE_PROFILE.credential,
+};
+
+export default function AnalystProfilePage() {
   return (
-    <div className="mx-auto max-w-[860px] px-5 py-14 sm:px-8">
-      <Suspense fallback={<div className="h-72 animate-pulse bg-hairline-soft" />}>
-        <ProfileBody params={params} />
-      </Suspense>
+    <div className="bg-paper">
+      <div className="mx-auto max-w-[1440px] px-7 pt-[22px] pb-[30px]">
+        <AnalystProfile profile={SAMPLE_PROFILE} />
+      </div>
     </div>
   );
-}
-
-async function ProfileBody({ params }: { params: Promise<Params> }) {
-  const { slug } = await params;
-  // Always null today (see header) — kept as a real call so the eventual
-  // implementation is a one-place change once analysts get a public slug.
-  const profile = await getAnalystProfileBySlug(slug);
-
-  if (!profile) {
-    return (
-      <EmptyState
-        variant="awaitingFeed"
-        title="Analyst profiles aren't published yet"
-        body="The Coverage Desk hasn't onboarded any analysts. Once it does, this page will show the analyst's bio, track record and published research."
-        action={
-          <Link
-            href="/analysts"
-            className="border border-ink px-4 py-2 font-ui text-[11.5px] font-semibold text-ink hover:bg-paper-tint"
-          >
-            ← Back to the Coverage Desk
-          </Link>
-        }
-      />
-    );
-  }
-
-  // Unreachable until getAnalystProfileBySlug resolves a real row — this
-  // never renders today.
-  return null;
 }
