@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { CorporateAction, ExchangeFiling, MostReadItem } from "@/lib/contracts/newswire";
+import { EmptyState } from "@/components/ui";
 
 /**
  * Newswire (1d) right context rail (300px) — three stacked modules under 2px
@@ -7,10 +8,26 @@ import type { CorporateAction, ExchangeFiling, MostReadItem } from "@/lib/contra
  * (links to the dividend/corp-actions calendar), and the ranked Most read
  * list (large serif numeral + headline).
  *
- * Sample-driven for the fidelity pass; filings re-wire onto the real
- * `public.filings` feed, corporate actions onto the dividends/corp-actions
- * producer, most-read onto an analytics source (DEF-NEWSWIRE-LIVE-DATA).
+ * P2.2: **Exchange filings is LIVE** (`public.filings` ⋈ `securities`). The
+ * other two modules have NO producer and now say so instead of collapsing to
+ * a silent gap:
+ *
+ * - **Corporate actions** — `public.dividends` holds 1,229 rows but every one
+ *   sits at `state='pending_confirm'` with a NULL `ex_date`, so **0 rows are
+ *   visible to anon**. → DEF-WIRE-CORPACTIONS, trigger P7.1.
+ * - **Most read** — there is no analytics store in the schema at all. →
+ *   DEF-WIRE-MOSTREAD.
+ *
+ * Neither is sample-filled: the sample's ex-dividend lines and headlines are
+ * invented, and an invented number on a data surface is the one thing this
+ * codebase does not ship (Law #2).
  */
+function RailNote({ title, body }: { title: string; body: string }) {
+  return (
+    <EmptyState variant="awaitingFeed" title={title} body={body} className="!px-3 !py-7 text-left" />
+  );
+}
+
 function RailHeader({ label, right }: { label: string; right?: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between border-b-2 border-ink pb-2">
@@ -36,9 +53,15 @@ export function NewswireContextRail({
         label="Exchange filings"
         right={<span className="font-mono text-[9px] text-ink-faint">RAW FEED</span>}
       />
+      {filings.length === 0 ? (
+        <RailNote
+          title="No filings on the raw feed"
+          body="Nothing has cleared the exchange sweep for this view yet."
+        />
+      ) : null}
       {filings.map((f) => (
         <Link
-          key={`${f.time}-${f.company}`}
+          key={f.id ?? `${f.time}-${f.company}`}
           href={f.href}
           className="flex flex-col gap-[3px] border-b border-hairline-faint py-[9px] hover:bg-paper-tint"
         >
@@ -67,6 +90,12 @@ export function NewswireContextRail({
           }
         />
       </div>
+      {corporateActions.length === 0 ? (
+        <RailNote
+          title="Corporate actions are awaiting confirmation"
+          body="Every dividend on file is still unconfirmed, with no ex-date — so none is published. The calendar lights up when the confirmation feed lands."
+        />
+      ) : null}
       {corporateActions.map((a) => (
         <div
           key={`${a.date}-${a.ticker}`}
@@ -86,6 +115,12 @@ export function NewswireContextRail({
       <div className="mt-[22px]">
         <RailHeader label="Most read" />
       </div>
+      {mostRead.length === 0 ? (
+        <RailNote
+          title="Readership ranking isn’t measured yet"
+          body="Most-read needs a readership counter behind it. Rather than rank by guesswork, this stays blank until one exists."
+        />
+      ) : null}
       {mostRead.map((m) => (
         <Link
           key={m.rank}

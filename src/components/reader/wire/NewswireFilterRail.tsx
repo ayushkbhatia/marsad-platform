@@ -7,10 +7,10 @@ import type { WireCategory, WireVenue } from "@/lib/contracts/newswire";
  * counts), the venue checklist (all pre-checked), and the "turn this view
  * into an alert" CTA card.
  *
- * Presentational / sample-driven for the fidelity pass; real facet counts +
- * live filtering re-wire onto `WireCategory`/`WireVenue` later
- * (DEF-NEWSWIRE-LIVE-DATA). The checkbox is a static design mark, not an
- * interactive control yet.
+ * LIVE as of P2.2 — counts are real `public.filings` facets and both rails
+ * filter for real (`/wire?type=…&venue=…`). The venue checkbox becomes a
+ * toggle link when the adapter supplies `venue.href`; without one it renders
+ * exactly as before (a static design mark), so the sample still works.
  */
 function RailHeader({ label }: { label: string }) {
   return (
@@ -57,21 +57,32 @@ export function NewswireFilterRail({
         <RailHeader label="Venue" />
       </div>
       <div className="flex flex-col pt-1.5">
-        {venues.map((v) => (
-          <div
-            key={v.name}
-            className="flex items-center gap-[9px] border-b border-hairline-faint px-0.5 py-[6.5px]"
-          >
-            <span
-              className="grid h-[11px] w-[11px] flex-none place-items-center border-[1.5px] border-ink bg-ink"
-              aria-hidden
-            >
-              {v.checked ? <span className="h-[5px] w-[5px] bg-paper-tint" /> : null}
-            </span>
-            <span className="text-[12px] text-ink-mid">{v.name}</span>
-            <span className="ml-auto font-mono text-[9.5px] text-[#a8a396]">{v.count}</span>
-          </div>
-        ))}
+        {venues.map((v) => {
+          const row = (
+            <>
+              <span
+                className={`grid h-[11px] w-[11px] flex-none place-items-center border-[1.5px] border-ink ${
+                  v.checked ? "bg-ink" : "bg-transparent"
+                }`}
+                aria-hidden
+              >
+                {v.checked ? <span className="h-[5px] w-[5px] bg-paper-tint" /> : null}
+              </span>
+              <span className={`text-[12px] ${v.checked ? "text-ink-mid" : "text-ink-faint"}`}>{v.name}</span>
+              <span className="ml-auto font-mono text-[9.5px] text-[#a8a396]">{v.count}</span>
+            </>
+          );
+          const cls = "flex items-center gap-[9px] border-b border-hairline-faint px-0.5 py-[6.5px]";
+          return v.href ? (
+            <Link key={v.code ?? v.name} href={v.href} className={`${cls} hover:bg-paper-tint`}>
+              {row}
+            </Link>
+          ) : (
+            <div key={v.code ?? v.name} className={cls}>
+              {row}
+            </div>
+          );
+        })}
       </div>
 
       <div className="mt-6 border border-ink bg-paper-tint px-3.5 py-[13px]">

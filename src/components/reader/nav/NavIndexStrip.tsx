@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { TickerChip } from "@/components/ui";
 import { usePulse, useMarketOpen } from "@/lib/hooks/usePulse";
 import { fmtPrice } from "@/lib/reader/format";
-import { SAMPLE_INDICES } from "@/lib/data/sample/ledger";
 
 /**
  * Row 1 of the desktop masthead (`MarsadNav`, ~34px) — the GCC headline
@@ -14,18 +13,17 @@ import { SAMPLE_INDICES } from "@/lib/data/sample/ledger";
  * Marsad is scrape-only delayed data, so the honest badge lives in that same
  * position instead — S1 color law, never "live").
  *
- * Self-contained by design (no server seed from the layout): unlike the
- * page-level `IndexTape` — which is hydrated with a server-fetched `initial`
- * snapshot and only polls while a venue is open — this strip has no seed, so
- * it fetches `/api/pulse/indices` immediately on mount and keeps polling at
- * the surface's 60s cadence REGARDLESS of market hours. Off-session it would
- * otherwise render nothing at all, and the nav needs to keep showing the
- * last known levels. The endpoint is edge-cached (`s-maxage=55`), so
+ * SERVER-SEEDED + polling. `MarsadNav` passes a server-read `initial` snapshot
+ * (the same `getIndexTape` the home rail uses) so the first paint carries REAL
+ * levels; the strip then polls `/api/pulse/indices` on the surface's 60s cadence
+ * REGARDLESS of market hours, because off-session the nav should keep showing
+ * the last known close. The endpoint is edge-cached (`s-maxage=55`), so
  * continuous polling from every tab is cheap.
  *
  * `public.index_levels` can be empty for a given index — each cell then
  * renders an honest "awaiting data" placeholder instead of a fabricated
- * level/direction (same law as `IndexTape`).
+ * level/direction (same law as `IndexTape`). It NEVER falls back to sample
+ * levels: doing so put a fake TASI print in the served HTML on every render.
  */
 
 interface IndicesIndexItem {
@@ -140,22 +138,18 @@ function LiveClock({ open }: { open: boolean }) {
   );
 }
 
-export function NavIndexStrip() {
+export function NavIndexStrip({ initial = [] }: { initial?: IndicesIndexItem[] }) {
   const { data } = usePulse<IndicesPayload>("indices");
   const open = useMarketOpen();
-  // Until `public.index_levels` is filling, the pulse comes back empty; fall
-  // back to the representative sample strip so the masthead ticker renders
-  // (design 1b). Live levels override the moment they arrive.
+  // SERVER-SEEDED, never sampled. This strip used to fall back to
+  // `SAMPLE_INDICES` whenever the client poll had not resolved — which is every
+  // server render — so the masthead shipped FABRICATED index levels in the HTML
+  // (TASI 11,842.60 against a real 10,804) and only corrected after hydration.
+  // `index_levels` has 4,261 rows and reports on a 10-minute timer, so the
+  // honest seed is the same server read the page rail uses; the poll then keeps
+  // it fresh. If neither has data the strip renders nothing rather than a lie.
   const live = data?.indices ?? [];
-  const source: IndicesIndexItem[] =
-    live.length > 0
-      ? live
-      : SAMPLE_INDICES.map((i) => ({
-          code: i.code,
-          venueCode: i.venueCode,
-          level: i.level,
-          changePct: i.changePct,
-        }));
+  const source: IndicesIndexItem[] = live.length > 0 ? live : initial;
   const items = [...source].sort((a, b) => a.venueCode.localeCompare(b.venueCode));
 
   return (

@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getFilingDetail } from "@/lib/data/filings";
+import { getFilingDetail, listRecentFilingRefs } from "@/lib/data/filings";
 import { JsonLd } from "@/components/reader/JsonLd";
 import { pdfPublicUrl, fmtDateTime, venueName, siteUrl } from "@/lib/reader/format";
 
@@ -20,6 +20,19 @@ type Params = { filingId: string };
  * "memoizing data requests"). Machine-extracted filing text is strong
  * long-tail SEO (04-reader-app §8) so every one of the ~13.5k filings gets a
  * real title/description instead of inheriting the site default. */
+/**
+ * A SMALL prerender head — the 60 most recently filed documents, which are by
+ * far the most requested. Purely a warm-cache win.
+ *
+ * (It is NOT what makes an unknown id return 404 — that is the hoisted resolve
+ * in the page component below. Cache Components also rejects an EMPTY
+ * `generateStaticParams`, so this set must stay non-empty.)
+ */
+export async function generateStaticParams(): Promise<Array<{ filingId: string }>> {
+  const refs = await listRecentFilingRefs(60);
+  return refs.map((r) => ({ filingId: String(r.id) }));
+}
+
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { filingId } = await params;
   const id = Number(filingId);
@@ -41,7 +54,17 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   };
 }
 
-export default function FilingDetailPage({ params }: { params: Promise<Params> }) {
+export default async function FilingDetailPage({ params }: { params: Promise<Params> }) {
+  // RESOLVE BEFORE ANYTHING STREAMS. `notFound()` called inside the <Suspense>
+  // child below renders the 404 UI but cannot change a status that has already
+  // gone out with the shell — so an unknown id answered 200-with-a-404-body,
+  // which is a wrong-canonical / duplicate-content problem on an indexed route.
+  // `getFilingDetail` is `use cache`, so the body's re-read is free.
+  const { filingId } = await params;
+  const id = Number(filingId);
+  if (!Number.isInteger(id) || id <= 0) notFound();
+  if (!(await getFilingDetail(id))) notFound();
+
   return (
     <div className="mx-auto max-w-[820px] px-5 py-8 sm:px-8">
       <Suspense fallback={<DetailFallback />}>

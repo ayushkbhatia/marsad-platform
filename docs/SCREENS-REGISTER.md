@@ -27,8 +27,8 @@ row in `BUILD-STATUS.md` §7 describing the exact swap.
 
 | ID | Screen | Route | Status | Feeds (schema) | Sample module / DEF |
 |----|--------|-------|--------|----------------|---------------------|
-| 1b | Ledger / Today (home) | `/` | pixel-sample | `content_items`, `index_levels`, `mv_movers`, `quotes_latest`, `filings` | `sample/ledger.ts` · DEF-LEDGER-LIVE-DATA |
-| 1d | Newswire | `/wire` | pixel-sample | `filings` (ready), `dividends` (broken), `score_events_feed` | `sample/newswire.ts` · DEF-NEWSWIRE-LIVE-DATA |
+| 1b | Ledger / Today (home) | `/` | **half-real** (rails live, editorial P3) | `content_items`, `index_levels`, `mv_movers`, `quotes_latest`, `filings` | `sample/ledger.ts` · DEF-LEDGER-LIVE-DATA |
+| 1d | Newswire | `/wire` | **design-on-real-data** | `filings` (ready), `dividends` (broken), `score_events_feed` | `sample/newswire.ts` · DEF-NEWSWIRE-LIVE-DATA |
 | 1h | Watchlist | `/watchlist` | pixel-sample | `quotes_latest`, `v_scores_public` + per-user tables (empty) | `sample/watchlist.ts` · DEF-WATCHLIST-LIVE-DATA |
 | 1i | Coverage Desk | `/analysts` | pixel-sample | `analysts` (0), `analyst_calls` (0) | `sample/analysts.ts` · DEF-ANALYSTS-LIVE-DATA |
 | 1j | Analyst Profile (template) | `/analysts/[slug]` | pixel-sample | `analysts` — no slug column (migration needed) | `sample/analysts.ts` · DEF-ANALYSTS-LIVE-DATA |
@@ -167,11 +167,11 @@ scaffold** — the prior `/ipo` pages rendered those queries behind an `EmptySta
 
 | ID | Screen | Route | Status | Feeds (schema) | Sample module / DEF |
 |----|--------|-------|--------|----------------|---------------------|
-| 8a | Earnings calendar | `/earnings` | pixel-sample | `earnings_events` (has rows; `eps_consensus`/`eps_marsad` NULL, `report_date` uniform) | `sample/calendars.ts` · DEF-CALENDARS-LIVE-DATA |
-| 23a | Dividend calendar | `/dividends` | pixel-sample | `dividends` (**0** `state='live'`, ex/pay dates NULL) | `sample/calendars.ts` · DEF-CALENDARS-LIVE-DATA |
-| 22a | IPO pipeline | `/ipo` | pixel-sample | `ipo_offers` (**0 rows**) via `getIpoPipeline`/`getIpoJustListed`/`getIpoKpis` | `sample/ipo.ts` · DEF-CALENDARS-LIVE-DATA |
-| 22b | IPO offer detail (template) | `/ipo/[offerSlug]` | pixel-sample | `ipo_offers` via `getIpoOffer` | `sample/ipo.ts` · DEF-CALENDARS-LIVE-DATA |
-| 22c | IPO listing-day (template) | `/ipo/listing/[slug]` | pixel-sample | `listing_debuts` (0) + intraday `quotes` | `sample/ipo.ts` · DEF-CALENDARS-LIVE-DATA |
+| 8a | Earnings calendar | `/earnings` | **design-on-real-data** | `earnings_events` (has rows; `eps_consensus`/`eps_marsad` NULL, `report_date` uniform) | `sample/calendars.ts` · DEF-CALENDARS-LIVE-DATA |
+| 23a | Dividend calendar | `/dividends` | **wired, honest-empty** | `dividends` (**0** `state='live'`, ex/pay dates NULL) | `sample/calendars.ts` · DEF-CALENDARS-LIVE-DATA |
+| 22a | IPO pipeline | `/ipo` | **wired, honest-empty** | `ipo_offers` (**0 rows**) via `getIpoPipeline`/`getIpoJustListed`/`getIpoKpis` | `sample/ipo.ts` · DEF-CALENDARS-LIVE-DATA |
+| 22b | IPO offer detail | `/ipo/[offerSlug]` | **wired, honest-empty** | `ipo_offers` via `getIpoOffer` | `sample/ipo.ts` · DEF-CALENDARS-LIVE-DATA |
+| 22c | IPO listing-day | `/ipo/listing/[slug]` | **wired, honest-empty** | `listing_debuts` (0) + intraday `quotes` | `sample/ipo.ts` · DEF-CALENDARS-LIVE-DATA |
 
 **Signature contract columns unbacked today** (why sample, not real): the earnings screen's
 street **consensus** and the **Marsad desk estimate** (`eps_consensus`/`eps_marsad`) plus the

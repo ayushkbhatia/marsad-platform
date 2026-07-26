@@ -103,8 +103,13 @@ export function sortWireFeed(items: WireFeedItem[]): WireFeedItem[] {
   return [...items].sort((a, b) => filedAtMs(b.filedAt) - filedAtMs(a.filedAt));
 }
 
-const DAY_LABEL_FMT = new Intl.DateTimeFormat("en-US", {
-  weekday: "long",
+// The design's date divider reads "Sunday 5 July 2026" — weekday, then
+// day-month-year, no commas. No locale produces exactly that (en-US gives
+// "Sunday, July 5, 2026"; en-GB keeps the comma), so the two parts are
+// formatted separately and joined. Both are UTC, matching every other stamp
+// on this surface.
+const WEEKDAY_FMT = new Intl.DateTimeFormat("en-GB", { weekday: "long", timeZone: "UTC" });
+const DATE_FMT = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",
   month: "long",
   year: "numeric",
@@ -122,7 +127,7 @@ function dayLabel(iso: string | null): string {
   if (!iso) return "Undated";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "Undated";
-  return DAY_LABEL_FMT.format(d);
+  return `${WEEKDAY_FMT.format(d)} ${DATE_FMT.format(d)}`;
 }
 
 /** Groups an already-sorted (newest-first) feed into day buckets, preserving

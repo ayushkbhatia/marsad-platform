@@ -22,12 +22,29 @@ export interface EarningsRow {
   company: string;
   venue: string;
   venueCode: string;
-  session: "PRE" | "POST";
+  /**
+   * Pre/post-market session. NULLABLE: `earnings_events.session` is 0/9,180
+   * populated, so the design's PRE/POST chip has nothing behind it and the row
+   * renders without one rather than asserting a session.
+   */
+  session: "PRE" | "POST" | null;
+  /** Street consensus — "—" until an estimates producer lands (DEF-ESTIMATES-AGG). */
   consensus: string;
+  /** Marsad desk estimate — "—" until the desk publishes (DEF-ESTIMATES-AGG). */
   marsad: string;
   prior: string;
-  /** Reporting date confirmed by the company (● CONF) vs desk estimate (○ EST). */
-  confirmed: boolean;
+  /** Reported EPS actual. Real for 8,631 of 9,180 rows. */
+  actual?: string;
+  /** Fiscal period label, e.g. "Q2 2026". */
+  period?: string;
+  /** Links the row to its live `/earnings/[eventId]` detail page. */
+  eventId?: number;
+  /**
+   * Whether the reporting DATE is company-confirmed or a desk estimate.
+   * NULLABLE because `report_date` is an ingest stamp for a large subset, so
+   * "confirmed" cannot be asserted per row (DEF-EARNINGS-REPORTDATE).
+   */
+  dateState?: "confirmed" | "estimated" | null;
 }
 export interface CalendarDay<T> {
   label: string;
@@ -37,13 +54,24 @@ export interface CalendarDay<T> {
 export interface ReportedItem {
   ticker: string;
   company: string;
-  surprisePct: number;
+  /** NULL until an estimates producer exists — surprise needs a consensus. */
+  surprisePct: number | null;
   when: string;
-  priceReaction: number;
+  /** NULL until `next_session_reaction_pct` is produced (0/9,180 today). */
+  priceReaction: number | null;
+  period?: string;
+  actual?: string;
+  eventId?: number;
 }
 export interface EarningsWeek {
   weekLabel: string;
   footnote: string;
+  /**
+   * Surface-level honesty note. When a whole column has no producer behind it
+   * the reader is told once, plainly, rather than being left to guess what "—"
+   * means. Empty string renders nothing.
+   */
+  dataNote?: string;
   kpis: Kpi[];
   days: CalendarDay<EarningsRow>[];
   reported: ReportedItem[];

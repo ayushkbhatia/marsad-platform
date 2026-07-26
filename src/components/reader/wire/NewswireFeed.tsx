@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { FeedConnection, WireFeedItem, WireTicker } from "@/lib/contracts/newswire";
+import { EmptyState } from "@/components/ui";
 
 /**
  * Newswire (1d) centre column — the header (serif "The Wire" + WIRE / FILINGS
@@ -8,24 +9,47 @@ import type { FeedConnection, WireFeedItem, WireTicker } from "@/lib/contracts/n
  * variants, with optional inline ticker chips), and the "Load earlier items"
  * control.
  *
- * Sample-driven for the fidelity pass; the live-poll + keyset-paged real feed
- * (`WireStream`/`feed.ts`) re-wires onto `WireFeedItem[]` later
- * (DEF-NEWSWIRE-LIVE-DATA).
+ * LIVE as of P2.2 — `adapters/newswire.ts` feeds it real `public.filings` rows.
+ * Three honesty rules the real data forced, all of them contract-optional so
+ * the sample still renders unchanged:
+ *
+ * - **The status chip states what the feed actually is.** It used to be a
+ *   hardcoded green "● LIVE". All six venues are `closed` right now, so
+ *   claiming LIVE would be the exact fabrication Law #2 forbids: the chip reads
+ *   `connection.state` and only goes positive-green when the feed really is live.
+ * - **Day dividers.** A real wire spans days (Tadawul's backfill reaches 2016),
+ *   so `item.dayLabel` inserts a divider mid-feed; a single top-level
+ *   `dateLabel` would mis-date every row below the first day.
+ * - **Stable keys.** Real filing titles repeat heavily ("Daily Net Asset Value
+ *   / NAV" 8× in one live page), so the row keys on `item.id` when present.
  */
 function fmtPct(n: number): string {
   return `${n > 0 ? "+" : ""}${n.toFixed(1)}%`;
 }
 
 function TickerChip({ t }: { t: WireTicker }) {
-  return (
-    <span className="flex items-baseline gap-1.5 border border-hairline px-2 py-[3px]">
+  const body = (
+    <>
       <span className="font-mono text-[9.5px] font-semibold text-ink">{t.symbol}</span>
       <span
         className={`text-[10px] font-semibold tabular-nums ${t.changePct < 0 ? "text-negative" : "text-positive"}`}
       >
         {fmtPct(t.changePct)}
       </span>
-    </span>
+    </>
+  );
+  const cls = "flex items-baseline gap-1.5 border border-hairline px-2 py-[3px]";
+  // A chip inside a row-level <Link> cannot itself be an <a> (nested anchors are
+  // invalid HTML and React will warn), so it stays a <span>; the row link already
+  // reaches the filing, and the stock page is one hop from there.
+  return <span className={cls}>{body}</span>;
+}
+
+function DayDivider({ label }: { label: string }) {
+  return (
+    <div className="pt-3 pb-1 font-mono text-[9.5px] tracking-[0.14em] text-ink-faint uppercase">
+      {label}
+    </div>
   );
 }
 
@@ -62,7 +86,11 @@ function FeedRow({ item }: { item: WireFeedItem }) {
         >
           {item.headline}
         </div>
-        <div className="text-[12.5px] leading-[1.5] text-ink-muted">{item.summary}</div>
+        {/* Only ~9% of live filings carry an `ai_summary`. No summary → no line,
+            never a placeholder sentence. */}
+        {item.summary ? (
+          <div className="text-[12.5px] leading-[1.5] text-ink-muted">{item.summary}</div>
+        ) : null}
         {item.tickers && item.tickers.length > 0 ? (
           <div className="flex gap-2">
             {item.tickers.map((t) => (
@@ -80,12 +108,17 @@ export function NewswireFeed({
   dateLabel,
   connection,
   feed,
+  olderHref,
 }: {
   todayCount: number;
   dateLabel: string;
   connection: FeedConnection;
   feed: WireFeedItem[];
+  olderHref?: string | null;
 }) {
+  const isLive = connection.state === "live";
+  const statusLabel = isLive ? "LIVE" : connection.state.toUpperCase();
+
   return (
     <div>
       {/* Header. */}
@@ -102,15 +135,17 @@ export function NewswireFeed({
             FILINGS REGISTER →
           </Link>
         </span>
-        <span className="ml-auto font-mono text-[9.5px] tracking-[0.08em] text-positive">
-          ● LIVE · {todayCount} TODAY
+        <span
+          className={`ml-auto font-mono text-[9.5px] tracking-[0.08em] ${
+            isLive ? "text-positive" : "text-caution-text"
+          }`}
+        >
+          ● {statusLabel} · {todayCount} TODAY
         </span>
       </div>
 
-      {/* Date divider. */}
-      <div className="pt-3 pb-1 font-mono text-[9.5px] tracking-[0.14em] text-ink-faint uppercase">
-        {dateLabel}
-      </div>
+      {/* Date divider (first day group). */}
+      <DayDivider label={dateLabel} />
 
       {/* Feed-connection banner (degraded states only). */}
       {connection.state !== "live" && connection.message ? (
@@ -122,16 +157,38 @@ export function NewswireFeed({
       ) : null}
 
       {/* Feed. */}
-      {feed.map((item) => (
-        <FeedRow key={`${item.time}-${item.headline}`} item={item} />
-      ))}
+      {feed.length === 0 ? (
+        <EmptyState
+          variant="awaitingFeed"
+          title="No filings match this view"
+          body="Clear the venue or category filter, or check back after the next exchange sweep."
+        />
+      ) : (
+        feed.map((item, i) => (
+          <div key={item.id ?? `${item.time}-${item.headline}-${i}`}>
+            {item.dayLabel ? <DayDivider label={item.dayLabel} /> : null}
+            <FeedRow item={item} />
+          </div>
+        ))
+      )}
 
-      {/* Pagination. */}
-      <div className="flex justify-center pt-4">
-        <span className="cursor-pointer border border-ink px-[22px] py-[9px] font-ui text-[11px] font-semibold tracking-[0.08em] uppercase hover:bg-ink hover:text-paper-tint">
-          Load earlier items
-        </span>
-      </div>
+      {/* Pagination — keyset-paged by `filed_at` (see `adapters/newswire.ts`). */}
+      {feed.length > 0 ? (
+        <div className="flex justify-center pt-4">
+          {olderHref ? (
+            <Link
+              href={olderHref}
+              className="border border-ink px-[22px] py-[9px] font-ui text-[11px] font-semibold tracking-[0.08em] uppercase hover:bg-ink hover:text-paper-tint"
+            >
+              Load earlier items
+            </Link>
+          ) : (
+            <span className="border border-hairline px-[22px] py-[9px] font-ui text-[11px] font-semibold tracking-[0.08em] text-ink-faint uppercase">
+              End of the wire
+            </span>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }

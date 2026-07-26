@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getEarningsEvent } from "@/lib/data/calendars";
+import { getEarningsEvent, getEarningsCalendar } from "@/lib/data/calendars";
 import { RatingBadge } from "@/components/ui";
 import { fmtDate, fmtSignedPct, venueName, toRating, siteUrl } from "@/lib/reader/format";
 import { JsonLd } from "@/components/reader/JsonLd";
@@ -22,6 +22,21 @@ import { JsonLd } from "@/components/reader/JsonLd";
 
 type Params = { eventId: string };
 
+/**
+ * A SMALL prerender head — 60 of 9,180 events. Purely a warm-cache win.
+ *
+ * ⚠️ It does NOT fix the status code, and I verified that rather than assuming
+ * it: with both this non-empty `generateStaticParams` AND the hoisted resolve
+ * below, `/earnings/<unknown-id>` still answers **200** on a production build,
+ * while the identical treatment on `/filings/[filingId]` answers 404. The
+ * discriminator has not been isolated. Tracked as DEF-NOTFOUND-STATUS — do not
+ * assume this pattern fixes a soft-404 without re-measuring against `next start`.
+ */
+export async function generateStaticParams(): Promise<Array<{ eventId: string }>> {
+  const page = await getEarningsCalendar({ limit: 60 });
+  return page.days.flatMap((d) => d.rows.map((r) => ({ eventId: String(r.id) })));
+}
+
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { eventId } = await params;
   const id = Number(eventId);
@@ -39,7 +54,15 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   };
 }
 
-export default function EarningsEventPage({ params }: { params: Promise<Params> }) {
+export default async function EarningsEventPage({ params }: { params: Promise<Params> }) {
+  // Resolve before anything streams — a notFound() inside the <Suspense> child
+  // renders the 404 UI but leaves the status at 200 (wrong-canonical risk on an
+  // indexed route). The read is `use cache`, so the child re-read is free.
+  const { eventId } = await params;
+  const evId = Number(eventId);
+  if (!Number.isInteger(evId) || evId <= 0) notFound();
+  if (!(await getEarningsEvent(evId))) notFound();
+
   return (
     <div className="mx-auto max-w-[1180px] px-5 pt-6 pb-10 sm:px-8">
       <Suspense fallback={<EventFallback />}>

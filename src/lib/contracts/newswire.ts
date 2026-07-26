@@ -25,6 +25,17 @@ export interface WireVenue {
   count: number;
   /** Checkbox state (design: all pre-checked). */
   checked: boolean;
+  /**
+   * EXTENSION (P2.2). The real venue code (`TDWL`/`DFM`/…) behind the display
+   * label, so a caller can key on identity rather than on the label string.
+   */
+  code?: string;
+  /**
+   * EXTENSION (P2.2). Toggle target — the same `/wire` URL with this venue
+   * added to (or removed from) the filter. Absent → the row renders inert,
+   * exactly as it did before this field existed.
+   */
+  href?: string;
 }
 
 export interface WireTicker {
@@ -45,6 +56,22 @@ export interface WireFeedItem {
   /** The "DEVELOPING" variant: solid left border, tinted bg, bolder headline. */
   isDeveloping?: boolean;
   href: string;
+  /**
+   * EXTENSION (P2.2). Stable identity for the React key. Real filing titles
+   * repeat heavily across the corpus ("Daily Net Asset Value / NAV" appears
+   * 8× in one page of live rows), so `time + headline` is NOT unique on real
+   * data. Absent → callers fall back to the old composite key.
+   */
+  id?: string;
+  /**
+   * EXTENSION (P2.2). Day-divider label to render immediately BEFORE this
+   * item, e.g. "Sunday 26 July 2026". Set only on the first item of each day
+   * group *after* the first (the first group is already labelled by
+   * `NewswireData.dateLabel`). A real feed spans several days — Tadawul's
+   * backfill reaches 2016 — so a single top-level date label would mis-date
+   * every row below the fold.
+   */
+  dayLabel?: string;
 }
 
 export interface ExchangeFiling {
@@ -53,6 +80,8 @@ export interface ExchangeFiling {
   company: string;
   filingType: string;
   href: string;
+  /** EXTENSION (P2.2). Stable identity for the React key — see `WireFeedItem.id`. */
+  id?: string;
 }
 
 export interface CorporateAction {
@@ -86,4 +115,10 @@ export interface NewswireData {
   filings: ExchangeFiling[];
   corporateActions: CorporateAction[];
   mostRead: MostReadItem[];
+  /**
+   * EXTENSION (P2.2). Keyset-pagination target for "Load earlier items" —
+   * the current URL carrying the next `?cursor=`. `null`/absent = no older
+   * page, and the control renders inert (its pre-extension behaviour).
+   */
+  olderHref?: string | null;
 }

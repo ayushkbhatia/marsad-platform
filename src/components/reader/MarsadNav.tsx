@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { MobileNavDrawer } from "./MobileNavDrawer";
 import { NavIndexStrip } from "./nav/NavIndexStrip";
+import { getIndexTape } from "@/lib/data/markets";
 import { NavTabs, NavTabsFallback } from "./nav/NavTabs";
 import { NotificationsBell } from "./nav/NotificationsBell";
 
@@ -45,7 +46,15 @@ function MobileNavFallback() {
  * `MobileNavDrawer`) is wrapped in its own `<Suspense>` boundary to prerender
  * under cacheComponents on dynamic routes (no `generateStaticParams`).
  */
-export function MarsadNav() {
+export async function MarsadNav() {
+  // Real index levels for the first paint. `getIndexTape` is `use cache`, so the
+  // masthead still prerenders with the shell — it just no longer ships a
+  // fabricated TASI print while waiting for the client poll.
+  const tape = await getIndexTape();
+  const indexSeed = tape
+    .filter((t) => t.level != null)
+    .map((t) => ({ code: t.code, venueCode: t.venueCode, level: t.level, changePct: t.changePct }));
+
   return (
     <header className="sticky top-0 z-30 bg-paper-tint">
       {/* Mobile masthead (<lg): condensed single row. */}
@@ -78,7 +87,7 @@ export function MarsadNav() {
 
       {/* Desktop masthead (lg+): 3 rows, ~147px total. */}
       <div className="hidden lg:block">
-        <NavIndexStrip />
+        <NavIndexStrip initial={indexSeed} />
 
         {/* Row 2 — wordmark lockup + utility cluster. */}
         <div className="h-[68px] border-b-2 border-ink">
