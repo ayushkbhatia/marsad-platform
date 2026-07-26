@@ -8,66 +8,9 @@
  * MEMBER surface shipped ungated with a shared sample set for the design pass
  * (DEF-ALERTS-LIVE-DATA), same treatment as the watchlist (1h).
  */
+import type { AlertsData, NotificationItem } from "@/lib/contracts/alerts";
 
 // ── Alert states ─────────────────────────────────────────────────────────────
-export type AlertState = "TRIGGERED" | "ARMED" | "PAUSED";
-
-export interface StockAlert {
-  ticker: string;
-  name: string;
-  condition: string;
-  delivery: string; // "PUSH" / "PUSH + EMAIL" / "EMAIL"
-  state: AlertState;
-  lastFired: string; // "TODAY 13:58" / "12 JUN" / "—"
-}
-
-export interface ScreenAlert {
-  name: string;
-  cadence: string; // "WEEKLY DIGEST · SUN" / "REAL-TIME"
-  detail: string; // "+3 new matches this week"
-}
-
-export interface PhraseAlert {
-  phrase: string; // includes the quotes as authored
-  scope: string; // "2222 only" / "Watchlist names"
-  delivery: string;
-  hits: string; // "1 hit this week"
-}
-
-export interface TriggerLogItem {
-  when: string; // "13:58" / "SAT 14:41"
-  kind: string; // "PRICE" / "SCORE" / "DIGEST" / "PHRASE" / "SCREEN"
-  text: string;
-}
-
-export interface DeliveryChannel {
-  label: string;
-  on: boolean;
-  premium?: boolean;
-}
-
-export interface AlertCap {
-  used: number;
-  limit: number;
-  premiumLimit?: number;
-}
-
-export interface AlertsData {
-  kpis: { label: string; value: string }[];
-  composer: { ticker: string; condition: string; value: string; channel: string };
-  stock: { cap: AlertCap; rows: StockAlert[] };
-  screen: { cap: AlertCap; rows: ScreenAlert[]; ceilingNote: string };
-  phrase: {
-    cap: AlertCap;
-    rows: PhraseAlert[];
-    popularLocked: string[];
-    note: string;
-  };
-  triggerLog: TriggerLogItem[];
-  delivery: { channels: DeliveryChannel[]; quietHours: string; note: string };
-  goPremium: { headline: string; body: string; cta: string };
-}
-
 export const SAMPLE_ALERTS: AlertsData = {
   kpis: [
     { label: "ARMED", value: "12 alerts" },
@@ -132,19 +75,6 @@ export const SAMPLE_ALERTS: AlertsData = {
 };
 
 // ── Notifications (16b) ──────────────────────────────────────────────────────
-export type NotificationTab = "All" | "Alerts" | "Research" | "Filings";
-
-export interface NotificationItem {
-  id: string;
-  tag: string; // "PRICE ALERT" / "EARNINGS" / 'PHRASE · "DIVIDEND"' / "NEW RESEARCH"
-  category: Exclude<NotificationTab, "All">;
-  title: string;
-  body?: string;
-  when: string; // "2m ago" / "1h ago" / "Yesterday"
-  unread: boolean;
-  href?: string;
-}
-
 export const SAMPLE_NOTIFICATIONS: NotificationItem[] = [
   {
     id: "n1",

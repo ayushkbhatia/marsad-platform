@@ -1,4 +1,4 @@
-import type { AiThesis, ThesisClaim } from "@/lib/data/sample/thesis";
+import type { AiThesis, ThesisClaim } from "@/lib/contracts/thesis";
 
 /**
  * AI Thesis tab (design 10d). Two independent lenses on one name — the dark

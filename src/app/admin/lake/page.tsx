@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { connection } from "next/server";
 import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase/server-admin";
 
@@ -104,6 +105,13 @@ export default function LakeLandingPage() {
 }
 
 async function LakeLandingBody() {
+  // MUST be dynamic. This page reads with the SERVICE-ROLE client, so it must
+  // never be prerendered: (a) a service-role snapshot baked into a static page
+  // would ship privileged data to the CDN, and (b) it made the production build
+  // depend on SUPABASE_SERVICE_ROLE_KEY being present at BUILD time, which hard
+  // -failed `next build` wherever that key is runtime-only. Same posture as the
+  // sibling admin pages (`admin/page.tsx`, `admin/ops/page.tsx`).
+  await connection();
   const sb = createAdminClient();
   const [recent, storage, types, gaps] = await Promise.all([
     sb.from("v_lake_landing_recent").select("*"),

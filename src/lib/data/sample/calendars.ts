@@ -9,48 +9,9 @@
  * (`getEarningsCalendar`/`getDividendCalendar` in `lib/data/calendars.ts`) are
  * the adapter basis (DEF-CALENDARS-LIVE-DATA). No `server-only`: pure data.
  */
+import type { EarningsWeek, DividendWeek } from "@/lib/contracts/calendars";
 
 // ── Shared ───────────────────────────────────────────────────────────────────
-export interface Kpi {
-  label: string;
-  value: string;
-  dir?: "up" | "down";
-}
-
-// ── Earnings (8a) ────────────────────────────────────────────────────────────
-export interface EarningsRow {
-  ticker: string;
-  company: string;
-  venue: string;
-  venueCode: string;
-  session: "PRE" | "POST";
-  consensus: string;
-  marsad: string;
-  prior: string;
-  /** Reporting date confirmed by the company (● CONF) vs desk estimate (○ EST). */
-  confirmed: boolean;
-}
-export interface CalendarDay<T> {
-  label: string;
-  count: string;
-  rows: T[];
-}
-export interface ReportedItem {
-  ticker: string;
-  company: string;
-  surprisePct: number;
-  when: string;
-  priceReaction: number;
-}
-export interface EarningsWeek {
-  weekLabel: string;
-  footnote: string;
-  kpis: Kpi[];
-  days: CalendarDay<EarningsRow>[];
-  reported: ReportedItem[];
-  heavyweight: { kicker: string; headline: string; body: string; cta: string };
-}
-
 export const SAMPLE_EARNINGS: EarningsWeek = {
   weekLabel: "WEEK OF 6 JUL 2026",
   footnote: "EST = MARSAD DESK ESTIMATE · EPS IN LOCAL CCY",
@@ -65,7 +26,7 @@ export const SAMPLE_EARNINGS: EarningsWeek = {
       label: "MON 6 JUL",
       count: "5 reporting",
       rows: [
-        { ticker: "QNBK", company: "QNB Group", venue: "QSE", venueCode: "QSE", session: "PRE", consensus: "0.49", marsad: "0.51", prior: "0.46", confirmed: true },
+        { ticker: "QNBK", company: "QNB Group", venue: "QE", venueCode: "QE", session: "PRE", consensus: "0.49", marsad: "0.51", prior: "0.46", confirmed: true },
         { ticker: "DEWA", company: "DEWA", venue: "DFM", venueCode: "DFM", session: "POST", consensus: "0.07", marsad: "0.07", prior: "0.07", confirmed: true },
         { ticker: "ADNOCGAS", company: "ADNOC Gas", venue: "ADX", venueCode: "ADX", session: "PRE", consensus: "0.10", marsad: "0.11", prior: "0.09", confirmed: true },
       ],
@@ -83,7 +44,7 @@ export const SAMPLE_EARNINGS: EarningsWeek = {
       count: "7 reporting",
       rows: [
         { ticker: "FAB", company: "First Abu Dhabi Bank", venue: "ADX", venueCode: "ADX", session: "PRE", consensus: "0.42", marsad: "0.44", prior: "0.39", confirmed: true },
-        { ticker: "ENBD", company: "Emirates NBD", venue: "DFM", venueCode: "DFM", session: "PRE", consensus: "1.02", marsad: "1.05", prior: "0.94", confirmed: true },
+        { ticker: "EMIRATESNBD", company: "Emirates NBD", venue: "DFM", venueCode: "DFM", session: "PRE", consensus: "1.02", marsad: "1.05", prior: "0.94", confirmed: true },
         { ticker: "7010", company: "stc", venue: "TADAWUL", venueCode: "TDWL", session: "POST", consensus: "0.84", marsad: "0.86", prior: "0.81", confirmed: false },
       ],
     },
@@ -104,36 +65,6 @@ export const SAMPLE_EARNINGS: EarningsWeek = {
 };
 
 // ── Dividends (23a) ──────────────────────────────────────────────────────────
-export type DividendType = "FINAL" | "INTERIM" | "SPECIAL";
-export interface DividendRow {
-  ticker: string;
-  company: string;
-  venue: string;
-  venueCode: string;
-  type: DividendType;
-  dps: string;
-  yield: string;
-  payDate: string;
-  alertSet: boolean;
-}
-export interface YieldLeader {
-  ticker: string;
-  company: string;
-  yield: string;
-  payout: string;
-  payoutRisk?: boolean;
-}
-export interface DividendWeek {
-  weekLabel: string;
-  footnote: string;
-  kpis: Kpi[];
-  days: CalendarDay<DividendRow>[];
-  goesExTomorrow: { kicker: string; headline: string; body: string };
-  yieldLeaders: YieldLeader[];
-  yieldLeadersNote: string;
-  reminders: { kicker: string; headline: string; body: string; cta: string };
-}
-
 export const SAMPLE_DIVIDENDS: DividendWeek = {
   weekLabel: "WEEK OF 12 JUL 2026 · BY EX-DATE",
   footnote: "OWN BEFORE THE EX-DATE OPEN TO RECEIVE · DPS IN LOCAL CCY",
@@ -150,7 +81,7 @@ export const SAMPLE_DIVIDENDS: DividendWeek = {
       rows: [
         { ticker: "2222", company: "Saudi Aramco", venue: "TDWL", venueCode: "TDWL", type: "FINAL", dps: "SAR 0.2043", yield: "4.9%", payDate: "25 JUL", alertSet: false },
         { ticker: "SALIK", company: "Salik Company", venue: "DFM", venueCode: "DFM", type: "INTERIM", dps: "AED 0.0827", yield: "5.2%", payDate: "28 JUL", alertSet: true },
-        { ticker: "QNBK", company: "QNB Group", venue: "QE", venueCode: "QSE", type: "INTERIM", dps: "QAR 0.33", yield: "3.7%", payDate: "26 JUL", alertSet: false },
+        { ticker: "QNBK", company: "QNB Group", venue: "QE", venueCode: "QE", type: "INTERIM", dps: "QAR 0.33", yield: "3.7%", payDate: "26 JUL", alertSet: false },
       ],
     },
     {
@@ -167,7 +98,7 @@ export const SAMPLE_DIVIDENDS: DividendWeek = {
       rows: [
         { ticker: "1120", company: "Al Rajhi Bank", venue: "TDWL", venueCode: "TDWL", type: "INTERIM", dps: "SAR 1.25", yield: "2.6%", payDate: "28 JUL", alertSet: false },
         { ticker: "2010", company: "SABIC", venue: "TDWL", venueCode: "TDWL", type: "FINAL", dps: "SAR 1.70", yield: "5.1%", payDate: "4 AUG", alertSet: false },
-        { ticker: "NAJM", company: "Najm Insurance", venue: "QE", venueCode: "QSE", type: "SPECIAL", dps: "QAR 0.90", yield: "8.8%", payDate: "2 AUG", alertSet: false },
+        { ticker: "NAJM", company: "Najm Insurance", venue: "QE", venueCode: "QE", type: "SPECIAL", dps: "QAR 0.90", yield: "8.8%", payDate: "2 AUG", alertSet: false },
       ],
     },
     {

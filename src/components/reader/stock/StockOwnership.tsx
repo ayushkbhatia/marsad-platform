@@ -1,4 +1,4 @@
-import type { Ownership, TopHolder } from "@/lib/data/sample/stock";
+import type { Ownership, TopHolder } from "@/lib/contracts/stock";
 
 /**
  * Stock Ownership & People tab (design 3d) — a shareholding-pattern time

@@ -1,4 +1,4 @@
-import type { Overview, Peer } from "@/lib/data/sample/stock";
+import type { Overview, Peer } from "@/lib/contracts/stock";
 
 /**
  * Stock Overview tab (design 3a) — a 9-metric key-ratios strip, a 2-column

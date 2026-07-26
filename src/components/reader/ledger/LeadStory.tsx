@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { LedgerLead } from "@/lib/data/sample/ledger";
+import type { LedgerLead } from "@/lib/contracts/ledger";
 
 /**
  * Ledger front page (1b) lead-story block — the broadsheet hero: a 480px

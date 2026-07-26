@@ -9,44 +9,7 @@
  * the real thesis comes from an LLM over `filings`/`transcripts` gated on
  * credits (DEF-THESIS-LIVE-DATA).
  */
-export interface ThesisClaim {
-  text: string;
-  citationId?: number; // resolves into `sources`; absent = structural fact
-}
-export interface FairValue {
-  bear: number;
-  last: number;
-  base: number;
-  bull: number;
-  basis: string;
-}
-export interface DatedItem {
-  when: string;
-  text: string;
-}
-export interface ThesisSource {
-  id: number;
-  text: string;
-}
-export interface AiThesis {
-  subject: string; // "AI THESIS · SAUDI ARAMCO"
-  generated: string; // "GENERATED 5 JUL · REGENERATES ON MATERIAL FILINGS"
-  regenerate: string; // "REGENERATE · 40 CR"
-  headline: string;
-  bull: ThesisClaim[];
-  bear: ThesisClaim[];
-  fairValue: FairValue;
-  catalysts: DatedItem[];
-  falsifiers: string[];
-  disclaimer: string;
-  twoLenses: {
-    score: { value: string; label: string };
-    thesis: { verdict: string; label: string };
-    note: string;
-  };
-  sources: ThesisSource[];
-}
-
+import type { AiThesis } from "@/lib/contracts/thesis";
 export const SAMPLE_THESIS: AiThesis = {
   subject: "AI THESIS · SAUDI ARAMCO",
   generated: "GENERATED 5 JUL · REGENERATES ON MATERIAL FILINGS",

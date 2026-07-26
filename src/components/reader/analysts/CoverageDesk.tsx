@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { CoverageDeskData, LeaderboardAnalyst, RatingChange } from "@/lib/data/sample/analysts";
+import type { CoverageDeskData, LeaderboardAnalyst, RatingChange } from "@/lib/contracts/analysts";
 import { TagChip } from "@/components/reader/research/TagChip";
 
 /**

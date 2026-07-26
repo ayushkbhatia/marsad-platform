@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { IpoListing, ListingKpi, ListedPeer } from "@/lib/data/sample/ipo";
+import type { IpoListingData, ListingKpi, ListedPeer } from "@/lib/contracts/ipo";
 
 /**
  * IPO listing-day (design 22c) — the debut session. A 5-cell KPI strip (offer
@@ -41,7 +41,7 @@ function PeerRow({ peer }: { peer: ListedPeer }) {
   );
 }
 
-export function IpoListing({ data }: { data: IpoListing }) {
+export function IpoListing({ data }: { data: IpoListingData }) {
   const c = data.chart;
   return (
     <div className="px-7 pt-6 pb-10">

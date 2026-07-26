@@ -49,22 +49,28 @@ export async function getWireVenueFacets(): Promise<WireVenueFacet[]> {
   return WIRE_VENUE_CODES.map((v) => ({ venue: v, count: counts.get(v) ?? 0 }));
 }
 
-/**
- * Exact count of filings filed since UTC midnight "today" — the header's
- * "· N TODAY" figure. Honors the same venue/type facets as the feed itself
- * so the count matches what's actually on screen. ~30s cache (same window as
- * `getWireFilings`), tagged `filings`.
- */
-export async function getFilingsTodayCount(opts: { venue?: string; type?: string } = {}): Promise<number> {
+/** Narrow an ISO date/datetime to its YYYY-MM-DD day part; throws on garbage
+ *  so a malformed caller value can never silently widen the count window. */
+function todayISOOnly(iso: string): string {
+  const day = (iso ?? "").slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new Error(`getFilingsTodayCount: bad todayISO ${iso}`);
+  return day;
+}
+
+export async function getFilingsTodayCount(
+  opts: { todayISO: string; venue?: string; type?: string },
+): Promise<number> {
   "use cache";
   cacheLife({ stale: 30, revalidate: 30, expire: 3600 });
   cacheTag("filings");
 
   const sb = createAnonClient();
-  const now = new Date();
-  const startOfDay = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
-  ).toISOString();
+  // `todayISO` (YYYY-MM-DD) is a PARAMETER, never `new Date()` read in here:
+  // a wall-clock read inside `use cache` makes the cache entry
+  // non-deterministic — the first caller's "today" would be served to every
+  // later caller until the entry expires. The caller does the clock read behind
+  // `connection()`, exactly as `getEarningsKpis`/`getDividendKpis` already do.
+  const startOfDay = `${todayISOOnly(opts.todayISO)}T00:00:00.000Z`;
 
   let q = sb.from("filings").select("id", { count: "exact", head: true }).gte("filed_at", startOfDay);
   const venue = (opts.venue ?? "").trim().toUpperCase();

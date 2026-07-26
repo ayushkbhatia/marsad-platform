@@ -2,11 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import {
-  SAMPLE_NOTIFICATIONS,
-  type NotificationItem,
-  type NotificationTab,
-} from "@/lib/data/sample/alerts";
+import { SAMPLE_NOTIFICATIONS } from "@/lib/data/sample/alerts";
+import type { NotificationItem, NotificationTab } from "@/lib/contracts/alerts";
 
 /**
  * Notifications (design 16b) — the bell's desktop home. An ANCHORED PANEL, not

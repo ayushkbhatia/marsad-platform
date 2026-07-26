@@ -14,115 +14,9 @@
  * No `server-only`: pure data. `ArticleTag`/`TagChip` are reused from the
  * research pair.
  */
-import type { ArticleTag } from "./research";
+import type { CoverageDeskData, AnalystProfile } from "@/lib/contracts/analysts";
 
 // ── Coverage Desk (1i) ───────────────────────────────────────────────────────
-
-export interface LeaderboardAnalyst {
-  rank: number;
-  slug: string;
-  initials: string;
-  name: string;
-  focus: string;
-  names: number;
-  winRate: number;
-  avgReturn: number;
-  /** Last five closed calls, newest-left; true = beat the index (green). */
-  last5: boolean[];
-  /** Follower count, pre-formatted, e.g. "12.4k". */
-  followers: string;
-}
-
-export interface DeskArticle {
-  slug: string;
-  tag: ArticleTag;
-  headline: string;
-  /** Mono byline line, e.g. "Faisal Rahman · Utilities · 18 min read". */
-  byline: string;
-}
-
-export type RatingChangeType = "UPGRADE" | "DOWNGRADE" | "PT RAISE" | "PT CUT" | "INITIATION";
-
-export interface RatingChange {
-  direction: "up" | "down";
-  type: RatingChangeType;
-  ticker: string;
-  date: string;
-  note: string;
-  analyst: string;
-}
-
-export interface SectorBar {
-  sector: string;
-  count: number;
-  /** Bar width in px (design-baked, so the ramp matches 1i exactly). */
-  barWidth: number;
-}
-
-export interface CoverageDeskData {
-  subtitle: string;
-  analysts: LeaderboardAnalyst[];
-  latest: DeskArticle[];
-  ratingsChanges: RatingChange[];
-  sectors: SectorBar[];
-  totalNames: number;
-  requestCoverage: { leadName: string; votes: number };
-}
-
-// ── Analyst Profile (1j) ─────────────────────────────────────────────────────
-
-export interface ProfileStat {
-  label: string;
-  value: string;
-  dir?: "up" | "down";
-}
-
-export interface CoverageRow {
-  ticker: string;
-  company: string;
-  rating: string;
-  target: string;
-  since: string;
-  callReturn: number;
-  venueCode: string;
-}
-
-export interface PublishedResearch {
-  slug: string;
-  tag: ArticleTag;
-  headline: string;
-  /** Mono meta, e.g. "28 Jun · 24 min · 214 reactions". */
-  meta: string;
-}
-
-export interface PerfChart {
-  width: number;
-  height: number;
-  gridY: number[];
-  analystPoints: string;
-  venuePoints: string;
-  rightLabels: Array<{ top: number; text: string }>;
-  months: string[];
-  legendAnalyst: string;
-  legendVenue: string;
-}
-
-export interface AnalystProfile {
-  slug: string;
-  initials: string;
-  name: string;
-  rank: number;
-  credential: string;
-  bio: string;
-  followers: string;
-  stats: ProfileStat[];
-  chart: PerfChart;
-  coverage: CoverageRow[];
-  pinnedCall: { date: string; quote: string; ticker: string; returnSince: string };
-  publishedResearch: PublishedResearch[];
-  publishedCount: string;
-  disclosure: string;
-}
 
 export const COVERAGE_DESK: CoverageDeskData = {
   subtitle: "Six analysts · 61 GCC names under coverage · every call tracked and scored in public",
@@ -194,10 +88,10 @@ export const SAMPLE_PROFILE: AnalystProfile = {
   coverage: [
     { ticker: "1120", company: "Al Rajhi Bank", rating: "Overweight", target: "SAR 112.00", since: "Mar 24", callReturn: 21.4, venueCode: "TDWL" },
     { ticker: "1150", company: "Alinma Bank", rating: "Buy", target: "SAR 31.50", since: "Jun 24", callReturn: 18.2, venueCode: "TDWL" },
-    { ticker: "QNBK", company: "QNB Group", rating: "Buy", target: "QAR 21.00", since: "Jan 25", callReturn: 12.9, venueCode: "QSE" },
+    { ticker: "QNBK", company: "QNB Group", rating: "Buy", target: "QAR 21.00", since: "Jan 25", callReturn: 12.9, venueCode: "QE" },
     { ticker: "FAB", company: "First Abu Dhabi Bank", rating: "Hold", target: "AED 16.00", since: "Sep 24", callReturn: 4.1, venueCode: "ADX" },
     { ticker: "1180", company: "Saudi National Bank", rating: "Underweight", target: "SAR 34.00", since: "Feb 25", callReturn: 3.2, venueCode: "TDWL" },
-    { ticker: "KFH", company: "Kuwait Finance House", rating: "Buy", target: "KWD 0.860", since: "May 26", callReturn: -1.8, venueCode: "BK" },
+    { ticker: "KFH", company: "Kuwait Finance House", rating: "Buy", target: "USD 2.80", since: "May 26", callReturn: -1.8, venueCode: "BHB" },
   ],
   pinnedCall: {
     date: "PINNED CALL · 28 JUN",

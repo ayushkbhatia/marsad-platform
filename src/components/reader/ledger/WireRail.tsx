@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { WireItem } from "@/lib/data/sample/ledger";
+import type { WireItem } from "@/lib/contracts/ledger";
 
 /**
  * Ledger front page (1b) right-rail "The wire" section — a compact row per

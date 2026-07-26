@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { Article, ArticleBlock } from "@/lib/data/sample/research";
+import type { Article, ArticleBlock } from "@/lib/contracts/research";
 
 /**
  * Article (1k) — the one reusable longform research layout every 1l card

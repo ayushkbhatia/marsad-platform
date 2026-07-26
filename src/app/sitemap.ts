@@ -8,7 +8,7 @@ import { LEARN_DOCS } from "@/lib/learn/docs";
  * calls out "stock pages + subpages"). `financials` is a premium STUB page
  * (no statement data ever reaches it — see that route's header comment) but
  * still a real, unique-per-ticker page, so it stays indexable like the rest. */
-const STOCK_SUBPAGES = ["chart", "filings", "financials", "dividends", "earnings", "ownership"] as const;
+const STOCK_SUBPAGES = ["chart", "filings", "financials", "dividends", "earnings", "ownership", "thesis"] as const;
 
 /**
  * Split-ish sitemap (04-reader-app.md §8): the indexable public surface —

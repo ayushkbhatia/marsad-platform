@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import type { Kpi, CalendarDay } from "@/lib/data/sample/calendars";
+import type { Kpi, CalendarDay } from "@/lib/contracts/calendars";
 
 /**
  * Shared calendar primitives (design 8a / 23a). `KpiStrip` is the bordered

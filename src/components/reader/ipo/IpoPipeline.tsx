@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { IpoPipeline, PipelineOffer, JustListed } from "@/lib/data/sample/ipo";
+import type { IpoPipelineData, PipelineOffer, JustListed } from "@/lib/contracts/ipo";
 import { KpiStrip } from "@/components/reader/calendars/CalendarKit";
 
 /**
@@ -68,7 +68,7 @@ function JustListedRow({ item }: { item: JustListed }) {
   );
 }
 
-export function IpoPipeline({ data }: { data: IpoPipeline }) {
+export function IpoPipeline({ data }: { data: IpoPipelineData }) {
   return (
     <div className="px-7 pt-[22px] pb-[30px]">
       <div className="flex flex-wrap items-baseline gap-3.5 border-b-2 border-ink pb-3.5">

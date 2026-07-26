@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { MoverRow } from "@/lib/data/sample/ledger";
+import type { MoverRow } from "@/lib/contracts/ledger";
 
 /**
  * Ledger front page (1b) right-rail "Movers" section — two columns

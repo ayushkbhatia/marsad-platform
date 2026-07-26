@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { LedgerStory } from "@/lib/data/sample/ledger";
+import type { LedgerStory } from "@/lib/contracts/ledger";
 
 /**
  * Ledger front page (1b) secondary-story grid — the six stories below the

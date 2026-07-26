@@ -3,7 +3,7 @@ import type {
   AlertCap,
   StockAlert,
   AlertState,
-} from "@/lib/data/sample/alerts";
+} from "@/lib/contracts/alerts";
 
 /**
  * Alerts manager (design 5a) — "what Marsad will interrupt you for, and how".

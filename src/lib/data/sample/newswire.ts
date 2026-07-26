@@ -14,84 +14,7 @@
  *
  * No `server-only`: pure data, importable anywhere.
  */
-
-export type Direction = "up" | "down" | "flat";
-
-export interface WireCategory {
-  name: string;
-  count: number;
-  /** The one solid-ink selected row (design: "All items"). */
-  selected?: boolean;
-  href: string;
-}
-
-export interface WireVenue {
-  name: string;
-  count: number;
-  /** Checkbox state (design: all pre-checked). */
-  checked: boolean;
-}
-
-export interface WireTicker {
-  symbol: string;
-  changePct: number;
-}
-
-export interface WireFeedItem {
-  /** Clock time, e.g. "14:21". */
-  time: string;
-  /** Source/venue badge, e.g. "TDWL", "CBUAE". */
-  venue: string;
-  /** Category label, e.g. "DISCLOSURE", "MACRO". */
-  category: string;
-  headline: string;
-  summary: string;
-  tickers?: WireTicker[];
-  /** The "DEVELOPING" variant: solid left border, tinted bg, bolder headline. */
-  isDeveloping?: boolean;
-  href: string;
-}
-
-export interface ExchangeFiling {
-  time: string;
-  venue: string;
-  company: string;
-  filingType: string;
-  href: string;
-}
-
-export interface CorporateAction {
-  /** Short date, e.g. "8 JUL". */
-  date: string;
-  ticker: string;
-  type: string;
-}
-
-export interface MostReadItem {
-  rank: number;
-  headline: string;
-  href: string;
-}
-
-export interface FeedConnection {
-  state: "live" | "reconnecting" | "delayed" | "offline";
-  /** Right-aligned mono detail, e.g. "LAST SYNC 14:31:58 · RETRYING…". */
-  detail: string;
-  /** Banner message; only shown when state !== "live". */
-  message?: string;
-}
-
-export interface NewswireData {
-  categories: WireCategory[];
-  venues: WireVenue[];
-  todayCount: number;
-  dateLabel: string;
-  connection: FeedConnection;
-  feed: WireFeedItem[];
-  filings: ExchangeFiling[];
-  corporateActions: CorporateAction[];
-  mostRead: MostReadItem[];
-}
+import type { NewswireData } from "@/lib/contracts/newswire";
 
 export const SAMPLE_NEWSWIRE: NewswireData = {
   categories: [
@@ -109,8 +32,7 @@ export const SAMPLE_NEWSWIRE: NewswireData = {
     { name: "Tadawul", count: 96, checked: true },
     { name: "DFM", count: 34, checked: true },
     { name: "ADX", count: 29, checked: true },
-    { name: "QSE", count: 22, checked: true },
-    { name: "Boursa Kuwait", count: 18, checked: true },
+    { name: "QE", count: 22, checked: true },
     { name: "Bahrain Bourse", count: 7, checked: true },
     { name: "MSX", count: 8, checked: true },
   ],
@@ -161,7 +83,7 @@ export const SAMPLE_NEWSWIRE: NewswireData = {
     },
     {
       time: "13:12",
-      venue: "QSE",
+      venue: "QE",
       category: "CONTRACT",
       headline: "Nakilat signs 10-year charter with QatarEnergy",
       summary: 'Four LNG carriers; management guides to "mid-single-digit" EPS accretion from 2027.',
@@ -170,11 +92,11 @@ export const SAMPLE_NEWSWIRE: NewswireData = {
     },
     {
       time: "12:47",
-      venue: "BK",
+      venue: "BHB",
       category: "DIVIDEND",
-      headline: "NBK board approves interim dividend of 10 fils",
+      headline: "NBB board approves interim dividend of 10 fils",
       summary: "Payable 4 August; implies 4.8% annualised yield at last close.",
-      tickers: [{ symbol: "NBK", changePct: 0.8 }],
+      tickers: [{ symbol: "NBB", changePct: 0.8 }],
       href: "#",
     },
     {
@@ -209,8 +131,8 @@ export const SAMPLE_NEWSWIRE: NewswireData = {
     { time: "14:05", venue: "TDWL", company: "Saudi Aramco", filingType: "Board resolution — dividend", href: "#" },
     { time: "13:47", venue: "ADX", company: "IHC", filingType: "Change in major shareholding", href: "#" },
     { time: "13:30", venue: "DFM", company: "Emaar Properties", filingType: "Related-party disclosure", href: "#" },
-    { time: "12:58", venue: "QSE", company: "QNB Group", filingType: "Financial statements — Q2", href: "#" },
-    { time: "12:31", venue: "BK", company: "Zain Group", filingType: "AGM minutes", href: "#" },
+    { time: "12:58", venue: "QE", company: "QNB Group", filingType: "Financial statements — Q2", href: "#" },
+    { time: "12:31", venue: "TDWL", company: "Zain KSA", filingType: "AGM minutes", href: "#" },
     { time: "12:06", venue: "BHB", company: "GFH Financial", filingType: "Buyback notice", href: "#" },
   ],
 

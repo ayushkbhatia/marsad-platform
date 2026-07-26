@@ -1,4 +1,4 @@
-import type { DividendWeek, DividendRow } from "@/lib/data/sample/calendars";
+import type { DividendWeek, DividendRow } from "@/lib/contracts/calendars";
 import { KpiStrip, CalendarLedger, ColHead, CompanyCell } from "./CalendarKit";
 
 /**

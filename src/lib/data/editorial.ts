@@ -43,11 +43,23 @@ import { toNum, toInt } from "./util";
  * the lead (needs either a denormalized display name snapshotted at publish
  * time, or a public-safe view/RPC over `iam.principals`).
  *
- * ── Analysts gap — `public.analysts` (world-readable, 0 rows today) has NO
- * `slug`/`display_name`/`avatar` column; its only identity column is
- * `principal_id -> iam.principals`, which anon cannot read (same gap as
- * above). `analysts/[slug]/page.tsx` therefore cannot resolve any profile by
- * URL today, regardless of row count — FLAGGED to the lead.
+ * ── Analysts identity — RESOLVED 2026-07-26 by `public.v_analysts_public`
+ * (migration `20260726190625_v_analysts_public.sql`, BRIDGE-BUILD-PLAN P0.5).
+ * `public.analysts` still has no `slug`/`display_name` column of its own; the
+ * identity lives in `iam.principals` (`handle` = the public slug,
+ * `display_name`), which is `worker_read` only. The view is a
+ * `security_invoker = false` wrapper — the same pattern as `v_scores_public` /
+ * `v_key_ratios_public` — exposing exactly slug/display_name/title/credential/
+ * bio/is_external/joined_at/principal_id to anon, filtered to
+ * `is_active and purged_at is null`. `revenue_share_pct` is deliberately NOT
+ * in the view (commercial terms, never public) — do not add it here either.
+ * `getAnalystProfileBySlug` below reads it. The roster is still 0 rows until
+ * the analyst seed lands (BRIDGE-BUILD-PLAN P3.1), so the function returns
+ * `null` for every slug today — but by data, not by construction.
+ *
+ * (The **byline** gap above is a different, still-open problem:
+ * `content_items.byline_chain` carries agent/editor *codes*, and there is no
+ * join from a code to a principal. `v_analysts_public` only covers analysts.)
  */
 
 // ── Articles ─────────────────────────────────────────────────────────────────
@@ -575,14 +587,166 @@ export async function getCoverageBySector(): Promise<Array<{ sector: string; cou
     .sort((a, b) => b.count - a.count);
 }
 
+// ── Analyst profile (1j) ─────────────────────────────────────────────────────
+
+/** One `analyst_calls` row, joined to its security for the ticker rail. */
+export interface AnalystCallView {
+  id: number;
+  securityId: number;
+  ticker: string | null;
+  venueCode: string | null;
+  name: string | null;
+  rating: string | null;
+  priceTarget: number | null;
+  publishedAt: string | null;
+  /** Snapshotted by the `fn_analyst_call_freeze` trigger at publish time. */
+  priceAtPublication: number | null;
+  indexLevelAtPublication: number | null;
+  closedAt: string | null;
+  closePrice: number | null;
+  /** Scoreboard math is computed in the DB — never recomputed here. */
+  callReturnPct: number | null;
+  vsIndexPct: number | null;
+  /** The `content_items` row this call was published with, when there is one. */
+  contentId: string | null;
+}
+
+export interface AnalystProfileDetail {
+  /** `iam.principals.handle` — the public URL slug. */
+  slug: string;
+  displayName: string | null;
+  title: string | null;
+  credential: string | null;
+  bio: string | null;
+  isExternal: boolean;
+  joinedAt: string | null;
+  principalId: string;
+  /** Newest first. */
+  calls: AnalystCallView[];
+  namesCovered: number;
+  openCallCount: number;
+  closedCallCount: number;
+  /** Share of *closed* calls that beat their venue index; null with no closed calls. */
+  winRatePct: number | null;
+  /** Mean `call_return_pct` across closed calls; null with no closed calls. */
+  avgCallReturnPct: number | null;
+}
+
+interface AnalystPublicRow {
+  slug: string | null;
+  display_name: string | null;
+  title: string | null;
+  credential: string | null;
+  bio: string | null;
+  is_external: boolean | null;
+  joined_at: string | null;
+  principal_id: string;
+}
+
+interface AnalystCallDetailRow {
+  id: number;
+  security_id: number;
+  rating: string | null;
+  price_target: unknown;
+  published_at: string | null;
+  price_at_publication: unknown;
+  index_level_at_publication: unknown;
+  closed_at: string | null;
+  close_price: unknown;
+  call_return_pct: unknown;
+  vs_index_pct: unknown;
+  content_id: string | null;
+}
+
+const ANALYST_PUBLIC_COLS =
+  "slug,display_name,title,credential,bio,is_external,joined_at,principal_id";
+
+const ANALYST_CALL_COLS =
+  "id,security_id,rating,price_target,published_at,price_at_publication,index_level_at_publication,closed_at,close_price,call_return_pct,vs_index_pct,content_id";
+
 /**
- * Analyst profile by slug — a documented no-op today. `public.analysts` has
- * no `slug`/`display_name` column (see file header), so there is no schema
- * path to resolve one yet, independent of row count. Kept as a real function
- * (not inlined) so the eventual implementation is a one-place change once the
- * slug/display-name gap is closed.
+ * Analyst profile by slug (1j) — reads `public.v_analysts_public`, the
+ * `security_invoker = false` view added by `20260726190625_v_analysts_public.sql`
+ * (see file header). The slug **is** `iam.principals.handle`; there is no other
+ * public identifier for an analyst.
+ *
+ * The roster is 0 rows until the seed lands (BRIDGE-BUILD-PLAN P3.1), so every
+ * slug returns `null` today — the caller must `notFound()` on null rather than
+ * render a placeholder profile (Law #2: never fabricate).
+ *
+ * The scoreboard columns (`call_return_pct`, `vs_index_pct`, and the
+ * publication-time price/index snapshots) are all produced in Postgres by
+ * `fn_analyst_call_freeze` and the close path — this function aggregates them
+ * but never derives them, so the FE can never disagree with the leaderboard.
  */
-export async function getAnalystProfileBySlug(slug: string): Promise<null> {
-  void slug;
-  return null;
+export async function getAnalystProfileBySlug(slug: string): Promise<AnalystProfileDetail | null> {
+  "use cache";
+  cacheLife({ stale: 120, revalidate: 300, expire: 3600 });
+  cacheTag("analysts");
+
+  const s = (slug ?? "").trim();
+  if (!s) return null;
+
+  const sb = createAnonClient();
+  const { data: profile } = await sb
+    .from("v_analysts_public")
+    .select(ANALYST_PUBLIC_COLS)
+    .eq("slug", s)
+    .maybeSingle<AnalystPublicRow>();
+  if (!profile) return null;
+
+  const { data: callRows } = await sb
+    .from("analyst_calls")
+    .select(ANALYST_CALL_COLS)
+    .eq("analyst_id", profile.principal_id)
+    .order("published_at", { ascending: false })
+    .limit(500);
+
+  const raw = (callRows as AnalystCallDetailRow[] | null) ?? [];
+  const secs = await secLiteMap(sb, raw.map((c) => c.security_id));
+
+  const calls: AnalystCallView[] = raw.map((c) => {
+    const sec = secs.get(c.security_id);
+    return {
+      id: c.id,
+      securityId: c.security_id,
+      ticker: sec?.ticker ?? null,
+      venueCode: sec?.venue_code ?? null,
+      name: sec?.name_en ?? null,
+      rating: c.rating,
+      priceTarget: toNum(c.price_target),
+      publishedAt: c.published_at,
+      priceAtPublication: toNum(c.price_at_publication),
+      indexLevelAtPublication: toNum(c.index_level_at_publication),
+      closedAt: c.closed_at,
+      closePrice: toNum(c.close_price),
+      callReturnPct: toNum(c.call_return_pct),
+      vsIndexPct: toNum(c.vs_index_pct),
+      contentId: c.content_id,
+    };
+  });
+
+  const closed = calls.filter((c) => c.closedAt != null);
+  const wins = closed.filter((c) => (c.vsIndexPct ?? 0) > 0);
+  const avgCallReturnPct =
+    closed.length === 0
+      ? null
+      : closed.reduce((sum, c) => sum + (c.callReturnPct ?? 0), 0) / closed.length;
+
+  return {
+    slug: profile.slug ?? s,
+    displayName: profile.display_name,
+    title: profile.title,
+    credential: profile.credential,
+    bio: profile.bio,
+    isExternal: profile.is_external ?? false,
+    joinedAt: profile.joined_at,
+    principalId: profile.principal_id,
+    calls,
+    namesCovered: new Set(calls.map((c) => c.securityId)).size,
+    openCallCount: calls.length - closed.length,
+    closedCallCount: closed.length,
+    winRatePct: closed.length === 0 ? null : (wins.length / closed.length) * 100,
+    avgCallReturnPct,
+  };
 }

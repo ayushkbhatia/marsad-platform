@@ -1,4 +1,4 @@
-import type { ArticleTag } from "@/lib/data/sample/research";
+import type { ArticleTag } from "@/lib/contracts/research";
 
 /**
  * FREE / PREMIUM tag chip shared across the research index cards and the

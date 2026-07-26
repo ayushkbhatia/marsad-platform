@@ -28,9 +28,10 @@ export interface IndexTapeItem {
 
 /**
  * The index strip: every index joined to its latest level + venue freshness.
- * `public.index_levels` is EMPTY today, so levels come back null and the tape
- * renders index names with placeholder values — degrades gracefully, never
- * fabricates a level. ~60s.
+ * `public.index_levels` is populated for all six headline indices (TASI, DFMGI,
+ * FADGI, QSI, MSX30, BAX) on a 10-minute timer — DEF-INDEX-LEVELS closed
+ * 2026-07-21. An index with no level still degrades gracefully (null level, the
+ * tape renders the name only) and never fabricates a value. ~60s.
  */
 export async function getIndexTape(): Promise<IndexTapeItem[]> {
   "use cache";

@@ -16,126 +16,14 @@
  * Kept free of `server-only` on purpose: the nav ticker strip (a client
  * island) imports `SAMPLE_INDICES` as a static fallback.
  */
-
-export type Direction = "up" | "down" | "flat";
-
-export interface LedgerIndex {
-  /** Short index code, e.g. "TASI". */
-  code: string;
-  /** Full name, e.g. "Tadawul All Share". */
-  name: string;
-  /** Owning venue code (used for sort + venue label). */
-  venueCode: string;
-  /** Index level. */
-  level: number;
-  /** Signed percent change on the day. */
-  changePct: number;
-}
-
-export interface LedgerLead {
-  kicker: string;
-  headline: string;
-  dek: string;
-  /** The editorial "take" pull-quote (rendered with the ink left-rule). */
-  take: string;
-  byline: string;
-  /** Human relative time, e.g. "3h ago". */
-  time: string;
-  /** Read-length affordance, e.g. "READ — 12 MIN". */
-  readLabel: string;
-  href: string;
-  /** Placeholder plate label for the lead photo. */
-  photoLabel: string;
-  /** Photo credit line under the plate. */
-  photoCaption: string;
-}
-
-export interface LedgerStory {
-  kicker: string;
-  /** Human relative time, e.g. "5h ago" / "Today". */
-  time: string;
-  headline: string;
-  dek: string;
-  href: string;
-  /** Opinion pieces render the headline in italic. */
-  isOpinion?: boolean;
-}
-
-export interface AnalystCall {
-  /** Rating/action label, e.g. "Overweight", "Hold → Buy". */
-  action: string;
-  /** Ticker or symbol shown top-right, e.g. "1120", "EMAAR". */
-  symbol: string;
-  /** Company display name. */
-  name: string;
-  /** Formatted price target, e.g. "PT SAR 112". */
-  priceTarget: string;
-  /** Context note, e.g. "from 104", "initiated", "upgraded". */
-  note: string;
-  analyst: string;
-  href: string;
-}
-
-export interface MacroTicker {
-  label: string;
-  value: string;
-  /** Change string, e.g. "-0.82%", "-2 bp", "pegged". */
-  change: string;
-  dir: Direction;
-  /** Rendered as a muted (non-directional) note rather than pos/neg colour. */
-  muted?: boolean;
-  /** Paper-tint fill (the design highlights the pegged USDSAR cell). */
-  tinted?: boolean;
-}
-
-export interface LiveMarkets {
-  code: string;
-  name: string;
-  level: number;
-  changePct: number;
-  /** Whether the focus venue is open (drives the OPEN/CLOSED tag + colour). */
-  open: boolean;
-  dayHigh: string;
-  dayLow: string;
-  volume: string;
-  /** Pre-normalised polyline points for the sparkline, in `spark` viewBox. */
-  spark: { width: number; height: number; points: string };
-  macro: MacroTicker[];
-}
-
-export interface WireItem {
-  /** Clock time, e.g. "14:21". */
-  time: string;
-  /** Source/venue badge, e.g. "TDWL", "CBUAE". */
-  source: string;
-  summary: string;
-  href: string;
-}
-
-export interface MoverRow {
-  symbol: string;
-  changePct: number;
-  href: string;
-}
-
-export interface LedgerData {
-  indices: LedgerIndex[];
-  lead: LedgerLead;
-  secondary: LedgerStory[];
-  calls: AnalystCall[];
-  live: LiveMarkets;
-  wires: WireItem[];
-  gainers: MoverRow[];
-  losers: MoverRow[];
-}
+import type { LedgerIndex, LedgerData } from "@/lib/contracts/ledger";
 
 /** The GCC headline indices — also the nav ticker strip's static fallback. */
 export const SAMPLE_INDICES: LedgerIndex[] = [
   { code: "TASI", name: "Tadawul All Share", venueCode: "TDWL", level: 11842.6, changePct: 0.42 },
   { code: "DFMGI", name: "DFM General Index", venueCode: "DFM", level: 5412.88, changePct: 0.65 },
   { code: "FADGI", name: "FTSE ADX General", venueCode: "ADX", level: 9876.14, changePct: -0.18 },
-  { code: "QSI", name: "QE Index", venueCode: "QSE", level: 10932.51, changePct: 0.27 },
-  { code: "BKP", name: "Boursa Kuwait Premier", venueCode: "BK", level: 9148.33, changePct: 0.51 },
+  { code: "QSI", name: "QE Index", venueCode: "QE", level: 10932.51, changePct: 0.27 },
   { code: "BAX", name: "Bahrain All Share", venueCode: "BHB", level: 2094.77, changePct: 0.08 },
   { code: "MSX30", name: "MSX 30", venueCode: "MSX", level: 4921.06, changePct: -0.11 },
 ];
@@ -268,8 +156,8 @@ export const SAMPLE_LEDGER: LedgerData = {
     { time: "14:21", source: "TDWL", summary: "Maaden completes phosphate debottlenecking ahead of plan", href: "#" },
     { time: "13:58", source: "DFM", summary: "Salik July toll volumes +9% y/y", href: "#" },
     { time: "13:40", source: "CBUAE", summary: "Base rate held at 4.15%, tracking Fed", href: "#" },
-    { time: "13:12", source: "QSE", summary: "Nakilat signs 10-year charter with QatarEnergy", href: "#" },
-    { time: "12:47", source: "BK", summary: "NBK board approves interim dividend of 10 fils", href: "#" },
+    { time: "13:12", source: "QE", summary: "Nakilat signs 10-year charter with QatarEnergy", href: "#" },
+    { time: "12:47", source: "BHB", summary: "NBB board approves interim dividend of 10 fils", href: "#" },
     { time: "12:20", source: "TDWL", summary: "ACWA Power reaches financial close on NEOM hydrogen tranche", href: "#" },
   ],
 

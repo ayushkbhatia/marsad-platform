@@ -9,10 +9,12 @@ Human-readable precursor to the `public.surfaces` catalog (`BRIDGE-PLAN.md` §3)
 
 | Batch | Module | Screens | Built | Data |
 |---|---|---|---|---|
-| **1** | Reader core + data room | 16 | 16 | mixed — 3 live, 13 sample-seeded |
+| **1** | Reader core + data room | 14 | 14 | mixed — 2 design-on-real-data + 1 live, 11 sample-seeded |
 | **2** | Monetization spine | 16 | 0 | schema exists, **0 rows**, no Stripe wiring |
 | **3** | Calendars + IPO Center | 5 | 5 | sample-seeded (event tables thin/empty) |
 | **4** | Utility surfaces | 8 | 8 | 3 design-on-real-data, 4 sample-seeded, 1 nav-state |
+
+_Counts are the sum of the rows in each batch's own tables below — Batch 1 = 11 (§1.1) + 3 (§1.2); Batch 2 = 4 (§2.1) + 12 (§2.2); Batch 3 = 5; Batch 4 = 4 (§4.1) + 3 (§4.2) + 1 (§4.3). Reconciled 2026-07-26 (Batch 1 previously over-stated as 16/16)._
 
 ---
 

@@ -12,84 +12,7 @@
  *
  * No `server-only`: pure data.
  */
-
-export type ScoreTier = "solid" | "outlined" | "muted";
-
-export interface WatchList {
-  name: string;
-  count: number;
-  selected?: boolean;
-}
-
-export interface WatchRow {
-  ticker: string;
-  name: string;
-  /** Arabic company name (Noto Naskh Arabic). */
-  nameAr: string;
-  /** Formatted price incl. currency prefix, e.g. "SAR 27.15". */
-  price: string;
-  /** Day change %, signed. */
-  chg1d: number;
-  /** Week change %, signed. */
-  chg1w: number;
-  score: number;
-  /** Drives the three badge treatments (design bakes the tier per row). */
-  scoreTier: ScoreTier;
-  /** Price-target upside %, signed. */
-  ptUpside: number;
-  /** Next scheduled event, e.g. "Q2 · TUE" or "—". */
-  nextEvent: string;
-  /** Alert armed for this name (filled bell) vs off (outline bell). */
-  alertArmed: boolean;
-  /** Stock-page venue segment for the row link. */
-  venueCode: string;
-}
-
-export interface VenueGroup {
-  /** Group header label, e.g. "TADAWUL — SAUDI ARABIA". */
-  label: string;
-  /** Right-side mono summary, e.g. "4 NAMES · +0.9% TODAY". */
-  summary: string;
-  rows: WatchRow[];
-}
-
-export interface StatCell {
-  label: string;
-  /** Rendered value; may carry a coloured span (see `page`). */
-  value: string;
-  /** Directional colour for the whole value (equal-weighted return). */
-  dir?: "up" | "down";
-}
-
-export interface WatchAlert {
-  ticker: string;
-  /** Condition text, split so the emphasised middle renders bold. */
-  conditionPre: string;
-  conditionStrong: string;
-  conditionPost: string;
-  /** Delivery channel chip, e.g. "PUSH + EMAIL". */
-  channel: string;
-  /** "TRIGGERED 13:58" (solid chip) vs "ARMED" (outline chip). */
-  triggeredAt?: string;
-}
-
-export interface WatchNote {
-  ticker: string;
-  date: string;
-  note: string;
-}
-
-export interface WatchlistData {
-  lists: WatchList[];
-  alertCount: number;
-  stats: StatCell[];
-  best: { ticker: string; pct: string };
-  worst: { ticker: string; pct: string };
-  alertsTriggered: { count: number; names: string };
-  groups: VenueGroup[];
-  alerts: WatchAlert[];
-  notes: WatchNote[];
-}
+import type { WatchlistData } from "@/lib/contracts/watchlist";
 
 export const SAMPLE_WATCHLIST: WatchlistData = {
   lists: [
@@ -135,19 +58,19 @@ export const SAMPLE_WATCHLIST: WatchlistData = {
       ],
     },
     {
-      label: "QSE — QATAR",
+      label: "QE — QATAR",
       summary: "2 NAMES · +1.7% TODAY",
       rows: [
-        { ticker: "QNBK", name: "QNB Group", nameAr: "قطر الوطني", price: "QAR 17.84", chg1d: 0.9, chg1w: 1.5, score: 81, scoreTier: "solid", ptUpside: 17.7, nextEvent: "Q2 · MON", alertArmed: true, venueCode: "QSE" },
-        { ticker: "QGTS", name: "Nakilat", nameAr: "ناقلات", price: "QAR 4.92", chg1d: 2.6, chg1w: 4.4, score: 73, scoreTier: "outlined", ptUpside: 6.5, nextEvent: "—", alertArmed: false, venueCode: "QSE" },
+        { ticker: "QNBK", name: "QNB Group", nameAr: "قطر الوطني", price: "QAR 17.84", chg1d: 0.9, chg1w: 1.5, score: 81, scoreTier: "solid", ptUpside: 17.7, nextEvent: "Q2 · MON", alertArmed: true, venueCode: "QE" },
+        { ticker: "QGTS", name: "Nakilat", nameAr: "ناقلات", price: "QAR 4.92", chg1d: 2.6, chg1w: 4.4, score: 73, scoreTier: "outlined", ptUpside: 6.5, nextEvent: "—", alertArmed: false, venueCode: "QE" },
       ],
     },
     {
-      label: "BOURSA KUWAIT",
+      label: "BHB — BAHRAIN",
       summary: "2 NAMES · +1.1% TODAY",
       rows: [
-        { ticker: "NBK", name: "National Bank of Kuwait", nameAr: "الوطني", price: "KWD 0.960", chg1d: 0.4, chg1w: 0.9, score: 76, scoreTier: "outlined", ptUpside: 9.4, nextEvent: "DIV · 4 AUG", alertArmed: false, venueCode: "BK" },
-        { ticker: "KFH", name: "Kuwait Finance House", nameAr: "بيتك", price: "KWD 0.782", chg1d: 1.8, chg1w: 2.2, score: 70, scoreTier: "outlined", ptUpside: 5.6, nextEvent: "BONUS · 13 JUL", alertArmed: true, venueCode: "BK" },
+        { ticker: "NBB", name: "National Bank of Bahrain", nameAr: "الأهلي", price: "BHD 0.524", chg1d: 0.4, chg1w: 0.9, score: 76, scoreTier: "outlined", ptUpside: 9.4, nextEvent: "DIV · 4 AUG", alertArmed: false, venueCode: "BHB" },
+        { ticker: "KFH", name: "Kuwait Finance House", nameAr: "بيتك", price: "USD 2.495", chg1d: 1.8, chg1w: 2.2, score: 70, scoreTier: "outlined", ptUpside: 5.6, nextEvent: "BONUS · 13 JUL", alertArmed: true, venueCode: "BHB" },
       ],
     },
   ],

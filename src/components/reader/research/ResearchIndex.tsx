@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ResearchIndexData } from "@/lib/data/sample/research";
+import type { ResearchIndexData } from "@/lib/contracts/research";
 import { TagChip } from "./TagChip";
 
 /**

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { EarningsWeek, EarningsRow } from "@/lib/data/sample/calendars";
+import type { EarningsWeek, EarningsRow } from "@/lib/contracts/calendars";
 import { KpiStrip, CalendarLedger, ColHead, CompanyCell } from "./CalendarKit";
 
 /**

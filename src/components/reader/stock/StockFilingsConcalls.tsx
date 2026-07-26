@@ -1,4 +1,4 @@
-import type { FilingsConcalls } from "@/lib/data/sample/stock";
+import type { FilingsConcalls } from "@/lib/contracts/stock";
 
 /**
  * Stock Filings & Concalls tab (design 3c) — a 2-column workspace: the

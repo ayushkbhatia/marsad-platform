@@ -25,20 +25,21 @@ export const NAV_LINKS: ReadonlyArray<{ href: string; label: string }> = [
 ];
 
 export function MobileNavDrawer() {
-  const [open, setOpen] = useState(false);
   const pathname = usePathname();
-
-  // Close on route change.
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
+  // "Open" is DERIVED, not an effect: we store the pathname the drawer was
+  // opened on, and it is open only while the route still matches. A route
+  // change therefore closes it during render, with no effect and no
+  // synchronous setState cascade (react-hooks/set-state-in-effect).
+  const [openedOn, setOpenedOn] = useState<string | null>(null);
+  const open = openedOn === pathname;
+  const setOpen = (next: boolean) => setOpenedOn(next ? pathname : null);
 
   // Lock body scroll + close on Escape while open.
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpenedOn(null); };
     window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = prev;
@@ -52,7 +53,7 @@ export function MobileNavDrawer() {
         type="button"
         aria-label={open ? "Close menu" : "Open menu"}
         aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen(!open)}
         className="flex h-11 w-11 flex-none items-center justify-center text-ink hover:bg-paper-tint"
       >
         <span className="relative block h-[11px] w-[18px]" aria-hidden>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ScoreTier, VenueGroup, WatchRow } from "@/lib/data/sample/watchlist";
+import type { ScoreTier, VenueGroup, WatchRow } from "@/lib/contracts/watchlist";
 
 /**
  * Watchlist (1h) holdings table — a fixed 11-column grid grouped by venue.

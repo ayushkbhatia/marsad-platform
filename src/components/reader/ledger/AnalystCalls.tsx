@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { AnalystCall } from "@/lib/data/sample/ledger";
+import type { AnalystCall } from "@/lib/contracts/ledger";
 
 /**
  * Ledger front page (1b) "Analyst calls today" row — a 4-up card strip under

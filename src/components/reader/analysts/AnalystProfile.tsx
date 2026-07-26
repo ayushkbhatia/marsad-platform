@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { AnalystProfile as Profile, CoverageRow } from "@/lib/data/sample/analysts";
+import type { AnalystProfile as Profile, CoverageRow } from "@/lib/contracts/analysts";
 import { TagChip } from "@/components/reader/research/TagChip";
 
 /**

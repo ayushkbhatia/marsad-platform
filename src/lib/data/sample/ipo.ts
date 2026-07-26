@@ -8,43 +8,10 @@
  * are the adapter basis (DEF-CALENDARS-LIVE-DATA). Every `[offerSlug]` renders
  * the OQBI detail / Bina listing for the pass (templates, not one-offs).
  */
-import type { Kpi } from "./calendars";
+import type { IpoPipelineData, IpoOfferDetail, IpoListingData } from "@/lib/contracts/ipo";
 
 // ── Pipeline (22a) ───────────────────────────────────────────────────────────
-export interface PipelineOffer {
-  ticker: string; // "—" when no ticker yet
-  company: string;
-  venue: string;
-  priceRange: string; // may be "TBD" / "CMA FILING 2 JUL" / "DRAFT PROSPECTUS"
-  raise: string;
-  closes: string;
-  /** The RETAIL-CLOSES cell is an ink countdown chip (subscription open). */
-  closesChip?: boolean;
-  covered: string; // "3.1×" / "INST ONLY" / ""
-  coveredMuted?: boolean;
-}
-export interface PipelineStage {
-  label: string;
-  meta: string;
-  offers: PipelineOffer[];
-}
-export interface JustListed {
-  ticker: string;
-  company: string;
-  venue: string;
-  price: string;
-  changePct: number;
-  listed: string;
-}
-export interface IpoPipeline {
-  kpis: Kpi[];
-  stages: PipelineStage[];
-  justListed: JustListed[];
-  neverMiss: { kicker: string; headline: string; body: string; cta: string };
-  howItWorks: string[];
-}
-
-export const SAMPLE_IPO_PIPELINE: IpoPipeline = {
+export const SAMPLE_IPO_PIPELINE: IpoPipelineData = {
   kpis: [
     { label: "IN PIPELINE", value: "14" },
     { label: "SUBSCRIPTION OPEN", value: "3", dir: "up" },
@@ -98,41 +65,6 @@ export const SAMPLE_IPO_PIPELINE: IpoPipeline = {
 };
 
 // ── Detail (22b) ─────────────────────────────────────────────────────────────
-export type TimelineState = "done" | "current" | "future";
-export interface TimelineStep {
-  label: string;
-  value: string;
-  state: TimelineState;
-}
-export interface KeyVal {
-  label: string;
-  value: string;
-}
-export interface ProceedsRow {
-  label: string;
-  pct: string;
-  barWidth: number;
-}
-export interface FinRow {
-  label: string;
-  values: string[];
-}
-export interface IpoOfferDetail {
-  slug: string;
-  ticker: string;
-  company: string;
-  meta: string;
-  statusChip: string;
-  timeline: TimelineStep[];
-  facts: KeyVal[];
-  useOfProceeds: ProceedsRow[];
-  proceedsNote: string;
-  financials: { periods: string[]; rows: FinRow[] };
-  countdown: { kicker: string; value: string; sub: string; cta: string };
-  brokers: string[];
-  marsadTake: { headline: string; body: string; cta: string };
-}
-
 export const SAMPLE_IPO_DETAIL: IpoOfferDetail = {
   slug: "oq-base-industries",
   ticker: "OQBI",
@@ -188,41 +120,7 @@ export const SAMPLE_IPO_DETAIL: IpoOfferDetail = {
 };
 
 // ── Listing day (22c) ────────────────────────────────────────────────────────
-export interface ListingKpi {
-  label: string;
-  value: string;
-  delta?: string;
-  dir?: "up" | "down";
-}
-export interface AllocationRow {
-  label: string;
-  value: string;
-}
-export interface ListedPeer {
-  ticker: string;
-  company: string;
-  venue: string;
-  price: string;
-  changePct: number;
-  scoreRating: string;
-}
-export interface IpoListing {
-  slug: string;
-  ticker: string;
-  company: string;
-  meta: string;
-  liveLabel: string;
-  kpis: ListingKpi[];
-  chart: { offerY: number; points: string; offerLabel: string; openLabel: string; openTop: number };
-  chartCaptions: string[];
-  wire: { kicker: string; headline: string; cta: string };
-  allocation: AllocationRow[];
-  scorePending: string;
-  scoreExpectedDate: string;
-  listedPeers: ListedPeer[];
-}
-
-export const SAMPLE_IPO_LISTING: IpoListing = {
+export const SAMPLE_IPO_LISTING: IpoListingData = {
   slug: "bina-modular-construction",
   ticker: "9615",
   company: "Bina Modular Construction",

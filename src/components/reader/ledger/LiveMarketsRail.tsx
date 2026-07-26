@@ -1,4 +1,4 @@
-import type { LiveMarkets } from "@/lib/data/sample/ledger";
+import type { LiveMarkets } from "@/lib/contracts/ledger";
 
 /**
  * Ledger front page (1b) right-rail "Live markets" body — a single-index

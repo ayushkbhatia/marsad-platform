@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { StockHeader as HeaderData } from "@/lib/data/sample/stock";
+import type { StockHeader as HeaderData } from "@/lib/contracts/stock";
 
 /**
  * Stock workspace shared header (design 3a–3d) — breadcrumb + IDs, the

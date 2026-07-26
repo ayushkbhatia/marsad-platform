@@ -1,4 +1,4 @@
-import type { WatchAlert, WatchNote } from "@/lib/data/sample/watchlist";
+import type { WatchAlert, WatchNote } from "@/lib/contracts/watchlist";
 
 /**
  * Watchlist (1h) footer — two columns: Active alerts (ticker + condition +

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { IpoOfferDetail, TimelineStep } from "@/lib/data/sample/ipo";
+import type { IpoOfferDetail, TimelineStep } from "@/lib/contracts/ipo";
 
 /**
  * IPO offer detail (design 22b) — a stage timeline band, an 8-cell offer-facts

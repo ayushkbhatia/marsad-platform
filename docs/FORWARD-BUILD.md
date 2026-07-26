@@ -68,18 +68,41 @@ newsroom is proven end-to-end. Recent deltas:
 - **Reader (P2) LIVE on Vercel** — foundation + stock pages + markets/screener/newswire/SEO.
 - **Newsroom** backend complete; **switches OFF** (not armed); writer number-marking fixed + budget ladder enforced.
 
-**Built reader routes (13 of ~50 spec'd in `04-reader-app.md`):**
-`/` (Ledger) · `/markets` · `/wire` · `/filings` · `/filings/[id]` · `/stocks/[venue]/[ticker]` (+ `/chart`
-`/filings` `/financials`) · `/screener` · (+ `/admin/{lake,approvals}` ops, `/styleguide`).
+**Built routes — 46 `page.tsx` (recounted 2026-07-26; `find src/app -name page.tsx | wc -l`):**
+39 public (35 `(reader)` + 4 `(dataroom)`) + 6 `/admin/*` + `/styleguide`. **Built ≠ live data** — use the
+`SCREENS-REGISTER.md` vocabulary (`design-received` → `pixel-sample` → `design-on-real-data` → `live`):
+
+- **`pixel-sample` — built pixel-perfect, rendering from `src/lib/data/sample/*` (19 routes).** Each carries a
+  `DEF-*-LIVE-DATA` row in `BUILD-STATUS.md` §7 describing the exact adapter swap: `/` (Ledger) · `/wire` ·
+  `/watchlist` · `/analysts` · `/analysts/[slug]` · `/research` · `/articles/[slug]` ·
+  `/stocks/[venue]/[ticker]` (+ `/financials` `/filings` `/ownership` `/thesis`) · `/earnings` · `/dividends` ·
+  `/ipo` (+ `/[offerSlug]` `/listing/[slug]`) · `/alerts` · `/settings/two-factor`. The `[slug]`/`[ticker]`
+  ones render ONE baked sample for EVERY param — they are layouts, not one-offs.
+- **`design-on-real-data` / `live` — no sample seam, reading `src/lib/data/*` (20 routes):** `/markets` ·
+  `/filings` · `/filings/[filingId]` · `/wire/[slug]` · `/search` · `/compare` · `/learn` · `/learn/[docSlug]` ·
+  `/investors` · `/investors/[slug]` · `/datapoints/[seriesId]` · `/earnings/[eventId]` ·
+  `/stocks/[venue]/[ticker]/{chart,earnings,dividends}` · `/analysts/apply` (static) · and the data room
+  `/heatmap` · `/screener` · `/screens` · `/screens/[screenId]`. Caveat: "real read" ≠ "rich table" — the
+  `entities.ts`-backed ones (`/investors`, `/datapoints`) and `/earnings/[eventId]` sit over thin or
+  NULL-heavy tables (DEF-EARNINGS-REPORTDATE) and degrade to empty states.
+- **Ops/dev (7):** `/admin/{,agents,approvals,approvals/[id],lake,ops}` · `/styleguide`.
+
+Two traps this inventory hides: the stock **workspace layout + 5 of its 8 tabs** still render `SAMPLE_STOCK`
+(Aramco) for **every** ticker while `/chart` `/earnings` `/dividends` are already real — and the reachable-vs-
+real split does not follow the tab bar. See `BRIDGE-BUILD-PLAN.md` P1.
 
 **Foundation in place (the reusable seam):** `src/lib/data/*` (cookieless-anon `use cache` read layer),
 `/api/pulse/*` + `usePulse`, `public.v_scores_public`, `src/lib/securities/resolve.ts`, market-state,
 5 UI primitives + 13 reader components, design tokens (`globals.css @theme`), the `cacheComponents`
 + `<Suspense>` + async-params conventions.
 
-**Unbuilt reader surfaces:** articles/research, analysts/investors, earnings/dividends/IPO/concalls
-calendars, compare/datapoints, the stock-page dividends/earnings/ownership tabs, the whole `(member)`
-group (watchlist/alerts/notebook/AI) + `(auth)` group, and the P4 Desk (~19 screens).
+**Still genuinely unbuilt** (superseded 2026-07-26 — the old list here named articles/research,
+analysts/investors, the calendars, compare/datapoints and the stock dividends/earnings/ownership tabs as
+unbuilt; **all of those now exist**, per the inventory above, most as `pixel-sample`): the `(auth)` route
+group (sign-up/in/reset/verify → checkout → account, Batch 2's 6a–6l) and the `PaywallModal` 4a–4d; the
+logged-in `MarsadNav` variant; **gating** for the member surfaces that shipped ungated (`/watchlist`,
+`/alerts`, the notifications bell); the notebook / Marsad-AI surfaces; concall transcripts; and the rest of
+the P4 Desk beyond the 4 admin screens built (~15 of ~19 screens).
 
 ---
 
@@ -118,14 +141,17 @@ group (watchlist/alerts/notebook/AI) + `(auth)` group, and the P4 Desk (~19 scre
 - `[READY]` **Intake soak** — flip `pipeline_intake_enabled` ON (human-gated) → watch → then `auto_publish_wires` with sign-off.
 
 ### Front-end (see §3 for the parallel playbook)
-- `[READY]` **Reader public surfaces** — calendars, analysts/investors, article/research depth, stock-page
-  dividends/earnings/ownership tabs, compare/datapoints, heatmap/screens depth. _Fully parallelizable now._
+- `[READY]` **Reader public surfaces — now a BRIDGE job, not a build job** (updated 2026-07-26): calendars,
+  analysts/investors, article/research, compare/datapoints and the stock tabs are all **built**; 19 of them
+  render from `src/lib/data/sample/*`. The remaining work is swapping each sample module for a real adapter —
+  sequenced in `docs/BRIDGE-BUILD-PLAN.md`, tracked per surface by the `DEF-*-LIVE-DATA` rows in
+  `BUILD-STATUS.md` §7. _Parallelizable per surface once the shared seams are frozen._
 - `[BLOCKED-BY: auth]` **Member surfaces** — watchlist/alerts/notebook/AI + `(auth)`/checkout.
 - `[READY]` **P4 Desk** — market-data ops screen first (edit `ingest.sources`/`schedules` from a UI), then
   agents console, lake browser, rules editor, front-page curation, the SA conflict UI.
 
 ### P5 monetization `[BLOCKED-BY: auth hook]`
-- Supabase Auth → Stripe UAE → server-side entitlements/meters (2 reads / 3 scores / 5 AI) → dunning → SES email → PDPL/ZATCA.
+- Supabase Auth → Stripe UAE → server-side entitlements/meters (**3 reads / 3 scores / 5 AI** — owner-resolved 2026-07-26, superseding the earlier 2-read sign-off; lands as a NEW `billing.plan_versions` row, never a mutation of v1) → dunning → SES email → PDPL/ZATCA.
 
 ### P6 / P7
 - Alerts+dispatch → **Marsad AI + pgvector** (grounded Q&A over the now-rich lake) → Wire Brief AM email →

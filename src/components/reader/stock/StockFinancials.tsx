@@ -1,4 +1,4 @@
-import type { Financials, FinRow } from "@/lib/data/sample/stock";
+import type { Financials, StockFinRow } from "@/lib/contracts/stock";
 
 /**
  * Stock Financials tab (design 3b) — quarterly results (8 quarters + a desk
@@ -18,7 +18,7 @@ function SectionHead({ title, meta, right }: { title: string; meta: string; righ
   );
 }
 
-function Row({ cols, r, size, pdfCol }: { cols: string; r: FinRow; size: string; pdfCol?: boolean }) {
+function Row({ cols, r, size, pdfCol }: { cols: string; r: StockFinRow; size: string; pdfCol?: boolean }) {
   return (
     <div className={`grid ${cols} border-b border-hairline-faint ${r.strong ? "bg-paper-tint" : ""}`}>
       <span className={`px-2.5 py-2 text-[12px] ${r.strong ? "font-bold text-ink" : "text-ink-mid"}`}>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { WatchList } from "@/lib/data/sample/watchlist";
+import type { WatchList } from "@/lib/contracts/watchlist";
 
 /**
  * Watchlist (1h) header — the serif "Watchlists" title, the list-switcher

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { CorporateAction, ExchangeFiling, MostReadItem } from "@/lib/data/sample/newswire";
+import type { CorporateAction, ExchangeFiling, MostReadItem } from "@/lib/contracts/newswire";
 
 /**
  * Newswire (1d) right context rail (300px) — three stacked modules under 2px

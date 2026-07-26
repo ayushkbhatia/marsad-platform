@@ -1,4 +1,4 @@
-import type { StatCell, WatchlistData } from "@/lib/data/sample/watchlist";
+import type { StatCell, WatchlistData } from "@/lib/contracts/watchlist";
 
 /**
  * Watchlist (1h) stat strip — a bordered paper-tint band of five equal cells

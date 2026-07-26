@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import Link from "next/link";
 import { runSearch, type SearchDocType } from "@/lib/data/search";
 import type { FilingItem } from "@/lib/data/filings";
@@ -7,6 +8,24 @@ import { SearchNoResults } from "@/components/reader/search/SearchNoResults";
 import { RecentSearches } from "@/components/reader/search/RecentSearches";
 import { FilingsList } from "@/components/reader/FilingsList";
 import { EmptyState } from "@/components/ui";
+
+/**
+ * Measure the search round-trip OUTSIDE any component body.
+ *
+ * The "N results in X.XXs" line is a credibility signal, so it must be a real
+ * measurement — but `Date.now()` inside a component is impure during render
+ * (react-hooks/purity), and that rule is static, so `connection()` alone does
+ * not satisfy it. Doing the timing in a plain module-scope async function is
+ * both lint-clean and honest.
+ *
+ * NOTE this reports RESPONSE time, not query time: `runSearch` is `use cache`,
+ * so a cache hit legitimately measures a few milliseconds.
+ */
+async function timedSearch(q: string) {
+  const t0 = Date.now();
+  const result = await runSearch(q);
+  return { result, elapsedS: ((Date.now() - t0) / 1000).toFixed(2) };
+}
 
 /**
  * 16a Search results / 17c No results — federated search over Postgres FTS +
@@ -132,9 +151,10 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     );
   }
 
-  const t0 = Date.now();
-  const result = await runSearch(q);
-  const elapsedS = ((Date.now() - t0) / 1000).toFixed(2);
+  // `connection()` marks the wall-clock read below as the deliberate dynamic
+  // read it is (same posture as `getMarketState` in `lib/data/markets.ts`).
+  await connection();
+  const { result, elapsedS } = await timedSearch(q);
 
   const counts = new Map(result.typeCounts.map((c) => [c.docType, c.count]));
   const hasResults = result.totalCount > 0;

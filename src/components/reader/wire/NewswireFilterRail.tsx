@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { WireCategory, WireVenue } from "@/lib/data/sample/newswire";
+import type { WireCategory, WireVenue } from "@/lib/contracts/newswire";
 
 /**
  * Newswire (1d) left filter rail (232px) — the category filter list (the one

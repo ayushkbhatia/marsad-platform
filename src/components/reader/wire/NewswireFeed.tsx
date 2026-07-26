@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { FeedConnection, WireFeedItem, WireTicker } from "@/lib/data/sample/newswire";
+import type { FeedConnection, WireFeedItem, WireTicker } from "@/lib/contracts/newswire";
 
 /**
  * Newswire (1d) centre column — the header (serif "The Wire" + WIRE / FILINGS

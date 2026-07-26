@@ -37,13 +37,18 @@ export function RecentSearches({ current }: { current: string }) {
   const [items, setItems] = useState<string[]>([]);
 
   useEffect(() => {
-    const existing = readStored();
-    const withoutCurrent = existing.filter((q) => q.toLowerCase() !== current.toLowerCase());
-    const next = current ? [current, ...withoutCurrent].slice(0, MAX_ITEMS) : existing;
-    if (current) writeStored(next);
-    setItems(next.filter((q) => q.toLowerCase() !== current.toLowerCase()).slice(0, MAX_ITEMS));
+    // localStorage is client-only, so this genuinely belongs in an effect —
+    // but the setState is deferred out of the synchronous effect body so it
+    // cannot cascade a second render pass (react-hooks/set-state-in-effect).
+    // Same pattern as the deferred first tick in `lib/hooks/usePulse.ts`.
+    queueMicrotask(() => {
+      const existing = readStored();
+      const withoutCurrent = existing.filter((q) => q.toLowerCase() !== current.toLowerCase());
+      const next = current ? [current, ...withoutCurrent].slice(0, MAX_ITEMS) : existing;
+      if (current) writeStored(next);
+      setItems(next.filter((q) => q.toLowerCase() !== current.toLowerCase()).slice(0, MAX_ITEMS));
+    });
     // Only re-run when the query itself changes (a new /search?q= navigation).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current]);
 
   if (items.length === 0) return null;
