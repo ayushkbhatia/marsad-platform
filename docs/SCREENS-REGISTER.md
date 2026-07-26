@@ -11,6 +11,7 @@ Human-readable precursor to the `public.surfaces` catalog (`BRIDGE-PLAN.md` §3)
 |---|---|---|---|---|
 | **1** | Reader core + data room | 16 | 16 | mixed — 3 live, 13 sample-seeded |
 | **2** | Monetization spine | 16 | 0 | schema exists, **0 rows**, no Stripe wiring |
+| **3** | Calendars + IPO Center | 5 | 5 | sample-seeded (event tables thin/empty) |
 
 ---
 
@@ -129,9 +130,10 @@ assumed. It is entirely UNPOPULATED.**
 - `premium_annual` **SAR 1228.20** `vat_incl:true` → **÷12 = SAR 102.35** ✅ design's "≈ SAR 102.35 / MONTH"
 - `enterprise` from SAR 24,000 · `free` price 0
 
-> ⚠️ **Conflict to resolve:** designs 4a/4d say **"3 OF 3 FREE READS"**, but the live plan and
-> the owner sign-off both set **`premium_reads_mo: 2`** (2 reads / 3 scores / 5 AI answers).
-> The schema is the system of record — either the design copy or the plan row must change.
+> ✅ **RESOLVED (owner, 2026-07-26): keep 3 free reads.** The design copy ("3 OF 3 FREE READS")
+> wins. **Action:** `billing.plan_versions` free meter `premium_reads_mo` must change **2 → 3**
+> (via a new `plan_versions` version row when Batch 2 is built — the table is versioned; do not
+> mutate v1 in place). Free tier is now **3 reads / 3 scores / 5 AI answers**.
 
 **What is genuinely missing** (not schema — wiring):
 1. **No Stripe integration at all** — "stripe" appears only as *column names*; no SDK, no
@@ -141,6 +143,33 @@ assumed. It is entirely UNPOPULATED.**
 3. **No `(auth)` route group** in the Next app — no sign-in/up/reset routes exist.
 4. **No logged-in nav variant** — `MarsadNav` ships anon-only today.
 5. Zero rows everywhere — no user has ever been created.
+
+# Batch 3 — Calendars + IPO Center (8a + 23a + 22a–22c)
+
+**Status: built pixel-perfect, sample-seeded.** The forward-looking event surfaces —
+the earnings/dividend weeks and the full IPO pipeline → offer → listing-day arc. Each
+renders from `src/lib/data/sample/*`; the real reads already exist in
+`src/lib/data/calendars.ts` (this batch is a **layout pass over an existing real-data
+scaffold** — the prior `/ipo` pages rendered those queries behind an `EmptyState`).
+
+| ID | Screen | Route | Status | Feeds (schema) | Sample module / DEF |
+|----|--------|-------|--------|----------------|---------------------|
+| 8a | Earnings calendar | `/earnings` | pixel-sample | `earnings_events` (has rows; `eps_consensus`/`eps_marsad` NULL, `report_date` uniform) | `sample/calendars.ts` · DEF-CALENDARS-LIVE-DATA |
+| 23a | Dividend calendar | `/dividends` | pixel-sample | `dividends` (**0** `state='live'`, ex/pay dates NULL) | `sample/calendars.ts` · DEF-CALENDARS-LIVE-DATA |
+| 22a | IPO pipeline | `/ipo` | pixel-sample | `ipo_offers` (**0 rows**) via `getIpoPipeline`/`getIpoJustListed`/`getIpoKpis` | `sample/ipo.ts` · DEF-CALENDARS-LIVE-DATA |
+| 22b | IPO offer detail (template) | `/ipo/[offerSlug]` | pixel-sample | `ipo_offers` via `getIpoOffer` | `sample/ipo.ts` · DEF-CALENDARS-LIVE-DATA |
+| 22c | IPO listing-day (template) | `/ipo/listing/[slug]` | pixel-sample | `listing_debuts` (0) + intraday `quotes` | `sample/ipo.ts` · DEF-CALENDARS-LIVE-DATA |
+
+**Signature contract columns unbacked today** (why sample, not real): the earnings screen's
+street **consensus** and the **Marsad desk estimate** (`eps_consensus`/`eps_marsad`) plus the
+confirmed/estimate week-forward `Δ EST` state; the dividend **ex-date ledger** (all ex/pay
+dates NULL) and payout-> 100% cut-risk flag; the entire IPO tier (0 offers, 0 debuts).
+The premium-gated **Marsad Take** (22b) and **Marsad Score · PENDING** card (22c) reuse the
+existing entitlement/score seams. Wiring path is one DEF row: **DEF-CALENDARS-LIVE-DATA**.
+
+**Route note:** 22c is a **new** route (`/ipo/listing/[slug]`) — the listing-day view is
+distinct from the offer detail (`[offerSlug]`), so it does not collide with the single-segment
+`[offerSlug]` matcher.
 
 ---
 

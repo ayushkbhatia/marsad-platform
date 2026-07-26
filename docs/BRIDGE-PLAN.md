@@ -188,9 +188,10 @@ premium monthly SAR 119; premium annual SAR 1228.20 VAT-incl → SAR 102.35/mo.
 referenced by three shipped Batch 1 screens (the 1k article fade-mask, 1f's export controls,
 3c's phrase-alert limit), all of which currently render a static gate.
 
-> ⚠️ **Conflict to resolve before building 4a/4d:** the designs read "3 OF 3 FREE READS", but
-> the live plan row and the owner sign-off both say **`premium_reads_mo: 2`**. Schema is the
-> system of record — either the copy or the plan row changes.
+> ✅ **RESOLVED (owner, 2026-07-26): keep 3 free reads** (design copy wins over the old
+> `premium_reads_mo: 2`). When Batch 2 is built, add a new `billing.plan_versions` version row
+> with free `premium_reads_mo: 3` (the table is versioned — never mutate v1 in place). Free tier
+> is now 3 reads / 3 scores / 5 AI answers.
 
 ## 6. Risks
 
