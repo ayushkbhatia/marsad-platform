@@ -1,59 +1,149 @@
 # Marsad — Screens Register
 
 _The running ledger of every design screen shared → its route, build status, and the schema
-tables that feed it. This is the human-readable precursor to the `public.surfaces` catalog
-(see `BRIDGE-PLAN.md` §3). Update this row-by-row as screens are shared, built, and wired._
+that feeds it. Organised in **batch modules** (the unit in which designs are handed over).
+Human-readable precursor to the `public.surfaces` catalog (`BRIDGE-PLAN.md` §3)._
 
-**Status legend:** `pixel-sample` → `pixel-sample` (built pixel-perfect, sample-seeded) →
-`partial-wired` → `live` (real adapter bound). **Wire-readiness** per `BRIDGE-PLAN.md` §2.
+**Status:** `design-received` → `pixel-sample` (built, sample-seeded) → `design-on-real-data`
+(built, live data, no placeholder seam) → `live`.
 
-## Reader surfaces
+| Batch | Module | Screens | Built | Data |
+|---|---|---|---|---|
+| **1** | Reader core + data room | 16 | 16 | mixed — 3 live, 13 sample-seeded |
+| **2** | Monetization spine | 16 | 0 | schema exists, **0 rows**, no Stripe wiring |
 
-| ID | Screen | Route | Status | Feeds (schema) | Sample module / DEF | Wire-readiness |
-|----|--------|-------|--------|----------------|---------------------|----------------|
-| 1b | Ledger / Today (home) | `/` | pixel-sample | `content_items`, `index_levels`, `mv_movers`, `quotes_latest`, `filings` | `sample/ledger.ts` · DEF-LEDGER-LIVE-DATA | partial |
-| 1d | Newswire | `/wire` | pixel-sample | `filings` (ready), `dividends` (broken), `score_events_feed`, analytics (none) | `sample/newswire.ts` · DEF-NEWSWIRE-LIVE-DATA | partial (core feed only) |
-| 1h | Watchlist | `/watchlist` | pixel-sample | `quotes_latest`, `v_scores_public` + per-user `watchlists`/`alerts`/`notes` (empty) | `sample/watchlist.ts` · DEF-WATCHLIST-LIVE-DATA | blocked-producer + blocked-auth |
-| 1l | Research index | `/research` | pixel-sample | `content_items` (1 live) | `sample/research.ts` · DEF-RESEARCH-LIVE-DATA | partial |
-| 1k | Article (template) | `/articles/[slug]` | pixel-sample | `content_items` + `content_blocks` (RLS free/premium) | `sample/research.ts` · DEF-RESEARCH-LIVE-DATA | partial (premium cut needs auth) |
-| 1i | Coverage Desk | `/analysts` | pixel-sample | `analysts` (0), `analyst_calls` (0); `v_scores_public` for a scores view | `sample/analysts.ts` · DEF-ANALYSTS-LIVE-DATA | blocked-producer |
-| 1j | Analyst Profile (template) | `/analysts/[slug]` | pixel-sample | `analysts` — **no slug/display_name column** (migration needed) | `sample/analysts.ts` · DEF-ANALYSTS-LIVE-DATA | hard-blocked |
-| 3a | Stock — Overview | `/stocks/[venue]/[ticker]` | pixel-sample | `securities`, `quotes_latest`, `ohlcv_daily`, `v_key_ratios_public`, `v_scores_public`, peers | `sample/stock.ts` · DEF-STOCK-LIVE-DATA | mostly-ready (financials gated) |
-| 3b | Stock — Financials | `/stocks/[venue]/[ticker]/financials` | pixel-sample | `financial_statements` (51k, worker-only → premium/service-role) | ″ | partial (premium/anon-gated) |
-| 3c | Stock — Filings & Concalls | `/stocks/[venue]/[ticker]/filings` | pixel-sample | `filings` (ready), `transcripts` (0), `content_items` | ″ | partial (concalls empty) |
-| 3d | Stock — Ownership & People | `/stocks/[venue]/[ticker]/ownership` | pixel-sample | `holders`/`ownership_snapshots`/`company_people` (all 0) | ″ | blocked-producer |
+---
 
-_Prior wave-1/2 stock tabs (chart, dividends, earnings) already read real data; being folded
-into the 3a–3d pixel pass._
+# Batch 1 — Reader core & data room
 
-## Data room (dark surfaces) — **design applied ON real data**
+## 1.1 Reader surfaces (sample-seeded)
 
-These two are the first surfaces where the design was applied **without** sample-seeding:
-they were already correctly wired, so this pass changed layout + aesthetic only. They are
-the working model for the bridge — design and live data, no placeholder seam.
+Built pixel-perfect, rendering from `src/lib/data/sample/*`. Each carries a `DEF-*-LIVE-DATA`
+row in `BUILD-STATUS.md` §7 describing the exact swap.
+
+| ID | Screen | Route | Status | Feeds (schema) | Sample module / DEF |
+|----|--------|-------|--------|----------------|---------------------|
+| 1b | Ledger / Today (home) | `/` | pixel-sample | `content_items`, `index_levels`, `mv_movers`, `quotes_latest`, `filings` | `sample/ledger.ts` · DEF-LEDGER-LIVE-DATA |
+| 1d | Newswire | `/wire` | pixel-sample | `filings` (ready), `dividends` (broken), `score_events_feed` | `sample/newswire.ts` · DEF-NEWSWIRE-LIVE-DATA |
+| 1h | Watchlist | `/watchlist` | pixel-sample | `quotes_latest`, `v_scores_public` + per-user tables (empty) | `sample/watchlist.ts` · DEF-WATCHLIST-LIVE-DATA |
+| 1i | Coverage Desk | `/analysts` | pixel-sample | `analysts` (0), `analyst_calls` (0) | `sample/analysts.ts` · DEF-ANALYSTS-LIVE-DATA |
+| 1j | Analyst Profile (template) | `/analysts/[slug]` | pixel-sample | `analysts` — no slug column (migration needed) | `sample/analysts.ts` · DEF-ANALYSTS-LIVE-DATA |
+| 1k | Article (template) | `/articles/[slug]` | pixel-sample | `content_items` + `content_blocks` (RLS premium cut) | `sample/research.ts` · DEF-RESEARCH-LIVE-DATA |
+| 1l | Research index | `/research` | pixel-sample | `content_items` (1 live) | `sample/research.ts` · DEF-RESEARCH-LIVE-DATA |
+| 3a | Stock — Overview | `/stocks/[venue]/[ticker]` | pixel-sample | `securities`, `quotes_latest`, `ohlcv_daily`, `v_key_ratios_public`, `v_scores_public` | `sample/stock.ts` · DEF-STOCK-LIVE-DATA |
+| 3b | Stock — Financials | `…/financials` | pixel-sample | `financial_statements` (51k, worker-only → premium) | ″ |
+| 3c | Stock — Filings & Concalls | `…/filings` | pixel-sample | `filings` (ready), `transcripts` (0) | ″ |
+| 3d | Stock — Ownership & People | `…/ownership` | pixel-sample | `holders`/`ownership_snapshots`/`company_people` (all 0) | ″ |
+
+## 1.2 Data room (dark) — **design applied ON real data**
+
+The first surfaces where the design landed without a sample seam: already correctly wired, so
+the pass changed layout + aesthetic only. **The working model for the bridge.**
 
 | ID | Screen | Route | Status | Feeds (schema) | Notes |
 |----|--------|-------|--------|----------------|-------|
-| 1e | Sector Heatmap | `/heatmap` | **live** (design applied) | `quotes_latest`, `securities`, `sectors` via `getSectorHeatmap` / `getHeatmapConstituents` | Real breadth + constituents. 1W/1M/YTD inert (needs historical sector aggregation); tile area = move magnitude, not free-float mcap (not in schema yet) |
-| 1f | Stock Screener | `/screener` | **live** (design applied) | `getScreenerUniverse` via `/api/screener/run`; presets `PRESET_SCREENS` w/ live counts | Real 762-name universe. Premium ratio columns stay locked stubs (never fetched); range filters are min/max inputs, not the design's slider handles |
-| 9a | Explore Screens | `/screens` | live | `getPresetScreenSummaries` | Shares the data-room shell; own MY SCREENER/EXPLORE toggle |
+| 1e | Sector Heatmap | `/heatmap` | **design-on-real-data** | `quotes_latest`, `securities`, `sectors` via `getSectorHeatmap`/`getHeatmapConstituents` | 1W/1M/YTD inert (needs historical sector aggregation); tile area = move magnitude, not free-float mcap |
+| 1f | Stock Screener | `/screener` | **design-on-real-data** | `getScreenerUniverse` via `/api/screener/run`; presets w/ live counts | 762-name universe; premium ratio cols stay locked stubs; ranges are min/max inputs, not slider handles |
+| 9a | Explore Screens | `/screens` | live | `getPresetScreenSummaries` | Shares the data-room shell |
 
-**Shell change:** per the 1e/1f handoff the data room deliberately **drops `MarsadNav`** — it is
-a full-bleed focus mode with its own 54px `DataRoomChrome` bar (mode chip + controls). Entering
-from the reader is a mode switch, not a page nav; the chrome brand lockup + footer "← Reader"
-are the way out.
-
-## Reader surfaces already reading real data (wave-1/2, not yet pixel-audited to a 3x design)
-
-`/markets`, `/screener`, `/heatmap`, `/earnings`, `/dividends`, `/ipo`, `/filings`, `/learn`,
-`/compare`, `/search`, `/investors`, `/datapoints` — status varies; revisit when their
-design screens are shared.
-
-## Admin / Desk surfaces
-
-_(none shared yet — user has flagged more admin-level screens are coming)_
+**Shell rule:** per the 1e/1f handoff the data room deliberately **drops `MarsadNav`** — a
+full-bleed focus mode with its own 54px `DataRoomChrome`. Entering from the reader is a mode
+switch, not a page nav.
 
 ---
-_Every new screen the owner shares gets a row here first (`pixel-sample`), then flows
-through the pixel-sample → wired lifecycle. This register is mirrored by `public.surfaces`
-once that catalog lands (BRIDGE-PLAN Phase 0)._
+
+# Batch 2 — Monetization spine (4a–4d + 6a–6l)
+
+**Status: design received, digested, NOT built.** 16 screens covering the reusable paywall in
+all four contexts plus the complete sign-up → verify → personalize → checkout → account →
+sign-out journey.
+
+## 2.1 Paywalls — ONE component, four prop sets
+
+`PaywallModal` is **not four designs** — it is the same 560px card over four blurred
+backdrops. Props: `dark?`, `eyebrow`, `chip?`, `title`, `sub`, `b1/b2/b3`, `cta`, `note`.
+Backdrop is fixed: real page at `filter: blur(2.5px); pointer-events:none`, scrim
+`rgba(20,18,14,.55)`. Dark variant → card `#14120e` on `#33302a`, bullets `#4fc47f`, CTA
+inverted.
+
+| ID | Screen | Trigger context | Eyebrow / chip | Feeds |
+|----|--------|-----------------|----------------|-------|
+| 4a | Article Gate | mid-read over 1k | `PREMIUM RESEARCH` / `24 MIN READ` | `billing.usage_meters` (`premium_reads_mo`), `billing.article_unlocks` |
+| 4b | Score / AI Gate | over 3a stock page | `MARSAD SCORE · AI RATING` / `✦ AI` | meters `scores_mo`, `ai_answers_mo`, `ai_credits_mo` |
+| 4c | Screener Export | over 1f data room (**dark**) | `DATA ROOM · EXPORT` / `CSV + ALERTS` | plan `limits.saved_screens`, alert limits |
+| 4d | Metered Soft Wall | monthly meter exhausted | `FREE MONTHLY LIMIT` / `3 / 3 READ` | `billing.usage_meters` + reset date |
+
+**Already referenced by shipped screens:** the 1k article fade-mask, 1f's export controls, and
+3c's phrase-alert limit all point at this component — build it first.
+
+## 2.2 Account journey
+
+| ID | Screen | Shell | Feeds |
+|----|--------|-------|-------|
+| 6a | Sign Up (SSO + email) | auth shell | `auth.users`, `auth.identities` |
+| 6b | Sign In | auth shell | `auth.users`, `auth.sessions` |
+| 6c | Forgot Password | auth shell | `auth.one_time_tokens` — never reveals if an address exists |
+| 6d | Set New Password | auth shell | ends all other sessions; forbids reuse |
+| 6e | Verify Email | auth shell | resend is a **disabled cooldown** (`Resend — 0:42`) |
+| 6f | Personalize (1 of 2) | auth shell | `public.user_profiles.market_prefs[]`, `sector_prefs[]`, `currency_pref` |
+| 6g | You're Set (2 of 2) | auth shell | reads 6f back as prose; both steps skippable |
+| 6h | Checkout | reader | `billing.plan_versions.plans`, `billing.invoices`, Stripe Payment Element **re-skinned** |
+| 6i | Payment Declined | reader | `billing.payment_attempts` (`decline_code`, `attempt_no`) |
+| 6j | Welcome to Premium | reader | `billing.invoices` receipt; returns user to the article they were reading |
+| 6k | Account Settings | **logged-in nav** | `user_profiles`, `billing.subscriptions`, `billing.invoices`, `auth.mfa_factors`, `comms.push_devices` |
+| 6l | Signed Out | auth shell | offers sign-back-in **and** the free edition |
+
+**Two shell rules this batch introduces:**
+1. **Auth shell drops `MarsadNav`** (6a–6e, 6l) — quiet `#f6f4ee` page, wordmark only, centred
+   card. Nothing to wander off to mid-signup.
+2. **Logged-in `MarsadNav` variant** (6k and *every* signed-in screen) — "Sign in" + "Go
+   Premium" replaced by a `PREMIUM` chip + 32px circular avatar. It is a `user` + `plan` prop
+   on the existing nav, **not a separate nav**. A signed-in user seeing "Sign in" is the exact
+   bug this state prevents.
+
+## 2.3 Backend reality check (audited 2026-07-23, live DB)
+
+**The monetization schema is BUILT — and materially more complete than the bridge audit
+assumed. It is entirely UNPOPULATED.**
+
+| Design structure | Real table / column | Rows |
+|---|---|---|
+| `session.plan` | `billing.subscriptions.plan_key` + `.status` | **0** |
+| `session.meter {articlesRead, limit, resetsOn}` | `billing.usage_meters (user_id, meter_key, period_month, used)` + plan limits | **0** |
+| `plan {basePrice, vatRate, effectiveMonthly, trialDays}` | `billing.plan_versions.plans` (jsonb, **versioned**) | 1 |
+| `invoices[]` | `billing.invoices` — incl. `vat_rate`, `vat_amount_sar`, `seller_trn`, `buyer_vat_id`, `zatca_payload`, `pdf_path` | **0** |
+| `declineState {code, attemptsRemaining}` | `billing.payment_attempts (decline_code, attempt_no, outcome)` | **0** |
+| `onboarding {markets, sectors, currency}` | `public.user_profiles (market_prefs[], sector_prefs[], currency_pref, onboarded_at)` | **0** |
+| trial / dunning / cancel | `subscriptions.trial_ends_at`, `.dunning_state`, `.next_retry_at`, `.cancel_at_period_end` | **0** |
+| 4a per-article unlock | `billing.article_unlocks (user_id, content_id, period_month)` | **0** |
+| promos / credits | `billing.promo_codes`, `billing.credit_ledger` | **0** |
+| user accounts | `auth.users` (Supabase Auth, MFA + sessions tables present) | **0** |
+
+**Functions that already exist:** `billing.consume_meter` (the metering RPC behind 4a/4b/4d),
+`billing.live_plan` (resolves the active plan version), `public.custom_access_token_hook`
+(stamps the JWT claim), `public.jwt_tier` (the RLS entitlement read used by
+`content_blocks`/`scores`). Migration: `supabase/migrations/20260713000010_billing.sql`.
+
+**Live pricing (`plan_versions` v1) — matches the design:**
+- `premium_monthly` **SAR 119** ✅ design's "VS SAR 119 ON MONTHLY"
+- `premium_annual` **SAR 1228.20** `vat_incl:true` → **÷12 = SAR 102.35** ✅ design's "≈ SAR 102.35 / MONTH"
+- `enterprise` from SAR 24,000 · `free` price 0
+
+> ⚠️ **Conflict to resolve:** designs 4a/4d say **"3 OF 3 FREE READS"**, but the live plan and
+> the owner sign-off both set **`premium_reads_mo: 2`** (2 reads / 3 scores / 5 AI answers).
+> The schema is the system of record — either the design copy or the plan row must change.
+
+**What is genuinely missing** (not schema — wiring):
+1. **No Stripe integration at all** — "stripe" appears only as *column names*; no SDK, no
+   `supabase/functions`, no webhook handler, no checkout session creation.
+2. **`custom_access_token_hook` is not enabled** in Supabase Dashboard → Auth → Hooks (a known
+   owner action item) — so `jwt_tier` never gets stamped and the premium RLS cut can't fire.
+3. **No `(auth)` route group** in the Next app — no sign-in/up/reset routes exist.
+4. **No logged-in nav variant** — `MarsadNav` ships anon-only today.
+5. Zero rows everywhere — no user has ever been created.
+
+---
+
+_Every new screen the owner shares gets a row here first (`design-received`), then flows
+through the lifecycle. Mirrored by `public.surfaces` once that catalog lands (BRIDGE-PLAN
+Phase 0)._

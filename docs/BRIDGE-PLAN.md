@@ -132,10 +132,13 @@ public.surfaces
   restore `notFound()`/metadata/JSON-LD on `/articles/[slug]`; register each slug as a
   `content_items` instance. (Premium masked-block cut lands fully in Phase 5 with auth.)
 - **Phase 4 — Fill producer gaps** (see §5).
-- **Phase 5 — Auth + entitlements.** Stand up auth + a `(member)` route group; move
-  `/watchlist` into it, re-gate NavTabs; wire per-user state behind the existing
-  `create_watchlist`/`create_alert`/`create_saved_screen` RPCs; enforce premium via
-  `surfaces.gating` + RLS `jwt_tier`; light up the Article premium cut end-to-end.
+- **Phase 5 — Auth + entitlements + monetization (Batch 2).** See §5.5 — the schema is
+  already built; this phase is wiring, not modelling. Stand up the `(auth)` route group
+  (6a–6e, 6l) + a `(member)` group; move `/watchlist` into it, re-gate NavTabs and add the
+  **logged-in nav variant**; enable `custom_access_token_hook` so `jwt_tier` is stamped;
+  build `PaywallModal` (4a–4d) on `billing.consume_meter`; integrate Stripe (6h–6j) +
+  dunning (6i); wire per-user state behind the existing `create_watchlist`/`create_alert`/
+  `create_saved_screen` RPCs; light up the Article premium cut end-to-end.
 - **Phase 6 — Desk authoring loop.** Desk lists `surfaces`, opens `content_items`/blocks
   authoring for content-backed surfaces; new page = type + component + adapter + one INSERT.
 
@@ -151,6 +154,43 @@ public.surfaces
 | **editorial depth** | Desk authoring loop to grow `content_items` beyond 1 live | 1l, 1k, 1b lead |
 | **per-user state** | Auth + per-user CRUD producers | 1h |
 | **silent empties (log, don't wire)** | `estimates`/`transcripts`/`company_people`/`index_sector_weights`/`security_status` = 0 rows, anon-readable, no producer — decide build-or-defer; `securities.isin` 64% NULL degrades ISIN joins | earnings/ownership/index rails |
+
+## 5.5 Monetization spine (Batch 2 — 4a–4d + 6a–6l)
+
+_Added 2026-07-23 after auditing the live DB against the Batch 2 handoff. **This corrects an
+assumption in §2/§6: the earlier audit treated auth + entitlements as "entirely unbuilt". The
+schema is in fact built and materially complete** — what is missing is wiring and rows._
+
+**Already in the database** (`supabase/migrations/20260713000010_billing.sql`):
+`billing.{subscriptions, plan_versions, invoices, payment_attempts, usage_meters,
+article_unlocks, credit_ledger, promo_codes}`, `public.user_profiles`, `comms.push_devices`,
+the full Supabase `auth.*` stack (users, sessions, identities, MFA), plus the functions
+`billing.consume_meter`, `billing.live_plan`, `public.custom_access_token_hook`,
+`public.jwt_tier`. The invoice table already carries **KSA VAT + ZATCA** fields
+(`vat_rate`, `vat_amount_sar`, `seller_trn`, `buyer_vat_id`, `zatca_payload`) — exactly what
+6h/6j require. **Every one of these tables has 0 rows; `auth.users` has 0 rows.**
+
+The design's data model maps onto it almost 1:1 (full mapping table in
+`SCREENS-REGISTER.md` §2.3), and the live `plan_versions` pricing **matches the design**:
+premium monthly SAR 119; premium annual SAR 1228.20 VAT-incl → SAR 102.35/mo.
+
+**Blocking gaps — wiring, not modelling:**
+1. **No Stripe integration** — "stripe" exists only as column names. No SDK, no
+   `supabase/functions`, no webhook handler, no checkout-session creation. This is the single
+   largest build in the batch (6h → 6i → 6j is one state machine).
+2. **`custom_access_token_hook` not enabled** in Supabase Dashboard → Auth → Hooks (a
+   standing owner action item). Until it is, `jwt_tier` is never stamped, so the premium RLS
+   cut on `content_blocks`/`scores` cannot fire — **the 1k paywall cannot be tested end-to-end.**
+3. **No `(auth)` route group** and **no logged-in `MarsadNav` variant** (a `user` + `plan`
+   prop, not a second nav).
+
+**Sequencing note:** `PaywallModal` should be built **first** in this batch — it is already
+referenced by three shipped Batch 1 screens (the 1k article fade-mask, 1f's export controls,
+3c's phrase-alert limit), all of which currently render a static gate.
+
+> ⚠️ **Conflict to resolve before building 4a/4d:** the designs read "3 OF 3 FREE READS", but
+> the live plan row and the owner sign-off both say **`premium_reads_mo: 2`**. Schema is the
+> system of record — either the copy or the plan row changes.
 
 ## 6. Risks
 
@@ -178,8 +218,11 @@ public.surfaces
   628 live rows; the Ledger index rail is wireable.
 - **O-4** Analyst producer + anon slug path (new columns vs a `SECURITY DEFINER` view?) —
   gates 1i + 1j entirely.
-- **O-5** Auth/entitlement model (RLS already references `jwt_tier`) + which route group hosts
-  member surfaces.
+- **O-5** ~~Auth/entitlement model~~ — **largely ANSWERED 2026-07-23 (see §5.5):** the model is
+  `auth.users` + `billing.subscriptions.plan_key` → `custom_access_token_hook` → `jwt_tier` →
+  RLS. Remaining decisions: (a) enable the access-token hook in the Dashboard, (b) which route
+  group hosts member surfaces (`(member)` vs extending `(reader)`), (c) resolve the
+  2-vs-3 free-reads conflict.
 - **O-6** Origin of Ledger macro ticker + editorial hero (scraper vs `content_items` fields vs
   external feed).
 - **O-7** Should sample modules stay a permanent feature-flagged fallback, or retire per
