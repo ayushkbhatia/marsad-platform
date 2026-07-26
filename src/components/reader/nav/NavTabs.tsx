@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMarketOpen } from "@/lib/hooks/usePulse";
+import { nextOpenLabel } from "@/lib/market/hours";
 
 /**
  * Row 3 of the desktop masthead (`MarsadNav`, ~44px) — the 8-tab section bar
@@ -54,12 +56,28 @@ export const NAV_TABS: readonly NavTab[] = [
 const TAB_BASE = "flex items-center font-ui text-[13.5px]";
 const TAB_INACTIVE = `${TAB_BASE} font-medium text-ink-muted`;
 
+/**
+ * Markets-open/closed status (design 16c). When closed, the label carries a
+ * reopen hint ("Closed · opens Sun 10:00", TDWL-referenced) and the dot goes
+ * grey — Thursday's close must not read as live. The reopen label is computed
+ * once on the client after mount (empty during SSR/first paint so server and
+ * client agree; it fills in on the next tick — same pattern as the LiveClock).
+ */
 function MarketStatus() {
   const open = useMarketOpen();
+  const [reopen, setReopen] = useState("");
+  useEffect(() => {
+    if (open) return;
+    const compute = () => setReopen(nextOpenLabel());
+    compute();
+    const id = setInterval(compute, 60_000);
+    return () => clearInterval(id);
+  }, [open]);
+
   return (
     <div className="ml-auto flex flex-none items-center gap-2">
       <span className="font-ui text-[11px] font-semibold tracking-[0.1em] text-ink-faint uppercase">
-        {open ? "Markets open" : "Markets closed"}
+        {open ? "Markets open" : reopen ? `Closed · ${reopen}` : "Markets closed"}
       </span>
       <span
         className={`h-[7px] w-[7px] flex-none rounded-full ${open ? "bg-positive" : "bg-ink-faint"}`}

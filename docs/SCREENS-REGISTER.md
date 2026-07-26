@@ -12,6 +12,7 @@ Human-readable precursor to the `public.surfaces` catalog (`BRIDGE-PLAN.md` §3)
 | **1** | Reader core + data room | 16 | 16 | mixed — 3 live, 13 sample-seeded |
 | **2** | Monetization spine | 16 | 0 | schema exists, **0 rows**, no Stripe wiring |
 | **3** | Calendars + IPO Center | 5 | 5 | sample-seeded (event tables thin/empty) |
+| **4** | Utility surfaces | 8 | 8 | 3 design-on-real-data, 4 sample-seeded, 1 nav-state |
 
 ---
 
@@ -170,6 +171,44 @@ existing entitlement/score seams. Wiring path is one DEF row: **DEF-CALENDARS-LI
 **Route note:** 22c is a **new** route (`/ipo/listing/[slug]`) — the listing-day view is
 distinct from the offer detail (`[offerSlug]`), so it does not collide with the single-segment
 `[offerSlug]` matcher.
+
+# Batch 4 — Utility surfaces (16a–16c + 5a + 18a + 10d + 17f + 20f)
+
+**Status: ingested + built (2026-07-26).** The journey-integrity surfaces. Three were
+**already built as design-on-real-data** and only needed registering; four are net-new
+sample-seeded builds; one is a nav-level state enhancement.
+
+## 4.1 Net-new builds (sample-seeded)
+
+| ID | Screen | Route | Status | Feeds (schema) | Sample module / DEF |
+|----|--------|-------|--------|----------------|---------------------|
+| 5a | Alerts manager | `/alerts` | pixel-sample | `usage_meters`/`billing.consume_meter` caps (0 rows) + per-user alert store (none) | `sample/alerts.ts` · DEF-ALERTS-LIVE-DATA |
+| 16b | Notifications panel | nav island (`NotificationsBell`) | pixel-sample | shares the alert source model (0 rows) | `sample/alerts.ts` · DEF-ALERTS-LIVE-DATA |
+| 10d | AI thesis | `/stocks/[venue]/[ticker]/thesis` | pixel-sample | LLM over `filings`/`transcripts`, credit-gated (none) | `sample/thesis.ts` · DEF-THESIS-LIVE-DATA |
+| 17f | Two-factor enable | `/settings/two-factor` | pixel-sample | `auth.mfa_factors` + `(auth)` group (neither built) | inline · DEF-TWOFACTOR-LIVE-DATA |
+
+- **16b** is an **anchored panel, not a page** — a `NotificationsBell` client island added to
+  `MarsadNav`'s utility cluster (bell + unread count → 392px overlay, light scrim + 1.5px blur).
+  Footer hands off to 5a. Additive; ships with a shared sample set (member surface, ungated).
+- **10d** added an **"AI Thesis" tab** to the shared `StockHeader` tab bar (additive) — two
+  independent lenses (quant Score vs narrative thesis); every claim carries a numbered citation.
+- **5a** caps ARE the monetisation surface (stock 8/10→800, screen 2/2→75, phrase 2/2→50,
+  turning red at the limit); composer is a sentence of pills; states TRIGGERED/●ARMED/PAUSED.
+- **17f** is self-contained; `Account` (6k) + `Cancel` are inert (no `(auth)` group → no 404).
+
+## 4.2 Already design-on-real-data (registered, not rebuilt)
+
+| ID | Screen | Route | Status | Notes |
+|----|--------|-------|--------|-------|
+| 16a | Search results | `/search` | **design-on-real-data** | Federated FTS (`fn_search`/`runSearch`); top-match + filings + research + people + 17c no-results. Verified live (nav change didn't break it). |
+| 18a | Compare | `/compare?t=…` | **design-on-real-data** | Server-computed from `resolveSecurity`+`getCompareEntity`; up to 4 venue:ticker pairs, USD-normalised mcap. `noindex`. |
+| 20f | Learn / Help & policies | `/learn` | **design-on-real-data** | Authored docs (`learn/docs.ts`) + the master-disclaimer "Important" callout. Deliberately scoped down from 20f's broader help-center (FAQ grid / support ticket not built — would document features that don't exist yet). |
+
+## 4.3 Nav-level state
+
+| ID | Screen | Where | Status | Notes |
+|----|--------|-------|--------|-------|
+| 16c | Market-closed masthead | `NavIndexStrip` + `NavTabs` | **built (real-state-gated)** | GCC trades Sun–Thu. When `useMarketOpen()` is false the index strip **desaturates** (grey levels, colour dropped — Thursday's close must not read live), the clock chip flips **LIVE → CLOSED**, and the status label carries a reopen hint (`nextOpenLabel()` → "Closed · opens Mon 10:00", TDWL-referenced). Gated on real trading hours (`lib/market/hours.ts`), so open-hours rendering is unchanged. Holiday-aware answer stays server-side (`getMarketState()`); this mirror is the client fast-path. |
 
 ---
 

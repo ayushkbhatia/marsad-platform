@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { TickerChip } from "@/components/ui";
-import { usePulse } from "@/lib/hooks/usePulse";
+import { usePulse, useMarketOpen } from "@/lib/hooks/usePulse";
 import { fmtPrice } from "@/lib/reader/format";
 import { SAMPLE_INDICES } from "@/lib/data/sample/ledger";
 
@@ -44,7 +44,7 @@ function fmtChgMag(n: number | null): string {
   return `${Math.abs(n).toFixed(2)}%`;
 }
 
-function IndexCell({ item }: { item: IndicesIndexItem }) {
+function IndexCell({ item, muted }: { item: IndicesIndexItem; muted?: boolean }) {
   const has = item.level != null && Number.isFinite(item.level);
 
   if (!has) {
@@ -56,6 +56,20 @@ function IndexCell({ item }: { item: IndicesIndexItem }) {
         <span className="font-mono text-[9px] tracking-[0.08em] text-ink-faint uppercase">
           awaiting data
         </span>
+      </span>
+    );
+  }
+
+  // Market-closed (design 16c): the levels are the prior session's close, not
+  // live — desaturate to grey and drop the up/down colour so the strip never
+  // reads as a live tape off-session.
+  if (muted) {
+    return (
+      <span className="inline-flex flex-none items-baseline gap-[7px] whitespace-nowrap font-ui">
+        <span className="font-mono text-[10.5px] font-semibold tracking-[0.04em] text-ink-faint">
+          {item.code}
+        </span>
+        <span className="font-mono text-[11px] tabular-nums text-ink-faint">{fmtPrice(item.level, 2)}</span>
       </span>
     );
   }
@@ -99,11 +113,11 @@ function fmtGst(d: Date): string {
   return `${time} GST · ${date}`;
 }
 
-function LiveClock() {
+function LiveClock({ open }: { open: boolean }) {
   const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
     // First value on the next frame (not synchronously in the effect body) so
-    // the bare-"LIVE" server render and first client render still agree.
+    // the bare server render and first client render still agree.
     const raf = requestAnimationFrame(() => setNow(new Date()));
     const id = setInterval(() => setNow(new Date()), 30_000);
     return () => {
@@ -112,11 +126,15 @@ function LiveClock() {
     };
   }, []);
 
+  // Market-closed (design 16c): the clock chip stops reading "LIVE" and the dot
+  // goes grey — the strip beside it is a prior close, so "live" would be a lie.
+  const dot = open ? "bg-positive" : "bg-ink-faint";
+  const prefix = open ? "LIVE" : "CLOSED";
   return (
     <div className="ml-auto flex flex-none items-center gap-2 pl-4">
-      <span className="h-[6px] w-[6px] flex-none rounded-full bg-positive" aria-hidden />
+      <span className={`h-[6px] w-[6px] flex-none rounded-full ${dot}`} aria-hidden />
       <span className="font-mono text-[10px] tracking-[0.08em] whitespace-nowrap text-ink-muted">
-        {now ? `LIVE · ${fmtGst(now)}` : "LIVE"}
+        {now ? `${prefix} · ${fmtGst(now)}` : prefix}
       </span>
     </div>
   );
@@ -124,6 +142,7 @@ function LiveClock() {
 
 export function NavIndexStrip() {
   const { data } = usePulse<IndicesPayload>("indices");
+  const open = useMarketOpen();
   // Until `public.index_levels` is filling, the pulse comes back empty; fall
   // back to the representative sample strip so the masthead ticker renders
   // (design 1b). Live levels override the moment they arrive.
@@ -143,9 +162,9 @@ export function NavIndexStrip() {
     <div className="h-[34px] border-b border-hairline">
       <div className="mx-auto flex h-full max-w-[1440px] items-center gap-6 overflow-x-auto px-7">
         {items.map((it) => (
-          <IndexCell key={it.code} item={it} />
+          <IndexCell key={it.code} item={it} muted={!open} />
         ))}
-        <LiveClock />
+        <LiveClock open={open} />
       </div>
     </div>
   );

@@ -19,6 +19,7 @@ const TABS = [
   { key: "financials", label: "Financials", seg: "financials" },
   { key: "filings", label: "Filings & Concalls", seg: "filings" },
   { key: "ownership", label: "Ownership & People", seg: "ownership" },
+  { key: "thesis", label: "AI Thesis", seg: "thesis" },
   { key: "quote", label: "Quote & Coverage", seg: null },
 ] as const;
 

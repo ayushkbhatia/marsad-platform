@@ -3,6 +3,7 @@ import Link from "next/link";
 import { MobileNavDrawer } from "./MobileNavDrawer";
 import { NavIndexStrip } from "./nav/NavIndexStrip";
 import { NavTabs, NavTabsFallback } from "./nav/NavTabs";
+import { NotificationsBell } from "./nav/NotificationsBell";
 
 /** Static hamburger shown during prerender / before the client drawer hydrates.
  * Visual match for MobileNavDrawer's closed button; non-interactive. */
@@ -120,6 +121,12 @@ export function MarsadNav() {
                   USD
                 </span>
               </div>
+
+              {/* Notifications bell (design 16b) — the bell's desktop home, an
+                  anchored digest panel. Additive island; ships with a shared
+                  sample set until per-user notifications land
+                  (DEF-ALERTS-LIVE-DATA). */}
+              <NotificationsBell />
 
               {/* Anon session state — the only one this build ships (no
                   `(auth)` group / user session exists yet, docs/FORWARD-BUILD.md

@@ -89,3 +89,30 @@ export function isAnyVenueOpen(venues?: string[], at: Date = new Date()): boolea
     : Object.values(VENUE_HOURS).filter((v) => v.active).map((v) => v.venue);
   return list.some((v) => isVenueOpen(v, at));
 }
+
+/**
+ * Reopen hint for the market-closed masthead (design 16c) — e.g.
+ * "opens Sun 10:00" for a reference venue (default TDWL, the flagship the index
+ * strip leads with). Coarse 15-minute forward scan (≤ 8 days) reusing the
+ * timezone-correct `isVenueOpen`; the weekday comes from the found instant, the
+ * time from the venue's regular open (so the label is exact even if the scan
+ * grid lands a step past the bell). Holidays are NOT encoded here (same caveat
+ * as the rest of this mirror — the server `getMarketState()` is authoritative);
+ * on a holiday this may name the next regular session rather than the true one.
+ * Returns "" if no open is found within the window.
+ */
+export function nextOpenLabel(venue = "TDWL", at: Date = new Date()): string {
+  const h = VENUE_HOURS[venue?.toUpperCase?.() ?? venue];
+  if (!h || !h.active) return "";
+  const STEP_MS = 15 * 60 * 1000;
+  for (let step = 1; step <= 8 * 24 * 4; step++) {
+    const t = new Date(at.getTime() + step * STEP_MS);
+    if (isVenueOpen(venue, t)) {
+      const wd = new Intl.DateTimeFormat("en-US", { timeZone: h.timezone, weekday: "short" }).format(t);
+      const hh = String(Math.floor(h.openMin / 60)).padStart(2, "0");
+      const mm = String(h.openMin % 60).padStart(2, "0");
+      return `opens ${wd} ${hh}:${mm}`;
+    }
+  }
+  return "";
+}
