@@ -1,31 +1,64 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
-import { RESEARCH_INDEX } from "@/lib/data/sample/research";
+import { buildResearchIndex } from "@/lib/data/adapters/research";
 import { ResearchIndex } from "@/components/reader/research/ResearchIndex";
+import { EmptyState } from "@/components/ui";
 
 /**
- * Research index — design screen 1l. The research master page: topic filter +
- * venue/sort, a featured card, a 3-column article grid, and a Columns & series
- * email-digest footer. Every card links to `/articles/{slug}` — the 1k
- * article template.
+ * Research index — design screen 1l, on REAL `content_items`.
  *
- * Content is SAMPLE / PLACEHOLDER (`src/lib/data/sample/research.ts`), same
- * seam pattern as the other 1x screens. The real index (ARTICLE-type
- * `content_items`, section facets, the premium tag) re-wires by mapping onto
- * that module's view-model types and swapping `RESEARCH_INDEX`
- * (DEF-RESEARCH-LIVE-DATA); the existing `editorial.ts` + shared editorial
- * components are the adapter basis. Fully static, so the route prerenders.
+ * Un-orphans `listResearchArticles` / `getArticleSectionFacets`, both written in
+ * wave-2 and then stranded when the design pass swapped this page onto a sample
+ * module (DEF-RESEARCH-LIVE-DATA).
+ *
+ * When nothing is published the page renders an honest empty state rather than
+ * a sample index. That matters here more than usual: every card links to a real
+ * `/articles/[slug]`, so a fabricated card is a link to a 404.
  */
+const TITLE = "Research";
+const DESCRIPTION =
+  "Desk research on the six GCC exchanges — filings-grounded analysis of Gulf listed companies.";
+
 export const metadata: Metadata = {
-  title: "Research",
-  description: "Independent, timestamped equity research on GCC-listed names — banks, energy, real estate and more.",
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: { title: TITLE, description: DESCRIPTION },
+  twitter: { card: "summary", title: TITLE, description: DESCRIPTION },
 };
 
 export default function ResearchIndexPage() {
   return (
     <div className="bg-paper">
       <div className="mx-auto max-w-[1440px] px-7 pt-[22px] pb-[30px]">
-        <ResearchIndex data={RESEARCH_INDEX} />
+        <Suspense fallback={<IndexFallback />}>
+          <ResearchBody />
+        </Suspense>
       </div>
     </div>
   );
+}
+
+function IndexFallback() {
+  return (
+    <div aria-hidden>
+      <div className="h-8 w-64 animate-pulse bg-hairline" />
+      <div className="mt-5 h-[300px] w-full animate-pulse bg-hairline-soft" />
+    </div>
+  );
+}
+
+async function ResearchBody() {
+  const data = await buildResearchIndex();
+
+  if (!data) {
+    return (
+      <EmptyState
+        variant="awaitingFeed"
+        title="No research published yet"
+        body="Desk pieces appear here as they are published. Nothing is listed on this page that you cannot open and read."
+      />
+    );
+  }
+
+  return <ResearchIndex data={data} />;
 }

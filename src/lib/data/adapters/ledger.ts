@@ -1,8 +1,10 @@
 import "server-only";
-import type { LedgerIndex, LiveMarkets, MoverRow, WireItem } from "@/lib/contracts/ledger";
+import type { LedgerIndex, LiveMarkets, MoverRow, WireItem, LedgerLead, LedgerStory } from "@/lib/contracts/ledger";
 import { getIndexTape, getTopMovers, getMarketState } from "@/lib/data/markets";
 import { getIndexDailySeries } from "@/lib/data/index-history";
 import { getGlobalFilings } from "@/lib/data/filings";
+import { listResearchArticles } from "@/lib/data/editorial";
+import { fmtDate } from "@/lib/reader/format";
 import { fmtClock, fmtPrice } from "@/lib/reader/format";
 
 /**
@@ -114,6 +116,55 @@ export function toWireItems(items: Awaited<ReturnType<typeof getGlobalFilings>>[
     summary: wireSummary(f),
     href: `/filings/${f.id}`,
   }));
+}
+
+/**
+ * The home page's EDITORIAL half — lead + secondary stories off real
+ * `content_items`.
+ *
+ * Honest degradation:
+ * - `take` (the pull-quote) has no column; the dek carries the summary.
+ * - `photoLabel`/`photoCaption` are empty — `content_attachments` is 0 rows, so
+ *   there is no image pipeline and a fabricated photo credit is not an option.
+ * - `calls` (the analyst-calls row) stays EMPTY: `analyst_calls` is 0 rows and
+ *   the owner ruled against seeding fictional analysts making price-target
+ *   calls on real securities (DEF-ANALYSTS-LIVE-DATA).
+ */
+function toLead(a: Awaited<ReturnType<typeof listResearchArticles>>[number]): LedgerLead {
+  return {
+    kicker: (a.kicker ?? a.section ?? "Research").toUpperCase(),
+    headline: a.headline,
+    dek: a.dek ?? "",
+    take: "",
+    byline: "Marsad Desk",
+    time: fmtDate(a.publishedAt),
+    readLabel: a.readMinutes ? `READ — ${a.readMinutes} MIN` : "READ",
+    href: `/articles/${a.slug}`,
+    photoLabel: "",
+    photoCaption: "",
+  };
+}
+
+function toStory(a: Awaited<ReturnType<typeof listResearchArticles>>[number]): LedgerStory {
+  return {
+    kicker: (a.kicker ?? a.section ?? "Research").toUpperCase(),
+    time: fmtDate(a.publishedAt),
+    headline: a.headline,
+    dek: a.dek ?? "",
+    href: `/articles/${a.slug}`,
+  };
+}
+
+export interface LedgerEditorial {
+  lead: LedgerLead | null;
+  secondary: LedgerStory[];
+}
+
+export async function buildLedgerEditorial(): Promise<LedgerEditorial> {
+  const articles = await listResearchArticles({ limit: 7 });
+  if (articles.length === 0) return { lead: null, secondary: [] };
+  const [first, ...rest] = articles;
+  return { lead: toLead(first), secondary: rest.map(toStory) };
 }
 
 export interface LedgerMarketData {

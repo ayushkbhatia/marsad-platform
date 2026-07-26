@@ -33,19 +33,46 @@ function pct(n: number | null): string {
   return n == null ? DASH : fmtSignedPct(n * 100);
 }
 
+/**
+ * ⚠️ `v_key_ratios_public.net_margin` is WRONG FOR BANKS and is suppressed for
+ * them. Measured 2026-07-27 against a TTM recomputation from
+ * `financial_statements` (4 most recent filed quarters):
+ *
+ *   non-banks match EXACTLY — DTC 9.9 vs 9.9, Almarai 10.6 vs 10.6, Alba 15.4 vs 15.4
+ *   banks are INFLATED    — ALRAJHI 64.5 actual vs 85.5 shown (+21.0pp),
+ *                            CBQK 41.3 vs 56.7 (+15.4), QNBK 40.3 vs 50.1 (+9.8),
+ *                            MARK 16.4 vs 21.1 (+4.7)
+ *
+ * The denominator is understated for lenders — the ratio job appears to divide by
+ * a net-interest-income-like figure rather than total operating income. Banks are
+ * the largest sector on these venues, so this is not a rounding quibble.
+ * DEF-RATIO-BANK-MARGIN.
+ */
+const MARGIN_UNRELIABLE_SECTORS = new Set(["banks"]);
+
 function ratioCells(
   r: Awaited<ReturnType<typeof getKeyRatiosRow>>,
   price: number | null,
   venueCode: string,
   currency: string,
+  sector: string | null,
 ): KeyRatio[] {
+  const marginsUnreliable = MARGIN_UNRELIABLE_SECTORS.has((sector ?? "").toLowerCase());
   const pe = derivePe(price, r?.epsTtm ?? null, venueCode);
   return [
     { label: "MARKET CAP", value: r?.marketCap != null ? `${currency} ${fmtCompact(r.marketCap)}` : DASH },
     { label: "P/E (TTM)", value: pe != null ? `${pe.toFixed(1)}×` : DASH },
     { label: "EPS (TTM)", value: r?.epsTtm != null && venueCode.toUpperCase() !== "TDWL" ? fmtPrice(r.epsTtm, 2) : DASH },
-    { label: "NET MARGIN", value: r?.netMargin != null ? `${(r.netMargin * 100).toFixed(1)}%` : DASH },
-    { label: "GROSS MARGIN", value: r?.grossMargin != null ? `${(r.grossMargin * 100).toFixed(1)}%` : DASH },
+    {
+      label: "NET MARGIN",
+      value:
+        marginsUnreliable || r?.netMargin == null ? DASH : `${(r.netMargin * 100).toFixed(1)}%`,
+    },
+    {
+      label: "GROSS MARGIN",
+      value:
+        marginsUnreliable || r?.grossMargin == null ? DASH : `${(r.grossMargin * 100).toFixed(1)}%`,
+    },
     { label: "REV GROWTH Y/Y", value: pct(r?.revGrowthYoy ?? null) },
     { label: "REV CAGR 3Y", value: pct(r?.revCagr3y ?? null) },
     { label: "RETURN 3M", value: pct(r?.ret3m ?? null) },
@@ -97,7 +124,7 @@ export async function buildStockOverview(sec: ResolvedSecurity): Promise<Overvie
   }));
 
   return {
-    keyRatios: ratioCells(ratios, price, sec.venueCode, currency),
+    keyRatios: ratioCells(ratios, price, sec.venueCode, currency, ov.sector),
     chartTabs: ["PRICE", "P/E", "SALES & MARGIN", "EV/EBITDA", "P/B"],
     chart: {
       areaPoints: spark.area,

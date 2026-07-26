@@ -1,10 +1,8 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { SAMPLE_LEDGER } from "@/lib/data/sample/ledger";
-import { buildLedgerMarkets } from "@/lib/data/adapters/ledger";
+import { buildLedgerMarkets, buildLedgerEditorial } from "@/lib/data/adapters/ledger";
 import { LedgerLeadStory } from "@/components/reader/ledger/LeadStory";
 import { LedgerSecondaryStories } from "@/components/reader/ledger/SecondaryStories";
-import { LedgerAnalystCalls } from "@/components/reader/ledger/AnalystCalls";
 import { LiveMarketsRail } from "@/components/reader/ledger/LiveMarketsRail";
 import { LedgerWireRail } from "@/components/reader/ledger/WireRail";
 import { LedgerMovers } from "@/components/reader/ledger/LedgerMovers";
@@ -23,10 +21,14 @@ import { SectionBar, PromoCard, EmptyState } from "@/components/ui";
  *   focus card from `getIndexTape` + `getMarketState`, and its sparkline from
  *   `index_levels_daily`. Every mover now links to its real stock page — the
  *   sample shipped `href="#"` on all of them.
- * - **Editorial column = still SAMPLE** (lead, secondary, analyst calls). It
- *   becomes real in bridge P3, when `content_items` and `analyst_calls` carry
- *   seeded desk content. Until then it is clearly a placeholder rather than
- *   another entity's copy.
+ * - **Editorial column = REAL** as of bridge P3 (`adapters/ledger.ts`): the lead
+ *   and secondary stories come from published `content_items` and link to real
+ *   `/articles/[slug]` pages. When nothing is published the column says so
+ *   rather than showing sample headlines that link nowhere.
+ * - **The analyst-calls row is GONE, not sampled.** `analyst_calls` is 0 rows,
+ *   and the owner ruled against seeding fictional analysts issuing price targets
+ *   on real securities. It returns when real analysts are onboarded
+ *   (DEF-ANALYSTS-LIVE-DATA).
  * - **The macro row is EMPTY, not sampled** — no commodity/rates/FX producer
  *   exists, and a fabricated Brent print on a markets product is the most
  *   damaging possible placeholder (DEF-LEDGER-MACRO-SOURCE).
@@ -35,17 +37,15 @@ import { SectionBar, PromoCard, EmptyState } from "@/components/ui";
  * sits behind its own `<Suspense>` so a slow read never blocks the masthead.
  */
 export default function LedgerFrontPage() {
-  const d = SAMPLE_LEDGER;
-
   return (
     <div className="bg-paper">
       <div className="mx-auto max-w-[1440px] px-7 pt-6 pb-[30px]">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_372px]">
-          {/* Main column — lead, secondary grid, analyst calls. STILL SAMPLE (P3). */}
+          {/* Main column — REAL published desk content. */}
           <section className="lg:border-r lg:border-hairline lg:pr-[30px]">
-            <LedgerLeadStory lead={d.lead} />
-            <LedgerSecondaryStories items={d.secondary} />
-            <LedgerAnalystCalls calls={d.calls} />
+            <Suspense fallback={<EditorialFallback />}>
+              <EditorialColumn />
+            </Suspense>
           </section>
 
           {/* Data rail — REAL market data. */}
@@ -67,6 +67,36 @@ export default function LedgerFrontPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function EditorialFallback() {
+  return (
+    <div aria-hidden>
+      <div className="h-[300px] w-full animate-pulse bg-hairline-soft" />
+      <div className="mt-6 h-6 w-3/4 animate-pulse bg-hairline" />
+    </div>
+  );
+}
+
+async function EditorialColumn() {
+  const e = await buildLedgerEditorial();
+
+  if (!e.lead) {
+    return (
+      <EmptyState
+        variant="awaitingFeed"
+        title="No desk pieces published yet"
+        body="The lead story and the day's reporting appear here as the desk publishes. Market data in the rail is live now."
+      />
+    );
+  }
+
+  return (
+    <>
+      <LedgerLeadStory lead={e.lead} />
+      {e.secondary.length > 0 ? <LedgerSecondaryStories items={e.secondary} /> : null}
+    </>
   );
 }
 

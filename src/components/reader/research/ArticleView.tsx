@@ -134,21 +134,25 @@ function CopyColumn({ article }: { article: Article }) {
         ))}
       </div>
 
-      {/* Rating attached strip. */}
-      <div className="mt-3.5 flex flex-wrap items-center gap-3.5 border border-hairline px-4 py-3">
-        <span className="flex-none font-mono text-[8.5px] font-semibold tracking-[0.1em] text-ink-muted uppercase">
-          Rating attached
-        </span>
-        <span className="font-mono text-[11px] font-semibold text-ink">{article.rating.ticker}</span>
-        <span className="text-[12.5px] text-ink">{article.rating.name}</span>
-        <span className="border border-ink px-2 py-[3px] text-[9px] font-bold tracking-[0.1em] text-ink uppercase">
-          {article.rating.action}
-        </span>
-        <span className="text-[12px] font-semibold tabular-nums text-ink">{article.rating.priceTarget}</span>
-        <span className="ml-auto text-[11.5px] font-semibold tabular-nums text-positive">
-          +{article.rating.impliedUpside.toFixed(1)}% implied
-        </span>
-      </div>
+      {/* Rating strip — only when the piece genuinely carries a
+          `content_items.rating_attachment`. A price target is an editorial
+          claim about a real security; the slot is left empty, never filled. */}
+      {article.rating ? (
+        <div className="mt-3.5 flex flex-wrap items-center gap-3.5 border border-hairline px-4 py-3">
+          <span className="flex-none font-mono text-[8.5px] font-semibold tracking-[0.1em] text-ink-muted uppercase">
+            Rating attached
+          </span>
+          <span className="font-mono text-[11px] font-semibold text-ink">{article.rating.ticker}</span>
+          <span className="text-[12.5px] text-ink">{article.rating.name}</span>
+          <span className="border border-ink px-2 py-[3px] text-[9px] font-bold tracking-[0.1em] text-ink uppercase">
+            {article.rating.action}
+          </span>
+          <span className="text-[12px] font-semibold tabular-nums text-ink">{article.rating.priceTarget}</span>
+          <span className="ml-auto text-[11.5px] font-semibold tabular-nums text-positive">
+            +{article.rating.impliedUpside.toFixed(1)}% implied
+          </span>
+        </div>
+      ) : null}
 
       {/* Body. */}
       <div>
@@ -182,21 +186,25 @@ function Sidebar({ article }: { article: Article }) {
         ))}
       </div>
 
-      {/* Analyst. */}
-      <div className="mt-3.5 border border-hairline px-4 py-3.5">
-        <div className="flex items-center gap-2.5">
-          <span className="grid h-[34px] w-[34px] flex-none place-items-center rounded-full border-[1.5px] border-ink font-display text-[13px] font-semibold text-ink">
-            {article.analyst.initials}
-          </span>
-          <div>
-            <div className="text-[12px] font-bold text-ink">{article.analyst.name}</div>
-            <div className="font-mono text-[8.5px] text-ink-faint">{article.analyst.winRate}</div>
+      {/* Analyst — omitted entirely for a house-bylined piece. `winRate` is a
+          performance claim about a named individual, so this card renders only
+          for a real analyst with real closed calls behind them. */}
+      {article.analyst ? (
+        <div className="mt-3.5 border border-hairline px-4 py-3.5">
+          <div className="flex items-center gap-2.5">
+            <span className="grid h-[34px] w-[34px] flex-none place-items-center rounded-full border-[1.5px] border-ink font-display text-[13px] font-semibold text-ink">
+              {article.analyst.initials}
+            </span>
+            <div>
+              <div className="text-[12px] font-bold text-ink">{article.analyst.name}</div>
+              <div className="font-mono text-[8.5px] text-ink-faint">{article.analyst.winRate}</div>
+            </div>
           </div>
+          <span className="mt-3 block cursor-pointer bg-ink py-2 text-center font-ui text-[10.5px] font-bold tracking-[0.08em] text-paper-tint uppercase">
+            Follow
+          </span>
         </div>
-        <span className="mt-3 block cursor-pointer bg-ink py-2 text-center font-ui text-[10.5px] font-bold tracking-[0.08em] text-paper-tint uppercase">
-          Follow
-        </span>
-      </div>
+      ) : null}
 
       {/* Related. */}
       <div className="mt-5">

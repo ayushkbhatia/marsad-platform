@@ -27,13 +27,13 @@ row in `BUILD-STATUS.md` §7 describing the exact swap.
 
 | ID | Screen | Route | Status | Feeds (schema) | Sample module / DEF |
 |----|--------|-------|--------|----------------|---------------------|
-| 1b | Ledger / Today (home) | `/` | **half-real** (rails live, editorial P3) | `content_items`, `index_levels`, `mv_movers`, `quotes_latest`, `filings` | `sample/ledger.ts` · DEF-LEDGER-LIVE-DATA |
+| 1b | Ledger / Today (home) | `/` | **design-on-real-data** | `content_items`, `index_levels`, `mv_movers`, `quotes_latest`, `filings` | `sample/ledger.ts` · DEF-LEDGER-LIVE-DATA |
 | 1d | Newswire | `/wire` | **design-on-real-data** | `filings` (ready), `dividends` (broken), `score_events_feed` | `sample/newswire.ts` · DEF-NEWSWIRE-LIVE-DATA |
 | 1h | Watchlist | `/watchlist` | pixel-sample | `quotes_latest`, `v_scores_public` + per-user tables (empty) | `sample/watchlist.ts` · DEF-WATCHLIST-LIVE-DATA |
-| 1i | Coverage Desk | `/analysts` | pixel-sample | `analysts` (0), `analyst_calls` (0) | `sample/analysts.ts` · DEF-ANALYSTS-LIVE-DATA |
-| 1j | Analyst Profile (template) | `/analysts/[slug]` | pixel-sample | `analysts` — no slug column (migration needed) | `sample/analysts.ts` · DEF-ANALYSTS-LIVE-DATA |
-| 1k | Article (template) | `/articles/[slug]` | pixel-sample | `content_items` + `content_blocks` (RLS premium cut) | `sample/research.ts` · DEF-RESEARCH-LIVE-DATA |
-| 1l | Research index | `/research` | pixel-sample | `content_items` (1 live) | `sample/research.ts` · DEF-RESEARCH-LIVE-DATA |
+| 1i | Coverage Desk | `/analysts` | **wired, honest-empty** | `analysts` (0), `analyst_calls` (0) | `sample/analysts.ts` · DEF-ANALYSTS-LIVE-DATA |
+| 1j | Analyst Profile | `/analysts/[slug]` | **wired, honest-empty** (404s) | `analysts` — no slug column (migration needed) | `sample/analysts.ts` · DEF-ANALYSTS-LIVE-DATA |
+| 1k | Article | `/articles/[slug]` | **design-on-real-data** (real RLS paywall) | `content_items` + `content_blocks` (RLS premium cut) | `sample/research.ts` · DEF-RESEARCH-LIVE-DATA |
+| 1l | Research index | `/research` | **design-on-real-data** | `content_items` (1 live) | `sample/research.ts` · DEF-RESEARCH-LIVE-DATA |
 | 3a | Stock — Overview | `/stocks/[venue]/[ticker]` | **design-on-real-data** | `securities`, `quotes_latest`, `ohlcv_daily`, `v_key_ratios_public`, `v_scores_public` | `sample/stock.ts` · DEF-STOCK-LIVE-DATA |
 | 3b | Stock — Financials | `…/financials` | **design-on-real-data** | `financial_statements` (51k, worker-only → premium) | ″ |
 | 3c | Stock — Filings & Concalls | `…/filings` | **design-on-real-data** | `filings` (ready), `transcripts` (0) | ″ |

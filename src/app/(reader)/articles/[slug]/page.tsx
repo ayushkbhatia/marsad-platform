@@ -1,39 +1,84 @@
 import type { Metadata } from "next";
-import { SAMPLE_ARTICLE, RESEARCH_INDEX } from "@/lib/data/sample/research";
+import { notFound } from "next/navigation";
+import { buildArticle } from "@/lib/data/adapters/research";
+import { getArticleBySlug, listPublishedArticleSlugs } from "@/lib/data/editorial";
 import { ArticleView } from "@/components/reader/research/ArticleView";
+import { JsonLd } from "@/components/reader/JsonLd";
+import { siteUrl } from "@/lib/reader/format";
 
 /**
- * Article (1k) — the one reusable longform research template every research
- * card routes to. Design 1k: a 5-column article grid (copy column + sidebar)
- * over a full-width premium paywall band, with a drop-cap open, pull-quote,
- * labelled exhibit, and a fade-masked free-preview cutoff.
+ * Article (1k) — the reusable longform template, now on REAL `content_items`.
  *
- * Content is SAMPLE / PLACEHOLDER (`src/lib/data/sample/research.ts`). For the
- * fidelity pass EVERY slug renders the single fully-resolved `SAMPLE_ARTICLE`
- * (the banks NIM piece) — the one piece the design bakes end-to-end — since 1k
- * is a layout, not a one-off. Real per-slug content, the RLS-gated premium
- * cut, `NewsArticle` JSON-LD and `notFound()` on a bad slug all re-wire by
- * mapping the real read onto the `Article` view-model and swapping the sample
- * (DEF-RESEARCH-LIVE-DATA); `editorial.ts` + the shared editorial components
- * are the adapter basis. Fully static — the known research slugs prerender via
- * `generateStaticParams`; any other slug renders the template on demand.
+ * WHAT THE DESIGN PASS BROKE AND THIS RESTORES. The pixel pass made every slug
+ * render one baked sample piece, with `params` never read: that meant a static
+ * `metadata` describing the wrong article on every URL, `generateStaticParams`
+ * prerendering fabricated slugs, no `notFound()`, and no JSON-LD. Shipping that
+ * against real data would emit wrong canonicals and duplicate content across
+ * every article URL — the "template collapse" risk in `BRIDGE-BUILD-PLAN.md` §6.
+ * Per-slug metadata, `NewsArticle` JSON-LD and `notFound()` are all back.
+ *
+ * THE PREMIUM CUT IS NOW REAL. Previously the paywall was a CSS mask with the
+ * full text still in the HTML source — not a paywall. `content_blocks` RLS
+ * returns only ungated blocks to an anon reader, so gated prose is physically
+ * absent from the response.
  */
-export function generateStaticParams(): Array<{ slug: string }> {
-  const slugs = new Set<string>([SAMPLE_ARTICLE.slug, RESEARCH_INDEX.featured.slug]);
-  for (const c of RESEARCH_INDEX.cards) slugs.add(c.slug);
-  for (const r of SAMPLE_ARTICLE.related) slugs.add(r.slug);
-  return [...slugs].map((slug) => ({ slug }));
+type Params = { slug: string };
+
+export async function generateStaticParams(): Promise<Params[]> {
+  const slugs = await listPublishedArticleSlugs(200);
+  return slugs.map((s) => ({ slug: s.slug }));
 }
 
-export const metadata: Metadata = {
-  title: SAMPLE_ARTICLE.headline,
-  description: SAMPLE_ARTICLE.dek,
-};
+export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+  const { slug } = await params;
+  const a = await getArticleBySlug(slug);
+  if (!a) return { title: "Article not found" };
 
-export default function ArticlePage() {
+  const description = a.dek ?? "";
+  const canonical = `${siteUrl()}/articles/${a.slug}`;
+  return {
+    title: a.headline,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      title: a.headline,
+      description,
+      type: "article",
+      publishedTime: a.publishedAt ?? undefined,
+      modifiedTime: a.updatedAt ?? undefined,
+    },
+    twitter: { card: "summary_large_image", title: a.headline, description },
+  };
+}
+
+export default async function ArticlePage({ params }: { params: Promise<Params> }) {
+  // Resolve before anything streams so an unknown slug can answer with a real
+  // status rather than 200-with-a-404-body (see DEF-NOTFOUND-STATUS).
+  const { slug } = await params;
+  const detail = await getArticleBySlug(slug);
+  if (!detail) notFound();
+
+  const article = await buildArticle(slug);
+  if (!article) notFound();
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    headline: detail.headline,
+    description: detail.dek ?? undefined,
+    datePublished: detail.publishedAt ?? undefined,
+    dateModified: detail.updatedAt ?? undefined,
+    author: { "@type": "Organization", name: article.authorName },
+    publisher: { "@type": "Organization", name: "Marsad" },
+    mainEntityOfPage: `${siteUrl()}/articles/${detail.slug}`,
+    // Honest signal to crawlers when the body is genuinely truncated for anon.
+    isAccessibleForFree: !detail.hasGatedRemainder,
+  };
+
   return (
     <div className="bg-paper">
-      <ArticleView article={SAMPLE_ARTICLE} />
+      <JsonLd data={jsonLd} />
+      <ArticleView article={article} />
     </div>
   );
 }

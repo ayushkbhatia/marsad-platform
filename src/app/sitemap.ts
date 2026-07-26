@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 import { listSecurityParams } from "@/lib/securities/resolve";
 import { listRecentFilingRefs } from "@/lib/data/filings";
+import { listPublishedArticleSlugs } from "@/lib/data/editorial";
+import { listPublishedWireSlugs } from "@/lib/data/newsroom";
 import { siteUrl } from "@/lib/reader/format";
 import { LEARN_DOCS } from "@/lib/learn/docs";
 
@@ -15,7 +17,13 @@ const STOCK_SUBPAGES = ["chart", "filings", "financials", "dividends", "earnings
  * static entries (ledger, markets, wire, the calendars, filings register),
  * every public stock page + its subpages (`/stocks/[venue]/[ticker]/...`, the
  * SEO backbone), and recent filing detail pages (machine-extracted text is
- * strong long-tail SEO). All data reads go through `use cache` readers over
+ * strong long-tail SEO), and every PUBLISHED editorial piece — articles and
+ * wire briefs (build-plan step **P3.8**: `listPublishedArticleSlugs` /
+ * `listPublishedWireSlugs` were written in wave-2 and never called, so nothing
+ * the newsroom published was ever discoverable). Both readers go through the
+ * cookieless anon client, so RLS — not a status filter in this file — is what
+ * keeps drafts out: `content_items` only exposes `status in
+ * ('live','updated','retracted')` to anon. All data reads go through `use cache` readers over
  * the anon client, so this special file stays cached (no request-time API)
  * and is cheap to regenerate. `noindex` surfaces (heatmap, screener, screens,
  * compare) are intentionally excluded — they opt out via per-page `robots`
@@ -24,9 +32,11 @@ const STOCK_SUBPAGES = ["chart", "filings", "financials", "dividends", "earnings
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
 
-  const [secs, filings] = await Promise.all([
+  const [secs, filings, articles, wires] = await Promise.all([
     listSecurityParams(),
     listRecentFilingRefs(10000), // ~13.5k total; cap to the most recent, well under the 50k limit
+    listPublishedArticleSlugs(),
+    listPublishedWireSlugs(),
   ]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -71,5 +81,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.4,
   }));
 
-  return [...staticRoutes, ...learnRoutes, ...stockRoutes, ...filingRoutes];
+  // Published editorial. Articles are the long-form surface (`/articles/[slug]`);
+  // wire briefs carry their own path (`/wire/{slug ?? id}`) from the reader,
+  // which is the same href the newswire renders — never a second canonical.
+  const articleRoutes: MetadataRoute.Sitemap = articles.map((a) => ({
+    url: `${base}/articles/${a.slug}`,
+    lastModified: a.updatedAt ? new Date(a.updatedAt) : undefined,
+    changeFrequency: "weekly",
+    priority: 0.7,
+  }));
+
+  const wireRoutes: MetadataRoute.Sitemap = wires.map((w) => ({
+    url: `${base}${w.path}`,
+    lastModified: w.updatedAt ? new Date(w.updatedAt) : undefined,
+    changeFrequency: "daily",
+    priority: 0.5,
+  }));
+
+  return [
+    ...staticRoutes,
+    ...learnRoutes,
+    ...articleRoutes,
+    ...wireRoutes,
+    ...stockRoutes,
+    ...filingRoutes,
+  ];
 }

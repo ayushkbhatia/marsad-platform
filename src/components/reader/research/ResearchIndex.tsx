@@ -43,7 +43,8 @@ export function ResearchIndex({ data }: { data: ResearchIndexData }) {
         </div>
       </div>
 
-      {/* Featured card. */}
+      {/* Featured card — omitted until something is published. */}
+      {f ? (
       <Link
         href={`/articles/${f.slug}`}
         className="mt-[18px] grid grid-cols-1 border border-ink sm:grid-cols-[560px_1fr]"
@@ -75,6 +76,7 @@ export function ResearchIndex({ data }: { data: ResearchIndexData }) {
           </div>
         </div>
       </Link>
+      ) : null}
 
       {/* Article grid — 3-up, every card → the 1k template. */}
       <div className="mt-[22px] grid grid-cols-1 border-l border-t border-hairline sm:grid-cols-2 lg:grid-cols-3">

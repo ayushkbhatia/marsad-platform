@@ -48,7 +48,8 @@ export interface SubscribeCard {
 
 export interface ResearchIndexData {
   topics: string[];
-  featured: FeaturedArticle;
+  /** NULL when nothing is published yet — the index then leads with the grid. */
+  featured: FeaturedArticle | null;
   cards: ResearchCard[];
   subscribe: SubscribeCard[];
 }
@@ -95,10 +96,20 @@ export interface Article {
   /** Mono meta line, e.g. "28 JUN 2026 · 24 MIN READ · RATING ATTACHED". */
   meta: string;
   thesis: string[];
-  rating: RatingAttached;
+  /**
+   * NULL unless the piece carries a `content_items.rating_attachment`. A rating
+   * is an editorial claim about a real security — it is never synthesised to
+   * fill the slot.
+   */
+  rating: RatingAttached | null;
   blocks: ArticleBlock[];
   inThisPiece: InThisPieceItem[];
-  analyst: { initials: string; name: string; winRate: string };
+  /**
+   * NULL for house-bylined pieces. `winRate` is a performance claim about a
+   * named individual, so it only ever renders for a real analyst with real
+   * closed calls behind them (see DEF-ANALYSTS-LIVE-DATA).
+   */
+  analyst: { initials: string; name: string; winRate: string } | null;
   related: RelatedItem[];
   paywall: {
     headline: string;
