@@ -22,6 +22,7 @@
  * Env: CONCURRENCY (default 4), REPLAY_START (default 0), REPLAY_LIMIT (default all),
  *      RUN_BUDGET_MS (default none — one-shot runs to completion).
  */
+import { upsertLakeObject } from './lib/lake-objects.mjs';
 const ING = process.env.ING || '/opt/marsad/ingestion';
 const { parseTadawulXbrl } = await import(`${ING}/dist/adapters/tadawul/xbrl.js`);
 const { extractToStatements } = await import(`${ING}/dist/lake/statement-extraction.js`);
@@ -54,16 +55,12 @@ async function persist(sql, prId, cs, secId, statements, sourceRef) {
     };
     const live = await sql`select id, revision, state, payload from lake.objects where natural_key=${nk} and superseded_by is null limit 1`;
     if (live[0] && JSON.stringify(live[0].payload) === JSON.stringify(payload)) continue; // no-op replay
-    if (live[0] && live[0].state === 'VERIFIED') {
-      const nid = (await sql`select gen_random_uuid() as id`)[0].id;
-      await sql`update lake.objects set superseded_by=${nid}, state='RETIRED' where id=${live[0].id}`;
-      await sql`insert into lake.objects (id,object_type,natural_key,security_id,venue_code,payload,state,revision,parse_run_id,source_rank) values (${nid},'FILING.FINANCIALS',${nk},${secId},'TDWL',${sql.json(payload)},'PENDING',${live[0].revision + 1},${prId},10)`;
-    } else if (live[0]) {
-      await sql`update lake.objects set payload=${sql.json(payload)}, revision=${live[0].revision + 1}, parse_run_id=${prId}, source_rank=10 where id=${live[0].id}`;
-    } else {
-      await sql`insert into lake.objects (object_type,natural_key,security_id,venue_code,payload,state,revision,parse_run_id,source_rank) values ('FILING.FINANCIALS',${nk},${secId},'TDWL',${sql.json(payload)},'PENDING',1,${prId},10)`;
-      if (p.statementType === 'oci' || p.statementType === 'equity_change') added++;
-    }
+    const { action } = await upsertLakeObject(sql, {
+      naturalKey: nk, objectType: 'FILING.FINANCIALS', securityId: secId, venueCode: 'TDWL',
+      payload, parseRunId: prId, sourceRank: 10,
+    });
+    // 'created' = the old no-live-row insert branch: a genuinely new oci/equity_change object.
+    if (action === 'created' && (p.statementType === 'oci' || p.statementType === 'equity_change')) added++;
     n++;
   }
   return { n, added };

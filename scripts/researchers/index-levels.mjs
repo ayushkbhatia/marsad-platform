@@ -14,6 +14,7 @@
  *     /usr/bin/node /opt/marsad/scripts/researchers/index-levels.mjs
  */
 import { spawnSync } from 'node:child_process';
+import { upsertLakeObject } from './lib/lake-objects.mjs';
 const postgres = (await import('/opt/marsad/worker/node_modules/postgres/src/index.js').then((m) => m.default ?? m));
 const { SUPABASE_DB_URL } = process.env;
 if (!SUPABASE_DB_URL) { console.error('missing env SUPABASE_DB_URL'); process.exit(1); }
@@ -79,14 +80,12 @@ for (const s of SOURCES) {
   const nk = `INDEX.LEVEL:${s.venue}:${s.indexCode}:${sessionDate}`;
   const payload = { indexCode: s.indexCode, level: res.level, change: res.change, changePct: res.changePct,
                     dayHigh: null, dayLow: null, valueTraded: null, asOf };
-  const live = await sql`select id, revision from lake.objects where natural_key=${nk} and superseded_by is null limit 1`;
-  if (live[0]) {
-    // LIVE_LATEST in-place refresh for today's tape (fires the UPDATE projection trigger).
-    await sql`update lake.objects set payload=${sql.json(payload)}, numeric_value=${res.level}, revision=${live[0].revision + 1}, parse_run_id=${pr[0].id}, updated_at=now() where id=${live[0].id}`;
-  } else {
-    await sql`insert into lake.objects (object_type,natural_key,security_id,venue_code,payload,numeric_value,unit,effective_date,state,revision,parse_run_id,source_rank,price_sensitive)
-              values ('INDEX.LEVEL',${nk},null,${s.venue},${sql.json(payload)},${res.level},null,${sessionDate},'PENDING',1,${pr[0].id},20,false)`;
-  }
+  // LIVE_LATEST in-place refresh for today's tape (the UPDATE branch fires the projection trigger).
+  await upsertLakeObject(sql, {
+    naturalKey: nk, objectType: 'INDEX.LEVEL', securityId: null, venueCode: s.venue,
+    payload, parseRunId: pr[0].id, sourceRank: 20,
+    numericValue: res.level, unit: null, effectiveDate: sessionDate, priceSensitive: false,
+  });
   ok++;
   log(`  ${s.venue}/${s.indexCode} = ${res.level}${res.changePct != null ? ` (${res.changePct}%)` : ''}`);
 }

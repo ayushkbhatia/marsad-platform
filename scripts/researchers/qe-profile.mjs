@@ -14,6 +14,7 @@
  * Idempotent — re-run quarterly to refresh shares.
  */
 import { spawnSync } from 'node:child_process';
+import { upsertLakeObject } from './lib/lake-objects.mjs';
 const ING = '/opt/marsad/ingestion';
 const { mapSectorToTaxonomy } = await import(`${ING}/dist/lake/sector-taxonomy.js`);
 const postgres = (await import('/opt/marsad/worker/node_modules/postgres/src/index.js').then(m => m.default ?? m));
@@ -61,16 +62,10 @@ for (const row of rows) {
 
   const nk = `PROFILE.SECURITY:QE:${t}`;
   const payload = { venue: 'QE', ticker: t, sector, rawSector, isin, sharesOutstanding, industry: null };
-  const live = await sql`select id, revision, state from lake.objects where natural_key=${nk} and superseded_by is null limit 1`;
-  if (live[0] && live[0].state === 'VERIFIED') {
-    const nid = (await sql`select gen_random_uuid() as id`)[0].id;
-    await sql`update lake.objects set superseded_by=${nid}, state='RETIRED' where id=${live[0].id}`;
-    await sql`insert into lake.objects (id,object_type,natural_key,security_id,venue_code,payload,state,revision,parse_run_id,source_rank) values (${nid},'PROFILE.SECURITY',${nk},${secId},'QE',${sql.json(payload)},'PENDING',${live[0].revision + 1},${pr[0].id},10)`;
-  } else if (live[0]) {
-    await sql`update lake.objects set payload=${sql.json(payload)}, revision=${live[0].revision + 1}, parse_run_id=${pr[0].id}, source_rank=10 where id=${live[0].id}`;
-  } else {
-    await sql`insert into lake.objects (object_type,natural_key,security_id,venue_code,payload,state,revision,parse_run_id,source_rank) values ('PROFILE.SECURITY',${nk},${secId},'QE',${sql.json(payload)},'PENDING',1,${pr[0].id},10)`;
-  }
+  await upsertLakeObject(sql, {
+    naturalKey: nk, objectType: 'PROFILE.SECURITY', securityId: secId, venueCode: 'QE',
+    payload, parseRunId: pr[0].id, sourceRank: 10,
+  });
   written++;
 }
 await sql.end();

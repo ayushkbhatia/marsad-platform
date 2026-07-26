@@ -39,6 +39,7 @@
  *   (repeat with VENUE=TDWL|QE|ADX|MSX|BHB). First pass: add --setenv=ASSESS_ONLY=1 for a dry report.
  */
 import { spawnSync } from 'node:child_process';
+import { upsertLakeObject } from './lib/lake-objects.mjs';
 
 // ── env / controls ──────────────────────────────────────────────────────────
 const VENUE = (process.env.VENUE || '').toUpperCase();
@@ -441,6 +442,7 @@ async function writeMain() {
 
   let created = 0, updated = 0, secWritten = 0, secEmpty = 0, secMiss = 0, i = 0;
   const unmappedTally = { income: new Map(), balance: new Map(), cashflow: new Map() };
+  try {
   for (const { id: secId, ticker, sa_ticker } of universe) {
     i++;
     let r;
@@ -457,21 +459,12 @@ async function writeMain() {
         period_end: st.period_end, currency: st.currency, basis: 'consolidated',
         line_items: st.line_items, ratios: st.ratios, raw: st.raw, template: st.template, source: SOURCE_TAG,
       };
-      const live = await sql`select id, revision, state from lake.objects where natural_key=${nk} and superseded_by is null limit 1`;
-      if (live[0] && live[0].state === 'VERIFIED') {
-        const nid = (await sql`select gen_random_uuid() as id`)[0].id;
-        await sql`update lake.objects set superseded_by=${nid}, state='RETIRED' where id=${live[0].id}`;
-        await sql`insert into lake.objects (id,object_type,natural_key,security_id,venue_code,payload,state,revision,parse_run_id,source_rank)
-                  values (${nid},'FINANCIALS.XCHECK',${nk},${secId},${VENUE},${sql.json(payload)},'PENDING',${live[0].revision + 1},${runId},${SOURCE_RANK})`;
-        created++;
-      } else if (live[0]) {
-        await sql`update lake.objects set payload=${sql.json(payload)}, revision=${live[0].revision + 1}, parse_run_id=${runId}, source_rank=${SOURCE_RANK}, updated_at=now() where id=${live[0].id}`;
-        updated++;
-      } else {
-        await sql`insert into lake.objects (object_type,natural_key,security_id,venue_code,payload,state,revision,parse_run_id,source_rank)
-                  values ('FINANCIALS.XCHECK',${nk},${secId},${VENUE},${sql.json(payload)},'PENDING',1,${runId},${SOURCE_RANK})`;
-        created++;
-      }
+      const { action } = await upsertLakeObject(sql, {
+        naturalKey: nk, objectType: 'FINANCIALS.XCHECK', securityId: secId, venueCode: VENUE,
+        payload, parseRunId: runId, sourceRank: SOURCE_RANK,
+      });
+      if (action === 'updated') updated++;
+      else if (action !== 'noop') created++;
     }
     secWritten++;
     if (i % 25 === 0) log(`  [${i}/${universe.length}] ${secWritten} sec-written · ${secEmpty} empty · ${secMiss} miss · ${created} obj-new · ${updated} obj-upd`);
@@ -482,8 +475,14 @@ async function writeMain() {
     const e = [...unmappedTally[st].entries()].sort((a, b) => b[1] - a[1]);
     log(`  ${st}: ${e.map(([k, n]) => `${k}(${n})`).join(', ') || 'none'}`);
   }
-  await sql.end();
   log(`DONE ${VENUE} | sec-written ${secWritten} | empty ${secEmpty} | miss ${secMiss} | objects new ${created} upd ${updated} | of ${universe.length}`);
+  } catch (e) {
+    // Never leave the run wedged at 'running' (the old code had no failed path).
+    await sql`update lake.parse_runs set status='failed', finished_at=now(), objects_created=${created}, objects_updated=${updated} where id=${runId}`.catch(() => {});
+    throw e;
+  } finally {
+    await sql.end();
+  }
 }
 
 (ASSESS_ONLY ? assessMain() : writeMain()).catch((e) => { console.error(e); process.exit(1); });
