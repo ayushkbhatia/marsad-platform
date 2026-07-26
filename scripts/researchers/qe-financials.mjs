@@ -38,6 +38,7 @@
  * per-request pacing is now implicit — the 15s connect tarpit is itself the rate limit.
  */
 import { execFile } from 'node:child_process';
+import { upsertLakeObject } from './lib/lake-objects.mjs';
 import { mkdtempSync, readFileSync, existsSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -186,20 +187,12 @@ async function persist(sql, sym, statements, filedAt) {
       statement_type: p.statementType, period_kind: p.periodKind, fiscal_period: p.fiscalPeriod,
       period_end: p.periodEnd, currency: p.currency, basis: 'consolidated', line_items: p.lineItems,
     };
-    const live = await sql`select id, revision, state from lake.objects where natural_key=${nk} and superseded_by is null limit 1`;
-    if (live[0] && live[0].state === 'VERIFIED') {
-      // A restatement of already-verified numbers: supersede rather than mutate, so the projection's
-      // version counter + financial_statement_history capture the revision.
-      const nid = (await sql`select gen_random_uuid() as id`)[0].id;
-      await sql`update lake.objects set superseded_by=${nid}, state='RETIRED' where id=${live[0].id}`;
-      await sql`insert into lake.objects (id,object_type,natural_key,security_id,venue_code,payload,state,revision,parse_run_id,source_rank)
-                values (${nid},'FILING.FINANCIALS',${nk},${secId},'QE',${sql.json(payload)},'PENDING',${live[0].revision + 1},${pr[0].id},10)`;
-    } else if (live[0]) {
-      await sql`update lake.objects set payload=${sql.json(payload)}, revision=${live[0].revision + 1}, parse_run_id=${pr[0].id}, source_rank=10 where id=${live[0].id}`;
-    } else {
-      await sql`insert into lake.objects (object_type,natural_key,security_id,venue_code,payload,state,revision,parse_run_id,source_rank)
-                values ('FILING.FINANCIALS',${nk},${secId},'QE',${sql.json(payload)},'PENDING',1,${pr[0].id},10)`;
-    }
+    // Restatement of already-verified numbers is handled inside upsertLakeObject (supersede, not mutate),
+    // so the projection's version counter + financial_statement_history capture the revision.
+    await upsertLakeObject(sql, {
+      naturalKey: nk, objectType: 'FILING.FINANCIALS', securityId: secId, venueCode: 'QE',
+      payload, parseRunId: pr[0].id, sourceRank: 10,
+    });
     n++;
   }
   void filedAt;

@@ -20,6 +20,7 @@
  *     /usr/bin/node /opt/marsad/scripts/researchers/tadawul-shares.mjs
  */
 import { spawnSync } from 'node:child_process';
+import { upsertLakeObject } from './lib/lake-objects.mjs';
 const postgres = (await import('/opt/marsad/worker/node_modules/postgres/src/index.js').then((m) => m.default ?? m));
 
 const { SUPABASE_DB_URL } = process.env;
@@ -75,16 +76,10 @@ for (const { ticker: t, id: secId } of universe) {
   }
   const nk = `PROFILE.SECURITY:${VENUE}:${t}`;
   const payload = { venue: VENUE, ticker: t, sector: null, rawSector: null, isin: null, sharesOutstanding: res.shares, industry: null };
-  const live = await sql`select id, revision, state from lake.objects where natural_key=${nk} and superseded_by is null limit 1`;
-  if (live[0] && live[0].state === 'VERIFIED') {
-    const nid = (await sql`select gen_random_uuid() as id`)[0].id;
-    await sql`update lake.objects set superseded_by=${nid}, state='RETIRED' where id=${live[0].id}`;
-    await sql`insert into lake.objects (id,object_type,natural_key,security_id,venue_code,payload,state,revision,parse_run_id,source_rank) values (${nid},'PROFILE.SECURITY',${nk},${secId},${VENUE},${sql.json(payload)},'PENDING',${live[0].revision + 1},${pr[0].id},10)`;
-  } else if (live[0]) {
-    await sql`update lake.objects set payload=${sql.json(payload)}, revision=${live[0].revision + 1}, parse_run_id=${pr[0].id}, source_rank=10 where id=${live[0].id}`;
-  } else {
-    await sql`insert into lake.objects (object_type,natural_key,security_id,venue_code,payload,state,revision,parse_run_id,source_rank) values ('PROFILE.SECURITY',${nk},${secId},${VENUE},${sql.json(payload)},'PENDING',1,${pr[0].id},10)`;
-  }
+  await upsertLakeObject(sql, {
+    naturalKey: nk, objectType: 'PROFILE.SECURITY', securityId: secId, venueCode: VENUE,
+    payload, parseRunId: pr[0].id, sourceRank: 10,
+  });
   written++;
   if (i % 25 === 0) log(`  [${i}/${universe.length}] ${written} written · ${notfound} no-shares · ${failed} fetch-fail`);
   await sleep(DELAY_MS);

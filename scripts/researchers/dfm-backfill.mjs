@@ -32,6 +32,7 @@
  *   CHUNK_START=0 CHUNK_SIZE=12 CONCURRENCY=4 FSPDF_MAX=48 node dfm-backfill.mjs  # slice, 4-wide
  */
 import { spawn } from 'node:child_process';
+import { upsertLakeObject } from './lib/lake-objects.mjs';
 const ING = '/opt/marsad/ingestion';
 const { extractToStatements, EXTRACTION_SYSTEM, buildExtractionUserMessage } = await import(`${ING}/dist/lake/statement-extraction.js`);
 const postgres = (await import('/opt/marsad/worker/node_modules/postgres/src/index.js').then(m => m.default ?? m));
@@ -182,15 +183,10 @@ async function persist(sql, cs, secId, statements, storageKey, sourceRef, filedA
     // today, so this mostly no-ops re-extractions of an already-persisted period.
     if (live[0] && live[0].source_rank <= 20) continue;
     const payload = { statement_type: p.statementType, period_kind: p.periodKind, fiscal_period: p.fiscalPeriod, period_end: p.periodEnd, currency: p.currency, basis: 'consolidated', line_items: p.lineItems };
-    if (live[0] && live[0].state === 'VERIFIED') {
-      const nid = (await sql`select gen_random_uuid() as id`)[0].id;
-      await sql`update lake.objects set superseded_by=${nid}, state='RETIRED' where id=${live[0].id}`;
-      await sql`insert into lake.objects (id,object_type,natural_key,security_id,venue_code,payload,state,revision,parse_run_id,source_rank) values (${nid},'FILING.FINANCIALS',${nk},${secId},'DFM',${sql.json(payload)},'PENDING',${live[0].revision + 1},${pr[0].id},20)`;
-    } else if (live[0]) {
-      await sql`update lake.objects set payload=${sql.json(payload)}, revision=${live[0].revision + 1}, parse_run_id=${pr[0].id}, source_rank=20 where id=${live[0].id}`;
-    } else {
-      await sql`insert into lake.objects (object_type,natural_key,security_id,venue_code,payload,state,revision,parse_run_id,source_rank) values ('FILING.FINANCIALS',${nk},${secId},'DFM',${sql.json(payload)},'PENDING',1,${pr[0].id},20)`;
-    }
+    await upsertLakeObject(sql, {
+      naturalKey: nk, objectType: 'FILING.FINANCIALS', securityId: secId, venueCode: 'DFM',
+      payload, parseRunId: pr[0].id, sourceRank: 20,
+    });
     n++;
   }
   // Always record the filing (owned marker) — even a 0-statement PDF, so it isn't re-fetched/re-charged.
