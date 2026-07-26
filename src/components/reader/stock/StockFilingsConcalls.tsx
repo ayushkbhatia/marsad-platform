@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { FilingsConcalls } from "@/lib/contracts/stock";
 
 /**
@@ -22,7 +23,7 @@ export function StockFilingsConcalls({ filings: f }: { filings: FilingsConcalls 
       <div>
         <div className="flex flex-wrap items-baseline gap-3 border-b-2 border-ink pb-2">
           <span className="font-display text-[20px] font-semibold text-ink">Announcements</span>
-          <span className="font-mono text-[9px] text-ink-faint">TADAWUL FEED · 2222 ONLY</span>
+          <span className="font-mono text-[9px] text-ink-faint">{f.feedLabel ?? ""}</span>
           <div className="ml-auto flex gap-1">
             <span className="cursor-pointer bg-ink px-[9px] py-[3px] text-[9.5px] font-bold text-paper-tint">ALL</span>
             {["RESULTS", "DIVIDENDS", "GOVERNANCE"].map((c) => (
@@ -44,7 +45,7 @@ export function StockFilingsConcalls({ filings: f }: { filings: FilingsConcalls 
         </div>
 
         {f.announcements.map((a) => (
-          <div key={a.title} className="grid grid-cols-[84px_1fr_auto] gap-3.5 border-b border-hairline-soft px-1 py-3.5">
+          <div key={a.id ?? a.title} className="grid grid-cols-[84px_1fr_auto] gap-3.5 border-b border-hairline-soft px-1 py-3.5">
             <div>
               <div className="font-mono text-[10px] font-semibold text-ink">{a.date}</div>
               <div className="mt-[3px] font-mono text-[8px] text-ink-faint">{a.regId}</div>
@@ -56,9 +57,16 @@ export function StockFilingsConcalls({ filings: f }: { filings: FilingsConcalls 
               <div className="mt-1.5 font-display text-[16.5px] font-semibold leading-[1.3] text-ink">{a.title}</div>
               <div className="mt-1 text-[12px] leading-[1.5] text-ink-muted">{a.summary}</div>
             </div>
-            <span className="text-[10px] font-semibold whitespace-nowrap text-ink-muted underline underline-offset-[3px]">
-              PDF ↗
-            </span>
+            {a.href ? (
+              <Link
+                href={a.href}
+                className="text-[10px] font-semibold whitespace-nowrap text-ink-muted underline underline-offset-[3px] hover:text-ink"
+              >
+                OPEN ↗
+              </Link>
+            ) : (
+              <span className="text-[10px] font-semibold whitespace-nowrap text-ink-faint">—</span>
+            )}
           </div>
         ))}
         <div className="flex justify-center pt-3.5">
@@ -110,7 +118,7 @@ export function StockFilingsConcalls({ filings: f }: { filings: FilingsConcalls 
         ))}
 
         <div className="mt-[18px] border border-ink bg-paper-tint px-4 py-3.5">
-          <div className="font-ui text-[10px] font-bold tracking-[0.18em] text-ink-muted uppercase">Phrase alerts on 2222</div>
+          <div className="font-ui text-[10px] font-bold tracking-[0.18em] text-ink-muted uppercase">{"Phrase alerts on "}{f.alertScope ?? ""}</div>
           <div className="mt-1.5 text-[11.5px] leading-[1.55] text-ink-muted">
             Get pinged when a filing mentions a phrase you track.
           </div>

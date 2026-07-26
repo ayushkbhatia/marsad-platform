@@ -45,6 +45,8 @@ export interface StockHeader {
   ticker: string;
   venueCode: string;
   name: string;
+  /** Only TDWL + QE carry ISIN today (276 of 762) — null elsewhere. */
+  isin: string | null;
   currency: string | null;
   sector: string | null;
   status: string;
@@ -114,6 +116,7 @@ interface SecurityRow {
   sector: string | null;
   currency: string | null;
   status: string;
+  isin: string | null;
 }
 
 interface QuoteRow {
@@ -158,7 +161,7 @@ export async function getStockHeader(securityId: number): Promise<StockHeader | 
   const sb = createAnonClient();
   const { data: sec } = await sb
     .from("securities")
-    .select("id,venue_code,ticker,name_en,sector,currency,status")
+    .select("id,venue_code,ticker,name_en,sector,currency,status,isin")
     .eq("id", securityId)
     .maybeSingle<SecurityRow>();
 
@@ -178,6 +181,7 @@ export async function getStockHeader(securityId: number): Promise<StockHeader | 
     ticker: sec.ticker,
     venueCode: sec.venue_code,
     name: sec.name_en,
+    isin: sec.isin ?? null,
     currency: sec.currency ?? null,
     sector: sec.sector ?? null,
     status: sec.status,
@@ -199,7 +203,7 @@ export async function getStockOverview(securityId: number): Promise<StockOvervie
   const sb = createAnonClient();
   const { data: sec } = await sb
     .from("securities")
-    .select("id,venue_code,ticker,name_en,sector,currency,status")
+    .select("id,venue_code,ticker,name_en,sector,currency,status,isin")
     .eq("id", securityId)
     .maybeSingle<SecurityRow>();
 
@@ -249,6 +253,7 @@ export async function getStockOverview(securityId: number): Promise<StockOvervie
     ticker: sec.ticker,
     venueCode: sec.venue_code,
     name: sec.name_en,
+    isin: sec.isin ?? null,
     currency: sec.currency ?? null,
     sector: sec.sector ?? null,
     status: sec.status,

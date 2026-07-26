@@ -52,6 +52,8 @@ export interface Overview {
   prosConsNote: string;
   peers: Peer[];
   peersMedian: string;
+  /** Real sector label for the peer-table header. Empty when unknown. */
+  peersSector?: string;
 }
 
 // ── Financials (3b) ──────────────────────────────────────────────────────────
@@ -59,6 +61,8 @@ export interface StockFinRow { label: string; strong?: boolean; values: string[]
 export interface CagrBlock { title: string; rows: Array<{ label: string; value: string }> }
 export interface KeyValRow { label: string; value: string }
 export interface Financials {
+  /** Statement currency + scale, e.g. "QAR MN". Per entity — never hardcoded. */
+  currencyLabel?: string;
   quarterlyPeriods: string[]; // 8
   quarterlyRows: StockFinRow[];
   quarterlyNote: string;
@@ -70,12 +74,25 @@ export interface Financials {
 }
 
 // ── Filings & Concalls (3c) ──────────────────────────────────────────────────
-export interface Announcement { date: string; regId: string; tag: string; title: string; summary: string }
+export interface Announcement {
+  /** Stable key + link target. Filing ids repeat far less than titles do. */
+  id?: number;
+  href?: string;
+  date: string;
+  regId: string;
+  tag: string;
+  title: string;
+  summary: string;
+}
 export interface EarningsCall { quarter: string; date: string; aiSummary?: string }
 export interface DocRow { title: string; date: string }
 export interface NextEvent { date: string; label: string }
 export interface RelatedResearch { headline: string; meta: string }
 export interface FilingsConcalls {
+  /** e.g. "TADAWUL FEED · 1120 ONLY" — per entity, never hardcoded. */
+  feedLabel?: string;
+  /** Ticker the phrase alerts are scoped to. */
+  alertScope?: string;
   announcements: Announcement[];
   earningsCalls: EarningsCall[];
   reports: DocRow[];

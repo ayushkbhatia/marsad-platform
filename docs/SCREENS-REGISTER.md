@@ -9,7 +9,7 @@ Human-readable precursor to the `public.surfaces` catalog (`BRIDGE-PLAN.md` §3)
 
 | Batch | Module | Screens | Built | Data |
 |---|---|---|---|---|
-| **1** | Reader core + data room | 14 | 14 | mixed — 2 design-on-real-data + 1 live, 11 sample-seeded |
+| **1** | Reader core + data room | 14 | 14 | mixed — 6 design-on-real-data + 1 live, 7 sample-seeded |
 | **2** | Monetization spine | 16 | 0 | schema exists, **0 rows**, no Stripe wiring |
 | **3** | Calendars + IPO Center | 5 | 5 | sample-seeded (event tables thin/empty) |
 | **4** | Utility surfaces | 8 | 8 | 3 design-on-real-data, 4 sample-seeded, 1 nav-state |
@@ -34,10 +34,20 @@ row in `BUILD-STATUS.md` §7 describing the exact swap.
 | 1j | Analyst Profile (template) | `/analysts/[slug]` | pixel-sample | `analysts` — no slug column (migration needed) | `sample/analysts.ts` · DEF-ANALYSTS-LIVE-DATA |
 | 1k | Article (template) | `/articles/[slug]` | pixel-sample | `content_items` + `content_blocks` (RLS premium cut) | `sample/research.ts` · DEF-RESEARCH-LIVE-DATA |
 | 1l | Research index | `/research` | pixel-sample | `content_items` (1 live) | `sample/research.ts` · DEF-RESEARCH-LIVE-DATA |
-| 3a | Stock — Overview | `/stocks/[venue]/[ticker]` | pixel-sample | `securities`, `quotes_latest`, `ohlcv_daily`, `v_key_ratios_public`, `v_scores_public` | `sample/stock.ts` · DEF-STOCK-LIVE-DATA |
-| 3b | Stock — Financials | `…/financials` | pixel-sample | `financial_statements` (51k, worker-only → premium) | ″ |
-| 3c | Stock — Filings & Concalls | `…/filings` | pixel-sample | `filings` (ready), `transcripts` (0) | ″ |
-| 3d | Stock — Ownership & People | `…/ownership` | pixel-sample | `holders`/`ownership_snapshots`/`company_people` (all 0) | ″ |
+| 3a | Stock — Overview | `/stocks/[venue]/[ticker]` | **design-on-real-data** | `securities`, `quotes_latest`, `ohlcv_daily`, `v_key_ratios_public`, `v_scores_public` | `sample/stock.ts` · DEF-STOCK-LIVE-DATA |
+| 3b | Stock — Financials | `…/financials` | **design-on-real-data** | `financial_statements` (51k, worker-only → premium) | ″ |
+| 3c | Stock — Filings & Concalls | `…/filings` | **design-on-real-data** | `filings` (ready), `transcripts` (0) | ″ |
+| 3d | Stock — Ownership & People | `…/ownership` | **design-on-real-data** (honest empty) | `holders`/`ownership_snapshots`/`company_people` (all 0) | ″ |
+
+
+> **Bridge P1 (2026-07-26): the stock workspace is now REAL per-entity data.** Every
+> `[venue]/[ticker]` used to render the same baked Saudi Aramco sample; it now resolves the
+> actual security and `notFound()`s (with a true **404 status**, not a 200 carrying the 404 body)
+> on a miss. **705 of 762 names carry a live quote.** The three real-data tabs that already
+> existed but were missing from the tab bar — Chart, Earnings, Dividends — are now reachable, and
+> the orphaned duplicate `components/reader/StockTabs.tsx` was deleted. Remaining honest gaps are
+> logged as DEF-STOCK-EDITORIAL-FIELDS, DEF-STOCK-RATIO-GAPS, DEF-STOCK-NAME-AR and
+> DEF-TDWL-FILED-AT; ownership stays an `awaitingFeed` empty state until its producer lands (P7.5).
 
 ## 1.2 Data room (dark) — **design applied ON real data**
 

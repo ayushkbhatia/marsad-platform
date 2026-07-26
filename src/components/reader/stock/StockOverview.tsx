@@ -94,7 +94,14 @@ export function StockOverview({ overview: o }: { overview: Overview }) {
           <div className="border-b-2 border-ink pb-[7px] font-ui text-[10px] font-bold tracking-[0.18em] text-ink-faint uppercase">
             About · key points
           </div>
-          <p className="mt-3 font-display text-[14.5px] leading-[1.62] text-ink-soft">{withFootnotes(o.aboutHtml)}</p>
+          {o.aboutHtml ? (
+            <p className="mt-3 font-display text-[14.5px] leading-[1.62] text-ink-soft">{withFootnotes(o.aboutHtml)}</p>
+          ) : (
+            <p className="mt-3 font-mono text-[10.5px] leading-[1.7] text-ink-faint">
+              The desk has not published a profile for this company yet. Company descriptions,
+              key points and the Marsad desk view are editorial and are written per name.
+            </p>
+          )}
           <div className="mt-3 flex flex-col gap-[7px]">
             {o.keyPoints.map((k) => (
               <div key={k} className="flex gap-2.5 text-[12.5px] leading-[1.55] text-ink-mid">
@@ -103,6 +110,7 @@ export function StockOverview({ overview: o }: { overview: Overview }) {
               </div>
             ))}
           </div>
+          {o.deskView.quote ? (
           <div className="mt-4 border border-hairline bg-paper-tint px-3.5 py-3">
             <div className="flex items-center gap-2">
               <span className="h-[7px] w-[7px] rotate-45 bg-ink" aria-hidden />
@@ -115,6 +123,7 @@ export function StockOverview({ overview: o }: { overview: Overview }) {
             </div>
             <div className="mt-1.5 font-mono text-[8.5px] text-ink-faint uppercase">{o.deskView.byline}</div>
           </div>
+          ) : null}
         </div>
 
         {/* Right — chart + pros/cons. */}
@@ -135,6 +144,7 @@ export function StockOverview({ overview: o }: { overview: Overview }) {
             </svg>
             <span className="absolute top-2 left-2.5 font-mono text-[8.5px] text-[#a8a396]">{o.chart.note}</span>
           </div>
+          {o.pros.length > 0 || o.cons.length > 0 ? (<>
           <div className="mt-4 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
             <div className="border border-t-[3px] border-hairline border-t-positive px-[15px] py-3">
               <div className="text-[9.5px] font-bold tracking-[0.16em] text-positive">PROS</div>
@@ -154,6 +164,7 @@ export function StockOverview({ overview: o }: { overview: Overview }) {
             </div>
           </div>
           <div className="mt-2 font-mono text-[8.5px] italic text-ink-faint">{o.prosConsNote}</div>
+          </>) : null}
         </div>
       </div>
 
@@ -162,7 +173,7 @@ export function StockOverview({ overview: o }: { overview: Overview }) {
         <div className="flex flex-wrap items-baseline justify-between gap-2 border-b-2 border-ink pb-2">
           <span className="font-display text-[20px] font-semibold text-ink">
             Peer comparison{" "}
-            <span className="ml-2 font-mono text-[9px] font-normal text-ink-faint">GCC INTEGRATED ENERGY & GAS</span>
+            <span className="ml-2 font-mono text-[9px] font-normal text-ink-faint uppercase">{o.peersSector ?? ""}</span>
           </span>
           <span className="cursor-pointer text-[10.5px] text-ink-muted underline underline-offset-[3px]">
             Open in screener →

@@ -5,8 +5,19 @@ import type { Financials, StockFinRow } from "@/lib/contracts/stock";
  * estimate), a 10-year annual P&L, a 4-up CAGR/ROE block, and Balance sheet +
  * Cash flow side by side. Sample-driven (DEF-STOCK-LIVE-DATA).
  */
-const Q_COLS = "grid-cols-[190px_repeat(8,1fr)_64px]";
-const A_COLS = "grid-cols-[190px_repeat(10,1fr)]";
+/**
+ * Grid tracks are DERIVED from the number of periods actually returned, not
+ * fixed at the design's 8/10. A company with a short filing history (or a venue
+ * mid-backfill) would otherwise render a half-empty table with phantom columns.
+ * Tailwind cannot see a runtime-built class name, so the track list goes through
+ * an inline `gridTemplateColumns` style instead of a class.
+ */
+function qCols(n: number): string {
+  return `190px repeat(${Math.max(n, 1)}, minmax(0, 1fr)) 64px`;
+}
+function aCols(n: number): string {
+  return `190px repeat(${Math.max(n, 1)}, minmax(0, 1fr))`;
+}
 
 function SectionHead({ title, meta, right }: { title: string; meta: string; right?: React.ReactNode }) {
   return (
@@ -18,9 +29,12 @@ function SectionHead({ title, meta, right }: { title: string; meta: string; righ
   );
 }
 
-function Row({ cols, r, size, pdfCol }: { cols: string; r: StockFinRow; size: string; pdfCol?: boolean }) {
+function Row({ template, r, size, pdfCol }: { template: string; r: StockFinRow; size: string; pdfCol?: boolean }) {
   return (
-    <div className={`grid ${cols} border-b border-hairline-faint ${r.strong ? "bg-paper-tint" : ""}`}>
+    <div
+      className={`grid border-b border-hairline-faint ${r.strong ? "bg-paper-tint" : ""}`}
+      style={{ gridTemplateColumns: template }}
+    >
       <span className={`px-2.5 py-2 text-[12px] ${r.strong ? "font-bold text-ink" : "text-ink-mid"}`}>
         {r.strong ? "▸ " : ""}
         {r.label}
@@ -44,9 +58,9 @@ function Row({ cols, r, size, pdfCol }: { cols: string; r: StockFinRow; size: st
   );
 }
 
-function PeriodHead({ cols, periods, pdfCol }: { cols: string; periods: string[]; pdfCol?: boolean }) {
+function PeriodHead({ template, periods, pdfCol }: { template: string; periods: string[]; pdfCol?: boolean }) {
   return (
-    <div className={`grid ${cols} border-b border-hairline`}>
+    <div className="grid border-b border-hairline" style={{ gridTemplateColumns: template }}>
       <span className="px-2.5 py-2" />
       {periods.map((p) => (
         <span key={p} className="px-1.5 py-2 text-right font-mono text-[9px] text-ink-muted">
@@ -77,7 +91,7 @@ export function StockFinancials({ financials: f }: { financials: Financials }) {
       {/* Quarterly. */}
       <SectionHead
         title="Quarterly results"
-        meta="CONSOLIDATED · SAR MN"
+        meta={`CONSOLIDATED · ${f.currencyLabel ?? ""}`}
         right={
           <>
             <span className="cursor-pointer bg-ink px-[9px] py-[3px] text-[9.5px] font-bold text-paper-tint">STANDARD</span>
@@ -88,9 +102,9 @@ export function StockFinancials({ financials: f }: { financials: Financials }) {
       />
       <div className="overflow-x-auto">
         <div className="min-w-[900px]">
-          <PeriodHead cols={Q_COLS} periods={f.quarterlyPeriods} pdfCol />
+          <PeriodHead template={qCols(f.quarterlyPeriods.length)} periods={f.quarterlyPeriods} pdfCol />
           {f.quarterlyRows.map((r) => (
-            <Row key={r.label} cols={Q_COLS} r={r} size="text-[11px]" pdfCol />
+            <Row key={r.label} template={qCols(f.quarterlyPeriods.length)} r={r} size="text-[11px]" pdfCol />
           ))}
         </div>
       </div>
@@ -98,12 +112,12 @@ export function StockFinancials({ financials: f }: { financials: Financials }) {
 
       {/* Annual P&L. */}
       <div className="mt-[26px]">
-        <SectionHead title="Profit & loss" meta="ANNUAL · SAR MN" />
+        <SectionHead title="Profit & loss" meta={`ANNUAL · ${f.currencyLabel ?? ""}`} />
         <div className="overflow-x-auto">
           <div className="min-w-[900px]">
-            <PeriodHead cols={A_COLS} periods={f.annualPeriods} />
+            <PeriodHead template={aCols(f.annualPeriods.length)} periods={f.annualPeriods} />
             {f.annualRows.map((r) => (
-              <Row key={r.label} cols={A_COLS} r={r} size="text-[10.5px]" />
+              <Row key={r.label} template={aCols(f.annualPeriods.length)} r={r} size="text-[10.5px]" />
             ))}
           </div>
         </div>
@@ -129,12 +143,12 @@ export function StockFinancials({ financials: f }: { financials: Financials }) {
       {/* Balance sheet + Cash flow. */}
       <div className="mt-[26px] grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-x-[30px]">
         <div>
-          <SectionHead title="Balance sheet" meta="SELECTED · SAR MN" />
+          <SectionHead title="Balance sheet" meta={`SELECTED · ${f.currencyLabel ?? ""}`} />
           <KeyValTable rows={f.balanceSheet.rows} />
           <div className="mt-2 font-mono text-[8.5px] text-ink-faint">{f.balanceSheet.note}</div>
         </div>
         <div>
-          <SectionHead title="Cash flow" meta="SELECTED · SAR MN" />
+          <SectionHead title="Cash flow" meta={`SELECTED · ${f.currencyLabel ?? ""}`} />
           <KeyValTable rows={f.cashFlow.rows} />
           <div className="mt-2 font-mono text-[8.5px] text-ink-faint">{f.cashFlow.note}</div>
         </div>

@@ -6,21 +6,34 @@ import type { StockHeader as HeaderData } from "@/lib/contracts/stock";
 
 /**
  * Stock workspace shared header (design 3a–3d) — breadcrumb + IDs, the
- * name / ticker / Score chips + price block + action buttons, and the 5-tab
- * workspace bar (Overview · Financials · Filings & Concalls · Ownership &
- * People · Quote & Coverage) with a Standalone/Consolidated toggle. Rendered
- * once by the stock segment layout; the active tab is derived from the path.
+ * name / ticker / Score chips + price block + action buttons, and the workspace
+ * tab bar with a Standalone/Consolidated toggle. Rendered once by the stock
+ * segment layout; the active tab is derived from the path.
  *
- * Sample-driven for the fidelity pass; the real header (`getStockHeader`, the
- * live `QuoteHeader` island) is the adapter basis (DEF-STOCK-LIVE-DATA).
+ * REAL DATA as of bridge P1: the layout resolves the security and feeds this a
+ * `StockHeader` contract built by `lib/data/adapters/stock-header.ts`.
+ * Fields with no column behind them degrade honestly rather than rendering an
+ * empty chip — `nameAr` (no `name_ar` column) and the Score (only 538 of 762
+ * securities are scored) are omitted entirely when absent.
+ *
+ * The action row (+ Watchlist / Set alert / Notebook / Export / + FOLLOW) stays
+ * inert: those are MEMBER features with no per-user store until bridge P6.
+ */
+/**
+ * `chart`, `earnings` and `dividends` are REAL-data routes that already existed
+ * and were simply missing from this bar — they were unreachable from the UI
+ * despite being in the sitemap. (The orphaned `components/reader/StockTabs.tsx`
+ * carried the correct set and has been deleted in favour of this one.)
  */
 const TABS = [
   { key: "overview", label: "Overview", seg: "" },
   { key: "financials", label: "Financials", seg: "financials" },
+  { key: "chart", label: "Chart", seg: "chart" },
   { key: "filings", label: "Filings & Concalls", seg: "filings" },
+  { key: "earnings", label: "Earnings", seg: "earnings" },
+  { key: "dividends", label: "Dividends", seg: "dividends" },
   { key: "ownership", label: "Ownership & People", seg: "ownership" },
   { key: "thesis", label: "AI Thesis", seg: "thesis" },
-  { key: "quote", label: "Quote & Coverage", seg: null },
 ] as const;
 
 export function StockHeader({ header, base }: { header: HeaderData; base: string }) {
@@ -51,7 +64,9 @@ export function StockHeader({ header, base }: { header: HeaderData; base: string
             <span className="font-display text-[36px] font-bold leading-none tracking-[-0.015em] text-ink">
               {header.name}
             </span>
-            <span className="font-arabic text-[19px] text-ink-muted">{header.nameAr}</span>
+            {header.nameAr ? (
+              <span className="font-arabic text-[19px] text-ink-muted">{header.nameAr}</span>
+            ) : null}
           </div>
           <div className="mt-[9px] flex flex-wrap items-center gap-[7px]">
             <span className="border border-hairline-strong px-[7px] py-[2.5px] font-mono text-[9.5px] font-semibold text-ink">
@@ -60,9 +75,11 @@ export function StockHeader({ header, base }: { header: HeaderData; base: string
             <span className="border border-hairline-strong px-[7px] py-[2.5px] font-mono text-[9.5px] text-ink-muted">
               {header.venueLabel}
             </span>
-            <span className="bg-ink px-[7px] py-[2.5px] font-mono text-[9.5px] text-paper-tint">
-              SCORE {header.score.value} · {header.score.label}
-            </span>
+            {header.score.label ? (
+              <span className="bg-ink px-[7px] py-[2.5px] font-mono text-[9.5px] text-paper-tint">
+                SCORE {header.score.value} · {header.score.label}
+              </span>
+            ) : null}
             {header.links.map((l) => (
               <span key={l} className="ml-1 text-[11px] text-ink-muted">
                 {l}
@@ -104,15 +121,11 @@ export function StockHeader({ header, base }: { header: HeaderData; base: string
       {/* Workspace tab bar. */}
       <div className="flex items-stretch gap-6 overflow-x-auto border-b border-hairline-strong">
         {TABS.map((t) => {
-          const active = t.seg !== null && activeSeg === t.seg;
+          const active = activeSeg === t.seg;
           const cls = `flex h-[42px] flex-none items-center text-[11px] font-${active ? "bold" : "semibold"} tracking-[0.12em] uppercase ${
             active ? "text-ink shadow-[inset_0_-3px_0_var(--color-ink)]" : "text-ink-faint hover:text-ink"
           }`;
-          return t.seg === null ? (
-            <span key={t.key} className={`${cls} cursor-not-allowed`}>
-              {t.label}
-            </span>
-          ) : (
+          return (
             <Link key={t.key} href={t.seg ? `${base}/${t.seg}` : base} className={cls}>
               {t.label}
             </Link>
