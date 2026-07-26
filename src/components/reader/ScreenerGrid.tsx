@@ -78,6 +78,15 @@ const INITIAL: FilterState = {
 
 const PREMIUM_COLS = ["P/E", "P/B", "ROE", "Yield"] as const;
 
+/** Mono caption for the results footer's "SORTED BY …" line. */
+const SORT_LABEL: Record<SortField, string> = {
+  ticker: "TICKER",
+  price: "PRICE",
+  change: "1D CHANGE",
+  score: "MARSAD SCORE",
+  volume: "VOLUME",
+};
+
 function toggle(list: string[], v: string): string[] {
   return list.includes(v) ? list.filter((x) => x !== v) : [...list, v];
 }
@@ -169,11 +178,18 @@ export function ScreenerGrid() {
   const arrow = (field: SortField) => (f.sort === field ? (f.dir === "desc" ? " ▼" : " ▲") : "");
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* Filters */}
-      <div className="flex flex-col gap-4 border border-dark-hairline bg-dark-panel p-4">
-        <FilterBlock label="Venue">
-          <div className="flex flex-wrap gap-1.5">
+    <div className="grid grid-cols-1 px-6 pt-4 pb-6 lg:grid-cols-[264px_1fr]">
+      {/* Filter rail (design 1f) */}
+      <div className="flex flex-col gap-[18px] lg:border-r lg:border-dark-hairline lg:pr-5">
+        <FilterBlock label="Universe">
+          <div className="flex flex-wrap gap-[5px]">
+            <button
+              type="button"
+              className={`${chipBase} ${f.venues.length === 0 ? chipOn : chipOff}`}
+              onClick={() => setF((p) => ({ ...p, venues: [] }))}
+            >
+              All
+            </button>
             {(facets?.venues ?? []).map((v) => (
               <button
                 key={v}
@@ -187,23 +203,41 @@ export function ScreenerGrid() {
           </div>
         </FilterBlock>
 
-        <FilterBlock label="Sector">
-          <div className="flex flex-wrap gap-1.5">
-            {(facets?.sectors ?? []).map((s) => (
-              <button
-                key={s.key}
-                type="button"
-                className={`${chipBase} ${f.sectors.includes(s.key) ? chipOn : chipOff}`}
-                onClick={() => setF((p) => ({ ...p, sectors: toggle(p.sectors, s.key) }))}
-              >
-                {s.name}
-              </button>
-            ))}
+        <FilterBlock
+          label="Sector"
+          right={
+            f.sectors.length > 0 ? (
+              <span className="font-mono text-[9px] text-dark-text">{f.sectors.length} SELECTED</span>
+            ) : null
+          }
+        >
+          <div className="flex flex-col gap-1">
+            {(facets?.sectors ?? []).map((s) => {
+              const on = f.sectors.includes(s.key);
+              return (
+                <button
+                  key={s.key}
+                  type="button"
+                  onClick={() => setF((p) => ({ ...p, sectors: toggle(p.sectors, s.key) }))}
+                  className={`flex cursor-pointer items-center gap-2 text-left font-ui text-[11.5px] ${
+                    on ? "text-dark-text" : "text-dark-text-faint hover:text-dark-text-mid"
+                  }`}
+                >
+                  <span
+                    aria-hidden
+                    className={`h-[10px] w-[10px] flex-none border ${
+                      on ? "border-dark-text bg-dark-text" : "border-dark-hairline-strong"
+                    }`}
+                  />
+                  {s.name}
+                </button>
+              );
+            })}
           </div>
         </FilterBlock>
 
         <FilterBlock label="Rating">
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-[5px]">
             {(facets?.ratings ?? []).map((r) => (
               <button
                 key={r}
@@ -217,39 +251,37 @@ export function ScreenerGrid() {
           </div>
         </FilterBlock>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <RangeBlock
-            label="Price"
-            minV={f.priceMin}
-            maxV={f.priceMax}
-            onMin={(v) => setF((p) => ({ ...p, priceMin: v }))}
-            onMax={(v) => setF((p) => ({ ...p, priceMax: v }))}
-          />
-          <RangeBlock
-            label="Change %"
-            minV={f.changeMin}
-            maxV={f.changeMax}
-            onMin={(v) => setF((p) => ({ ...p, changeMin: v }))}
-            onMax={(v) => setF((p) => ({ ...p, changeMax: v }))}
-          />
-          <RangeBlock
-            label="Score (0–100)"
-            minV={f.scoreMin}
-            maxV={f.scoreMax}
-            onMin={(v) => setF((p) => ({ ...p, scoreMin: v }))}
-            onMax={(v) => setF((p) => ({ ...p, scoreMax: v }))}
-          />
-        </div>
+        <RangeBlock
+          label="Price"
+          minV={f.priceMin}
+          maxV={f.priceMax}
+          onMin={(v) => setF((p) => ({ ...p, priceMin: v }))}
+          onMax={(v) => setF((p) => ({ ...p, priceMax: v }))}
+        />
+        <RangeBlock
+          label="Change %"
+          minV={f.changeMin}
+          maxV={f.changeMax}
+          onMin={(v) => setF((p) => ({ ...p, changeMin: v }))}
+          onMax={(v) => setF((p) => ({ ...p, changeMax: v }))}
+        />
+        <RangeBlock
+          label="Marsad Score"
+          minV={f.scoreMin}
+          maxV={f.scoreMax}
+          onMin={(v) => setF((p) => ({ ...p, scoreMin: v }))}
+          onMax={(v) => setF((p) => ({ ...p, scoreMax: v }))}
+        />
 
-        <div className="flex items-center justify-between border-t border-dark-hairline pt-3">
-          <span className="font-mono text-[10px] tracking-[0.06em] text-dark-text-faint uppercase">
-            {loading ? "Running…" : `${total.toLocaleString("en-US")} matches`}
-            {data ? ` · of ${data.universe.toLocaleString("en-US")}` : ""}
+        {/* Filters apply live (debounced) — this is the match readout + reset. */}
+        <div className="mt-1 flex gap-2">
+          <span className="flex-1 bg-dark-text py-[9px] text-center font-ui text-[11px] font-bold tracking-[0.06em] text-dark-bg">
+            {loading ? "RUNNING…" : `${total.toLocaleString("en-US")} MATCH`}
           </span>
           <button
             type="button"
             onClick={() => setF(INITIAL)}
-            className="cursor-pointer border border-dark-hairline-strong px-3 py-1 font-mono text-[10px] tracking-[0.08em] text-dark-text-mid uppercase hover:text-dark-text"
+            className="cursor-pointer border border-dark-hairline-soft px-3 py-[9px] font-ui text-[11px] text-dark-text-faint hover:text-dark-text"
           >
             Reset
           </button>
@@ -257,17 +289,17 @@ export function ScreenerGrid() {
       </div>
 
       {/* Results */}
-      <div className="overflow-x-auto border border-dark-hairline bg-dark-panel">
+      <div className="overflow-x-auto lg:pl-[22px]">
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-dark-hairline-strong text-dark-text-faint">
               <SortHead label={`Ticker${arrow("ticker")}`} onClick={() => setSort("ticker")} />
               <th className={`${TH} text-dark-text-faint`}>Company</th>
-              <th className={`${TH} text-dark-text-faint`}>Sector</th>
-              <SortHead label={`Last${arrow("price")}`} align="right" onClick={() => setSort("price")} />
-              <SortHead label={`Chg %${arrow("change")}`} align="right" onClick={() => setSort("change")} />
+              <th className={`${TH} text-dark-text-faint`}>Venue</th>
+              <SortHead label={`Price${arrow("price")}`} align="right" onClick={() => setSort("price")} />
+              <SortHead label={`1D${arrow("change")}`} align="right" onClick={() => setSort("change")} />
               <SortHead label={`Vol${arrow("volume")}`} align="right" onClick={() => setSort("volume")} />
-              <SortHead label={`Score${arrow("score")}`} align="right" onClick={() => setSort("score")} />
+              <SortHead label={`Score${arrow("score")}`} align="center" onClick={() => setSort("score")} />
               {PREMIUM_COLS.map((c) => (
                 <th key={c} className={`${TH} text-right text-dark-text-faint`} title={`${c} — Premium`}>
                   <span className="inline-flex items-center gap-1">
@@ -296,29 +328,42 @@ export function ScreenerGrid() {
                 const dir = (r.changePct ?? 0) > 0 ? 1 : (r.changePct ?? 0) < 0 ? -1 : 0;
                 const chgColor = dir > 0 ? "text-positive-dark" : dir < 0 ? "text-negative-dark" : "text-dark-text-mid";
                 return (
-                  <tr key={r.securityId} className="border-b border-dark-hairline-soft hover:bg-dark-panel-alt">
+                  <tr key={r.securityId} className="border-b border-[#211f1a] hover:bg-[#1a1915]">
                     <td className={`${TD} font-semibold text-dark-text`}>
                       <Link
                         href={`/stocks/${r.venueCode}/${r.ticker}`}
                         className="hover:underline underline-offset-2"
                       >
                         {r.ticker}
-                        <span className="ml-1.5 text-[8px] text-dark-text-faint">{r.venueCode}</span>
                       </Link>
                     </td>
                     <td className="max-w-[220px] truncate px-3 py-2 font-ui text-[12px] text-dark-text-mid" title={r.name}>
                       {r.name}
                     </td>
-                    <td className="px-3 py-2 font-ui text-[11px] text-dark-text-faint">{r.sectorName}</td>
-                    <td className={`${TD} text-right text-dark-text`}>{fmtPrice(r.last)}</td>
+                    <td className="px-3 py-2">
+                      <span className="inline-block border border-dark-hairline-soft px-1.5 py-[2px] font-mono text-[8.5px] text-dark-text-faint">
+                        {r.venueCode}
+                      </span>
+                    </td>
+                    <td className={`${TD} text-right text-dark-text-mid`}>{fmtPrice(r.last)}</td>
                     <td className={`${TD} text-right font-semibold ${chgColor}`}>{fmtSignedPct(r.changePct)}</td>
-                    <td className={`${TD} text-right text-dark-text-mid`}>{fmtCompact(r.volume)}</td>
-                    <td className={`${TD} text-right text-dark-text`}>
+                    <td className={`${TD} text-right text-dark-text-faint`}>{fmtCompact(r.volume)}</td>
+                    <td className={`${TD} text-center`}>
                       {r.score != null ? (
-                        <>
+                        <span
+                          className="inline-block px-[9px] py-[3px] font-mono text-[11px] font-bold text-dark-text"
+                          style={{
+                            background:
+                              r.score >= 80
+                                ? "var(--color-heatmap-9)"
+                                : r.score >= 70
+                                  ? "var(--color-heatmap-6)"
+                                  : "var(--color-dark-hairline-strong)",
+                          }}
+                          title={r.rating ?? undefined}
+                        >
                           {r.score}
-                          {r.rating ? <span className="ml-1 text-[9px] text-dark-text-faint">{r.rating}</span> : null}
-                        </>
+                        </span>
                       ) : (
                         <span className="text-dark-text-faint">—</span>
                       )}
@@ -336,35 +381,64 @@ export function ScreenerGrid() {
             )}
           </tbody>
         </table>
-      </div>
 
-      {data && total > rows.length ? (
-        <div className="flex justify-center">
-          <button
-            type="button"
-            onClick={() => setF((p) => ({ ...p, limit: Math.min(p.limit + 100, 200) }))}
-            disabled={f.limit >= 200}
-            className="cursor-pointer border border-dark-hairline-strong px-5 py-2 font-ui text-[12px] font-semibold text-dark-text hover:bg-dark-panel-alt disabled:cursor-not-allowed disabled:opacity-40"
+        {/* Results footer (design 1f) — match caption + column/watchlist actions. */}
+        <div className="flex flex-wrap items-center gap-3.5 px-2.5 pt-3.5">
+          <span className="font-mono text-[10px] text-dark-text-faint">
+            {loading
+              ? "RUNNING…"
+              : `${rows.length.toLocaleString("en-US")} OF ${total.toLocaleString("en-US")} COMPANIES MATCH · SORTED BY ${SORT_LABEL[f.sort]}`}
+          </span>
+          <span className="ml-auto font-mono text-[10px] text-dark-text-faint" title="Premium columns">
+            ADD COLUMN +
+          </span>
+          <Link
+            href="/watchlist"
+            className="font-mono text-[10px] text-dark-text-faint hover:text-dark-text"
           >
-            {f.limit >= 200 ? "Refine filters to see more" : "Show more"}
-          </button>
+            SEND TO WATCHLIST →
+          </Link>
         </div>
-      ) : null}
 
-      <p className="font-mono text-[9px] leading-[1.6] text-dark-text-faint">
-        Delayed data, information only. Valuation ratios (P/E, P/B, ROE, yield) and Score factor
-        grades are Premium — not included in this table.
-      </p>
+        {data && total > rows.length ? (
+          <div className="flex justify-center pt-3">
+            <button
+              type="button"
+              onClick={() => setF((p) => ({ ...p, limit: Math.min(p.limit + 100, 200) }))}
+              disabled={f.limit >= 200}
+              className="cursor-pointer border border-dark-hairline-strong px-5 py-2 font-ui text-[12px] font-semibold text-dark-text hover:bg-[#1a1915] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {f.limit >= 200 ? "Refine filters to see more" : "Show more"}
+            </button>
+          </div>
+        ) : null}
+
+        <p className="px-2.5 pt-3 font-mono text-[9px] leading-[1.6] text-dark-text-faint">
+          Delayed data, information only. Valuation ratios (P/E, P/B, ROE, yield) and Score factor
+          grades are Premium — not included in this table.
+        </p>
+      </div>
     </div>
   );
 }
 
-function FilterBlock({ label, children }: { label: string; children: React.ReactNode }) {
+function FilterBlock({
+  label,
+  right,
+  children,
+}: {
+  label: string;
+  right?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <span className="font-mono text-[9px] font-semibold tracking-[0.14em] text-dark-text-faint uppercase">
-        {label}
-      </span>
+    <div className="flex flex-col gap-2">
+      <div className="flex items-baseline justify-between">
+        <span className="font-mono text-[9px] tracking-[0.16em] text-dark-text-faint uppercase">
+          {label}
+        </span>
+        {right}
+      </div>
       {children}
     </div>
   );
@@ -384,8 +458,8 @@ function RangeBlock({
   onMax: (v: string) => void;
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <span className="font-mono text-[9px] font-semibold tracking-[0.14em] text-dark-text-faint uppercase">
+    <div className="flex flex-col gap-2">
+      <span className="font-mono text-[9px] tracking-[0.16em] text-dark-text-faint uppercase">
         {label}
       </span>
       <div className="flex items-center gap-2">
@@ -418,10 +492,11 @@ function SortHead({
 }: {
   label: string;
   onClick: () => void;
-  align?: "left" | "right";
+  align?: "left" | "right" | "center";
 }) {
+  const a = align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left";
   return (
-    <th className={`${TH} ${align === "right" ? "text-right" : "text-left"} text-dark-text-mid`}>
+    <th className={`${TH} ${a} text-dark-text-mid`}>
       <button
         type="button"
         onClick={onClick}

@@ -26,6 +26,23 @@ tables that feed it. This is the human-readable precursor to the `public.surface
 _Prior wave-1/2 stock tabs (chart, dividends, earnings) already read real data; being folded
 into the 3a–3d pixel pass._
 
+## Data room (dark surfaces) — **design applied ON real data**
+
+These two are the first surfaces where the design was applied **without** sample-seeding:
+they were already correctly wired, so this pass changed layout + aesthetic only. They are
+the working model for the bridge — design and live data, no placeholder seam.
+
+| ID | Screen | Route | Status | Feeds (schema) | Notes |
+|----|--------|-------|--------|----------------|-------|
+| 1e | Sector Heatmap | `/heatmap` | **live** (design applied) | `quotes_latest`, `securities`, `sectors` via `getSectorHeatmap` / `getHeatmapConstituents` | Real breadth + constituents. 1W/1M/YTD inert (needs historical sector aggregation); tile area = move magnitude, not free-float mcap (not in schema yet) |
+| 1f | Stock Screener | `/screener` | **live** (design applied) | `getScreenerUniverse` via `/api/screener/run`; presets `PRESET_SCREENS` w/ live counts | Real 762-name universe. Premium ratio columns stay locked stubs (never fetched); range filters are min/max inputs, not the design's slider handles |
+| 9a | Explore Screens | `/screens` | live | `getPresetScreenSummaries` | Shares the data-room shell; own MY SCREENER/EXPLORE toggle |
+
+**Shell change:** per the 1e/1f handoff the data room deliberately **drops `MarsadNav`** — it is
+a full-bleed focus mode with its own 54px `DataRoomChrome` bar (mode chip + controls). Entering
+from the reader is a mode switch, not a page nav; the chrome brand lockup + footer "← Reader"
+are the way out.
+
 ## Reader surfaces already reading real data (wave-1/2, not yet pixel-audited to a 3x design)
 
 `/markets`, `/screener`, `/heatmap`, `/earnings`, `/dividends`, `/ipo`, `/filings`, `/learn`,
