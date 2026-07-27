@@ -67,6 +67,14 @@ export async function prerenderHead<T>(
  * The sitemap's counterpart: a section that may be missing but must never fail
  * the build.
  *
+ * ⚠️ NEVER back a `generateStaticParams` with this. It returns `[]` on failure,
+ * and an empty `generateStaticParams` is a hard error under Cache Components —
+ * so using it there converts a recoverable fault into a dead build, which is the
+ * exact bug `prerenderHead` exists to prevent. I made that mistake on
+ * `/articles/[slug]`: it passed locally and killed the Vercel production build.
+ * If the caller is a `generateStaticParams`, it needs `prerenderHead` and a
+ * fallback that cannot be slow.
+ *
  * `sitemap.ts` is one file whose sections are independent — losing filing URLs
  * should not cost the article URLs too, and neither should cost a deploy. But a
  * failure still has to be *seen*, because an omitted section and an empty one
@@ -84,7 +92,7 @@ export async function optionalList<T>(label: string, fn: () => Promise<T[]>): Pr
     return await fn();
   } catch (err) {
     console.error(
-      `[sitemap:${label}] section FAILED and is being OMITTED from the sitemap. ` +
+      `[${label}] section FAILED and is being OMITTED from the sitemap. ` +
         `Cause: ${err instanceof Error ? err.message : String(err)}`,
     );
     return [];

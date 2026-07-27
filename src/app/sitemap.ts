@@ -37,20 +37,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // URLs must not cost the article URLs, and none of them may cost a deploy.
   // A missing section is now LOGGED — omitted and empty look identical here.
   const [secs, filings, articles, wires] = await Promise.all([
-    optionalList("securities", () => listSecurityParams()),
+    optionalList("sitemap:securities", () => listSecurityParams()),
     // Asks for 10,000 but PostgREST returns at most `db-max-rows` (1,000
     // measured), so this is the most recent 1,000 — see
     // DEF-SITEMAP-POSTGREST-ROW-CAP. The filed_at sort has no index to stand
     // on and burns ~1.7s of the 3s anon budget, hence the primary-key fallback.
-    optionalList("filings", () =>
+    optionalList("sitemap:filings", () =>
       prerenderHead(
         "sitemap:filings",
         () => listRecentFilingRefs(10000),
         () => listFilingRefsByPk(10000),
       ),
     ),
-    optionalList("articles", () => listPublishedArticleSlugs()),
-    optionalList("wire", () => listPublishedWireSlugs()),
+    optionalList("sitemap:articles", () => listPublishedArticleSlugs()),
+    optionalList("sitemap:wire", () => listPublishedWireSlugs()),
   ]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
