@@ -117,3 +117,90 @@ test('R-06 warns (never blocks) on a stretched metric in a TAKE', async () => {
   assert.equal(r.passed, true, JSON.stringify(r.results.filter((x) => x.outcome === 'blocked')));
   assert.equal(r.results.find((x) => x.rule_key === 'R-06')!.outcome, 'warned');
 });
+
+// ── R-04 every-numeral (the `some` → `every` fix) ─────────────────────────────────────────────
+// Each of these pins one half of the trade-off: the first proves the defect is caught, the rest
+// prove the stricter rule does not false-block honest copy. A BLOCK rule that fires on everything
+// gets switched off, which is worse than the gap it closed.
+
+test('R-04 blocks the free-riding numbers that shipped live', async () => {
+  // The actual published QNB sentence. c1 = QAR 4.43bn matched, so the OLD rule passed it —
+  // and 4.22bn (sourced to nothing) and 11.2% (cited to a NET PROFIT object) rode along.
+  const r = await runRules(ctx({
+    headline: 'QNB posts QAR 4.43bn net profit',
+    citations: [cite({ cited_value: 4_430_000_000 })],
+    blocks: [{ seq: 1, block_kind: 'text', bound_object_id: null, gated: false,
+      body: 'QNB reported net profit of QAR 4.43bn for Q2 2026 [c1], up from QAR 4.22bn a year earlier, with revenue rising 11.2% [c1].' }],
+  }), BASE_OPTS);
+  const r04 = r.results.find((x) => x.rule_key === 'R-04')!;
+  assert.equal(r04.outcome, 'blocked');
+  const v = (r04.detail as { violations: { kind: string; value?: number }[] }).violations
+    .filter((x) => x.kind === 'number_unaccounted');
+  assert.equal(v.length, 2, JSON.stringify(v));
+  // float tolerance: 4.22 * 1e9 is 4219999999.9999995, not 4.22e9 exactly
+  const near = (a: number, b: number) => Math.abs(a - b) / b < 1e-9;
+  assert.ok(v.some((x) => near(x.value!, 4_220_000_000)), 'the uncited prior-year figure');
+  assert.ok(v.some((x) => near(x.value!, 11.2)), 'the growth % cited to a net-profit object');
+});
+
+test('R-04 allows a second number when it IS cited', async () => {
+  const r = await runRules(ctx({
+    headline: 'QNB posts QAR 6.25bn quarterly profit',
+    citations: [cite(), cite({ claim_key: 'c2', cited_value: 1_440_000_000_000 })],
+    blocks: [{ seq: 1, block_kind: 'text', bound_object_id: null, gated: false,
+      body: 'QNB reported net profit of QAR 6.25bn [c1]. Total assets reached QAR 1.44 trillion [c2].' }],
+  }), BASE_OPTS);
+  assert.equal(r.results.find((x) => x.rule_key === 'R-04')!.outcome, 'passed',
+    JSON.stringify(r.results.find((x) => x.rule_key === 'R-04')!.detail));
+});
+
+test('R-04 does not block incidental integers or a year', async () => {
+  // "three of the four", "8 rows", "Q2 2026" — prose, not claims. Requiring these to resolve to a
+  // lake value would refuse most honest copy.
+  const r = await runRules(ctx({
+    headline: 'QNB posts QAR 6.25bn quarterly profit',
+    blocks: [{ seq: 1, block_kind: 'text', bound_object_id: null, gated: false,
+      body: 'In Q2 2026 QNB reported net profit of QAR 6.25bn [c1], the 3 of 4 quarters it has grown.' }],
+  }), BASE_OPTS);
+  assert.equal(r.results.find((x) => x.rule_key === 'R-04')!.outcome, 'passed',
+    JSON.stringify(r.results.find((x) => x.rule_key === 'R-04')!.detail));
+});
+
+test('R-04 leaves an UNMARKED sentence to R-03 rather than double-blocking', async () => {
+  const r = await runRules(ctx({
+    headline: 'QNB posts QAR 6.25bn quarterly profit',
+    blocks: [{ seq: 1, block_kind: 'text', bound_object_id: null, gated: false,
+      body: 'QNB reported net profit of QAR 6.25bn [c1]. Revenue rose 11.2% last year.' }],
+  }), BASE_OPTS);
+  const r04 = r.results.find((x) => x.rule_key === 'R-04')!;
+  const unaccounted = (r04.detail as { violations?: { kind: string }[] }).violations
+    ?.filter((x) => x.kind === 'number_unaccounted') ?? [];
+  assert.equal(unaccounted.length, 0, 'the unmarked 11.2% is R-03 number_without_citation');
+  assert.ok(r.results.find((x) => x.rule_key === 'R-03' && x.outcome === 'blocked'));
+});
+
+test('R-04 no longer calls an unrelated payload value "drift"', async () => {
+  // The recorded live failure: findPayloadMagnitude matched a FISCAL YEAR (2026) against a
+  // QAR 4.43bn profit and declared drift, blocking every citation in both real drafts.
+  const r = await runRules(ctx({
+    headline: 'QNB posts QAR 4.43bn net profit',
+    citations: [cite({ cited_value: 4_430_000_000, object_payload: { fiscal_year: 2026, period: 'Q2' } })],
+    blocks: [{ seq: 1, block_kind: 'text', bound_object_id: null, gated: false,
+      body: 'QNB reported net profit of QAR 4.43bn [c1].' }],
+  }), BASE_OPTS);
+  const r04 = r.results.find((x) => x.rule_key === 'R-04')!;
+  const drift = (r04.detail as { violations?: { kind: string }[] }).violations
+    ?.filter((x) => x.kind === 'lake_drift') ?? [];
+  assert.equal(drift.length, 0, JSON.stringify(drift));
+});
+
+test('R-04 still reports REAL drift inside the plausible band', async () => {
+  const r = await runRules(ctx({
+    headline: 'QNB posts QAR 6.25bn quarterly profit',
+    citations: [cite({ cited_value: 6_250_000_000, object_payload: { net_income: 6_400_000_000 } })],
+  }), BASE_OPTS);
+  const r04 = r.results.find((x) => x.rule_key === 'R-04')!;
+  const drift = (r04.detail as { violations?: { kind: string }[] }).violations
+    ?.filter((x) => x.kind === 'lake_drift') ?? [];
+  assert.equal(drift.length, 1, 'a 2.4% move is drift and must still block');
+});

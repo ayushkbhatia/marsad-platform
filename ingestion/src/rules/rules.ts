@@ -6,7 +6,13 @@
  */
 
 import type { CitationRow, EngineOptions, RuleContext, RuleLlm, RuleResult } from './types.js';
-import { DRIFT_TOL, hasNumber, markersIn, normalizePhrase, parseMagnitude, relDiff, splitSentences } from './text.js';
+import {
+  DRIFT_TOL, hasNumber, isMaterialNumeral, markersIn, normalizePhrase,
+  numberTokens, parseMagnitude, relDiff, splitSentences,
+} from './text.js';
+
+/** Beyond this the nearest payload value is not 'drift', it is an unrelated number. See r04. */
+const LAKE_DRIFT_MAX = 0.25;
 
 const CLICKBAIT = /\b(shocking|you won'?t believe|this is why|secret|insane|skyrocket|plunge|crash|explode|breaking)\b/i;
 
@@ -87,10 +93,10 @@ export function r04(ctx: RuleContext): RuleResult {
   const citedMags = ctx.citations
     .map((c) => parseMagnitude(typeof c.cited_value === 'object' ? JSON.stringify(c.cited_value) : String(c.cited_value)))
     .filter((n): n is number => n !== null);
-  for (const tok of ctx.headline.match(MAG_RE) ?? []) {
+  for (const tok of numberTokens(ctx.headline)) {
     const mag = parseMagnitude(tok);
     if (mag === null) continue;
-    if (/^\d{4}$/.test(tok.trim()) && Number(tok) >= 1990 && Number(tok) <= 2099) continue; // a year
+    if (!isMaterialNumeral(tok)) continue; // years and incidental integers are not claims
     if (!citedMags.some((c) => relDiff(mag, c) <= DRIFT_TOL)) {
       violations.push({ where: 'headline', kind: 'headline_number_uncited', value: mag });
     }
@@ -103,18 +109,60 @@ export function r04(ctx: RuleContext): RuleResult {
         if (!cit) continue; // R-03 already flagged the unresolved marker
         const citedMag = parseMagnitude(typeof cit.cited_value === 'object' ? JSON.stringify(cit.cited_value) : String(cit.cited_value));
         if (citedMag === null) continue; // non-numeric citation (e.g. a date/label) — nothing to match
-        const mags = (sentence.match(/-?\d[\d,]*(?:\.\d+)?\s*(?:%|trillion|tn|bn|billion|mn|m|million|k|thousand)?/gi) ?? [])
-          .map(parseMagnitude)
-          .filter((n): n is number => n !== null);
+        const mags = numberTokens(sentence).map(parseMagnitude).filter((n): n is number => n !== null);
         const near = mags.some((m) => relDiff(m, citedMag) <= DRIFT_TOL);
         if (!near) {
           violations.push({ where: surf.where, kind: 'number_mismatch', key, cited: citedMag, sentence_mags: mags });
         }
         // Drift vs live payload: if the payload still carries the cited key/value and it moved.
+        // GUARDED (partial DEF-RULES-R04-LAKE-DRIFT): findPayloadMagnitude returns whatever value
+        // in the payload is numerically NEAREST the cited one, which is not evidence of anything
+        // when nothing in the payload is comparable — the recorded live failure matched a fiscal
+        // year (2026) against a QAR 4.43bn profit and declared drift, blocking every citation in
+        // both real drafts. Drift means "the value MOVED A LITTLE"; a wildly different nearest
+        // value means "no corresponding value", which this rule cannot distinguish from a payload
+        // that simply does not carry the cited field. Only report inside a plausible band; the
+        // real fix is an explicit payload_path recorded at draft time (P4.3).
         if (cit.object_payload && cit.cited_value !== null && typeof cit.cited_value !== 'object') {
           const liveMag = findPayloadMagnitude(cit.object_payload, citedMag);
-          if (liveMag !== null && relDiff(liveMag, citedMag) > DRIFT_TOL) {
-            violations.push({ where: surf.where, kind: 'lake_drift', key, cited: citedMag, live: liveMag });
+          if (liveMag !== null) {
+            const d = relDiff(liveMag, citedMag);
+            if (d > DRIFT_TOL && d <= LAKE_DRIFT_MAX) {
+              violations.push({ where: surf.where, kind: 'lake_drift', key, cited: citedMag, live: liveMag });
+            }
+          }
+        }
+      }
+
+      // ── the OTHER direction ────────────────────────────────────────────────────────────────
+      // Above asks "does each CITATION's value appear in the sentence?". That alone is what let
+      // this ship live:
+      //   "net profit of QAR 4.43bn [c1], up from QAR 4.22bn a year earlier, revenue rising 11.2% [c1]"
+      // c1 = QAR 4.43bn matched, so the sentence passed — and 4.22bn and 11.2% rode along
+      // uncorroborated, with 11.2% reaching the headline. Every MATERIAL numeral in a marked
+      // sentence must be accounted for by one of that sentence's citations.
+      //
+      // Scoped to sentences that HAVE a marker: an unmarked numeral is R-03's
+      // `number_without_citation`, and reporting it here too would double-block one defect.
+      for (const sentence of splitSentences(surf.body)) {
+        const keys = markersIn(sentence);
+        if (keys.length === 0) continue;
+        const sentenceCited = keys
+          .map((k) => byKey.get(k))
+          .filter((c): c is CitationRow => Boolean(c))
+          .map((c) => parseMagnitude(typeof c.cited_value === 'object' ? JSON.stringify(c.cited_value) : String(c.cited_value)))
+          .filter((n): n is number => n !== null);
+        if (sentenceCited.length === 0) continue; // only non-numeric citations here
+
+        for (const tok of numberTokens(sentence)) {
+          if (!isMaterialNumeral(tok)) continue;
+          const mag = parseMagnitude(tok);
+          if (mag === null) continue;
+          if (!sentenceCited.some((c) => relDiff(mag, c) <= DRIFT_TOL)) {
+            violations.push({
+              where: surf.where, kind: 'number_unaccounted',
+              value: mag, token: tok.trim(), keys, sentence_cited: sentenceCited,
+            });
           }
         }
       }

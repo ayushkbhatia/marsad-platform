@@ -54,6 +54,29 @@ export function isYearToken(token: string): boolean {
   return /^\d{4}$/.test(t) && Number(t) >= 1990 && Number(t) <= 2099;
 }
 
+const UNIT_TOKEN = /%|percent|trillion|tn|bn|billion|mn|m|million|k|thousand|SAR|AED|QAR|OMR|BHD|KWD|USD|\u065F|\$/i;
+
+/**
+ * Is this numeral a FINANCIAL MAGNITUDE (so it must be lake-backed), or incidental prose?
+ *
+ * The deliberate false-refusal control for R-04's every-numeral check. A bare integer under
+ * 1,000 with no unit ("three of the four", "8 rows", "part 2 of 3") is prose, not a claim;
+ * requiring it to resolve to a lake value would block most honest copy, and a BLOCK rule that
+ * fires on everything gets switched off. A materiality filter LAYERED ON numberTokens() — NOT a
+ * second definition of "what is a number", which is how DEF-RULES-R04-REGEX happened.
+ *
+ * Lives here rather than in the fit stage so R-04 and PD.8's numeric-consistency check cannot
+ * drift apart: they are the same question asked at two points in the pipeline.
+ */
+export function isMaterialNumeral(token: string): boolean {
+  const t = String(token).trim();
+  if (isYearToken(t)) return false;
+  if (UNIT_TOKEN.test(t)) return true;   // a unit makes it a claim: "11.2%", "QAR 4.43bn"
+  if (/[.,]/.test(t)) return true;       // a decimal or thousands separator: "0.25", "1,013,707"
+  const mag = parseMagnitude(t);
+  return mag !== null && Math.abs(mag) >= 1000;
+}
+
 /** True if the sentence contains a numeric/percent/currency token (R-03 trigger). */
 export function hasNumber(sentence: string): boolean {
   return numberTokens(sentence).some((t) => !isYearToken(t) && /\d/.test(t));
