@@ -816,10 +816,36 @@ under-counting is not — and lookup strips the `:provider` pin (scoped to huggi
 Ollama tags legitimately contain colons).
 
 _Accept:_ ✅ 10 gateway tests, ingestion 577/577, worker 89/89, tsc + eslint clean.
-⏳ **Owner step — the only thing outstanding:** add a fine-grained HF token with *"Make calls to
-Inference Providers"* to `/etc/marsad/worker.env` (`HF_TOKEN=…`) and set
-`LLM_ROLE_SUMMARIZER=huggingface:openai/gpt-oss-20b:novita`. Then a run's DONE line reports
-`via gateway N ($cost)` and `ops.llm_runs` carries **non-zero** `cost_usd` rows.
+✅ **LIVE 2026-07-27.** Token configured, `EXTRACT_MAX` raised 12 → 60 **via `worker.env`, not by
+editing the cron script** — a `sed` inside `/opt/marsad` dirties the git checkout and breaks the
+next `git pull --ff-only` (the wrapper sources `worker.env` *before* applying its `:-12` default,
+so config wins and survives pulls).
+
+Two consecutive 60-document runs, the first of which hit a real outage mid-flight:
+
+| | 13:04 — free credits exhausted | 13:35 — after top-up |
+|---|---|---|
+| duration | 885s | **292s** |
+| via gateway | 8 ($0.0060) | **59 ($0.0503)** |
+| via claude | 52 | **0** |
+| failed | 0 | 0 |
+
+**$0.00085/doc measured** ⇒ ~$2 for the standing Tier-2 queue, **~$8.50 for the whole corpus**,
+~$0.05/day steady state. And **3× faster** on the gateway — the metered seat was the slow path,
+not the model.
+
+⚠️ **The free tier is $0.10/month and we exhausted it in one afternoon** (HTTP 402
+`"You have depleted your monthly included credits"`). The failure behaved exactly as designed: the
+402 classified as *transient*, `gatewayDown` latched so it cost one probe rather than one per
+document, the run fell back to `claude -p` and still extracted all 60, and the attempts rollback
+meant **zero rows burned toward the 3-strike cap**. A new lane degrading to the old one — tested by
+a real outage within an hour of shipping.
+
+Also fixed here: the fallback chain is pinned **inside** HuggingFace
+(`LLM_ROLE_SUMMARIZER_FALLBACK=huggingface:openai/gpt-oss-120b:novita`). The built-in default ends
+at `anthropic:claude-haiku-4-5` and `ANTHROPIC_API_KEY` is set in the same env file, so an HF
+outage would have silently billed the metered Anthropic API instead of degrading to the free seat.
+`ops.llm_runs` shows that path has been taken before (`degraded: true` on an older editor call).
 
 **PE.8 (original scope) — Register the HuggingFace provider.** Add `huggingface` to `PROVIDER_NAMES` (base
 `https://router.huggingface.co/v1`, `Authorization: Bearer`, optional `X-HF-Bill-To`). Four traps,
