@@ -9,6 +9,7 @@
  */
 import type { Handler, HandlerContext } from '../index.js';
 import { runRules, type RuleContext, type CitationRow, type BlockRow } from 'marsad-ingestion';
+import { FIT_SWITCH, enqueueFit } from './fit.js';
 import { enqueueStage, loadItem, resolvePrincipal, switchOn, transition } from './shared.js';
 
 interface RulesMsg { pipeline_item_id?: number }
@@ -59,6 +60,17 @@ export function makeRulesStage(): Handler {
       await transition(sql, item.id, 'draft', editorId, { rules_failed: blocked, loop: loops });
       await enqueueStage(sql, 'pipeline_draft', item.id);
       log.info('rules: blocked → back to draft', { blocked, loop: loops });
+      return;
+    }
+
+    // PD.8: when the fit stage is on, rules hands off to it and fit owns the routing
+    // (approval vs auto-publish) — the composition has to be judged before anything is
+    // published, including on the human-free wire path. `switchOn` is false for a key
+    // that does not exist, so this is inert until `fit-stage.sql` is applied.
+    if (await switchOn(sql, FIT_SWITCH)) {
+      await transition(sql, item.id, 'fit', editorId, { auto_eligible: engine.autoPublishEligible });
+      await enqueueFit(sql, item.id, engine.autoPublishEligible);
+      log.info('rules: passed → fit', { autoEligible: engine.autoPublishEligible });
       return;
     }
 

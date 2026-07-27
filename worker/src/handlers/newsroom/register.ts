@@ -7,11 +7,13 @@
  *   pipeline_draft     writer-context pack → chatComplete('writer') → blocks+citations
  *   pipeline_edit      tighten headline + template auto-select
  *   pipeline_rules     runRules R-01..R-10 → approval / auto-publish / rules loop
+ *   pipeline_fit       PD.8 composition check against ops.story_blocks → refuse / approval
  */
 import { registerHandler } from '../index.js';
 import { makeClassify } from './classify.js';
 import { makeDraft } from './draft.js';
 import { makeEdit } from './edit.js';
+import { makeFitStage } from './fit.js';
 import { makeRulesStage } from './rules-stage.js';
 
 export function registerNewsroomHandlers(): string[] {
@@ -20,6 +22,7 @@ export function registerNewsroomHandlers(): string[] {
     ['pipeline_draft', makeDraft()],
     ['pipeline_edit', makeEdit()],
     ['pipeline_rules', makeRulesStage()],
+    ['pipeline_fit', makeFitStage()],
   ];
   for (const [name, h] of regs) registerHandler(name, h);
   return regs.map(([n]) => n);

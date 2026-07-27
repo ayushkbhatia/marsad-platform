@@ -1,7 +1,8 @@
 /** Rules engine public surface (P3.2). */
 export { runRules, blockingFailures } from './engine.js';
 export {
-  splitSentences, markersIn, hasNumber, parseMagnitude, relDiff, normalizePhrase, NUMBER_TOKEN,
+  splitSentences, markersIn, hasNumber, numberTokens, isYearToken, parseMagnitude, relDiff,
+  normalizePhrase, NUMBER_TOKEN, DRIFT_TOL,
 } from './text.js';
 export { autoMarkNumbers } from './automark.js';
 export type { AutoMarkCite, AutoMarkResult } from './automark.js';

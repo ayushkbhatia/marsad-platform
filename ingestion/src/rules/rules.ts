@@ -6,9 +6,8 @@
  */
 
 import type { CitationRow, EngineOptions, RuleContext, RuleLlm, RuleResult } from './types.js';
-import { hasNumber, markersIn, normalizePhrase, parseMagnitude, relDiff, splitSentences } from './text.js';
+import { DRIFT_TOL, hasNumber, markersIn, normalizePhrase, parseMagnitude, relDiff, splitSentences } from './text.js';
 
-const DRIFT_TOL = 0.005; // 0.5% — R-04 block threshold
 const CLICKBAIT = /\b(shocking|you won'?t believe|this is why|secret|insane|skyrocket|plunge|crash|explode|breaking)\b/i;
 
 /** Every text surface (headline + dek + blocks) — used by R-05 banned-phrase scan. */

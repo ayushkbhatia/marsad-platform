@@ -79,6 +79,9 @@ export type {
 // The worker's rules handler assembles a RuleContext and calls runRules; same code path
 // will serve the Desk "RUN RULES NOW" (P4) via a worker RPC.
 export { runRules, blockingFailures, splitSentences, markersIn, parseMagnitude, normalizePhrase, autoMarkNumbers } from './rules/index.js';
+// Shared number primitives — the worker's fit stage (PD.8) reuses R-03/R-04's ONE
+// definition of "what is a number" and its 0.5% tolerance rather than redeclaring them.
+export { numberTokens, isYearToken, relDiff, NUMBER_TOKEN, DRIFT_TOL } from './rules/index.js';
 export type {
   RuleContext, CitationRow, BlockRow, RuleResult, EngineOptions, EngineResult, RuleLlm, AutoMarkCite, AutoMarkResult,
 } from './rules/index.js';

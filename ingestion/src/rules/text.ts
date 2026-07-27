@@ -10,6 +10,11 @@
 export const NUMBER_TOKEN =
   /(?<![\w])(?:SAR|AED|QAR|OMR|BHD|KWD|USD|﷼|\$)?\s?-?\d[\d,]*(?:\.\d+)?\s?(?:%|percent|trillion|tn|bn|billion|mn|m|million|k|thousand|SAR|AED|QAR|OMR|BHD|KWD|USD)?/gi;
 
+/** Relative tolerance for "this number matches that number" — 0.5%. R-04's block
+ *  threshold, and the SAME threshold the fit stage's numeric-consistency check uses.
+ *  Lives here (not in rules.ts) so there is one tolerance, not one per reader. */
+export const DRIFT_TOL = 0.005;
+
 /** [c1], [c2], … citation markers. */
 const MARKER = /\[c(\d+)\]/gi;
 
@@ -31,17 +36,27 @@ export function markersIn(text: string): string[] {
   return [...out];
 }
 
+/** Every numeric token in a text, per the ONE definition of "what is a number"
+ *  (NUMBER_TOKEN). Exported so any reader that must enumerate numerals — R-03's
+ *  hasNumber, the auto-marker, the fit stage's numeric-consistency check — tokenizes
+ *  identically. A second regex is how DEF-RULES-R04-REGEX happened. */
+export function numberTokens(text: string): string[] {
+  NUMBER_TOKEN.lastIndex = 0;
+  return (String(text).match(NUMBER_TOKEN) ?? []).map((t) => t.trim()).filter(Boolean);
+}
+
+/** A bare year (1990–2099) is not a claim number. The shared exemption — R-03's
+ *  hasNumber and the fit stage's numeric check must agree on this or one of them
+ *  refuses every dateline. (A quarter tag "Q1" never tokenizes: NUMBER_TOKEN's
+ *  `(?<![\w])` lookbehind rejects a digit preceded by a letter.) */
+export function isYearToken(token: string): boolean {
+  const t = String(token).trim();
+  return /^\d{4}$/.test(t) && Number(t) >= 1990 && Number(t) <= 2099;
+}
+
 /** True if the sentence contains a numeric/percent/currency token (R-03 trigger). */
 export function hasNumber(sentence: string): boolean {
-  NUMBER_TOKEN.lastIndex = 0;
-  const m = sentence.match(NUMBER_TOKEN);
-  if (!m) return false;
-  // A bare year ("2026") or a quarter tag ("Q1") is not a "claim number".
-  return m.some((tok) => {
-    const t = tok.trim();
-    if (/^\d{4}$/.test(t) && Number(t) >= 1990 && Number(t) <= 2099) return false;
-    return /\d/.test(t);
-  });
+  return numberTokens(sentence).some((t) => !isYearToken(t) && /\d/.test(t));
 }
 
 const SCALE: Record<string, number> = {

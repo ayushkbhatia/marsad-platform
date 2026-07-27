@@ -551,6 +551,17 @@ non-fatal** at render; the *publisher* hard-refuses, not the renderer.
 _Accept:_ per family, a fixture story renders every block in it; visual diff against
 `docs/design/artifacts/artifact-library-61-blocks.html`.
 
+✅ **G, A, C shipped 2026-07-27 (20 of 61).** `src/components/blocks/` now exists: a
+`Record<BlockCode, Component>` registry (`registry.tsx`) over the full 61-code union, with the 20
+built codes typed per-payload and everything else resolving to `MissingBlock` — loud (amber dashed
+marker), logged (`[blocks] …` on server and client), non-fatal. Hard rule 3 is centralised in
+`constraints.ts` (`estimateLabel`/`estimateHeaderClass`/`estimateValueClass`), so the agent supplies
+only `is_estimate` per period and the renderer owns the E suffix, the ink header and the bold value.
+Hard rule 1 is enforced by `directionTextClass` being the only path to green/red. Missing bound
+values render `—`, never a substitute figure. Fixture surface: **`/styleguide/blocks`**, verified at
+1440px against the library file.
+Remaining: **D** (blocked on PD.6), then **B, E, F, H** — 41 blocks.
+
 **PD.6 — The chart compiler (D-12).** `src/lib/blocks/chart-compiler.ts`: `(shape, resolved
 series) → themed Vega-Lite spec`. Web renders SVG; email/social render **PNG** via
 `@resvg/resvg-js` (MPL-2.0, prebuilt napi binaries incl. linux musl — no node-gyp, no cairo).
@@ -564,14 +575,39 @@ and corrections bind to block **identity** rather than `seq`, which reordering i
 Backfill from `seq` for existing rows.
 _Accept:_ reordering a piece's blocks leaves every citation resolving.
 
-**PD.8 — The fit stage (the refusal surface).** New `worker/src/handlers/newsroom/fit.ts`,
-deterministic, no LLM: resolve codes → check family permission → check binding → numeric-consistency
-over prose → apply per-block hard constraints → place the premium cut (R-09) → **refuse on any
-failure**. This is the first code in the repo that reads `ops.templates` / `ops.story_blocks`
-(§P4.12 confirms today's reader count is zero).
-_Accept:_ a fixture piece with a block not in its template's `allowed_families` is refused with
-the offending code as evidence; a piece whose prose says 12.4% while its bound object says 12.1%
-is refused.
+**PD.8 — The fit stage (the refusal surface). ✅ BUILT 2026-07-27 — switched OFF pending one
+migration.** `worker/src/handlers/newsroom/fit-engine.ts` (pure, deterministic, no LLM) +
+`fit.ts` (the `pipeline_fit` handler): resolve codes → check **piece-type** permission → check
+binding → numeric-consistency over prose → apply per-block constraints → place the premium cut
+(R-09) → **refuse on any failure**, never degrade. The first code in the repo that reads
+`ops.templates` / `ops.story_blocks` — `max_words` and `always_premium` are now *read*, not
+re-declared.
+
+⚠️ **The plan said "family permission via `ops.article_templates.allowed_families`" and that column
+does not exist — deliberately.** Permission lives on the **block**: join
+`article_templates.piece_type` against `story_blocks.piece_types` (`{ALL}` = unrestricted, 39 of 61).
+The four exported longform pages are specimens — only 2/2/1/4 blocks are stated on them — so a
+template-derived family list would refuse a chart in a Feature. `'AI'` is an orthogonal piece type
+(`BLK-CITE`, `BLK-FALSIFY` are "AI · NOTE"), so an agent-authored piece carries it *in addition to*
+its layout type; without that, the block the design makes mandatory on every AI factual claim would
+be refused on every agent-written feature.
+
+⚠️ **Wiring is switch-gated, not merged-in.** `fit` is not a legal `ops.pipeline_items.stage` value
+and `ops.fn_transition` hard-codes adjacency, so the DDL lives at
+`worker/src/handlers/newsroom/fit-stage.sql` — **written, NOT applied, and deliberately not in
+`supabase/migrations/`** (two other agents held `supabase/migrations.ledger` in the same worktree; a
+.sql the ledger cannot see is a red CI for them). It adds the stage value, the `rules → fit → …`
+adjacency, `ops.fit_reports`, and the `newsroom_fit_stage` switch **off**. `switchOn()` reads a
+missing key as false, so the rules stage keeps its existing routing until the migration lands.
+
+_Accept:_ ✅ a piece emitting `BLK-INFOGRAPHIC` is refused `FIT-BLOCK-UNKNOWN` naming the code;
+✅ `BLK-FINTABLE` (DEEP DIVE · NOTE) on a WIRE is refused `FIT-BLOCK-PIECE-TYPE` naming both sides;
+✅ a `requires_binding` block with no citation is refused `FIT-BIND-UNCITED`; ✅ prose saying 12.4%
+against a bound object holding 12.1% is refused `FIT-NUMBER-MISMATCH` naming both values, the
+source path and the 0.5% tolerance. 32 tests, `tsc --noEmit` clean, worker suite 57 → **89/89**.
+**Live finding:** dry-run against pipeline item #7 (the only agent-written piece that is live)
+refuses it twice — "QAR 4.22bn" and "11.2%" are backed by nothing in the object they cite; R-04
+missed them because it only requires *one* magnitude per marked sentence to match.
 
 ---
 

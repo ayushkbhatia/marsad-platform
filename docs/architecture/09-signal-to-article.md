@@ -672,10 +672,16 @@ says 12.1%" well.
 
 ## 6. Layer 3c — Fit and Refuse (the publishing agent)
 
-Deterministic, no LLM. Input: an outline of validated blocks + a template. It:
+**Built 2026-07-27** (PD.8) — `worker/src/handlers/newsroom/{fit.ts, fit-engine.ts}`, registered as
+the `pipeline_fit` handler between `rules` and `approval`. Deterministic, no LLM. Input: an outline
+of validated blocks + a template. It:
 
 1. **resolves** each `BLK-*` against `ops.story_blocks`;
-2. **checks family permission** for the piece type (`ops.article_templates.allowed_families`);
+2. **checks piece-type permission** — join `ops.article_templates.piece_type` against
+   `ops.story_blocks.piece_types` (`{ALL}` = unrestricted). **Permission lives on the BLOCK, not
+   the template**: there is deliberately no `allowed_families` list on the template, because the
+   four exported longform pages are *specimens* — only 2 / 2 / 1 / 4 blocks are actually stated on
+   them — so deriving permission from them would refuse a chart in a Feature;
 3. **checks binding** — every block with `requires_binding` has a resolvable `bound_object_id`
    *and* a `lake.citations` row;
 4. **runs the numeric-consistency check** over prose;
@@ -689,15 +695,59 @@ Deterministic, no LLM. Input: an outline of validated blocks + a template. It:
 
 **This is the missing enforcement point.** `ops.templates.block_keys` has existed since
 2026-07-13 and **nothing has ever read it**; nothing validates that a piece's blocks match its
-template. The fit stage is that validator, and it is where `always_premium`, `max_words` and
-`auto_publish_eligible` finally get read from the registry instead of being re-hard-coded — as
-they are today in **three or four places each**.
+template. The fit stage is that validator, and it is where `always_premium` and `max_words` finally
+get read from the registry instead of being re-hard-coded — as they were in **three or four places
+each** (`DEF-REGISTRY-ZERO-READERS`).
+
+### 6.0 The refusal taxonomy, and what it deliberately does not judge
+
+Nineteen refusal codes in six groups. Every refusal names the block, the rule and the evidence,
+because it is read by a human at the Desk, not by a retry loop.
+
+| Group | Codes |
+|---|---|
+| Vocabulary | `FIT-BLOCK-UNKNOWN` · `FIT-BLOCK-LEGACY` · `FIT-BLOCK-PIECE-TYPE` · `FIT-PIECE-TYPE-UNRESOLVED` |
+| Binding (hard rule 2) | `FIT-BIND-MISSING` · `FIT-BIND-UNCITED` · `FIT-BIND-UNRESOLVED` |
+| Arithmetic (R-03/R-04) | `FIT-NUMBER-MISMATCH` · `FIT-NUMBER-UNSOURCED` |
+| Registry constraints (§5.3) | `FIT-CONSTRAINT-CARDINALITY` · `FIT-CONSTRAINT-UNIQUE` · `FIT-PAYLOAD-SCHEMA` |
+| Template policy | `FIT-TEMPLATE-UNKNOWN` · `FIT-TEMPLATE-MAXWORDS` · `FIT-TEMPLATE-PREMIUM` |
+| The cut (R-09) | `FIT-CUT-NO-DATA` · `FIT-CUT-MID-SENTENCE` · `FIT-CUT-NOT-PERMITTED` · `FIT-CUT-UNPLACEABLE` |
+
+Three things are **warnings**, not refusals, and the reasoning matters:
+
+- **A template that names a legacy block key.** Seven of the eight `TPL-0x` rows name at least one
+  of the 8 legacy codes — they are 2026-07-13 seed data PD.2 grandfathered rather than rewrote — so
+  refusing would refuse every non-wire piece, and a stage that refuses everything gets switched off.
+  The writer did not choose it and cannot fix it; the remedy is a data migration. **A piece that
+  *emits* a legacy code is still refused** — that is an agent reaching outside the closed vocabulary.
+- **A block used but not declared in `ops.templates.block_keys`** — advisory, since permission is
+  judged on `piece_types`.
+- **The two cut surfaces disagreeing** (`gated` vs `premium_cut_after_block`) — `gated` wins.
+
+And it reports what it **could not** judge (`unchecked[]`) rather than passing it silently:
+`payload_schema` still null (PD.3 in flight — absence is never a refusal); constraint prose that is
+visual rather than countable (**19 of 219 constraint strings across the 61 blocks parse into a
+machine-checkable cardinality**; the rest are colour/stroke/editorial rules); a cardinality whose
+payload array is absent; and immaterial numerals (a 1990–2099 year, or a bare integer under 1,000
+with no unit — the deliberate false-refusal control, layered *on top of* `NUMBER_TOKEN` rather than
+being a second definition of "what is a number", which is how `DEF-RULES-R04-REGEX` happened).
+
+**What it found on its first live read.** Dry-run against pipeline item #7 — the one agent-written
+piece that is live on the site — the numeric check refuses it twice: *"up from QAR 4.22bn a year
+earlier"* and *"revenue rising 11.2%"* resolve to **nothing** in the object the sentence cites
+(nearest reachable values 4.338bn and 17.25). R-04 passed it because R-04 requires only that
+**some** magnitude in a marked sentence match the citation — every other number in that sentence
+rides along free. That is the gap the fit stage closes, and it is not hypothetical.
 
 ### 6.1 Renderers
 
-`src/components/blocks/` does not exist; the 14 `renderer_component` names in `ops.story_blocks`
-name components that were never written. Build them in family order **G → A + C → D → B, E, F, H**,
-per the design handoff's own recommendation, with:
+`src/components/blocks/` exists as of **2026-07-27** and carries **20 of 61** blocks — families
+**G · Provenance & trust**, **A · Inline** and **C · Tabular**, in the handoff's own order
+**G → A + C → D → B, E, F, H**. The remaining 41 are unbuilt; **D is blocked on the §5.5 chart
+compiler (PD.6)** and must not be stubbed. Verification surface: **`/styleguide/blocks`**, rendered
+against fixture payloads and diffed at 1440px against the library file.
+
+The layer is built with:
 
 - an `onMissingComponent` posture borrowed from `@portabletext/react`: an unregistered block code
   is a **loud, logged, non-fatal** event at render — because the *publisher* is the thing that
@@ -705,9 +755,21 @@ per the design handoff's own recommendation, with:
 - a stable opaque `_key` per block so citations and corrections bind to block **identity** rather
   than `seq` (which reordering invalidates).
 
-While doing this, fix the `pull_quote`/`pullquote` and `heading` mismatch in
-[`adapters/research.ts:63`](../../src/lib/data/adapters/research.ts) — it is a two-line change that
-currently flattens every heading and pull quote in every seeded article.
+✅ The `pull_quote`/`pullquote` and `heading` mismatch in
+[`adapters/research.ts`](../../src/lib/data/adapters/research.ts) is fixed — `normalizeKind()` now
+folds spelling variants instead of matching literals, so a new spelling degrades to prose rather
+than re-opening the bug.
+
+> ⚠️ **`BLK-FRESH` and the reader app's `FreshnessBadge` cannot be one component — the two specs
+> disagree.** The card footer says "shared with the reader app's FreshnessBadge", but the block
+> library defines **exactly four** states (LIVE / DELAYED / CLOSED / **FEED OFFLINE in red
+> `#c0342b`**) while [`ui/FreshnessBadge.tsx`](../../src/components/ui/FreshnessBadge.tsx) defines
+> six (adding `reconnecting`/`halted`/`auction`, degrading `closed` → `delayed`, and drawing
+> offline in **grey** under an explicit "red never marks a feed failure — S1 colour law"). The
+> artifact wins for blocks (`docs/design/README.md`: "the HTML wins"), so `BlockFresh` implements
+> the four-state badge and exports `fromVenueFeedState()` to keep both surfaces driven by the same
+> `public.venue_feed_status.state` column. **Which rule governs is an owner decision**, not
+> something to reconcile silently in code.
 
 ---
 
