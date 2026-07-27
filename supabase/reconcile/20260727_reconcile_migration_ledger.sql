@@ -42,3 +42,14 @@ update supabase_migrations.schema_migrations
 --  where name like 'filing_extract%' order by version;
 -- expect exactly: 20260727113000 | filing_extract_enqueue_gap
 --                 20260727114500 | filing_extract_sha_index_nonpartial
+
+-- ── ADDENDUM (same day, third migration) ──────────────────────────────────────────────────────
+-- 20260727124500_filing_extract_content_kind hit the same MCP-apply drift and was re-stamped the
+-- same way. Its apply was additionally delayed: the live DB exhausted its direct-connection slots
+-- mid-apply ("53300: remaining connection slots are reserved for roles with the SUPERUSER
+-- attribute") and the migration was held OUT of the repo until it actually landed, so the repo
+-- never ran ahead of live. PostgREST-backed reader traffic was unaffected throughout; only
+-- direct-connection consumers (the VPS worker fleet, the MCP) were blocked.
+update supabase_migrations.schema_migrations
+   set version = '20260727124500'
+ where name = 'filing_extract_content_kind' and version <> '20260727124500';
