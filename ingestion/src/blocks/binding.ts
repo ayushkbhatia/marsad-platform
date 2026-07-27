@@ -30,7 +30,7 @@
  */
 import { z } from "zod";
 
-import type { BlockCode } from "./codes";
+import type { BlockCode } from "./codes.js";
 
 /**
  * `lake.objects.id` is a uuid (verified against the live schema 2026-07-27). Nothing else may

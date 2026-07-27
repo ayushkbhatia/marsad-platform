@@ -16,7 +16,7 @@
  */
 import { z } from "zod";
 
-import { blockSchema, prose } from "./binding";
+import { blockSchema, prose } from "./binding.js";
 
 /**
  * BLK-TIMELINE · Dates in order.

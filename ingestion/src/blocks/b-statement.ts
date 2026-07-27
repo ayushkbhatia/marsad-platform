@@ -9,7 +9,7 @@
  */
 import { z } from "zod";
 
-import { ObjectBinding, blockSchema, houseLabel, prose } from "./binding";
+import { ObjectBinding, blockSchema, houseLabel, prose } from "./binding.js";
 
 /**
  * BLK-THESIS · Argument in three lines — unbound.

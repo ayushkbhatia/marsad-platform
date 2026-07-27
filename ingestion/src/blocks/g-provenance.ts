@@ -17,7 +17,7 @@
  */
 import { z } from "zod";
 
-import { ObjectBinding, ObjectRef, RuleId, VenueCode, blockSchema, houseLabel, prose } from "./binding";
+import { ObjectBinding, ObjectRef, RuleId, VenueCode, blockSchema, houseLabel, prose } from "./binding.js";
 
 /**
  * BLK-PROV · Lake object stamp — `requires_binding`, mandatory under every chart and table.

@@ -10,7 +10,7 @@
  */
 import { z } from "zod";
 
-import { ObjectBinding, ObjectRef, blockSchema, houseLabel, prose } from "./binding";
+import { ObjectBinding, ObjectRef, blockSchema, houseLabel, prose } from "./binding.js";
 
 /**
  * BLK-CUT · Premium cut — rule **R-09**, gating.

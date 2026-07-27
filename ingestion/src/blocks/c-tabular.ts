@@ -12,7 +12,7 @@
  */
 import { z } from "zod";
 
-import { ObjectBinding, VenueCode, blockSchema, houseHeaders, prose } from "./binding";
+import { ObjectBinding, VenueCode, blockSchema, houseHeaders, prose } from "./binding.js";
 
 /**
  * BLK-STATSTRIP · Four-up stat strip.

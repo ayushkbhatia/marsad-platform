@@ -16,20 +16,20 @@
  */
 import type { z } from "zod";
 
-import * as A from "./a-inline";
-import * as B from "./b-statement";
-import * as C from "./c-tabular";
-import * as D from "./d-charts";
-import * as E from "./e-mechanism";
-import * as F from "./f-wire";
-import * as G from "./g-provenance";
-import * as H from "./h-gates";
-import { BLOCK_CODES, type BlockCode } from "./codes";
+import * as A from "./a-inline.js";
+import * as B from "./b-statement.js";
+import * as C from "./c-tabular.js";
+import * as D from "./d-charts.js";
+import * as E from "./e-mechanism.js";
+import * as F from "./f-wire.js";
+import * as G from "./g-provenance.js";
+import * as H from "./h-gates.js";
+import { BLOCK_CODES, type BlockCode } from "./codes.js";
 
-export { BLOCK_CODES, isBlockCode, familyOf } from "./codes";
-export type { BlockCode, BlockFamily } from "./codes";
+export { BLOCK_CODES, isBlockCode, familyOf } from "./codes.js";
+export type { BlockCode, BlockFamily } from "./codes.js";
 export { ObjectBinding, ObjectRef, ChartSeries, ChartEmphasis, Polarity, VenueCode, RuleId } from "./binding";
-export { CHART_SHAPES, ChartShape, SHAPE_BY_BLOCK, CHART_QUESTION_BY_SHAPE } from "./d-charts";
+export { CHART_SHAPES, ChartShape, SHAPE_BY_BLOCK, CHART_QUESTION_BY_SHAPE } from "./d-charts.js";
 
 /**
  * Every active block code → the schema its payload must satisfy.

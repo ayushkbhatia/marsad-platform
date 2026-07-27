@@ -34,7 +34,7 @@ import {
   blockSchema,
   prose,
 } from "./binding";
-import type { BlockCode } from "./codes";
+import type { BlockCode } from "./codes.js";
 
 /**
  * The closed shape vocabulary — one per D-family block. The chart compiler switches on this and
