@@ -170,7 +170,16 @@ async function factsViaGateway(text, agentId, filingId) {
     const name = e?.name ?? '';
     // LlmJsonError is a CONTENT failure (the model could not honour the schema twice) and counts.
     if (name === 'LlmJsonError') return { error: 'gateway json contract' };
-    return { error: `gateway: ${String(e.message ?? e).slice(0, 120)}`, transient: true, unavailable: true };
+    const msg = String(e.message ?? e);
+    // A 429 is NOT the same class of failure as a 402, and latching on it would be wrong.
+    //   402 "depleted your monthly included credits" — persists until someone tops up, so the
+    //       whole run should stop probing and fall back once (that is what `unavailable` does).
+    //   429 rate limit — transient, clears in seconds. Latching would send an ENTIRE run to the
+    //       metered seat because we briefly pushed too many concurrent requests, which is the
+    //       opposite of what this lane exists for.
+    // So a 429 falls back for THIS document only and leaves the gateway armed for the next one.
+    const rateLimited = /\b429\b|rate.?limit/i.test(msg);
+    return { error: `gateway: ${msg.slice(0, 120)}`, transient: true, unavailable: !rateLimited };
   }
 }
 
