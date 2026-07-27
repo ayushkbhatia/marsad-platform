@@ -623,18 +623,30 @@ unmaintained in Nov 2025). Author once in TS, store the emitted JSON Schema in
 `ops.story_blocks.payload_schema`, send the same schema to the provider.
 
 **Chart specs are compiled, never emitted.** A Vega-Lite spec *is* layout, so the agent may not
-produce one. It emits:
+produce one. A D-family block emits:
 
 ```jsonc
-// BLK-CHART body
-{ "shape": "line|stacked_bar|waterfall|dumbbell|slope|distribution",
+// e.g. BLK-WATERFALL body — the block IS the shape
+{ "shape": "waterfall",                       // z.literal, pinned by the block
   "series": [ { "object_id": "…", "field": "revenue", "label": "Revenue" } ],
   "emphasis": { "object_id": "…", "reason": "…" },
   "caption": "<prose>" }
 ```
 
-Six enum values, trivially constrainable. A deterministic compiler in-repo maps
-`(shape, resolved series)` → a themed Vega-Lite spec → **SVG for web, PNG for email**.
+⚠️ **Corrected 2026-07-27 (PD.3).** An earlier draft of this section described **one** generic
+`BLK-CHART` with a **six**-value shape enum. That was written before the block library was parsed
+and it is wrong: the design splits charts into **15 blocks, one per question** — and that split is
+the most useful thing the design gives an agent, because it turns "pick a chart type" into "pick
+the question this exhibit answers". `CHART_SHAPES` is the closed 15-value vocabulary; each block
+pins its own with `z.literal`, so the shape is not a choice the model makes at fill time at all.
+Nine shapes take the flat `series[]`; six name a shape-specific bound field where the card's
+structure genuinely differs (scatter points, waterfall start/end, valuation-range bear/base/bull,
+dumbbell rows, slope entities, IPO cover tranches). Three — donut, cover, candle — carry a
+*subject* rather than a question, so `CHART_QUESTION_BY_SHAPE` maps them to `null` rather than
+inventing one.
+
+A deterministic compiler in-repo (PD.6, not yet built) maps `(shape, resolved series)` → a themed
+Vega-Lite spec → **SVG for web, PNG for email**.
 
 PNG is not optional: **SVG is dead in email.** Microsoft retired inline SVG in Outlook for Web and
 new Outlook for Windows between September and mid-October 2025 (SVG-borne phishing); Gmail blocks
