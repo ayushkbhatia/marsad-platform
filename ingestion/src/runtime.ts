@@ -1274,10 +1274,15 @@ export function createIngestionRuntime(deps: CreateIngestionRuntimeDeps): Ingest
     },
 
     async countStagingSources(naturalKey, objectType) {
+      // consumed_at is null: an OPEN claim, not the key's whole staging history — a key
+      // resolved by a prior cross_check must not keep tripping >=2 forever off consumed
+      // rows. This also matches gatherCandidates' own predicate (lake/cross-check.ts) and
+      // lets the planner use staging_rows_sweep_idx instead of a full table scan.
       const rows = await sql<{ n: string }[]>`
         select count(distinct source_id)::text as n
           from lake.staging_rows
          where natural_key = ${naturalKey} and object_type = ${objectType}
+           and consumed_at is null
       `;
       return rows.length > 0 ? Number(rows[0]!.n) : 0;
     },
