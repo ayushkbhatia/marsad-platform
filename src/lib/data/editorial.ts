@@ -475,6 +475,38 @@ export async function listPublishedArticleSlugs(
     .map((r) => ({ slug: r.slug, updatedAt: r.updated_at }));
 }
 
+/**
+ * The same slugs ordered by primary key — the prerender floor for
+ * `/articles/[slug]`.
+ *
+ * `content_items` has no index on `content_type`, so the filtered read above can
+ * fail against the `anon` role's 3s budget; it did exactly that on the Vercel
+ * production build while passing locally. Ordering by `id` walks the primary key
+ * and stops at `limit`, which cannot be slow. Newest-inserted is a worse head
+ * than newest-published, and that is the accepted trade: which pages are warm is
+ * an optimization, never correctness.
+ */
+export async function listArticleSlugsByPk(
+  limit = 200,
+): Promise<Array<{ slug: string; updatedAt: string | null }>> {
+  "use cache";
+  cacheLife({ stale: 3600, revalidate: 3600, expire: 86400 });
+  cacheTag("articles");
+
+  const sb = createAnonClient();
+  const { data, error } = await sb
+    .from("content_items")
+    .select("slug,updated_at")
+    .not("slug", "is", null)
+    .order("id", { ascending: false })
+    .limit(Math.min(Math.max(limit, 1), 45000));
+  if (error) throw new Error(`content_items article slugs by pk: ${error.message}`);
+
+  return ((data as Array<{ slug: string | null; updated_at: string | null }> | null) ?? [])
+    .filter((r): r is { slug: string; updated_at: string | null } => r.slug != null)
+    .map((r) => ({ slug: r.slug, updatedAt: r.updated_at }));
+}
+
 // ── Analysts (the Coverage Desk) ────────────────────────────────────────────
 
 export interface AnalystLeaderboardRow {
