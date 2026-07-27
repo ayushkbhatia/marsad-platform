@@ -17,7 +17,11 @@
  * is reported too (`unchecked`) — a silent skip reads as a pass, which is the failure
  * mode this stage exists to remove.
  */
-import { DRIFT_TOL, isYearToken, markersIn, numberTokens, parseMagnitude, relDiff } from 'marsad-ingestion';
+import {
+  BLOCK_PAYLOAD_SCHEMAS, DRIFT_TOL, isYearToken, markersIn, numberTokens,
+  parseMagnitude, relDiff,
+} from 'marsad-ingestion';
+import type { BlockCode } from 'marsad-ingestion';
 
 // ---------------------------------------------------------------------------
 // Inputs — mirror the registry rows and the drafted piece.
@@ -32,7 +36,9 @@ export interface RegistryBlock {
   requires_binding: boolean;
   binds_to: string | null;
   constraints: string[] | null;                     // the design cards' prose, verbatim
-  payload_schema: Record<string, unknown> | null;   // PD.3, in flight — optional
+  // PD.3 projection, NOT the enforcer — see checkPayloadSchema. Still selected because the column
+  // is what a provider gets as `response_format: json_schema`; that consumer is the writer stage.
+  payload_schema: Record<string, unknown> | null;
 }
 
 /** One `ops.templates` row (TPL-01…08 — the PIPELINE axis). */
@@ -715,85 +721,47 @@ function checkConstraints(
 }
 
 // ---------------------------------------------------------------------------
-// payload_schema (PD.3, in flight) — validate when present, NEVER refuse when absent
+// Payload schemas — enforced from Zod, NEVER a refusal when a block has no schema
 // ---------------------------------------------------------------------------
 
 function checkPayloadSchema(block: FitBlock, reg: RegistryBlock, refusals: FitFinding[], unchecked: FitFinding[]): void {
-  if (!reg.payload_schema) {
+  // ZOD IS THE ENFORCER; ops.story_blocks.payload_schema is a PROJECTION of it.
+  //
+  // The two exist for different consumers and must not be confused:
+  //   * the DB column is what we hand a model as `response_format: json_schema` — it has to be
+  //     JSON Schema because that is what the provider speaks;
+  //   * the Zod schema is what we ENFORCE here, because it is strictly more expressive.
+  //
+  // This used to validate against the DB column with a hand-rolled walker implementing
+  // required/type/enum/min|max/min|maxItems only. Measured against the generated schemas, that
+  // walker cannot see 486 constraints: additionalProperties:false x179 (the agent inventing a
+  // field), pattern x168 — including the uuid pattern on `object_id`, which IS the D-8 binding
+  // rule — format x92, const x45 (an out-of-vocabulary chart shape) and anyOf x2. It also cannot
+  // express Zod's 8 cross-field refinements at all (exactly one base scenario, human last in the
+  // byline chain, one value per period column). A validator that silently enforces a third of what
+  // it appears to is worse than none: a green report implies checks that never ran.
+  const zod = BLOCK_PAYLOAD_SCHEMAS[reg.key as BlockCode];
+  if (!zod) {
     unchecked.push({
       code: 'FIT-PAYLOAD-SCHEMA', block_code: reg.key, seq: block.seq,
-      evidence: { reason: 'ops.story_blocks.payload_schema is null (PD.3 still filling) — absence is never a refusal' },
+      evidence: { reason: `no Zod schema for ${reg.key} (legacy or unrecognised block) — absence is never a refusal` },
     });
     return;
   }
-  const problems = validateJsonSchema(block.payload, reg.payload_schema, '');
-  if (problems.length > 0) {
+  const res = zod.safeParse(block.payload);
+  if (!res.success) {
     refusals.push({
       code: 'FIT-PAYLOAD-SCHEMA', block_code: reg.key, seq: block.seq,
-      evidence: { problems: problems.slice(0, 10), source: 'ops.story_blocks.payload_schema' },
+      evidence: {
+        problems: res.error.issues.slice(0, 10).map((i) => `${i.path.join('.') || '(root)'}: ${i.message}`),
+        source: 'ingestion/src/blocks (Zod)',
+      },
     });
   }
 }
 
-/**
- * A deliberately SMALL JSON-Schema subset: required / type / enum / minItems /
- * maxItems / minimum / maximum, recursed through `properties` and `items`. Anything
- * else in the schema is ignored rather than guessed at — a validator that invents
- * semantics refuses honest payloads, and this is a refusal surface.
- */
-export function validateJsonSchema(value: unknown, schema: Record<string, unknown>, path: string, depth = 0): string[] {
-  if (depth > 4) return [];
-  const out: string[] = [];
-  const at = path || '(root)';
 
-  const type = schema.type;
-  if (typeof type === 'string' && !typeMatches(value, type)) {
-    return [`${at}: expected ${type}, got ${value === null ? 'null' : Array.isArray(value) ? 'array' : typeof value}`];
-  }
 
-  if (Array.isArray(schema.enum) && !schema.enum.some((e) => e === value)) {
-    out.push(`${at}: ${JSON.stringify(value)} is not one of ${JSON.stringify(schema.enum)}`);
-  }
-  if (typeof schema.minimum === 'number' && typeof value === 'number' && value < schema.minimum) out.push(`${at}: ${value} < minimum ${schema.minimum}`);
-  if (typeof schema.maximum === 'number' && typeof value === 'number' && value > schema.maximum) out.push(`${at}: ${value} > maximum ${schema.maximum}`);
-
-  if (Array.isArray(value)) {
-    if (typeof schema.minItems === 'number' && value.length < schema.minItems) out.push(`${at}: ${value.length} items < minItems ${schema.minItems}`);
-    if (typeof schema.maxItems === 'number' && value.length > schema.maxItems) out.push(`${at}: ${value.length} items > maxItems ${schema.maxItems}`);
-    const items = schema.items;
-    if (items && typeof items === 'object' && !Array.isArray(items)) {
-      value.forEach((v, i) => out.push(...validateJsonSchema(v, items as Record<string, unknown>, `${path}[${i}]`, depth + 1)));
-    }
-  }
-
-  if (value != null && typeof value === 'object' && !Array.isArray(value)) {
-    const obj = value as Record<string, unknown>;
-    for (const req of Array.isArray(schema.required) ? schema.required : []) {
-      if (typeof req === 'string' && !(req in obj)) out.push(`${at}: missing required field '${req}'`);
-    }
-    const props = schema.properties;
-    if (props && typeof props === 'object') {
-      for (const [k, sub] of Object.entries(props as Record<string, unknown>)) {
-        if (!(k in obj) || !sub || typeof sub !== 'object') continue;
-        out.push(...validateJsonSchema(obj[k], sub as Record<string, unknown>, path ? `${path}.${k}` : k, depth + 1));
-      }
-    }
-  }
-  return out;
-}
-
-function typeMatches(v: unknown, type: string): boolean {
-  switch (type) {
-    case 'object': return v != null && typeof v === 'object' && !Array.isArray(v);
-    case 'array': return Array.isArray(v);
-    case 'string': return typeof v === 'string';
-    case 'number': return typeof v === 'number' && Number.isFinite(v);
-    case 'integer': return typeof v === 'number' && Number.isInteger(v);
-    case 'boolean': return typeof v === 'boolean';
-    case 'null': return v === null;
-    default: return true;
-  }
-}
 
 // ---------------------------------------------------------------------------
 // The premium cut (R-09 / BLK-CUT)

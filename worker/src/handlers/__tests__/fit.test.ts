@@ -41,7 +41,11 @@ const REGISTRY: Record<string, RegistryBlock> = Object.fromEntries([
   reg({ key: 'BLK-CHART', status: 'legacy', piece_types: null }),
 ].map((r) => [r.key, r]));
 
-const OBJ = '11111111-1111-1111-1111-111111111111';
+// Version nibble 4, variant nibble 8 — i.e. a real RFC 9562 v4, not just 8-4-4-4-12 hex. It has to
+// be: `lake.objects.id` defaults to gen_random_uuid() and 20,000/20,000 live ids are strict v4
+// (checked 2026-07-27), so `z.uuid()` in the binding schema is strict too. The old all-1s constant
+// was a shape the DB would accept but the D-8 binding rule would refuse.
+const OBJ = '11111111-1111-4111-8111-111111111111';
 
 function block(over: Partial<FitBlock> & { seq: number; code: string }): FitBlock {
   return { payload: {}, bound_object_id: null, gated: false, ...over };
@@ -319,7 +323,13 @@ test('fit: an unparseable constraint is reported as unchecked, never as a pass',
   const r = runFit(input({
     content_type: 'EXPLAINER', template_key: 'TPL-06',
     pipelineTemplate: { key: 'TPL-06', block_keys: [], auto_publish_eligible: false, always_premium: false, max_words: null },
-    blocks: [block({ seq: 1, code: 'BLK-TIMELINE', payload: { stages: [{}, {}, {}, {}] } })],
+    // The payload must be VALID for this test to isolate what it is about. Once Zod became the
+    // enforcer a stub `[{}, {}, {}, {}]` earns a real FIT-PAYLOAD-SCHEMA refusal, which would mask
+    // the thing under test: that an unparseable *constraint* is reported, not silently passed.
+    blocks: [block({ seq: 1, code: 'BLK-TIMELINE', payload: { stages: [
+      { name: 'Ex-date', date: '2026-08-01', description: 'Buy before this date to receive the dividend.', is_critical: true },
+      { name: 'Pay date', date: '2026-08-20', description: 'Cash settles to the holder of record.', is_critical: false },
+    ] } })],
   }));
   assert.deepEqual(codes(r.refusals), []);
   const u = r.unchecked.find((x) => x.code === 'FIT-CONSTRAINT-PROSE');
@@ -436,36 +446,63 @@ test('fit: refuses when a cut is required and no legal position exists', () => {
 });
 
 // ---------------------------------------------------------------------------
-// 9. payload_schema — validate when present, never refuse when absent
+// 9. Payload schemas — Zod is the enforcer, ops.story_blocks.payload_schema is a projection
+//
+// These were written against the earlier contract, where the DB column drove validation through a
+// hand-rolled walker. That walker could not see 486 of the generated constraints, so a block could
+// pass a check that never really ran. The column is still emitted — the provider needs JSON Schema
+// for constrained generation — but it is no longer what the fit stage trusts.
 // ---------------------------------------------------------------------------
 
-test('fit: a null payload_schema is unchecked, never a refusal', () => {
+test('fit: a block with no Zod schema is unchecked, never a refusal', () => {
+  // BLK-TABLE is one of the 8 legacy codes the design split (into BLK-FINTABLE et al). It has no
+  // payload contract to state, so the fit stage must report the gap rather than invent a verdict.
   const r = runFit(input({
-    blocks: [block({ seq: 1, code: 'BLK-BIGNUM', bound_object_id: OBJ })],
+    blocks: [block({ seq: 1, code: 'BLK-TABLE', payload: { anything: 'goes' } })],
     citations: [cite()],
   }));
   assert.ok(!r.refusals.some((x) => x.code === 'FIT-PAYLOAD-SCHEMA'));
-  assert.ok(r.unchecked.some((x) => x.code === 'FIT-PAYLOAD-SCHEMA' && x.block_code === 'BLK-BIGNUM'));
+  const u = r.unchecked.find((x) => x.code === 'FIT-PAYLOAD-SCHEMA' && x.block_code === 'BLK-TABLE');
+  assert.ok(u, 'expected an unchecked report for the legacy code');
+  assert.match(String(u.evidence.reason), /no Zod schema/);
 });
 
-test('fit: a present payload_schema is enforced (required field, type, maxItems)', () => {
-  const schema = {
-    type: 'object',
-    required: ['value', 'caption'],
-    properties: { value: { type: 'number' }, rows: { type: 'array', maxItems: 2 } },
-  };
-  const registry = { ...REGISTRY, 'BLK-BIGNUM': { ...REGISTRY['BLK-BIGNUM']!, payload_schema: schema } };
+test('fit: the Zod schema is enforced regardless of what the DB column says', () => {
+  // payload_schema stays null — under the old contract that alone meant "unchecked". The refusal
+  // below proves the column is no longer the authority.
   const r = runFit(input({
-    registry,
-    blocks: [block({ seq: 1, code: 'BLK-BIGNUM', bound_object_id: OBJ, payload: { value: 'not-a-number', rows: [1, 2, 3] } })],
+    blocks: [block({ seq: 1, code: 'BLK-BIGNUM', bound_object_id: OBJ, payload: { caption: 'Net profit, Q2 FY26' } })],
     citations: [cite()],
   }));
   const hit = r.refusals.find((x) => x.code === 'FIT-PAYLOAD-SCHEMA');
   assert.ok(hit, codes(r.refusals).join(','));
+  assert.equal(hit.evidence.source, 'ingestion/src/blocks (Zod)');
   const problems = (hit.evidence.problems as string[]).join(' | ');
-  assert.match(problems, /missing required field 'caption'/);
-  assert.match(problems, /expected number/);
-  assert.match(problems, /maxItems/);
+  assert.match(problems, /context_line/);
+  assert.match(problems, /value/);
+});
+
+test('fit: Zod catches the three classes the old JSON-Schema walker was blind to', () => {
+  const bignum = (payload: Record<string, unknown>) => runFit(input({
+    blocks: [block({ seq: 1, code: 'BLK-BIGNUM', bound_object_id: OBJ, payload })],
+    citations: [cite()],
+  })).refusals.find((x) => x.code === 'FIT-PAYLOAD-SCHEMA');
+
+  const valid = {
+    caption: 'Net profit, Q2 FY26',
+    context_line: 'Up from the prior quarter.',
+    value: { object_id: OBJ, field: 'numeric_value' },
+  };
+  assert.equal(bignum(valid), undefined, 'a well-formed payload must pass');
+
+  // (a) D-8, as a `pattern` on object_id: a literal number where a binding belongs. This is the
+  //     fabrication guard, and the old walker enforced none of it.
+  assert.ok(bignum({ ...valid, value: 4.22e9 }), 'a literal in place of a binding must refuse');
+  assert.ok(bignum({ ...valid, value: { object_id: 'FILING.PROFIT.2026', field: 'numeric_value' } }),
+    'a non-uuid object_id must refuse');
+
+  // (b) additionalProperties:false — the agent inventing a field it was never given.
+  assert.ok(bignum({ ...valid, trend_arrow: 'up' }), 'an invented field must refuse');
 });
 
 // ---------------------------------------------------------------------------
