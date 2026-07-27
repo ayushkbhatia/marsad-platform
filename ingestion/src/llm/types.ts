@@ -8,12 +8,13 @@
  * Zero provider SDKs anywhere.
  */
 
-export type ProviderName = "anthropic" | "openrouter" | "ollama";
+export type ProviderName = "anthropic" | "openrouter" | "ollama" | "huggingface";
 
 export const PROVIDER_NAMES: readonly ProviderName[] = [
   "anthropic",
   "openrouter",
   "ollama",
+  "huggingface",
 ] as const;
 
 /** Agent roles per 03 §1.3. Pipeline code names a role, never a model/provider. */

@@ -26,7 +26,22 @@ import { spawn, spawnSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync, readdirSync, unlinkSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-const postgres = (await import('/opt/marsad/worker/node_modules/postgres/src/index.js').then(m => m.default ?? m));
+const WORKER_MODULES = process.env.WORKER_MODULES || '/opt/marsad/worker/node_modules';
+const ING = process.env.INGESTION_DIST || '/opt/marsad/ingestion/dist';
+const postgres = (await import(`${WORKER_MODULES}/postgres/src/index.js`).then(m => m.default ?? m));
+
+// PE.8 — the semantic pass moves off the metered `claude -p` seat onto the provider-agnostic
+// gateway, so it can run on cheap open-weight models via HuggingFace Inference Providers. Loaded
+// lazily and defensively: if the gateway is unavailable for ANY reason the run falls back to
+// `claude -p`, so deploying this with no HF token behaves exactly as it does today. That is the
+// same safe-rollout posture as the Tier-0/Tier-2 split — a new lane must degrade to the old one,
+// never to silence.
+let chatComplete = null;
+try {
+  ({ chatComplete } = await import(`${ING}/llm/index.js`));
+} catch (e) {
+  console.warn(`llm gateway unavailable (${String(e).split('\n')[0].slice(0, 80)}) — using claude -p`);
+}
 
 const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_DB_URL } = process.env;
 for (const [k, v] of Object.entries({ SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_DB_URL }))
@@ -102,6 +117,63 @@ function runProc(cmd, args, input, timeoutMs) {
   });
 }
 
+/**
+ * The same contract as FACTS_SYSTEM, expressed as a JSON Schema so the gateway can request
+ * `response_format: json_schema` with `strict: true` rather than relying on the model obeying a
+ * prose instruction. This is a real gain over the `claude -p` path, which had only the prompt.
+ * Nullable fields are unions — a fact that is not printed must be null, never invented.
+ */
+const NUM_OR_NULL = { type: ['number', 'null'] };
+const STR_OR_NULL = { type: ['string', 'null'] };
+const FACTS_SCHEMA = {
+  type: 'object', additionalProperties: false,
+  required: ['doc_type', 'ai_summary', 'is_market_moving', 'facts'],
+  properties: {
+    doc_type: { type: 'string', enum: ['results','dividend','agm','egm','ipo','contract','rating','governance','ops_update','board','capex','other'] },
+    ai_summary: { type: 'string' },
+    is_market_moving: { type: 'boolean' },
+    facts: {
+      type: 'object', additionalProperties: false,
+      required: ['dividend', 'earnings', 'event_date', 'key_points'],
+      properties: {
+        dividend: { type: ['object','null'], additionalProperties: false,
+          required: ['dps','currency','ex_date','record_date','pay_date'],
+          properties: { dps: NUM_OR_NULL, currency: STR_OR_NULL, ex_date: STR_OR_NULL, record_date: STR_OR_NULL, pay_date: STR_OR_NULL } },
+        earnings: { type: ['object','null'], additionalProperties: false,
+          required: ['fiscal_period','revenue','net_income','eps','currency','scale'],
+          properties: { fiscal_period: STR_OR_NULL, revenue: NUM_OR_NULL, net_income: NUM_OR_NULL, eps: NUM_OR_NULL, currency: STR_OR_NULL, scale: STR_OR_NULL } },
+        event_date: STR_OR_NULL,
+        key_points: { type: 'array', items: { type: 'string' } },
+      },
+    },
+  },
+};
+
+/**
+ * Semantic pass via the gateway (role `summarizer`). Returns the same {parsed}|{error,transient}
+ * shape as factsViaClaude so the caller's retry/3-strike logic is untouched.
+ *
+ * A provider outage or an exhausted fallback chain is TRANSIENT — the queue row stays pending and
+ * its attempts counter is rolled back, exactly as for a `claude` exit-1. Only a content failure
+ * (unparseable or summary-less reply) counts against the 3 strikes.
+ */
+async function factsViaGateway(text, agentId, filingId) {
+  try {
+    const res = await chatComplete('summarizer', [{ role: 'user', content: `Filing text:\n\n${text.slice(0, 100000)}` }], {
+      system: FACTS_SYSTEM, json: FACTS_SCHEMA, maxTokens: 1200, temperature: 0,
+      runContext: { agentId, purpose: `filing_facts:${filingId}` },
+    });
+    const parsed = res.parsed ?? JSON.parse((res.text.match(/\{[\s\S]*\}/) ?? ['{}'])[0]);
+    if (typeof parsed?.ai_summary !== 'string' || !parsed.ai_summary.trim()) return { error: 'no summary' };
+    return { parsed, via: `${res.provider}:${res.model}`, costUsd: res.costUsd };
+  } catch (e) {
+    const name = e?.name ?? '';
+    // LlmJsonError is a CONTENT failure (the model could not honour the schema twice) and counts.
+    if (name === 'LlmJsonError') return { error: 'gateway json contract' };
+    return { error: `gateway: ${String(e.message ?? e).slice(0, 120)}`, transient: true, unavailable: true };
+  }
+}
+
 async function factsViaClaude(text) {
   const userMsg = `Filing text:\n\n${text.slice(0, 100000)}`;
   const args = ['-p', FACTS_SYSTEM, '--output-format', 'json', '--model', CLAUDE_MODEL];
@@ -141,6 +213,18 @@ const t0 = Date.now();
 const deadline = t0 + RUN_BUDGET_MS;
 const sql = postgres(SUPABASE_DB_URL, { max: CONCURRENCY + 1, prepare: false });
 
+// The gateway refuses anonymous spend (runContext.agentId is mandatory), and this lane's work IS
+// filings triage — so it bills to DATA-FILINGS, the principal whose scope already covers it.
+// Resolved by handle, never hardcoded: principal ids differ per environment.
+const agentRow = chatComplete
+  ? await sql`select id::text as id from iam.principals where handle = 'DATA-FILINGS' limit 1`
+  : [];
+const AGENT_ID = agentRow[0]?.id ?? null;
+if (chatComplete && !AGENT_ID) {
+  console.warn('DATA-FILINGS principal not found — gateway disabled, using claude -p');
+  chatComplete = null;
+}
+
 // Claim a batch: TIER-2 work only — rows whose text `tier0-triage.mjs` already recovered
 // (state='text_ready'), not raw 'pending' rows (PE.1, 20260727134500). Tier 0 is deterministic and
 // free; this lane is the paid `claude -p` seat, so it must never re-do work Tier 0 does better.
@@ -159,7 +243,8 @@ const claimed = await sql`
             (select f.full_text from public.filings f where f.id = q.filing_id) as full_text`;
 log(`filing-extractor — claimed ${claimed.length} of queue (max ${EXTRACT_MAX}, conc ${CONCURRENCY})`);
 
-let done = 0, failed = 0, retried = 0, ocrUsed = 0;
+let done = 0, failed = 0, retried = 0, ocrUsed = 0, viaGateway = 0, viaClaude = 0, costUsd = 0;
+let gatewayDown = false; // one unavailable reply parks the gateway for the rest of the run
 let cursor = 0;
 
 async function worker(wid) {
@@ -200,7 +285,20 @@ async function worker(wid) {
       }
       text = text.slice(0, FULLTEXT_CAP);
 
-      const fx = await factsViaClaude(text);
+      // Gateway first (cheap, accounted in ops.llm_runs); `claude -p` only if it is unavailable.
+      // `gatewayDown` latches so a provider outage costs ONE probe per run, not one per document.
+      let fx = null;
+      if (chatComplete && !gatewayDown) {
+        fx = await factsViaGateway(text, AGENT_ID, q.filing_id);
+        if (fx.unavailable) {
+          gatewayDown = true;
+          log(`  gateway unavailable (${fx.error}) — falling back to claude -p for this run`);
+          fx = null;
+        } else if (!fx.error) {
+          viaGateway++; costUsd += fx.costUsd ?? 0;
+        }
+      }
+      if (!fx) { fx = await factsViaClaude(text); if (!fx.error) viaClaude++; }
       if (fx.error) { await fail(`extract: ${fx.error}`, false, fx.transient === true); continue; }
       const p = fx.parsed;
       const docType = String(p.doc_type || 'other').toLowerCase();
@@ -227,4 +325,4 @@ async function worker(wid) {
 
 await Promise.all(Array.from({ length: Math.min(CONCURRENCY, claimed.length) }, (_, i) => worker(i)));
 await sql.end();
-log(`DONE ${(Date.now() - t0) / 1000 | 0}s | extracted ${done} | failed-permanent ${failed} | left-for-retry ${retried} | ocr ${ocrUsed} | claimed ${claimed.length}`);
+log(`DONE ${(Date.now() - t0) / 1000 | 0}s | extracted ${done} | failed-permanent ${failed} | left-for-retry ${retried} | ocr ${ocrUsed} | claimed ${claimed.length} | via gateway ${viaGateway} ($${costUsd.toFixed(4)}) | via claude ${viaClaude}`);

@@ -785,7 +785,43 @@ dividend wire class can never publish, regardless of P7.1.
 _Accept:_ an owner confirms a `DIVIDEND.EXDATE` object; it reaches VERIFIED with a human
 `verified_by` and enqueues; a non-human actor attempting the same raises.
 
-**PE.8 — Register the HuggingFace provider.** Add `huggingface` to `PROVIDER_NAMES` (base
+**PE.8 — Register the HuggingFace provider. ✅ CODE COMPLETE 2026-07-27 — needs a token to switch on.**
+
+Driven by a bottleneck that moved during PE.1: Tier 0 reads ~1,200 docs/hour, Tier 2 (the semantic
+pass) does **12 per 45 min = 384/day**, and every one is a `claude -p` call on the metered seat.
+The `text_ready` queue was 1,272 and climbing. Raising `EXTRACT_MAX` alone just buys the same
+problem in seat spend, so the fix is to move the pass onto cheap open-weight inference first.
+
+- `huggingface` is a fourth provider: base `https://router.huggingface.co/v1`, `Bearer` auth,
+  keys `LLM_HUGGINGFACE_API_KEY` / `HUGGINGFACE_API_KEY` / `HF_TOKEN`, optional
+  `LLM_HUGGINGFACE_BILL_TO` → `X-HF-Bill-To` (sent only when set — an empty value is rejected).
+- **Every default model is provider-pinned** (`openai/gpt-oss-20b:novita`). Not stylistic:
+  `supports_structured_output` varies by *(model, provider)* for the same model, and the router
+  defaults to `:fastest`. An unpinned id works until the router reroutes to an upstream that cannot
+  honour `response_format` — which reads as a model regression, not a routing change. The pin
+  survives because `parseModelSpec` splits on the **first** colon only.
+- `filing-extractor.mjs` now calls `chatComplete('summarizer', …)` with a real **JSON Schema**
+  (`strict: true`) instead of a prose contract — a quality gain the `claude -p` path could not
+  have. Spend lands in `ops.llm_runs`, which `claude -p` bypassed entirely, so the budget ladder
+  can finally see this lane.
+- **Safe rollout, same posture as Tier 0/2:** gateway first, `claude -p` on any unavailability, and
+  `gatewayDown` latches so an outage costs one probe per run rather than one per document. With no
+  token configured it behaves exactly as it does today.
+
+⚠️ **Fixed en route — the budget ladder was blind.** `pricing.ts` returned `cost_usd = 0` for any
+model absent from `PRICE_TABLE`, so `ops.newsroom_budget_state` read a newly-configured model as
+free spend: the ladder stopped working precisely when it was needed, with only a console warning.
+Unpriced models now charge a **pessimistic** Sonnet-tier fallback — over-counting is recoverable,
+under-counting is not — and lookup strips the `:provider` pin (scoped to huggingface, because
+Ollama tags legitimately contain colons).
+
+_Accept:_ ✅ 10 gateway tests, ingestion 577/577, worker 89/89, tsc + eslint clean.
+⏳ **Owner step — the only thing outstanding:** add a fine-grained HF token with *"Make calls to
+Inference Providers"* to `/etc/marsad/worker.env` (`HF_TOKEN=…`) and set
+`LLM_ROLE_SUMMARIZER=huggingface:openai/gpt-oss-20b:novita`. Then a run's DONE line reports
+`via gateway N ($cost)` and `ops.llm_runs` carries **non-zero** `cost_usd` rows.
+
+**PE.8 (original scope) — Register the HuggingFace provider.** Add `huggingface` to `PROVIDER_NAMES` (base
 `https://router.huggingface.co/v1`, `Authorization: Bearer`, optional `X-HF-Bill-To`). Four traps,
 all load-bearing: **(a)** the gateway appends `/chat/completions` to the base — correct for the
 auto-router, **wrong for pinned-provider routes** (Novita's is `/v3/openai/chat/completions`), so

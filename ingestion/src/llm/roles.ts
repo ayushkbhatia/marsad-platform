@@ -38,6 +38,31 @@ export const DEFAULT_MODELS: Record<ProviderName, Record<AgentRole, string>> = {
     analyst_take: "llama3.3:70b",
     embedder: "",
   },
+  /**
+   * HuggingFace Inference Providers (PE.8). Every id here is PROVIDER-PINNED (`model:provider`)
+   * and that is not stylistic — it is required.
+   *
+   * The router's default routing policy is `:fastest`, and `supports_structured_output` varies by
+   * (model, provider) for the SAME model: MiniMax-M3 and Kimi-K2.6 are `true` on Together and
+   * `false` on Novita / Fireworks / DeepInfra. Our pipeline depends on strict JSON, so an
+   * unpinned id would work until the router silently rerouted us to an upstream that cannot honour
+   * `response_format` — a failure that looks like a model regression, not a routing change.
+   *
+   * Prices below are the router's published per-Mtok rates (HF bills at provider rates, no
+   * markup) and are mirrored in pricing.ts — update both together or the budget ladder lies.
+   */
+  huggingface: {
+    // gpt-oss-20b on Novita: $0.04/$0.15, structured output, ~271ms TTFT. The cheap workhorse.
+    classifier: "openai/gpt-oss-20b:novita",
+    // Reader-facing prose needs the bigger model; DeepInfra serves it with structured output.
+    writer: "Qwen/Qwen3-235B-A22B-Instruct-2507:deepinfra",
+    editor: "openai/gpt-oss-20b:novita",
+    summarizer: "openai/gpt-oss-20b:novita",
+    analyst_take: "zai-org/GLM-4.6:deepinfra",
+    // No /v1/embeddings on the auto-router — it is chat-completions only. Embeddings need a
+    // provider-specific route or local ONNX; the gateway throws for this role regardless.
+    embedder: "",
+  },
 };
 
 /**

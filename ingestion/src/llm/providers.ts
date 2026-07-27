@@ -22,6 +22,16 @@ const DEFAULT_BASE_URLS: Record<ProviderName, string> = {
   anthropic: "https://api.anthropic.com/v1",
   openrouter: "https://openrouter.ai/api/v1",
   ollama: "http://127.0.0.1:11434/v1",
+  // HuggingFace Inference Providers — the OpenAI-compatible AUTO-ROUTER. The gateway appends
+  // `/chat/completions`, giving `.../v1/chat/completions`, which is correct for this endpoint.
+  //
+  // ⚠️ NEVER point this at a provider-specific route. Each upstream has its own path (Novita's is
+  // `/v3/openai/chat/completions`), so rewriting the base URL to pin a provider silently 404s.
+  // Pin with the MODEL string instead — "model:provider", e.g.
+  //   LLM_ROLE_SUMMARIZER=huggingface:openai/gpt-oss-20b:novita
+  // which works because parseModelSpec splits on the FIRST colon only, so the ":novita" suffix
+  // survives into the model id and is passed to the router verbatim.
+  huggingface: "https://router.huggingface.co/v1",
 };
 
 // Key aliases: 03 §1.4 uses the LLM_-prefixed names; the plain names are the
@@ -30,12 +40,14 @@ const API_KEY_ENV: Record<ProviderName, string[]> = {
   anthropic: ["LLM_ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY"],
   openrouter: ["LLM_OPENROUTER_API_KEY", "OPENROUTER_API_KEY"],
   ollama: ["LLM_OLLAMA_API_KEY", "OLLAMA_API_KEY"],
+  huggingface: ["LLM_HUGGINGFACE_API_KEY", "HUGGINGFACE_API_KEY", "HF_TOKEN"],
 };
 
 const BASE_URL_ENV: Record<ProviderName, string[]> = {
   anthropic: ["LLM_ANTHROPIC_BASE_URL", "ANTHROPIC_BASE_URL"],
   openrouter: ["LLM_OPENROUTER_BASE_URL", "OPENROUTER_BASE_URL"],
   ollama: ["LLM_OLLAMA_BASE_URL", "OLLAMA_BASE_URL"],
+  huggingface: ["LLM_HUGGINGFACE_BASE_URL", "HUGGINGFACE_BASE_URL"],
 };
 
 function firstEnv(env: EnvBag, keys: string[]): string | undefined {
@@ -88,6 +100,11 @@ export function getProviderConfig(name: ProviderName, env: EnvBag): ProviderConf
       "HTTP-Referer": env.LLM_OPENROUTER_REFERER ?? "https://marsad.com",
       "X-Title": env.LLM_OPENROUTER_TITLE ?? "Marsad",
     };
+  }
+  if (name === "huggingface" && env.LLM_HUGGINGFACE_BILL_TO) {
+    // Bill this call to an org / resource group rather than the token owner. Only sent when
+    // configured — an empty X-HF-Bill-To is rejected, so it must not be a "harmless default".
+    config.extraHeaders = { "X-HF-Bill-To": env.LLM_HUGGINGFACE_BILL_TO };
   }
   return config;
 }
