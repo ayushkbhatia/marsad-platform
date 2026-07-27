@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { listSecurityParams } from "@/lib/securities/resolve";
-import { listRecentFilingRefs } from "@/lib/data/filings";
+import { listRecentFilingRefs, listFilingRefsByPk } from "@/lib/data/filings";
+import { optionalList, prerenderHead } from "@/lib/data/prerender";
 import { listPublishedArticleSlugs } from "@/lib/data/editorial";
 import { listPublishedWireSlugs } from "@/lib/data/newsroom";
 import { siteUrl } from "@/lib/reader/format";
@@ -32,11 +33,24 @@ const STOCK_SUBPAGES = ["chart", "filings", "financials", "dividends", "earnings
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
 
+  // Every section is independent and every section is optional: losing filing
+  // URLs must not cost the article URLs, and none of them may cost a deploy.
+  // A missing section is now LOGGED — omitted and empty look identical here.
   const [secs, filings, articles, wires] = await Promise.all([
-    listSecurityParams(),
-    listRecentFilingRefs(10000), // ~13.5k total; cap to the most recent, well under the 50k limit
-    listPublishedArticleSlugs(),
-    listPublishedWireSlugs(),
+    optionalList("securities", () => listSecurityParams()),
+    // Asks for 10,000 but PostgREST returns at most `db-max-rows` (1,000
+    // measured), so this is the most recent 1,000 — see
+    // DEF-SITEMAP-POSTGREST-ROW-CAP. The filed_at sort has no index to stand
+    // on and burns ~1.7s of the 3s anon budget, hence the primary-key fallback.
+    optionalList("filings", () =>
+      prerenderHead(
+        "sitemap:filings",
+        () => listRecentFilingRefs(10000),
+        () => listFilingRefsByPk(10000),
+      ),
+    ),
+    optionalList("articles", () => listPublishedArticleSlugs()),
+    optionalList("wire", () => listPublishedWireSlugs()),
   ]);
 
   const staticRoutes: MetadataRoute.Sitemap = [

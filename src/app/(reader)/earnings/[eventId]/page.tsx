@@ -2,7 +2,12 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getEarningsEvent, getEarningsCalendar } from "@/lib/data/calendars";
+import {
+  getEarningsEvent,
+  listRecentEarningsEventIds,
+  listEarningsEventIdsByPk,
+} from "@/lib/data/calendars";
+import { prerenderHead } from "@/lib/data/prerender";
 import { RatingBadge } from "@/components/ui";
 import { fmtDate, fmtSignedPct, venueName, toRating, siteUrl } from "@/lib/reader/format";
 import { JsonLd } from "@/components/reader/JsonLd";
@@ -33,8 +38,12 @@ type Params = { eventId: string };
  * assume this pattern fixes a soft-404 without re-measuring against `next start`.
  */
 export async function generateStaticParams(): Promise<Array<{ eventId: string }>> {
-  const page = await getEarningsCalendar({ limit: 60 });
-  return page.days.flatMap((d) => d.rows.map((r) => ({ eventId: String(r.id) })));
+  const ids = await prerenderHead(
+    "earnings",
+    () => listRecentEarningsEventIds(60),
+    () => listEarningsEventIdsByPk(60),
+  );
+  return ids.map((id) => ({ eventId: String(id) }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
@@ -133,7 +142,11 @@ async function EarningsEventBody({ params }: { params: Promise<Params> }) {
   if (!ev) notFound();
 
   const pageUrl = `${siteUrl()}/earnings/${ev.id}`;
-  const yoyColor = ev.epsYoyPct == null ? "text-ink-faint" : ev.epsYoyPct >= 0 ? "text-positive" : "text-negative";
+  // NOTE: a `yoyColor` was computed here and never used — the y/y figure renders
+  // through `<Fact sub>`, whose `sub` is a plain string hard-styled `text-ink-muted`,
+  // so there is nowhere to put it. Colouring it means changing that component's
+  // API and its look, which is a design-system call, not a lint fix. Removed as
+  // dead code; the y/y value itself still renders (see the EPS · actual Fact).
   const reactionColor =
     ev.nextSessionReactionPct == null ? "text-ink-faint" : ev.nextSessionReactionPct >= 0 ? "text-positive" : "text-negative";
   const verdictColor = ev.verdict === "BEAT" ? "bg-positive-fill" : ev.verdict === "MISS" ? "bg-negative" : "bg-ink";

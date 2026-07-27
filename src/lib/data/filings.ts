@@ -304,11 +304,44 @@ export async function listRecentFilingRefs(
   cacheTag("filings");
 
   const sb = createAnonClient();
-  const { data } = await sb
+  const { data, error } = await sb
     .from("filings")
     .select("id,filed_at")
     .order("filed_at", { ascending: false })
     .limit(Math.min(Math.max(limit, 1), 45000));
+  // `filings` is indexed on (venue_code, filed_at) and (security_id, filed_at),
+  // never on `filed_at` alone, so this sorts the whole 14,710-row table and blows
+  // the anon role's 3s statement_timeout. Surfacing the error rather than
+  // returning [] is the difference between a visible fault and a silently
+  // truncated sitemap — see `listFilingRefsByPk` for the cheap alternative.
+  if (error) throw new Error(`filings recent refs: ${error.message}`);
+
+  return ((data as Array<{ id: number; filed_at: string | null }> | null) ?? []).map((r) => ({
+    id: r.id,
+    filedAt: r.filed_at,
+  }));
+}
+
+/**
+ * The same refs ordered by primary key — newest inserted rather than newest
+ * filed. Walks `filings_pkey` backwards and stops at `limit`, so there is no
+ * sort and no timeout risk. `id` and `filed_at` are strongly correlated (rows
+ * are inserted as they are discovered), so the set is nearly the same one.
+ */
+export async function listFilingRefsByPk(
+  limit = 10000,
+): Promise<Array<{ id: number; filedAt: string | null }>> {
+  "use cache";
+  cacheLife({ stale: 3600, revalidate: 3600, expire: 86400 });
+  cacheTag("filings");
+
+  const sb = createAnonClient();
+  const { data, error } = await sb
+    .from("filings")
+    .select("id,filed_at")
+    .order("id", { ascending: false })
+    .limit(Math.min(Math.max(limit, 1), 45000));
+  if (error) throw new Error(`filings refs by pk: ${error.message}`);
 
   return ((data as Array<{ id: number; filed_at: string | null }> | null) ?? []).map((r) => ({
     id: r.id,

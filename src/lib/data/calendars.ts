@@ -209,6 +209,59 @@ export interface EarningsCalendarPage {
 }
 
 /**
+ * Event ids for the earnings prerender head — nothing else.
+ *
+ * `/earnings/[eventId]`'s `generateStaticParams` used to call
+ * `getEarningsCalendar({ limit: 60 })` and keep only `r.id` from it: 16 columns,
+ * a second `securityMap` round-trip and a group-by-day pass, all discarded. That
+ * cost ~2.5s against the `anon` role's **3s** `statement_timeout`, so under a
+ * 9-worker build it intermittently timed out — and the error was swallowed into
+ * an empty list, which Cache Components reports as `EmptyGenerateStaticParams`.
+ *
+ * Selecting one indexed column is comfortably inside the budget.
+ */
+export async function listRecentEarningsEventIds(limit = 60): Promise<number[]> {
+  "use cache";
+  cacheLife({ stale: 120, revalidate: 300, expire: 86400 });
+  cacheTag("earnings");
+
+  const sb = createAnonClient();
+  const take = Math.min(Math.max(limit, 1), 200);
+  const { data, error } = await sb
+    .from("earnings_events")
+    .select("id")
+    .order("report_date", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(take);
+  if (error) throw new Error(`earnings_events prerender ids: ${error.message}`);
+  return ((data as Array<{ id: number }> | null) ?? []).map((r) => r.id);
+}
+
+/**
+ * The floor for the same head: newest ids by primary key.
+ *
+ * Ordering by `id` alone walks `earnings_events_pkey` backwards and stops after
+ * `take` rows — no sort, no heap scan for ordering — so it cannot be the slow
+ * query. It is a worse head (insert order, not report order) and that is fine:
+ * which pages are warm is an optimization, never correctness.
+ */
+export async function listEarningsEventIdsByPk(limit = 60): Promise<number[]> {
+  "use cache";
+  cacheLife({ stale: 120, revalidate: 300, expire: 86400 });
+  cacheTag("earnings");
+
+  const sb = createAnonClient();
+  const take = Math.min(Math.max(limit, 1), 200);
+  const { data, error } = await sb
+    .from("earnings_events")
+    .select("id")
+    .order("id", { ascending: false })
+    .limit(take);
+  if (error) throw new Error(`earnings_events prerender ids by pk: ${error.message}`);
+  return ((data as Array<{ id: number }> | null) ?? []).map((r) => r.id);
+}
+
+/**
  * Day-ledger of reported earnings, most-recent `report_date` first. Bounded by
  * a deterministic row LIMIT + composite keyset cursor — no wall-clock read.
  * ~5 min cache.

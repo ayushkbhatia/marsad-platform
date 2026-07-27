@@ -462,12 +462,13 @@ export async function listPublishedArticleSlugs(
   cacheTag("articles");
 
   const sb = createAnonClient();
-  const { data } = await sb
+  const { data, error } = await sb
     .from("content_items")
     .select("slug,updated_at")
     .eq("content_type", "ARTICLE")
     .not("slug", "is", null)
     .limit(Math.min(Math.max(limit, 1), 45000));
+  if (error) throw new Error(`content_items article slugs: ${error.message}`);
 
   return ((data as Array<{ slug: string | null; updated_at: string | null }> | null) ?? [])
     .filter((r): r is { slug: string; updated_at: string | null } => r.slug != null)
