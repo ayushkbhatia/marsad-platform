@@ -23,7 +23,7 @@ import {
   houseLabel,
   prose,
   wordCapped,
-} from "./binding";
+} from "./binding.js";
 
 /**
  * BLK-TAPEROW · Tape entry.

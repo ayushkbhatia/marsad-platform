@@ -28,7 +28,7 @@ import { BLOCK_CODES, type BlockCode } from "./codes.js";
 
 export { BLOCK_CODES, isBlockCode, familyOf } from "./codes.js";
 export type { BlockCode, BlockFamily } from "./codes.js";
-export { ObjectBinding, ObjectRef, ChartSeries, ChartEmphasis, Polarity, VenueCode, RuleId } from "./binding";
+export { ObjectBinding, ObjectRef, ChartSeries, ChartEmphasis, Polarity, VenueCode, RuleId } from "./binding.js";
 export { CHART_SHAPES, ChartShape, SHAPE_BY_BLOCK, CHART_QUESTION_BY_SHAPE } from "./d-charts.js";
 
 /**

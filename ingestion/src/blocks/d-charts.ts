@@ -33,7 +33,7 @@ import {
   ObjectBinding,
   blockSchema,
   prose,
-} from "./binding";
+} from "./binding.js";
 import type { BlockCode } from "./codes.js";
 
 /**

@@ -23,7 +23,7 @@ import {
   Polarity,
   blockSchema,
   prose,
-} from "./binding";
+} from "./binding.js";
 
 /**
  * BLK-TICKER · Inline instrument chip — `requires_binding`, binds `market.quote (live)`.
