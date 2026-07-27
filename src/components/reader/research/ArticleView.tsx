@@ -43,6 +43,9 @@ function Block({ b }: { b: ArticleBlock }) {
       );
     case "p":
       return <p className="mt-[18px] font-display text-[17px] leading-[1.72] text-ink-soft">{b.text}</p>;
+    // 1a `measure > section_subhead` — Newsreader 25px 700 (docs/design/article-templates.json).
+    case "heading":
+      return <h2 className="mt-[30px] font-display text-[25px] leading-[1.25] font-bold text-ink">{b.text}</h2>;
     case "pullquote":
       return (
         <div className="my-[24px] border-l-[3px] border-ink py-1 pl-[22px]">

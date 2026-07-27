@@ -520,11 +520,21 @@ projection. (Not `zod-to-json-schema` — unmaintained since Nov 2025.)
 _Accept:_ every block with `requires_binding` has a schema whose binding field is required;
 a CI check asserts DB `payload_schema` matches the emitted schema.
 
-**PD.4 — Fix the live renderer bugs first (2 lines, large blast radius).**
-`src/lib/data/adapters/research.ts:63` matches `"pullquote"` but the DB holds `"pull_quote"`, and
-does not match `"heading"` at all — so **every heading and every pull quote in every seeded
-article currently renders as a plain paragraph**. Normalise kinds in the adapter.
-_Accept:_ a seeded article shows real `<h2>`s and a styled `<blockquote>`; screenshot at 1440px.
+**PD.4 — Fix the live renderer bugs first. ✅ DONE 2026-07-27.**
+`adapters/research.ts` matched `"pullquote"` while the DB holds `"pull_quote"`, and did not match
+`"heading"` at all — so every heading and pull quote in every seeded article rendered as a plain
+paragraph. Fixed by **normalising** the kind (`toLowerCase()` + strip non-alphanumerics) rather
+than matching more literals, since `block_kind` is unconstrained `text` written by three producers
+that disagree on spelling — a new spelling now degrades to prose instead of re-opening the bug.
+Added `heading` to the `ArticleBlock` contract (a contract **extension**, legal under Law #1) and
+rendered it at the design's `measure > section_subhead` spec — Newsreader 25px/700. Also moved the
+drop cap from "index 0" to "the first **prose** block", so a piece opening with a heading still
+gets one.
+_Accept:_ ✅ `/articles/alba-quadrupled-its-first-quarter-profit-the-stock-is-down` renders
+`p, p, div[pullquote: border-left 3px, italic], p, h2[25px/700], p, p` — matching its stored block
+sequence exactly; `tsc --noEmit` and `eslint` clean; console clean.
+⚠️ Found while verifying: the seeded `EXPLAINER` 404s at every route — `DEF-EXPLAINER-UNROUTED`,
+picked up at PD.5.
 
 **PD.5 — Block renderers, family order G → A + C → D → B, E, F, H.** Create
 `src/components/blocks/` (does not exist today; `ops.story_blocks.renderer_component` names 14

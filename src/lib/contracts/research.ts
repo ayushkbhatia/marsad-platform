@@ -67,6 +67,7 @@ export interface RatingAttached {
 export type ArticleBlock =
   | { kind: "dropcap"; text: string }
   | { kind: "p"; text: string }
+  | { kind: "heading"; text: string }
   | { kind: "pullquote"; text: string }
   | { kind: "exhibit"; label: string; title: string; placeholder: string }
   | { kind: "masked"; text: string };

@@ -59,21 +59,43 @@ function initialsOf(name: string): string {
     .join("");
 }
 
-/** `content_blocks.block_kind` → the design's block union. */
+/**
+ * `content_blocks.block_kind` → the design's block union.
+ *
+ * `block_kind` is unconstrained `text` in the DB (no CHECK, no FK) and is written
+ * by three different producers that do not agree on spelling: the seed writes
+ * `pull_quote`, the design vocabulary says `pullquote`, and `draft.ts` writes
+ * whatever the writer LLM returned. Matching literals here is what silently
+ * flattened every heading and pull quote into a paragraph (DEF-ARTICLE-BLOCK-KIND-
+ * MISMATCH). Normalise instead, so a new spelling degrades to prose rather than
+ * re-opening the same bug.
+ */
+function normalizeKind(kind: string): string {
+  return kind.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
 function toBlocks(blocks: ArticleDetail["blocks"]): ArticleBlock[] {
+  // The design opens the body with a drop cap and the writer does not mark it, so
+  // the first PROSE block earns it — not index 0, which may be a heading.
+  let dropcapUsed = false;
+
   return blocks
     .filter((b) => (b.text ?? "").trim().length > 0)
-    .map((b, i): ArticleBlock => {
+    .map((b): ArticleBlock => {
       const text = (b.text ?? "").trim();
-      switch (b.kind) {
+      switch (normalizeKind(b.kind)) {
         case "pullquote":
           return { kind: "pullquote", text };
+        case "heading":
+        case "subhead":
+          return { kind: "heading", text };
         case "dropcap":
+          dropcapUsed = true;
           return { kind: "dropcap", text };
         default:
-          // The design opens the body with a drop cap; the writer does not mark
-          // it, so the first prose block earns it.
-          return i === 0 ? { kind: "dropcap", text } : { kind: "p", text };
+          if (dropcapUsed) return { kind: "p", text };
+          dropcapUsed = true;
+          return { kind: "dropcap", text };
       }
     });
 }
