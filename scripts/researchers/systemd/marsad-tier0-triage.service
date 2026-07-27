@@ -1,0 +1,9 @@
+[Unit]
+Description=Marsad Tier-0 filing triage (deterministic parse: full_text + page count + sha; NO LLM, NO OCR, storage-only)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /opt/marsad/scripts/researchers/tier0-triage-cron.sh
+TimeoutStartSec=1200
+MemoryHigh=2200M

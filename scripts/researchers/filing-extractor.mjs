@@ -141,17 +141,22 @@ const t0 = Date.now();
 const deadline = t0 + RUN_BUDGET_MS;
 const sql = postgres(SUPABASE_DB_URL, { max: CONCURRENCY + 1, prepare: false });
 
-// Claim a batch: pending + not recently picked (a crashed run's claims expire after 30 min).
+// Claim a batch: TIER-2 work only — rows whose text `tier0-triage.mjs` already recovered
+// (state='text_ready'), not raw 'pending' rows (PE.1, 20260727134500). Tier 0 is deterministic and
+// free; this lane is the paid `claude -p` seat, so it must never re-do work Tier 0 does better.
+// A row still at 'pending' has not been triaged; a row at 'needs_ocr' has no text layer and belongs
+// to Tier 1. Claims expire after 30 min so a crashed run's rows return to the pool.
 const claimed = await sql`
   update ops.filing_extract_queue q
      set picked_at = now(), attempts = attempts + 1
    where q.id in (
      select id from ops.filing_extract_queue
-      where state = 'pending' and (picked_at is null or picked_at < now() - interval '30 minutes')
+      where state = 'text_ready' and (picked_at is null or picked_at < now() - interval '30 minutes')
       order by enqueued_at
       limit ${EXTRACT_MAX}
       for update skip locked)
-  returning q.id, q.filing_id, q.venue_code, q.pdf_storage_key, q.attempts`;
+  returning q.id, q.filing_id, q.venue_code, q.pdf_storage_key, q.attempts,
+            (select f.full_text from public.filings f where f.id = q.filing_id) as full_text`;
 log(`filing-extractor — claimed ${claimed.length} of queue (max ${EXTRACT_MAX}, conc ${CONCURRENCY})`);
 
 let done = 0, failed = 0, retried = 0, ocrUsed = 0;
@@ -180,11 +185,19 @@ async function worker(wid) {
       }
     };
     try {
-      const buf = await fetchStoredPdf(q.pdf_storage_key);
-      if (!buf) { await fail('storage fetch failed / not a pdf', q.attempts >= MAX_ATTEMPTS); continue; }
-      let text = pdfToText(buf);
-      if (text.replace(/\s+/g, '').length < 200) { const o = ocrToText(buf); if (o.replace(/\s+/g, '').length >= 200) { text = o; ocrUsed++; } }
-      if (text.replace(/\s+/g, '').length < 200) { await fail('no text layer and OCR empty', true); continue; }
+      // TIER-2 FAST PATH (PE.1): Tier 0 already parsed this document deterministically and wrote
+      // public.filings.full_text. Re-downloading ~1.5MB and re-running pdftotext to recover text we
+      // already hold would be pure waste — across the corpus that is ~16GB of needless egress. The
+      // download/OCR path below survives only as the fallback for rows Tier 0 never reached (e.g. a
+      // row hand-inserted, or an older deploy that predates the split).
+      let text = (q.full_text ?? '').trim();
+      if (text.replace(/\s+/g, '').length < 200) {
+        const buf = await fetchStoredPdf(q.pdf_storage_key);
+        if (!buf) { await fail('storage fetch failed / not a pdf', q.attempts >= MAX_ATTEMPTS); continue; }
+        text = pdfToText(buf);
+        if (text.replace(/\s+/g, '').length < 200) { const o = ocrToText(buf); if (o.replace(/\s+/g, '').length >= 200) { text = o; ocrUsed++; } }
+        if (text.replace(/\s+/g, '').length < 200) { await fail('no text layer and OCR empty', true); continue; }
+      }
       text = text.slice(0, FULLTEXT_CAP);
 
       const fx = await factsViaClaude(text);

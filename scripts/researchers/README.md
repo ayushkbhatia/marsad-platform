@@ -47,6 +47,53 @@ by whether the venue is WAF-walled (only Tadawul still needs the heavy browser+p
 `PDF_ARCHIVE_MAX` (researcher) / `FSPDF_MAX` (gapfill), `MAX_RUN_BYTES`, `ACQUIRE_SYMBOLS` (explicit list),
 `CLAUDE_MODEL` (gapfill). Proxy + Supabase creds from `/etc/marsad/worker.env`.
 
+## Tier-0 triage (PE.1) — `tier0-triage.mjs`, the free lane
+
+**No LLM. No OCR. No scraping. No proxy.** The deterministic half of filing comprehension, and the
+first thing that should touch any stored PDF.
+
+Drains `ops.filing_extract_queue` where `state='pending' and content_kind='pdf' and tier0_at is null`:
+storage GET → sha256 → **LiteParse** (`@llamaindex/liteparse`, Apache-2.0, OCR off) →
+`public.filings.full_text` + `pdf_pages` + `pdf_sha256`, then routes the row:
+
+| outcome | state | next lane |
+|---|---|---|
+| text layer recovered | `text_ready` | Tier 2 — `filing-extractor.mjs` (the `claude -p` seat) |
+| no text layer | `needs_ocr` | Tier 1 — the model tier (PE.3, not built) |
+| not a PDF / dead | `failed` | none (3-strike, same as C1) |
+
+**Why it exists.** 14,409 filings carried a `pdf_storage_key` and 374 (2.6%) had any text — not
+because the documents were unreadable but because nothing had ever been pointed at them. The PE.1
+probe (26 docs, 1,120 pages, all six venues) measured **86% of pages already carrying a native text
+layer**, TDWL highest at 97%. This pass alone should take coverage from 2.6% to ~86% at zero cost.
+
+**Two properties worth knowing before you touch it:**
+
+1. **It does not persist markdown or bboxes.** LiteParse is deterministic and fast (536 pages/s
+   measured), so structure is regenerable from the same bytes on demand. Persisting it for ~454,000
+   pages would balloon the DB for no information gain. Store the irreplaceable, recompute the
+   derivable.
+2. **Rolling it out safely idles the paid lane.** The deployed `filing-extractor.mjs` claims
+   `state='pending'`; once Tier 0 runs, those rows are at `text_ready`, which the *old* extractor
+   does not match — so it finds nothing and idles rather than racing or double-charging. Deploy the
+   updated `filing-extractor.mjs` (claims `text_ready`, and now **reuses** `full_text` instead of
+   re-downloading ~1.5 MB per document) to resume the semantic pass.
+
+It also backfills `public.filings.pdf_sha256` (`DEF-FILINGS-NO-CONTENT-HASH`): 9,251 TDWL/QE rows
+have no content hash anywhere, and the bytes are already in hand here, so hashing is free.
+
+Budget is **bandwidth**, not tokens: `TIER0_MAX` × ~1.5 MB of Supabase Storage egress per fire.
+Corpus-wide that is ~16 GB one-off. Progress is visible in `ops.v_tier0_coverage`.
+
+```bash
+TIER0_MAX=400 CONCURRENCY=3 node tier0-triage.mjs
+VENUE=TDWL TIER0_MAX=50 node tier0-triage.mjs     # single-venue run
+```
+
+⚠️ **Needs `npm ci` in `worker/` on the VPS** — `@llamaindex/liteparse` is a new worker dependency
+and the researchers import from `/opt/marsad/worker/node_modules`. The lockfile carries the
+`linux-x64-gnu` and `linux-x64-musl` prebuilds, so there is no node-gyp step and no system deps.
+
 ## Deploy note (repo ↔ VPS)
 
 These run on the VPS from `/home/deploy/` (the `systemd` units → `*-cron.sh` → `node *.mjs`), **not** via the

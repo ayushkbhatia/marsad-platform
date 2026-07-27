@@ -14,6 +14,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@llamaindex/liteparse": "^2.9.0",
     "marsad-ingestion": "file:../ingestion",
     "postgres": "^3.4.5"
   },

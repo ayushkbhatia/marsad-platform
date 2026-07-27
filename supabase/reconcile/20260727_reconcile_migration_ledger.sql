@@ -53,3 +53,9 @@ update supabase_migrations.schema_migrations
 update supabase_migrations.schema_migrations
    set version = '20260727124500'
  where name = 'filing_extract_content_kind' and version <> '20260727124500';
+
+-- ── ADDENDUM 2 (fourth migration, same day) ───────────────────────────────────────────────────
+-- 20260727134500_filing_extract_tier0 — same MCP-apply drift, same re-stamp.
+update supabase_migrations.schema_migrations
+   set version = '20260727134500'
+ where name = 'filing_extract_tier0' and version <> '20260727134500';

@@ -641,10 +641,31 @@ table in `architecture/09-signal-to-article.md §2.6`:
 written and tested but **NOT APPLIED** — the live DB exhausted its direct-connection slots
 mid-apply. Held uncommitted so the repo never runs ahead of live. See `DEF-EXTRACT-HTML-LANE`.
 
-_Remaining to accept:_ benchmark on the VPS; apply the `content_kind` migration; run Tier 0 over
-the corpus so every stored PDF has a measured page count and a `born_digital` verdict; backfill
-`pdf_sha256` for TDWL/QE/BHB in the same pass (`DEF-FILINGS-NO-CONTENT-HASH` — the bytes are
-already in hand, so it is free); `full_text` coverage goes from 2.6% to the born-digital share.
+**The runner is written and DB-verified (2026-07-27):** `scripts/researchers/tier0-triage.mjs` +
+`tier0-triage-cron.sh` + `systemd/marsad-tier0-triage.{service,timer}` (20 min cadence),
+`@llamaindex/liteparse` added to `worker/package.json` (lockfile carries the linux-x64 **gnu and
+musl** prebuilds — no node-gyp, no system deps). Migration `20260727134500_filing_extract_tier0`
+applied: the queue becomes a two-stage pipeline
+(`pending → text_ready → done`, with `needs_ocr` branching to Tier 1) plus per-document triage
+telemetry and the `ops.v_tier0_coverage` view that answers "does 86% hold across all 10,528?".
+
+**Safe-rollout property, chosen deliberately:** the *deployed* `filing-extractor.mjs` claims
+`state='pending'`. Once Tier 0 runs, those rows sit at `text_ready`, which the old extractor does
+not match — so the paid `claude -p` lane **idles instead of racing or double-charging**, until the
+updated extractor is deployed. The updated one claims `text_ready` and **reuses `full_text`**
+rather than re-downloading ~1.5 MB per document (~16 GB of needless egress corpus-wide).
+
+Verified without a VPS: module parses and both dynamic imports resolve; the Tier-0 and Tier-2 claim
+predicates run against live (400 and 0 claimable respectively — correct); and the full write path
+was exercised on a real queue row inside a self-rolling-back transaction — queue → `text_ready` with
+`pages=74, digital_pages=67, text_chars=59790`, `filings.full_text`/`pdf_pages`/`pdf_sha256` all
+written, zero residue.
+
+_Remaining to accept (all need VPS access — **O-2**):_ `npm ci` in `worker/`; benchmark on the
+4-core box (the quoted 536 pages/s is an M-series figure); enable `marsad-tier0-triage.timer`; run
+Tier 0 over the corpus so every stored PDF has a measured page count and a born-digital verdict;
+confirm `ops.v_tier0_coverage` reproduces the 86% sample figure at scale; `full_text` coverage goes
+from 2.6% to the born-digital share.
 
 **PE.2 — The bake-off (the highest-value experiment in this plan).** 100 real GCC filings,
 including bilingual ones, through PaddleOCR-VL-1.6 vs docling vs DeepSeek-OCR-2, **scored against
