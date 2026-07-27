@@ -168,6 +168,13 @@ Answer these; the plan branches on them. Recommendation given for each.
 - **O-4** Confirm `SUPABASE_SERVICE_ROLE_KEY` is set in the Vercel production environment
   (`server-admin.ts` throws without it; needed for the financials tab if D-financials picks the
   service-role route in P1.6).
+- **O-5** **Unblock GitHub Actions billing.** Every CI run since 2026-07-18 aborts in 3–5 s with
+  *"The job was not started because recent account payments have failed or your spending limit
+  needs to be increased"* — so **P0–P3 all landed with tsc / lint / next build / worker tsc /
+  migration-ledger / RLS assertions unverified**. Running those jobs locally before pushing PE.0
+  immediately surfaced a gate that had been red since 2026-07-20
+  (`DEF-RLS-GATE-RED-SINCE-0720`). Until this is fixed, **the local gate run is the verification**,
+  and it must be run deliberately — a green push means nothing.
 
 ---
 
