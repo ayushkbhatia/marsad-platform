@@ -109,15 +109,38 @@ export function createBrowserClient(opts: BrowserClientOptions): BrowserClient {
   const limiters = new HostLimiterRegistry(ratePerSec, budget, concurrency, clock);
 
   let session: BrowserSession | null = null; // lazy/singleton
+  let launching: Promise<BrowserSession> | null = null; // the one in-flight launch, shared by all waiters
   let lastBootstrap: BootstrapState | null = null;
   let lastDiscovery: EndpointConfig['actionDiscovery'] | null = null;
 
+  /**
+   * Return the singleton, launching it once if needed.
+   *
+   * ONE client instance is shared by the whole runtime (runtime.ts createBrowserClient)
+   * and the ingest poller runs `ingestConcurrency` lanes in parallel, so N callers can
+   * reach a cold client at the same instant. `if (!session) session = await launch()`
+   * suspends at the await with `session` still null: every lane starts its own Chromium
+   * and all but the last assignment is overwritten — those browsers are then unreachable
+   * and are never closed. On a 2-vCPU / 2800M box each leaked instance is a step toward
+   * the OOM that produces the dead-session wedge this module already documents. Sharing
+   * one in-flight promise makes the launch exactly-once; a rejection clears it so the
+   * next caller retries rather than inheriting a poisoned promise.
+   */
   async function ensureSession(): Promise<BrowserSession> {
-    if (!session) {
+    if (session) return session;
+    if (!launching) {
       logger?.info('launching chromium (lazy singleton)');
-      session = await opts.driver.launch();
+      launching = opts.driver
+        .launch()
+        .then((s) => {
+          session = s;
+          return s;
+        })
+        .finally(() => {
+          launching = null;
+        });
     }
-    return session;
+    return launching;
   }
 
   /**
@@ -128,12 +151,20 @@ export function createBrowserClient(opts: BrowserClientOptions): BrowserClient {
    * re-throws the same error until the process restarts. refreshIfChallenged() only
    * resets on a 401/403 *response*, which a dead session never produces — it throws
    * before any status exists. Any path that discovers a broken session must discard it.
+   *
+   * `dead` is the handle the CALLER actually failed on, and teardown is skipped unless it
+   * is still the current one. When one Chromium dies every in-flight lane fails on it at
+   * once, but only the first discard is timely: by the time the others run, that lane has
+   * already relaunched, so an unconditional teardown closes the FRESH session and the
+   * lanes kill each other's browsers for as long as work keeps arriving. Called with no
+   * argument (worker drain) it still tears down whatever is current.
    */
-  async function discardSession(): Promise<void> {
-    if (!session) return;
-    const dead = session;
+  async function discardSession(dead?: BrowserSession | null): Promise<void> {
+    const current = session;
+    if (!current) return;
+    if (dead && dead !== current) return; // superseded — someone already relaunched
     session = null;
-    await dead.close().catch(() => {});
+    await current.close().catch(() => {});
   }
 
   async function throttle(host: string): Promise<void> {
@@ -176,13 +207,13 @@ export function createBrowserClient(opts: BrowserClientOptions): BrowserClient {
         navigateUrl: cfg.navigateUrl,
         err: err instanceof Error ? err.message : String(err),
       });
-      await discardSession();
+      await discardSession(sess);
       sess = await ensureSession();
       try {
         page = await sess.newPageAndGoto(cfg.navigateUrl);
       } catch (retryErr) {
         // Leave no poisoned handle behind — the next poll starts from a clean launch.
-        await discardSession();
+        await discardSession(sess);
         throw retryErr;
       }
     }
@@ -225,11 +256,18 @@ export function createBrowserClient(opts: BrowserClientOptions): BrowserClient {
     return lastBootstrap;
   }
 
-  async function refreshIfChallenged(status: number): Promise<void> {
+  /** `challenged` is the session that took the 401/403 — only that one is torn down, so a
+   *  lane whose challenge lands after another lane already rotated cannot close the new
+   *  session out from under it (see discardSession). Optional: an external caller that has
+   *  no handle still gets the old "rotate whatever is current" behaviour. */
+  async function refreshIfChallenged(
+    status: number,
+    challenged?: BrowserSession | null,
+  ): Promise<void> {
     if (status === 401 || status === 403) {
       logger?.warn('WAF challenge — re-bootstrapping', { status });
       // Tear down the poisoned session; next bootstrap relaunches.
-      await discardSession();
+      await discardSession(challenged);
       if (lastDiscovery) await bootstrap(lastDiscovery);
     }
   }
@@ -240,7 +278,9 @@ export function createBrowserClient(opts: BrowserClientOptions): BrowserClient {
       throw new FetchError('HTTP_4XX', `daily request budget exhausted for host ${host}`);
     }
 
-    async function once(): Promise<RawResponse> {
+    // Returns the session the attempt actually ran on alongside the response, so the
+    // 401/403 rotation below tears down THAT handle and not whatever is current by then.
+    async function once(): Promise<{ res: RawResponse; sess: BrowserSession }> {
       await limiters.globalSemaphore.acquire();
       try {
         await throttle(host);
@@ -264,33 +304,37 @@ export function createBrowserClient(opts: BrowserClientOptions): BrowserClient {
         } catch (err) {
           // A dead context throws instead of returning a status, so refreshIfChallenged
           // never sees it — discard here or the handle wedges every later request.
-          if (isSessionDead(err)) await discardSession();
+          if (isSessionDead(err)) await discardSession(sess);
           throw err;
         }
         const body = res.status === 304 ? Buffer.alloc(0) : await res.body();
         return {
-          url: res.url,
-          status: res.status,
-          headers: res.headers,
-          body,
-          fromCache304: res.status === 304,
+          res: {
+            url: res.url,
+            status: res.status,
+            headers: res.headers,
+            body,
+            fromCache304: res.status === 304,
+          },
+          sess,
         };
       } finally {
         limiters.globalSemaphore.release();
       }
     }
 
-    let res = await once();
-    if (res.status === 401 || res.status === 403) {
+    let attempt = await once();
+    if (attempt.res.status === 401 || attempt.res.status === 403) {
       // One free retry after re-bootstrap (§10 WAF_CHALLENGE).
-      await refreshIfChallenged(res.status);
-      res = await once();
-      if (res.status === 401 || res.status === 403) {
-        throw new FetchError('WAF_CHALLENGE', `${res.status} WAF challenge for ${url}`, {
-          status: res.status,
+      await refreshIfChallenged(attempt.res.status, attempt.sess);
+      attempt = await once();
+      if (attempt.res.status === 401 || attempt.res.status === 403) {
+        throw new FetchError('WAF_CHALLENGE', `${attempt.res.status} WAF challenge for ${url}`, {
+          status: attempt.res.status,
         });
       }
     }
+    const res = attempt.res;
     if (res.status >= 500) {
       throw new FetchError('HTTP_5XX', `${res.status} server error for ${url}`, {
         status: res.status,
@@ -308,11 +352,9 @@ export function createBrowserClient(opts: BrowserClientOptions): BrowserClient {
     bootstrap,
     refreshIfChallenged,
     async close(): Promise<void> {
-      if (session) {
-        logger?.info('closing chromium on drain');
-        await session.close().catch(() => {});
-        session = null;
-      }
+      if (session) logger?.info('closing chromium on drain');
+      // No argument — drain tears down whatever is current, through the one teardown path.
+      await discardSession();
     },
     get(url, o) {
       return doRequest(url, { ...(o ?? {}), method: 'GET' });

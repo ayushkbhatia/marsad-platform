@@ -252,3 +252,121 @@ test('BrowserClient: dead session during a request is discarded (heals next poll
   assert.equal(res.status, 200, 'next call self-heals');
   assert.equal(launches, 2, 'relaunched once after discarding the dead session');
 });
+
+/**
+ * Concurrency regressions (2026-07-27). ONE BrowserClient is shared by the whole runtime
+ * (runtime.ts:1125) while the ingest poller runs `ingestConcurrency` lanes (default 4) in
+ * parallel, so several tasks reach this client at the same instant. Two lifecycle bugs
+ * only appear under that overlap, and both end in the same symptom the 07-17 wedge fix
+ * chased: `Target page, context or browser has been closed`.
+ */
+
+test('BrowserClient: concurrent cold starts launch ONE chromium (no leaked browsers)', async () => {
+  let launches = 0;
+  let closes = 0;
+  const driver: BrowserDriver = {
+    async launch(): Promise<BrowserSession> {
+      launches++;
+      // A real chromium launch takes ~1s; the yield is what opened the race window.
+      await new Promise((r) => setTimeout(r, 5));
+      return {
+        async newPageAndGoto(): Promise<BrowserPage> {
+          return {
+            async discoverAjaxUrl() {
+              return 'https://x/action';
+            },
+            async captureResponseUrl() {
+              return 'https://x/action';
+            },
+            async settle() {},
+            async close() {},
+          };
+        },
+        async contextRequest(url) {
+          return { status: 200, url, headers: {}, body: async () => Buffer.from('ok') };
+        },
+        async cookies() {
+          return '_abck=seated';
+        },
+        async close() {
+          closes++;
+        },
+      };
+    },
+  };
+
+  const c = createBrowserClient({ driver, sleep: async () => {}, ratePerSec: 100000 });
+  // Four lanes hit a cold client together — the shape runtime.ts produces every worker boot.
+  await Promise.all([c.bootstrap(discovery), c.bootstrap(discovery), c.get('https://x/a'), c.get('https://x/b')]);
+
+  // Before the fix: 4 launches, 3 of them unreachable and never closed — the leak that
+  // walks the 2-vCPU box into the OOM → dead-session wedge.
+  assert.equal(launches, 1, 'exactly one chromium for N concurrent cold callers');
+  await c.close();
+  assert.equal(closes, 1, 'and the one browser is the one that gets closed on drain');
+});
+
+test('BrowserClient: a late discard cannot close the session another lane just relaunched', async () => {
+  let launches = 0;
+  const closed: number[] = [];
+  const driver: BrowserDriver = {
+    async launch(): Promise<BrowserSession> {
+      const id = ++launches;
+      // Only session #1 is poisoned; every relaunch is healthy.
+      const poisoned = id === 1;
+      return {
+        async newPageAndGoto(): Promise<BrowserPage> {
+          return {
+            async discoverAjaxUrl() {
+              return 'https://x/action';
+            },
+            async captureResponseUrl() {
+              return 'https://x/action';
+            },
+            async settle() {},
+            async close() {},
+          };
+        },
+        async contextRequest(url) {
+          if (!poisoned) {
+            return { status: 200, url, headers: {}, body: async () => Buffer.from('ok') };
+          }
+          // The dead browser fails every lane on it, but not at the same instant — a lane
+          // already waiting on a response only learns the context is gone when its own
+          // call unwinds. That skew is the whole bug.
+          if (url.endsWith('/slow')) await new Promise((r) => setTimeout(r, 20));
+          throw new Error('Target closed');
+        },
+        async cookies() {
+          return '_abck=seated';
+        },
+        async close() {
+          closed.push(id);
+        },
+      };
+    },
+  };
+
+  const c = createBrowserClient({ driver, sleep: async () => {}, ratePerSec: 100000 });
+
+  // Warm the client so every lane below provably shares session #1 — this test is about
+  // the discard, not the launch race (covered above).
+  await c.bootstrap(discovery);
+  assert.equal(launches, 1);
+
+  // Lane 1 is in flight on #1 and will not learn it is dead for another 20ms.
+  const slowLane = c.get('https://x/slow');
+  // Lane 2 fails on #1 immediately and discards it...
+  await assert.rejects(() => c.get('https://x/fast'), /Target closed/);
+  // ...so this poll relaunches — session #2, healthy, now serving the fleet.
+  assert.equal((await c.get('https://x/fresh')).status, 200);
+  assert.equal(launches, 2, 'one replacement launched');
+  // Only NOW does lane 1's failure land, carrying a handle on the long-dead #1.
+  await assert.rejects(() => slowLane, /Target closed/);
+
+  // Before the fix that late discard closed whatever was current — the HEALTHY #2 — and
+  // with work still arriving the lanes kill each other's browsers indefinitely.
+  assert.deepEqual(closed, [1], 'only the dead session #1 was closed');
+  assert.equal((await c.get('https://x/after')).status, 200, 'session #2 survived');
+  assert.equal(launches, 2, 'no relaunch storm — one replacement, then reuse');
+});

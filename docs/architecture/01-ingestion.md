@@ -657,6 +657,22 @@ built into the scheduler, fleet-wide, with **no worker code and no trigger** (a 
   A backed-off source polls slower but is still expected to **succeed when it does run** — so the
   failure rule consults `expected_idle`, never `expected_silent`. Pinned by
   `supabase/tests/failure_sentinel_job_health.sql` (11 cases; F2 is this exact regression).
+- **A parked job must not read as a dead one** (`20260727153000`) — the counterpart defect, on the
+  registry rather than the rules. Deactivating a source stops dispatch immediately
+  (`enqueue_due_jobs` joins `ingest.sources … and s.active`), so its `ops.job_heartbeats` row freezes
+  **exactly as the last poll left it** — and if that poll failed, the row keeps a failure count and
+  an error string forever. `ingest:filings_poll:TDWL` sat at **326 consecutive failures / `last_ok_at`
+  NULL / `browserContext.newPage: … has been closed`** for 12 days after `20260715150100` parked
+  source id2, and read as a live venue feed dying under a browser fault. The *alerting* was correct
+  throughout (the failure rule gates on `expected_idle`, whose branch (A) is precisely this case) —
+  but a human reading the table, or an audit sweeping it, sees a corpse. It cost one: the
+  2026-07-26 heartbeat audit opened a `DEF-TDWL-FILINGS-POLL` backlog row to "diagnose the dead
+  browser context" that did not exist. Fix: `ops.ingest_job_parked()` names branch (A) on its own,
+  and `ops.heartbeat_sentinel` runs a **reconcile pass** before raise/resolve that zeroes
+  `consecutive_failures` + `last_error` on parked jobs. `last_run_at`/`last_ok_at` are kept — they
+  stay true statements about history. Self-healing both ways: `ops.beat` / `heartbeatError` re-arm
+  the counters the moment a reactivated source runs. Rule of thumb: **a job that is not dispatched
+  cannot be failing** — only `last_run_at` carries meaning while it is parked.
 - **Kill-switch / rollback:** `update ingest.schedules set max_backoff_mult = 1` reverts the whole
   fleet to flat cadence with no deploy; the effective-cadence, heartbeat window, and sentinel all
   read that column so an override is consistent everywhere.
