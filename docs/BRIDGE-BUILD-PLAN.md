@@ -573,14 +573,38 @@ is refused.
 _Owner's points #1 and #2. Today 14,409 filings carry a `pdf_storage_key` and **374 (2.6%) have
 any text**; TDWL RESULTS is 7,133 PDFs with zero. The lake holds numbers and no meaning._
 
-**PE.0 — Close the enqueue gap (~20 lines, unlocks 25 GB).** `ops.filing_extract_queue` is
-**empty** (374 rows, all `done`) because its only producer is `filings-detail-poll.ts:244`. The
-five researchers that archived ~14,000 PDFs write `public.filings` + storage directly and never
-enqueue — so **TDWL (7,133), QE (2,118) and BHB (366) have never had a single filing offered to
-the extractor**. Add a backfill enqueue over `public.filings where pdf_storage_key is not null`
-and an ongoing enqueue in the researchers' archive path (or a trigger on `public.filings`).
-_Accept:_ queue depth ≈ 14,000 pending; per-venue counts match §1 of `09-signal-to-article.md`;
-`DEF-FILING-EXTRACT-ENQUEUE-GAP` closed.
+**PE.0 — Close the enqueue gap. ✅ DONE 2026-07-27** (`20260727113000_filing_extract_enqueue_gap`,
+`20260727114500_filing_extract_sha_index_nonpartial`).
+
+Ongoing enqueue is a **trigger on `public.filings`**, not edits to six researcher scripts —
+deliberate, because the researchers run from the VPS's own checkout, so a code change there is
+inert until someone pushes *and* pulls (the trap `DEF-LAKE-OBJECTS-RACE` is still open on). One
+place, every producer, cannot be skipped by a stale deploy.
+
+⚠️ **The plan's "~20 lines" was wrong**, and the reason is worth carrying forward: the queue's
+`content_sha256 not null unique` identity does not hold for the corpus it now has to serve.
+**9,251 rows (TDWL + QE) have no content hash anywhere** — not in the column, not in the key. The
+fix makes `pdf_storage_key` the natural key and `content_sha256` an optional attribute, deduping
+the backfill on `coalesce(pdf_sha256, pdf_storage_key)`. Two identities, and neither subsumes the
+other: 44 storage keys repeat across 123 filing rows (same document announced twice, never across
+two securities), while 9 shas appear under two different keys (same bytes, two archive paths).
+Both collapse to one extraction. Filed `DEF-FILINGS-NO-CONTENT-HASH` for the underlying gap.
+
+_Accept:_ ✅ pending **0 → 13,947**; TDWL **0 → 7,133**, QE **0 → 2,118**, BHB **0 → 366**;
+0 stored-and-unextracted filings left unqueued; the 374 `done` rows preserved; drain order is
+value-first (9,251 TDWL+QE RESULTS ahead of 4,696 others, verified against the extractor's
+`order by enqueued_at`); the `public.filings` trigger fires on a new storage key (probed in a
+self-rolling-back transaction, delta=1, no leaked rows); 57/57 worker tests pass.
+
+⚠️ **Live-breakage caught pre-commit:** the first cut made the sha index *partial*, which silently
+invalidated `filings-detail-poll.ts`'s `on conflict (content_sha256)` — `ON CONFLICT` cannot infer
+a partial index, so the MSX/ADX/DFM detail chain would have started raising 42P10 on every new PDF.
+Found by probing the exact statement shape. The follow-up migration restores a plain unique index
+(Postgres treats NULLs as distinct, so the partial predicate was never needed), and the handler
+moved to an untargeted `on conflict do nothing` so it is robust against **both** indexes.
+Migration versions re-stamped live to match the committed filenames
+(`supabase/reconcile/20260727_reconcile_migration_ledger.sql`) — the MCP-apply drift trap, caught
+by `scripts/check-migration-ledger.mjs` before commit.
 
 **PE.1 — Tier 0 triage on the real hardware.** `@llamaindex/liteparse` with OCR off over the
 corpus: per-PDF page count, per-page char count, spatial text + bboxes; classify born-digital vs
@@ -985,8 +1009,17 @@ nothing that knows how to lay the result out.
 **Recommended first merge:** P0 + P1 together — foundations plus the single most visible fix
 (705 real stock pages instead of Aramco everywhere).
 
-**Two cheap, high-leverage items that need not wait for their phase:**
-- **PE.0** — the extract-queue enqueue gap. ~20 lines, unlocks 25 GB of already-paid-for PDFs.
-  Landing it early means the corpus is being read while P1–P3 proceed.
-- **PD.4** — the `pull_quote` / `heading` adapter mismatch. Two lines, and it currently flattens
-  every heading and pull quote in every seeded article.
+**Two cheap, high-leverage items landed early, ahead of their phases (2026-07-27):**
+- **PE.0 ✅** — the extract-queue enqueue gap. 0 → 13,947 pending; the 25 GB corpus is now visible
+  to the extractor, ordered TDWL/QE-RESULTS first.
+- **PD.4 ✅** — the `pull_quote` / `heading` adapter mismatch, which flattened every heading and
+  pull quote in every seeded article.
+
+> ⚠️ **PE.0 makes work visible; it does not make it fast.** `filing-extractor.mjs` claims
+> `EXTRACT_MAX` (default 12) per run at a 6h cadence ≈ 48 docs/day, so 13,947 pending is **~290
+> days** at the current settings — and every one of those runs spends on the `claude -p`
+> subscription seat, which is the lane the 2026-07-16 bandwidth incident was about. Two
+> consequences: (a) **confirm `marsad-filing-extractor.timer` is actually enabled on the VPS**
+> (owner item O-2 — timers were paused 2026-07-17 and the current state is inferred, not verified);
+> (b) the trickle rate is the argument for PE.1–PE.3, not something to tune around — Tier 0 is
+> deterministic, runs on the box, and has no per-document LLM cost at all.

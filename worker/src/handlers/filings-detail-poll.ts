@@ -241,12 +241,16 @@ async function linkFiling(
     `) as unknown as Array<{ id: string }>;
     const filingId = rows[0]?.id ?? null;
 
+    // Untargeted ON CONFLICT: since PE.0 the queue carries TWO unique indexes — content_sha256
+    // (bytes) and pdf_storage_key (the stored object). Both are real identities and neither
+    // subsumes the other: the same bytes are sometimes archived under two keys. Naming one index
+    // here would let a collision on the other raise inside the filing tx.
     await tx`
       insert into ops.filing_extract_queue
         (filing_id, venue_code, source_ref, content_sha256, pdf_storage_key, content_type)
       values (${filingId}::bigint, ${venue}, ${p.external_id}, ${r.sha256!}, ${r.storageKey!},
               ${r.contentType ?? null})
-      on conflict (content_sha256) do nothing
+      on conflict do nothing
     `;
   });
 }
