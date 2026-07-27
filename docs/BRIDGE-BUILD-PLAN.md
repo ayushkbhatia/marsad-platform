@@ -613,13 +613,38 @@ Migration versions re-stamped live to match the committed filenames
 (`supabase/reconcile/20260727_reconcile_migration_ledger.sql`) — the MCP-apply drift trap, caught
 by `scripts/check-migration-ledger.mjs` before commit.
 
-**PE.1 — Tier 0 triage on the real hardware.** `@llamaindex/liteparse` with OCR off over the
-corpus: per-PDF page count, per-page char count, spatial text + bboxes; classify born-digital vs
-image-only. **Benchmark on the actual 4-core Hetzner box before sizing anything** — the quoted
-1721 pg/s was sustained-concurrent throughput on a B200 host and does not transpose.
-_Accept:_ every stored PDF has a measured page count and a `born_digital` verdict; the **true
-corpus page count** is known (it is currently a guess, and it drives every cost estimate);
-born-digital `full_text` coverage goes from 2.6% to the born-digital share.
+**PE.1 — Tier 0 triage.** 🔶 **PROBED 2026-07-27; the sizing question is answered, the VPS run is not.**
+
+Tool verified, not assumed: `@llamaindex/liteparse` **v2.9.0, Apache-2.0**, napi prebuilds for
+darwin-arm64 / linux-x64-gnu / **linux-x64-musl** / linux-arm64 / win32 — no node-gyp, no system
+deps. Per text item: `text, x, y, width, height, fontName, fontSize, fontWeight, confidence,
+rotation, words[]` — the page+bbox provenance `BLK-PROV` binds to.
+
+**Measured on a 26-doc stratified sample across all six venues (1,120 pages), OCR off** — full
+table in `architecture/09-signal-to-article.md §2.6`:
+
+- **86% of pages already carry a text layer.** Tier 1 is a ~14% minority, not the bulk. TDWL scores
+  the *highest* text rate (97%) — those 7,133 filings were never image-only, **just never
+  extracted**.
+- **Corpus ≈ 454,000 pages** (10,529 pending PDFs × 43.1 pages/doc). The prior estimate assumed
+  ~8 pages/doc — the truth is **5× that**, and it drives every cost number.
+- **536 pages/s** single-threaded on an M-series Mac ⇒ the whole corpus is ~2–4 h even at 10–20×
+  slower. ⚠️ **Still unmeasured on the 4-core Hetzner box — that remains this step's gate.**
+- **8,610 markdown table rows recovered from 1,120 pages with no model at all.**
+- Cost consequence: Tier 1 over ~63,600 pages ≈ **$2–8**, not the ~$105 GPU figure (which was sized
+  against both the wrong page count and the wrong assumption about how many pages need a model).
+
+⚠️ **The probe caught a live trap:** `pdf_storage_key` is **not always a PDF** — TDWL archives XBRL
+**HTML** under it, **3,418 of the 13,947 rows PE.0 enqueued (24.5%)**. The extractor checks a
+`%PDF-` magic header and would mark every one permanently `failed`. They belong to
+`tadawul-xbrl-replay.mjs`'s lane. Migration `20260727124500_filing_extract_content_kind.sql` is
+written and tested but **NOT APPLIED** — the live DB exhausted its direct-connection slots
+mid-apply. Held uncommitted so the repo never runs ahead of live. See `DEF-EXTRACT-HTML-LANE`.
+
+_Remaining to accept:_ benchmark on the VPS; apply the `content_kind` migration; run Tier 0 over
+the corpus so every stored PDF has a measured page count and a `born_digital` verdict; backfill
+`pdf_sha256` for TDWL/QE/BHB in the same pass (`DEF-FILINGS-NO-CONTENT-HASH` — the bytes are
+already in hand, so it is free); `full_text` coverage goes from 2.6% to the born-digital share.
 
 **PE.2 — The bake-off (the highest-value experiment in this plan).** 100 real GCC filings,
 including bilingual ones, through PaddleOCR-VL-1.6 vs docling vs DeepSeek-OCR-2, **scored against

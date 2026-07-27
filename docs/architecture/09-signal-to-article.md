@@ -317,13 +317,59 @@ Verified hosted rates:
 At DeepSeek-OCR rates, ~29k pages ≈ **$1.22–$3.74**; ~232k pages ≈ **$9.74–$29.93**. Renting a
 GPU (Modal L40S, ~$1.95/hr, per-second billing, scale-to-zero) is the *fallback*, not the default.
 
-> ⚠️ Two unknowns to resolve in PE.1/PE.2 before committing: **(a)** the corpus page count is
-> unmeasured — Tier 0 produces it; **(b)** Novita's model id is the **base** `paddleocr-vl`
-> (94.18 / 90.65 TEDS), not 1.6 (96.34 / 94.76). Confirm the served version, or self-host 1.6.
+> ⚠️ Still open for PE.2: Novita's model id is the **base** `paddleocr-vl` (94.18 / 90.65 TEDS),
+> not 1.6 (96.34 / 94.76). Confirm the served version, or self-host 1.6.
 >
 > The experiment that would most change this plan: **a 100-page bake-off of PaddleOCR-VL-1.6 vs
 > docling vs DeepSeek-OCR-2 on real GCC filings, scored against our existing XBRL.** We already
 > own the labels. That is worth more than every benchmark cited above.
+
+### 2.6 Measured 2026-07-27 (PE.1 probe) — and it moves the plan
+
+A 26-document stratified sample across all six venues (1,120 pages), parsed with
+`@llamaindex/liteparse` v2.9.0 (Apache-2.0), OCR off:
+
+| venue | docs | pages | avg pages/doc | **% pages carrying text** | image-only docs | md table rows | pages/s |
+|---|---|---|---|---|---|---|---|
+| ADX | 5 | 168 | 33.6 | 80% | 0 | 1,352 | 410 |
+| BHB | 5 | 369 | 73.8 | 82% | 1 | 2,786 | 438 |
+| DFM | 5 | 239 | 47.8 | 92% | 0 | 2,568 | 592 |
+| MSX | 5 | 13 | 2.6 | 85% | 0 | 41 | 765 |
+| QE | 5 | 295 | 59.0 | 89% | 2 | 1,554 | 853 |
+| TDWL | 1 | 36 | 36.0 | 97% | 0 | 309 | 507 |
+| **total** | **26** | **1,120** | **43.1** | **86%** | **3 (12%)** | **8,610** | **536** |
+
+**Four findings, three of which contradict this document's own earlier assumptions:**
+
+1. **The corpus is overwhelmingly born-digital — 86% of pages already carry a text layer.** §2.2's
+   tiering still holds, but the *proportions* invert: Tier 1 is for a **~14% minority**, not for the
+   bulk. The 7,133 TDWL and 2,118 QE filings were never image-only; **nobody had ever run an
+   extractor over them** (§1.3). TDWL scores the *highest* text rate in the sample, 97%.
+2. **The corpus is ~454,000 pages, not ~236,000.** 10,529 pending PDFs × 43.1 pages/doc. §2.5's
+   estimate assumed ~8 pages/doc; the real figure is **5×** that. Every page-count-derived number
+   above should be read against 454k.
+3. **Tier 0 is hours, not days.** 536 pages/s single-threaded on an M-series Mac. Even assuming the
+   4-core Hetzner box is 10× slower, 454k pages ≈ 2 hours; at 20× slower, ≈ 4 hours. ⚠️ Still
+   unmeasured *on the VPS* — that benchmark remains PE.1's acceptance criterion.
+4. **Tables survive the deterministic pass.** 8,610 markdown table rows recovered from 1,120 pages
+   without a model. Combined with (1), this means the cheap tier alone plausibly delivers most of
+   what §2.1 asks for, and the model tier becomes a *targeted* tool for the image-only 14%.
+
+**Cost consequence.** Tier 1 over ~14% of 454k ≈ 63,600 pages. At the verified hosted rates in
+§2.5 that is **≈ $2–8**, not the ~$105 GPU-rental figure — which was sized against the wrong page
+count *and* the wrong assumption about how many pages need a model at all.
+
+**LiteParse verified, not assumed:** v2.9.0, Apache-2.0, napi prebuilds published for
+darwin-arm64 / linux-x64-gnu / **linux-x64-musl** / linux-arm64 / win32 (no node-gyp, no system
+deps). Per text item it returns `text, x, y, width, height, fontName, fontSize, fontWeight,
+confidence, rotation, words[]` — full page+bbox provenance, which is what `BLK-PROV` binds to.
+
+**A trap this probe caught:** `public.filings.pdf_storage_key` is **not always a PDF**. TDWL
+archives the exchange's XBRL **HTML** renders under the same column — **3,418 of the 13,947 rows
+PE.0 enqueued (24.5%)**. The extractor checks for a `%PDF-` magic header and would have marked
+every one permanently `failed`. They are not junk — XBRL HTML is *better* input than a PDF and
+already has a consumer in `tadawul-xbrl-replay.mjs`. They belong to that lane. See
+`DEF-EXTRACT-HTML-LANE`.
 
 ---
 
