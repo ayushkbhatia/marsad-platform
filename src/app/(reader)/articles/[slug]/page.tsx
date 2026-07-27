@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { buildArticle } from "@/lib/data/adapters/research";
 import { getArticleBySlug, listPublishedArticleSlugs } from "@/lib/data/editorial";
+import { optionalList } from "@/lib/data/prerender";
 import { ArticleView } from "@/components/reader/research/ArticleView";
 import { JsonLd } from "@/components/reader/JsonLd";
 import { siteUrl } from "@/lib/reader/format";
@@ -25,7 +26,7 @@ import { siteUrl } from "@/lib/reader/format";
 type Params = { slug: string };
 
 export async function generateStaticParams(): Promise<Params[]> {
-  const slugs = await listPublishedArticleSlugs(200);
+  const slugs = await optionalList("articles", () => listPublishedArticleSlugs(200));
   return slugs.map((s) => ({ slug: s.slug }));
 }
 

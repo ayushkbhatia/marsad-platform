@@ -2,7 +2,8 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getFilingDetail, listRecentFilingRefs } from "@/lib/data/filings";
+import { getFilingDetail, listRecentFilingRefs, listFilingRefsByPk } from "@/lib/data/filings";
+import { prerenderHead } from "@/lib/data/prerender";
 import { JsonLd } from "@/components/reader/JsonLd";
 import { pdfPublicUrl, fmtDateTime, venueName, siteUrl } from "@/lib/reader/format";
 
@@ -29,7 +30,11 @@ type Params = { filingId: string };
  * `generateStaticParams`, so this set must stay non-empty.)
  */
 export async function generateStaticParams(): Promise<Array<{ filingId: string }>> {
-  const refs = await listRecentFilingRefs(60);
+  const refs = await prerenderHead(
+    "filings",
+    () => listRecentFilingRefs(60),
+    () => listFilingRefsByPk(60),
+  );
   return refs.map((r) => ({ filingId: String(r.id) }));
 }
 
