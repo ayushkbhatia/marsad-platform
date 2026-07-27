@@ -53,7 +53,7 @@ const {
 
 /** The design handoff's machine-readable extraction — the same file the PD.2 registry seed reads. */
 const registry = JSON.parse(
-  readFileSync(new URL("../../../../../docs/design/block-registry.json", import.meta.url), "utf8"),
+  readFileSync(new URL("../../../../docs/design/block-registry.json", import.meta.url), "utf8"),
 ) as {
   blocks: Array<{ code: string; family: string; binds_to?: string | null }>;
 };

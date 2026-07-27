@@ -85,3 +85,14 @@ export { numberTokens, isYearToken, relDiff, NUMBER_TOKEN, DRIFT_TOL } from './r
 export type {
   RuleContext, CitationRow, BlockRow, RuleResult, EngineOptions, EngineResult, RuleLlm, AutoMarkCite, AutoMarkResult,
 } from './rules/index.js';
+
+// PD.3 — the 61 block payload schemas. They live HERE, not in the Next app, because the worker's
+// fit stage is the enforcing consumer and worker/tsconfig has rootDir:"src" — it cannot compile
+// files outside its own tree, so a relative import across the package boundary is impossible.
+// The web app has no runtime consumer, so there is no second copy to drift (unlike src/lib/llm).
+export {
+  BLOCK_PAYLOAD_SCHEMAS, safeParseBlockPayload,
+  BLOCK_BINDING_EXCEPTIONS, BLOCK_BINDING_STRICTER_THAN_REGISTRY,
+  CHART_SHAPES, SHAPE_BY_BLOCK, CHART_QUESTION_BY_SHAPE,
+} from './blocks/index.js';
+export type { BlockCode } from './blocks/codes.js';
