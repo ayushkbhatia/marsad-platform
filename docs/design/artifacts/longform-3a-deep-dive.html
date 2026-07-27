@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marsad — Sector deep dive (3a)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..800;1,6..72,400..700&family=Libre+Franklin:ital,wght@0,300..800;1,400..600&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Naskh+Arabic:wght@400..700&display=swap">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #e8e5dc; font-family: 'Libre Franklin', sans-serif; display: flex; justify-content: center; padding: 0; }
+  a { color: #14120e; }
+  a:hover { color: #57534a; }
+</style>
+</head>
+<body>
+
+<!--
+  MARSAD — Sector deep dive (screen 3a). Static, fully-resolved export. 1440px. 40 min, premium.
+
+  THE HEAVIEST TYPE IN THE SYSTEM, and it signals that three ways:
+
+  1. THE HEADLINE IS SET IN REVERSE ON INK, not paper. Reserved for series work — it tells the
+     reader before they read a word that this is a multi-part investigation, not a daily piece.
+  2. A SERIES POSITION ("part 2 of 3 · The Water Economy") appears in the masthead AND the rail.
+  3. A "WHAT THIS ESTABLISHES" CONTRACT opens the piece — the claims the reader will be able to
+     make when finished. State the payoff before demanding forty minutes.
+
+  STRUCTURE: four NUMBERED CHAPTERS, each with its own display heading and its own minute count
+  in the rail's chapter nav. The rail is a chapter navigator, not a contents list — it tracks
+  position through a long argument.
+
+  EXHIBITS CARRY THE ARGUMENT: a proportional stacked bar for the WPA anatomy (68% capacity /
+  24% pass-through / 8% O&M) with who-bears-what beneath it; paired bars for the debt-vs-equity
+  discount-rate gap; a four-market offtaker table whose risk column is EXPLICITLY LABELLED a
+  desk assessment and NOT a credit rating (R-06 — stretched judgements framed as risk, never
+  as advice).
+
+  THE CUT FALLS AT CHAPTER 4, after three complete chapters — "2 of 4 chapters read" — so the
+  reader has seen the work before the wall (R-09).
+-->
+
+<div style="width:1440px;background:#fdfcf9;color:#14120e;border:1px solid #cfcabe" data-screen-label="3a Sector deep dive">
+
+        <div style="display:flex;align-items:center;gap:16px;height:46px;padding:0 34px;border-bottom:1px solid #dcd8cc;background:#f6f4ee">
+          <span style="font-family:'Newsreader',serif;font-size:21px;font-weight:700;letter-spacing:-.012em">Marsad</span>
+          <span style="width:1px;height:18px;background:#dcd8cc"></span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.18em;color:#57534a">DEEP DIVE · FOUR CHAPTERS</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.1em;background:#14120e;color:#f6f4ee;padding:2.5px 6px">PREMIUM</span>
+          <span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.08em;color:#8a857a">SERIES: THE WATER ECONOMY · PART 2 OF 3</span>
+        </div>
+
+        <!-- title over dark -->
+        <div style="background:#14120e;color:#f6f4ee;padding:40px 34px 34px">
+          <div style="max-width:1000px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="width:8px;height:8px;background:#f6f4ee;transform:rotate(45deg)"></span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.2em">UTILITIES · GCC DESALINATION</span>
+            </div>
+            <h1 style="font-family:'Newsreader',serif;font-size:58px;font-weight:700;line-height:1.06;letter-spacing:-.022em;margin:18px 0 0;text-wrap:balance">The most valuable pipe in the Gulf: how desalination became an infrastructure trade</h1>
+            <div style="font-family:'Newsreader',serif;font-size:20px;line-height:1.5;color:#a8a396;margin-top:16px;max-width:820px;text-wrap:pretty">Four countries, 61 plants, and a contracted revenue base of $94bn stretching to 2049. The equity market treats these companies as utilities with political risk. The debt market has already decided they are something closer to toll roads. One of the two is mispriced.</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;border-top:1px solid #26241f;margin-top:26px;padding-top:18px">
+            <span style="width:40px;height:40px;border-radius:50%;border:1.5px solid #f6f4ee;display:grid;place-items:center;font-family:'Newsreader',serif;font-size:14px;font-weight:600;flex:none">FR</span>
+            <div>
+              <div style="font-size:12.5px;font-weight:700">Faisal Rahman <span style="font-weight:400;color:#8a857a">· Utilities &amp; Infrastructure</span></div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.06em;color:#8a857a;margin-top:3px">27 JUL 2026 · 40 MIN READ · 9 EXHIBITS · MODEL FILE + PLANT DATABASE</div>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:7px">
+              <span style="font-size:10.5px;font-weight:600;border:1px solid #57534a;color:#cfcabe;padding:7px 12px;cursor:pointer">Save</span>
+              <span style="font-size:10.5px;font-weight:600;border:1px solid #57534a;color:#cfcabe;padding:7px 12px;cursor:pointer">Listen · 40m</span>
+              <span style="font-size:10.5px;font-weight:700;letter-spacing:.06em;background:#f6f4ee;color:#14120e;padding:7px 13px;text-transform:uppercase;cursor:pointer">Download database</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding:0 34px">
+          <div style="height:440px;background:#e8e5dc;border-left:1px solid #dcd8cc;border-right:1px solid #dcd8cc;border-bottom:1px solid #dcd8cc">
+            <image-slot id="lf-dd-hero" placeholder="MASTER PHOTO — reverse-osmosis membrane hall, Ras Al-Khair, wide 1372×440" style="width:100%;height:100%"></image-slot>
+          </div>
+          <div style="display:flex;gap:14px;padding:9px 2px 12px;border-bottom:1px solid #dcd8cc">
+            <span style="font-size:11px;color:#57534a;line-height:1.5;max-width:760px">Ras Al-Khair produces 1.03 million cubic metres a day — enough for Riyadh twice over — on a 25-year water purchase agreement indexed to inflation.</span>
+            <span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#a8a396;white-space:nowrap">PHOTO · MARSAD DESK</span>
+          </div>
+        </div>
+
+        <div style="max-width:1180px;margin:0 auto;padding:24px 34px 0;display:grid;grid-template-columns:1fr 296px;column-gap:54px;align-items:start">
+          <div>
+            <!-- what you'll learn -->
+            <div style="border:1px solid #14120e;background:#f6f4ee;padding:18px 22px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.18em;color:#8a857a">WHAT THIS DEEP DIVE ESTABLISHES</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;column-gap:26px;row-gap:9px;margin-top:12px">
+                <div style="display:flex;gap:10px;align-items:baseline"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;color:#57534a;flex:none">01</span><span style="font-size:12.5px;line-height:1.5;color:#33302a">How a water purchase agreement actually pays — and why availability, not volume, is the revenue driver</span></div>
+                <div style="display:flex;gap:10px;align-items:baseline"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;color:#57534a;flex:none">02</span><span style="font-size:12.5px;line-height:1.5;color:#33302a">Why the debt market prices these names 180 bp tighter than the equity market implies</span></div>
+                <div style="display:flex;gap:10px;align-items:baseline"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;color:#57534a;flex:none">03</span><span style="font-size:12.5px;line-height:1.5;color:#33302a">The three offtaker structures across Saudi, the UAE, Oman and Bahrain — and which one carries real risk</span></div>
+                <div style="display:flex;gap:10px;align-items:baseline"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;color:#57534a;flex:none">04</span><span style="font-size:12.5px;line-height:1.5;color:#33302a">What the 2028 membrane replacement cycle does to free cash flow, plant by plant</span></div>
+              </div>
+            </div>
+
+            <!-- CHAPTER 1 -->
+            <div style="display:flex;align-items:baseline;gap:14px;border-top:2px solid #14120e;margin-top:32px;padding-top:14px">
+              <span style="font-family:'Newsreader',serif;font-size:44px;font-weight:700;color:#cfcabe;line-height:.9">01</span>
+              <div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.18em;color:#8a857a">CHAPTER ONE</div>
+                <div style="font-family:'Newsreader',serif;font-size:30px;font-weight:700;letter-spacing:-.014em;line-height:1.16;margin-top:5px">The contract is the asset</div>
+              </div>
+            </div>
+
+            <p style="font-family:'Newsreader',serif;font-size:19px;line-height:1.68;color:#26241f;margin:20px 0 0;text-wrap:pretty"><span style="font-family:'Newsreader',serif;font-size:64px;font-weight:700;float:left;line-height:.78;padding:8px 12px 0 0">A</span> desalination company does not sell water. It sells availability. Under a standard Gulf water purchase agreement — and there are only really three templates across the region — the offtaker pays a fixed capacity charge every month the plant is available to produce, whether or not a single cubic metre is drawn, plus a variable charge that passes fuel and chemicals straight through at cost.</p>
+
+            <p style="font-family:'Newsreader',serif;font-size:19px;line-height:1.68;color:#26241f;margin:18px 0 0;text-wrap:pretty">Which means the revenue line of a company like ACWA Power's water arm has more in common with a leased office tower than with a utility. Demand risk sits with the government. Fuel risk is passed through. What is left for the equity holder is operational risk — can you keep the membranes running — and that is a risk these operators have spent fifteen years learning to price.</p>
+
+            <!-- anatomy exhibit -->
+            <div style="border:1px solid #14120e;margin-top:24px">
+              <div style="display:flex;align-items:baseline;gap:12px;padding:10px 16px;background:#14120e;color:#f6f4ee">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.16em">EXHIBIT 1</span>
+                <span style="font-size:12px">Anatomy of a Gulf water purchase agreement</span>
+                <span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#a8a396">TYPICAL 25-YEAR STRUCTURE · % OF LIFETIME REVENUE</span>
+              </div>
+              <div style="padding:20px 20px 14px;background:#fdfcf9">
+                <div style="display:flex;height:52px;border:1px solid #dcd8cc">
+                  <div style="width:68%;background:#14120e;color:#f6f4ee;display:flex;flex-direction:column;justify-content:center;padding:0 16px"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:#a8a396">CAPACITY CHARGE</span><span style="font-size:13px;font-weight:600;margin-top:2px">68% — fixed, indexed, paid on availability</span></div>
+                  <div style="width:24%;background:#a8a396;color:#14120e;display:flex;flex-direction:column;justify-content:center;padding:0 14px"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em">VARIABLE</span><span style="font-size:12px;font-weight:600;margin-top:2px">24% — pass-through</span></div>
+                  <div style="width:8%;background:#e3dfd4;color:#57534a;display:flex;align-items:center;justify-content:center"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600">8%</span></div>
+                </div>
+                <div style="display:flex;gap:22px;margin-top:12px">
+                  <div style="flex:1;border-left:3px solid #14120e;padding-left:12px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.12em;color:#8a857a">WHO BEARS IT</div><div style="font-size:11.5px;line-height:1.55;color:#33302a;margin-top:4px">Offtaker bears demand. Equity bears availability. A plant at 97% availability collects 100% of the charge; below 95% liquidated damages begin.</div></div>
+                  <div style="flex:1;border-left:3px solid #a8a396;padding-left:12px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.12em;color:#8a857a">FUEL &amp; CHEMICALS</div><div style="font-size:11.5px;line-height:1.55;color:#33302a;margin-top:4px">Passed through at cost with a 30-day lag. No margin, no exposure — but it inflates reported revenue and flatters the top line in energy-price spikes.</div></div>
+                  <div style="flex:1;border-left:3px solid #e3dfd4;padding-left:12px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.12em;color:#8a857a">O&amp;M FEES</div><div style="font-size:11.5px;line-height:1.55;color:#33302a;margin-top:4px">The 8% tail: operations contracts, often with the sponsor. Small, high-margin, and where related-party disclosure matters.</div></div>
+                </div>
+              </div>
+              <sc-if value="{{ showProv }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;align-items:center;gap:12px;padding:8px 16px;border-top:1px solid #dcd8cc;background:#f6f4ee">
+                  <span style="width:6px;height:6px;background:#0a7a3c;transform:rotate(45deg);flex:none"></span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.08em;color:#57534a">LAKE OBJECT <b>DOC.WPA.STRUCTURE</b> · SYNTHESISED FROM 19 DISCLOSED CONCESSION SUMMARIES BY DATA-FILINGS · REVENUE SPLIT IS A DESK AVERAGE ACROSS 19 CONTRACTS, NOT A SINGLE AGREEMENT</span>
+                </div>
+              </sc-if>
+            </div>
+
+            <!-- CHAPTER 2 -->
+            <div style="display:flex;align-items:baseline;gap:14px;border-top:2px solid #14120e;margin-top:36px;padding-top:14px">
+              <span style="font-family:'Newsreader',serif;font-size:44px;font-weight:700;color:#cfcabe;line-height:.9">02</span>
+              <div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.18em;color:#8a857a">CHAPTER TWO</div>
+                <div style="font-family:'Newsreader',serif;font-size:30px;font-weight:700;letter-spacing:-.014em;line-height:1.16;margin-top:5px">Two markets, one asset, 180 basis points apart</div>
+              </div>
+            </div>
+
+            <p style="font-family:'Newsreader',serif;font-size:19px;line-height:1.68;color:#26241f;margin:20px 0 0;text-wrap:pretty">Here is the anomaly the whole piece turns on. The project bonds issued against these plants trade at spreads that imply an investment-grade, quasi-sovereign contracted cash flow. The listed equity of the same operators trades on an implied cost of equity that assumes something considerably riskier.</p>
+
+            <div style="border-left:3px solid #14120e;padding:6px 0 6px 26px;margin:26px 0">
+              <div style="font-family:'Newsreader',serif;font-size:27px;font-style:italic;line-height:1.38;letter-spacing:-.008em;text-wrap:balance">"The bondholders and the shareholders are looking at the same 25-year contract and disagreeing by 180 basis points about what it is worth."</div>
+            </div>
+
+            <div style="border:1px solid #14120e;margin-top:6px">
+              <div style="display:flex;align-items:baseline;gap:12px;padding:10px 16px;background:#14120e;color:#f6f4ee">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.16em">EXHIBIT 2</span>
+                <span style="font-size:12px">Implied discount rate — project debt vs listed equity, six GCC operators</span>
+                <span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#a8a396">%</span>
+              </div>
+              <div style="padding:20px 20px 12px;background:#fdfcf9">
+                <div style="display:flex;flex-direction:column;gap:14px">
+                  <div style="display:flex;align-items:center;gap:12px"><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;width:96px;flex:none">2082 ACWA</span><span style="height:13px;width:118px;background:#a8a396;flex:none"></span><span style="height:13px;width:74px;background:#14120e;flex:none"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#57534a">5.9% debt · <b style="color:#14120e">9.6% equity</b></span></div>
+                  <div style="display:flex;align-items:center;gap:12px"><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;width:96px;flex:none">DEWA</span><span style="height:13px;width:104px;background:#a8a396;flex:none"></span><span style="height:13px;width:58px;background:#14120e;flex:none"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#57534a">5.2% debt · <b style="color:#14120e">8.1% equity</b></span></div>
+                  <div style="display:flex;align-items:center;gap:12px"><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;width:96px;flex:none">TAQA</span><span style="height:13px;width:110px;background:#a8a396;flex:none"></span><span style="height:13px;width:66px;background:#14120e;flex:none"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#57534a">5.5% debt · <b style="color:#14120e">8.8% equity</b></span></div>
+                  <div style="display:flex;align-items:center;gap:12px"><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;width:96px;flex:none">5110 SEC</span><span style="height:13px;width:126px;background:#a8a396;flex:none"></span><span style="height:13px;width:88px;background:#14120e;flex:none"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#57534a">6.3% debt · <b style="color:#14120e">10.7% equity</b></span></div>
+                  <div style="display:flex;align-items:center;gap:12px"><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;width:96px;flex:none">NOMAC</span><span style="height:13px;width:132px;background:#a8a396;flex:none"></span><span style="height:13px;width:96px;background:#14120e;flex:none"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#57534a">6.6% debt · <b style="color:#14120e">11.4% equity</b></span></div>
+                </div>
+                <div style="display:flex;gap:20px;font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:#57534a;border-top:1px solid #efece3;margin-top:14px;padding-top:9px">
+                  <span style="display:flex;align-items:center;gap:6px"><span style="width:11px;height:9px;background:#a8a396"></span>PROJECT DEBT · SPREAD TO SOVEREIGN</span>
+                  <span style="display:flex;align-items:center;gap:6px"><span style="width:11px;height:9px;background:#14120e"></span>LISTED EQUITY · IMPLIED COE PREMIUM</span>
+                  <span style="margin-left:auto;color:#8a857a">MEDIAN GAP 180 BP · WIDEST AT NOMAC (480 BP), NARROWEST AT DEWA (290 BP)</span>
+                </div>
+              </div>
+              <sc-if value="{{ showProv }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;align-items:center;gap:12px;padding:8px 16px;border-top:1px solid #dcd8cc;background:#f6f4ee">
+                  <span style="width:6px;height:6px;background:#14120e;transform:rotate(45deg);flex:none"></span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.08em;color:#57534a">DEBT SPREADS FROM <b>MARKET.BOND.SPREAD</b> (VERIFIED, DAILY) · EQUITY COE IS A <b>DESK COMPUTATION</b> FROM REVERSE-DCF ON CONSENSUS FORECASTS — MODEL <b>GCCWATER-V6</b></span>
+                </div>
+              </sc-if>
+            </div>
+
+            <!-- CHAPTER 3 -->
+            <div style="display:flex;align-items:baseline;gap:14px;border-top:2px solid #14120e;margin-top:36px;padding-top:14px">
+              <span style="font-family:'Newsreader',serif;font-size:44px;font-weight:700;color:#cfcabe;line-height:.9">03</span>
+              <div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.18em;color:#8a857a">CHAPTER THREE</div>
+                <div style="font-family:'Newsreader',serif;font-size:30px;font-weight:700;letter-spacing:-.014em;line-height:1.16;margin-top:5px">Not all offtakers are the same offtaker</div>
+              </div>
+            </div>
+
+            <p style="font-family:'Newsreader',serif;font-size:19px;line-height:1.68;color:#26241f;margin:20px 0 0;text-wrap:pretty">The lazy version of the bull case says the counterparty is the government, so the cash flow is sovereign. That is true in Saudi Arabia, broadly true in Abu Dhabi, and materially less true in the other two markets we cover. Exhibit 3 lays out who actually signs.</p>
+
+            <div style="margin-top:22px">
+              <div style="display:flex;align-items:baseline;gap:12px;background:#14120e;color:#f6f4ee;padding:9px 14px">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.16em">EXHIBIT 3</span>
+                <span style="font-size:12px">Offtaker structures across four markets</span>
+                <span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#a8a396">61 PLANTS · $94BN CONTRACTED REVENUE TO 2049</span>
+              </div>
+              <div style="display:grid;grid-template-columns:118px 1.1fr 78px 92px 82px 1fr;gap:12px;padding:9px 14px 7px;border-bottom:1px solid #dcd8cc">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a">MARKET</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a">OFFTAKER</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a;text-align:right">PLANTS</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a;text-align:right">CONTRACTED</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a;text-align:center">RISK</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a">WHAT TO WATCH</span>
+              </div>
+              <div style="display:grid;grid-template-columns:118px 1.1fr 78px 92px 82px 1fr;gap:12px;padding:11px 14px;border-bottom:1px solid #efece3;align-items:baseline;background:#f6f4ee">
+                <span style="font-size:12.5px;font-weight:700">Saudi Arabia</span>
+                <span style="font-size:12px;color:#33302a">SWPC — sovereign-guaranteed</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;text-align:right">31</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:700;text-align:right">$52bn</span>
+                <span style="justify-self:center;font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;background:#0f5f31;color:#f6f4ee;padding:2px 7px">LOWEST</span>
+                <span style="font-size:11.5px;color:#57534a;line-height:1.45">Tariff reform pass-through timing</span>
+              </div>
+              <div style="display:grid;grid-template-columns:118px 1.1fr 78px 92px 82px 1fr;gap:12px;padding:11px 14px;border-bottom:1px solid #efece3;align-items:baseline">
+                <span style="font-size:12.5px;font-weight:700">Abu Dhabi</span>
+                <span style="font-size:12px;color:#33302a">EWEC — TAQA-owned, state-backed</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;text-align:right">14</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:700;text-align:right">$24bn</span>
+                <span style="justify-self:center;font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;background:#0f5f31;color:#f6f4ee;padding:2px 7px">LOW</span>
+                <span style="font-size:11.5px;color:#57534a;line-height:1.45">Related-party pricing on O&amp;M</span>
+              </div>
+              <div style="display:grid;grid-template-columns:118px 1.1fr 78px 92px 82px 1fr;gap:12px;padding:11px 14px;border-bottom:1px solid #efece3;align-items:baseline">
+                <span style="font-size:12.5px;font-weight:700">Oman</span>
+                <span style="font-size:12px;color:#33302a">OPWP — corporatised, no explicit guarantee</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;text-align:right">11</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:700;text-align:right">$13bn</span>
+                <span style="justify-self:center;font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;background:#c9a227;color:#14120e;padding:2px 7px">MEDIUM</span>
+                <span style="font-size:11.5px;color:#57534a;line-height:1.45">Receivable days — now 84, was 61</span>
+              </div>
+              <div style="display:grid;grid-template-columns:118px 1.1fr 78px 92px 82px 1fr;gap:12px;padding:11px 14px;border-bottom:1px solid #efece3;align-items:baseline">
+                <span style="font-size:12.5px;font-weight:700">Bahrain</span>
+                <span style="font-size:12px;color:#33302a">EWA — line ministry, budget-funded</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;text-align:right">5</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:700;text-align:right">$5bn</span>
+                <span style="justify-self:center;font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;background:#c0342b;color:#f6f4ee;padding:2px 7px">HIGHEST</span>
+                <span style="font-size:11.5px;color:#57534a;line-height:1.45">Fiscal breakeven vs Brent deck</span>
+              </div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#a8a396;padding:9px 14px 0;line-height:1.7">RISK RANKING IS A DESK ASSESSMENT OF PAYMENT STRUCTURE, NOT A CREDIT RATING · OMAN RECEIVABLE DAYS ARE THE SINGLE MOST INFORMATIVE DISCLOSED NUMBER IN THIS TABLE AND WE TRACK IT MONTHLY</div>
+            </div>
+
+            <!-- CHAPTER 4 -->
+            <div style="display:flex;align-items:baseline;gap:14px;border-top:2px solid #14120e;margin-top:36px;padding-top:14px">
+              <span style="font-family:'Newsreader',serif;font-size:44px;font-weight:700;color:#cfcabe;line-height:.9">04</span>
+              <div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.18em;color:#8a857a">CHAPTER FOUR</div>
+                <div style="font-family:'Newsreader',serif;font-size:30px;font-weight:700;letter-spacing:-.014em;line-height:1.16;margin-top:5px">The 2028 membrane cliff</div>
+              </div>
+            </div>
+
+            <p style="font-family:'Newsreader',serif;font-size:19px;line-height:1.68;color:#26241f;margin:20px 0 0;text-wrap:pretty">Reverse-osmosis membranes last seven to nine years. The Gulf's build-out clustered heavily in 2019–2021, which means a replacement wave lands between 2027 and 2029 — inside most investors' holding periods and outside most models.</p>
+
+            <sc-if value="{{ isFree }}" hint-placeholder-val="{{ true }}">
+              <div>
+                <div style="position:relative;margin-top:22px">
+                  <div style="filter:blur(3.5px);pointer-events:none;user-select:none">
+                    <p style="font-family:'Newsreader',serif;font-size:19px;line-height:1.68;color:#26241f;margin:0">Our plant-level database puts the aggregate replacement bill at $2.4bn across the 61 plants, of which roughly 61% is recoverable through the capacity charge under the standard WPA and 39% is not. The distribution is what matters: three operators carry two-thirds of the unrecoverable portion, and one of them is trading at a premium to the group…</p>
+                    <p style="font-family:'Newsreader',serif;font-size:19px;line-height:1.68;color:#26241f;margin:16px 0 0">Chapter four works through the schedule plant by plant, then reprices all six names on the corrected free-cash-flow profile.</p>
+                  </div>
+                  <div style="position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(rgba(253,252,249,0),#fdfcf9)"></div>
+                </div>
+                <div style="border:2px solid #14120e;background:#f6f4ee;padding:26px 30px;margin-top:6px">
+                  <div style="display:flex;align-items:center;gap:9px">
+                    <span style="width:9px;height:9px;background:#14120e;transform:rotate(45deg)"></span>
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.2em">CHAPTERS 4 &amp; THE PLANT DATABASE ARE FOR MEMBERS</span>
+                    <span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.1em;border:1px solid #cfcabe;color:#57534a;padding:2.5px 7px">2 OF 4 CHAPTERS READ</span>
+                  </div>
+                  <div style="font-family:'Newsreader',serif;font-size:23px;font-weight:600;line-height:1.3;margin-top:11px">The 61-plant database, the membrane schedule and six repriced models.</div>
+                  <div style="display:flex;gap:26px;margin-top:14px;font-size:12.5px;color:#33302a;line-height:1.6">
+                    <span>— All four chapters &amp; 9 exhibits</span>
+                    <span>— Plant-level database (.xlsx)</span>
+                    <span>— Part 3 when it publishes</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:16px;margin-top:18px">
+                    <span style="background:#14120e;color:#f6f4ee;font-size:12px;font-weight:700;letter-spacing:.08em;padding:12px 22px;text-transform:uppercase;cursor:pointer">Start 14-day trial — SAR 89/mo</span>
+                    <span style="font-size:12px;color:#57534a">Billed annually · cancel anytime · <span style="text-decoration:underline;text-underline-offset:3px;cursor:pointer">Sign in</span></span>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ isPremium }}" hint-placeholder-val="{{ false }}">
+              <div>
+                <p style="font-family:'Newsreader',serif;font-size:19px;line-height:1.68;color:#26241f;margin:18px 0 0;text-wrap:pretty">Our plant-level database puts the aggregate bill at $2.4bn, of which 61% is recoverable through the capacity charge and 39% is not. Three operators carry two-thirds of the unrecoverable portion — and one of them trades at a premium to the group. That is the trade this series has been building toward.</p>
+                <div style="display:flex;align-items:center;gap:12px;border-top:1px solid #dcd8cc;margin-top:24px;padding-top:14px">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.14em;color:#8a857a">END OF PART 2</span>
+                  <span style="width:7px;height:7px;background:#14120e;transform:rotate(45deg)"></span>
+                  <span style="font-size:11.5px;color:#57534a">Part 3 — <i>who actually owns the water</i> — publishes 10 August.</span>
+                </div>
+              </div>
+            </sc-if>
+
+            <div style="border-top:1px solid #dcd8cc;margin-top:26px;padding:14px 0 34px;display:flex;gap:26px">
+              <div style="flex:1">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.14em;color:#8a857a">METHOD</div>
+                <div style="font-size:11.5px;color:#57534a;line-height:1.6;margin-top:5px">Built from 19 disclosed concession summaries, 61 plant records and six reverse-DCF models. Risk rankings are desk assessments of payment structure, not credit ratings, and are labelled as such wherever they appear.</div>
+              </div>
+              <div style="flex:1">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.14em;color:#8a857a">DISCLOSURE</div>
+                <div style="font-size:11.5px;color:#57534a;line-height:1.6;margin-top:5px">Marsad is research and data, not investment advice. Analysts may not hold positions in covered names. Regulated by DFSA · Marsad FZ-LLC, DIFC.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- deep-dive rail: chapter nav -->
+          <sc-if value="{{ showRail }}" hint-placeholder-val="{{ true }}">
+            <div style="position:sticky;top:20px">
+              <div style="border:1px solid #14120e">
+                <div style="background:#14120e;color:#f6f4ee;padding:11px 15px"><span style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.16em">CHAPTERS · 40 MIN</span></div>
+                <div style="display:flex;gap:10px;align-items:baseline;padding:10px 15px;border-bottom:1px solid #efece3;background:#f6f4ee;cursor:pointer"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;color:#14120e">01</span><span style="font-size:11.5px;font-weight:700;line-height:1.4;flex:1">The contract is the asset</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">9m</span></div>
+                <div style="display:flex;gap:10px;align-items:baseline;padding:10px 15px;border-bottom:1px solid #efece3;cursor:pointer"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;color:#8a857a">02</span><span style="font-size:11.5px;line-height:1.4;flex:1;color:#33302a">Two markets, 180 bp apart</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">11m</span></div>
+                <div style="display:flex;gap:10px;align-items:baseline;padding:10px 15px;border-bottom:1px solid #efece3;cursor:pointer"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;color:#8a857a">03</span><span style="font-size:11.5px;line-height:1.4;flex:1;color:#33302a">Not all offtakers are the same</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">8m</span></div>
+                <div style="display:flex;gap:10px;align-items:baseline;padding:10px 15px;cursor:pointer"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;color:#8a857a">04</span><span style="font-size:11.5px;line-height:1.4;flex:1;color:#33302a">The 2028 membrane cliff</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">12m</span></div>
+              </div>
+
+              <div style="margin-top:20px">
+                <div style="font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;border-bottom:2px solid #14120e;padding-bottom:8px">The series</div>
+                <div style="display:flex;gap:10px;align-items:baseline;padding:10px 0;border-bottom:1px solid #efece3;cursor:pointer"><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;flex:none">PT 1</span><span style="font-family:'Newsreader',serif;font-size:13.5px;font-weight:600;line-height:1.32;flex:1">Where the Gulf's water actually comes from</span></div>
+                <div style="display:flex;gap:10px;align-items:baseline;padding:10px 0;border-bottom:1px solid #efece3;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;flex:none">PT 2</span><span style="font-family:'Newsreader',serif;font-size:13.5px;font-weight:700;line-height:1.32;flex:1">The most valuable pipe in the Gulf</span></div>
+                <div style="display:flex;gap:10px;align-items:baseline;padding:10px 0;border-bottom:1px solid #efece3"><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;flex:none">PT 3</span><span style="font-size:12.5px;line-height:1.4;flex:1;color:#8a857a">Who actually owns the water — 10 Aug</span></div>
+              </div>
+
+              <div style="background:#14120e;color:#f6f4ee;padding:15px 17px;margin-top:20px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.16em;color:#8a857a">THE SCOPE</div>
+                <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid #26241f;margin-top:6px"><span style="font-size:11.5px;color:#cfcabe">Plants in database</span><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600">61</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid #26241f"><span style="font-size:11.5px;color:#cfcabe">Contracted revenue</span><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600">$94bn</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid #26241f"><span style="font-size:11.5px;color:#cfcabe">Contract runs to</span><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600">2049</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 0"><span style="font-size:11.5px;color:#cfcabe">Debt/equity gap</span><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600">180 bp</span></div>
+              </div>
+
+              <div style="margin-top:20px">
+                <div style="font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;border-bottom:2px solid #14120e;padding-bottom:8px">Names in scope</div>
+                <div style="display:flex;align-items:baseline;gap:9px;padding:9px 0;border-bottom:1px solid #efece3;cursor:pointer"><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;width:62px">2082</span><span style="font-size:11.5px;color:#33302a;flex:1">ACWA Power</span><span style="font-size:11px;font-weight:600;color:#0a7a3c">+4.2%</span></div>
+                <div style="display:flex;align-items:baseline;gap:9px;padding:9px 0;border-bottom:1px solid #efece3;cursor:pointer"><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;width:62px">DEWA</span><span style="font-size:11.5px;color:#33302a;flex:1">DEWA</span><span style="font-size:11px;font-weight:600;color:#0a7a3c">+0.7%</span></div>
+                <div style="display:flex;align-items:baseline;gap:9px;padding:9px 0;border-bottom:1px solid #efece3;cursor:pointer"><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;width:62px">TAQA</span><span style="font-size:11.5px;color:#33302a;flex:1">Abu Dhabi Energy</span><span style="font-size:11px;font-weight:600;color:#c0342b">−0.3%</span></div>
+                <div style="display:flex;align-items:baseline;gap:9px;padding:9px 0;border-bottom:1px solid #efece3;cursor:pointer"><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;width:62px">5110</span><span style="font-size:11.5px;color:#33302a;flex:1">Saudi Electricity</span><span style="font-size:11px;font-weight:600;color:#c0342b">−0.1%</span></div>
+              </div>
+
+              <div style="border:1px solid #dcd8cc;background:#f6f4ee;padding:14px 16px;margin-top:20px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.14em;color:#8a857a">HOW THIS WAS BUILT</div>
+                <div style="font-size:11.5px;color:#33302a;line-height:1.6;margin-top:7px">A research agent assembled the 61-plant database from concession filings over three weeks; the desk verified every offtaker structure against the primary document before Faisal wrote a word.</div>
+                <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;border:1px solid #cfcabe;color:#57534a;padding:2px 6px">◆ DATA-FILINGS</span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;border:1px solid #cfcabe;color:#57534a;padding:2px 6px">◆ RESEARCH-2</span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;border:1px solid #14120e;padding:2px 6px">F. RAHMAN</span>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+
+</body>
+</html>

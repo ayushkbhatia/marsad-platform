@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marsad — The Artifact Library (61 story blocks)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..800;1,6..72,400..700&family=Libre+Franklin:ital,wght@0,300..800;1,400..600&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Naskh+Arabic:wght@400..700&display=swap">
+<style>
+  body { margin: 0; background: #e8e5dc; font-family: 'Libre Franklin', sans-serif; }
+  * { box-sizing: border-box; }
+  a { color: #14120e; }
+  a:hover { color: #57534a; }
+</style>
+</head>
+<body>
+
+<!--
+  MARSAD — THE ARTIFACT LIBRARY · 61 STORY BLOCKS · 8 FAMILIES
+  Static, fully-resolved export for developer handoff.
+
+  WHAT THIS IS: the complete inventory of every visual unit an article may contain. Each
+  specimen is shown at production fidelity, with its BLK-* code, the piece types it is
+  allowed in, and a footer stating its binding rule / editorial constraint.
+
+  WHY IT MATTERS: writer agents emit PROSE + A LIST OF BLOCK CODES + LAKE OBJECT IDS.
+  The publishing agent resolves each code against this library, fits the template, and
+  refuses to publish a block whose binding is unverified or whose family is disallowed for
+  that piece type. NO AGENT MAY INVENT A NEW BLOCK. That contract is what makes an
+  agent-run newsroom safe — so this file is a spec, not a mood board.
+
+  THE THREE HARD RULES (restated in the page footer):
+   1. One accent only — ink. Green and red are reserved for direction, never for emphasis.
+   2. Every number carries a freshness state AND a provenance stamp.
+   3. A desk estimate is marked three ways at once (E suffix, ink header, bold value),
+      so it can never be mistaken for a filed figure.
+-->
+
+<section style="padding:36px 40px 60px">
+  <div style="max-width:1560px">
+    <div style="display:flex;align-items:baseline;gap:14px;border-bottom:2px solid #14120e;padding-bottom:12px">
+      <span style="width:11px;height:11px;background:#14120e;transform:rotate(45deg)"></span>
+      <span style="font-family:'Newsreader',serif;font-size:32px;font-weight:700;letter-spacing:-.016em">Story blocks</span>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;color:#8a857a">THE ARTIFACT LIBRARY · 61 BLOCKS · 8 FAMILIES</span>
+      <span style="margin-left:auto;font-size:12.5px;color:#57534a;line-height:1.6;max-width:560px">Every data object that can sit between two paragraphs. Each block carries a code, a rule for when it is allowed, and a binding to the data lake — so a writer agent picks blocks and never invents a layout.</span>
+    </div>
+
+    
+      <div style="display:flex;gap:0;border:1px solid #dcd8cc;background:#fdfcf9;margin-top:16px">
+        <div style="flex:1;padding:12px 16px;border-right:1px solid #dcd8cc"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a">A · INLINE</div><div style="font-size:11.5px;font-weight:600;margin-top:4px">6 — inside a sentence</div></div>
+        <div style="flex:1;padding:12px 16px;border-right:1px solid #dcd8cc"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a">B · STATEMENT</div><div style="font-size:11.5px;font-weight:600;margin-top:4px">6 — assert something</div></div>
+        <div style="flex:1;padding:12px 16px;border-right:1px solid #dcd8cc"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a">C · TABULAR</div><div style="font-size:11.5px;font-weight:600;margin-top:4px">8 — rows &amp; columns</div></div>
+        <div style="flex:1;padding:12px 16px;border-right:1px solid #dcd8cc"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a">D · CHARTS</div><div style="font-size:11.5px;font-weight:600;margin-top:4px">15 — one shape per question</div></div>
+        <div style="flex:1;padding:12px 16px;border-right:1px solid #dcd8cc"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a">E · MECHANISM</div><div style="font-size:11.5px;font-weight:600;margin-top:4px">8 — explainer furniture</div></div>
+        <div style="flex:1;padding:12px 16px;border-right:1px solid #dcd8cc"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a">F · WIRE</div><div style="font-size:11.5px;font-weight:600;margin-top:4px">8 — live &amp; timestamped</div></div>
+        <div style="flex:1;padding:12px 16px;border-right:1px solid #dcd8cc"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a">G · PROVENANCE</div><div style="font-size:11.5px;font-weight:600;margin-top:4px">6 — where it came from</div></div>
+        <div style="flex:1;padding:12px 16px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a">H · GATES</div><div style="font-size:11.5px;font-weight:600;margin-top:4px">4 — cuts &amp; CTAs</div></div>
+      </div>
+    
+  </div>
+
+  <!-- ================= A · INLINE ================= -->
+  
+  <div id="famA" style="max-width:1560px;margin-top:34px">
+    <div style="display:flex;align-items:baseline;gap:12px;background:#14120e;color:#f6f4ee;padding:10px 18px">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.2em">A · INLINE &amp; SENTENCE-LEVEL</span>
+      <span style="font-size:12px;color:#a8a396">Live inside running prose. No block borders, no vertical margin — they must not break the line rhythm.</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px">
+
+      <div id="BLK-TICKER" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-TICKER</span><span style="font-size:11.5px;font-weight:600">Inline instrument chip</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">ALL</span></div>
+        <div style="padding:16px 14px;flex:1"><div style="font-family:'Newsreader',serif;font-size:16px;line-height:1.8;color:#26241f">Gas is now a ninth of the top line at <span style="display:inline-flex;align-items:baseline;gap:6px;border:1px solid #14120e;padding:1px 6px"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600">2222</span><span style="font-size:10.5px;font-weight:600;color:#c0342b">−0.6%</span></span>, and Phase 3 came early.</div></div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">FIRST MENTION OF ANY LISTED NAME · HOVER → QUOTE CARD · BINDS <b>MARKET.QUOTE</b> LIVE</div>
+      </div>
+
+      <div id="BLK-DELTA" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-DELTA</span><span style="font-size:11.5px;font-weight:600">Sentence delta</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">ALL</span></div>
+        <div style="padding:16px 14px;flex:1"><div style="font-family:'Newsreader',serif;font-size:16px;line-height:1.75;color:#26241f">CASA share rose <b style="font-family:'IBM Plex Mono',monospace;font-size:14px">110 bp</b> <span style="font-size:12px;color:#0a7a3c;font-weight:600">▲</span> q/q while cost of funds fell <b style="font-family:'IBM Plex Mono',monospace;font-size:14px">7 bp</b> <span style="font-size:12px;color:#0a7a3c;font-weight:600">▼</span>.</div><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#a8a396;margin-top:11px;line-height:1.7">ARROW IS SEMANTIC, NOT LITERAL — A FALLING COST OF FUNDS IS GREEN</div></div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">ANY CHANGE THE READER SHOULD FEEL · MONO LIFTS IT OUT OF THE SERIF</div>
+      </div>
+
+      <div id="BLK-CITE" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-CITE</span><span style="font-size:11.5px;font-weight:600">Citation chip</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">AI · NOTES</span></div>
+        <div style="padding:16px 14px;flex:1"><div style="font-family:'Newsreader',serif;font-size:15.5px;line-height:1.8;color:#26241f">Unit cost came in 18% below Phase 1 <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#57534a;border:1px solid #cfcabe;padding:0 4px;cursor:pointer">1</span> and the dividend covers to $58 Brent <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#57534a;border:1px solid #cfcabe;padding:0 4px;cursor:pointer">2</span>.</div><div style="border-top:1px solid #efece3;margin-top:11px;padding-top:8px"><div style="font-size:10.5px;color:#14120e;padding:2px 0;cursor:pointer">[1] FY25 annual report, p.47</div><div style="font-size:10.5px;color:#14120e;padding:2px 0;cursor:pointer">[2] Desk model — dividend stress test</div></div></div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">MANDATORY ON EVERY AI FACTUAL CLAIM (R-03) · BINDS <b>LAKE.OBJECT.ID</b></div>
+      </div>
+
+      <div id="BLK-TERM" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-TERM</span><span style="font-size:11.5px;font-weight:600">Defined term</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">EXPLAINERS</span></div>
+        <div style="padding:16px 14px;flex:1"><div style="font-family:'Newsreader',serif;font-size:16px;line-height:1.7;color:#26241f">Because settlement is <span style="border-bottom:1px dotted #14120e;font-weight:600;cursor:help">T+2</span>, the <span style="border-bottom:1px dotted #14120e;font-weight:600;cursor:help">record date</span> falls after the ex-date.</div><div style="border:1px solid #14120e;background:#f6f4ee;padding:10px 12px;margin-top:11px;max-width:290px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.12em;color:#8a857a">T+2 SETTLEMENT</div><div style="font-size:11.5px;color:#33302a;line-height:1.55;margin-top:4px">A trade legally completes two business days after execution.</div></div></div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">FIRST USE ONLY · DOTTED RULE, NEVER LINK BLUE · BINDS <b>GLOSSARY.TERM</b></div>
+      </div>
+
+      <div id="BLK-SPARK" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-SPARK</span><span style="font-size:11.5px;font-weight:600">Inline sparkline</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">ALL</span></div>
+        <div style="padding:16px 14px;flex:1"><div style="font-family:'Newsreader',serif;font-size:16px;line-height:1.95;color:#26241f">The series has been one-way since March <svg width="72" height="20" viewBox="0 0 72 20" style="display:inline-block;vertical-align:middle"><polyline points="0,16 12,14 24,15 36,9 48,10 60,5 72,3" style="fill:none;stroke:#14120e;stroke-width:1.6"></polyline></svg> and shows no sign of turning.</div><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#a8a396;margin-top:10px;line-height:1.7">NO AXES, NO LABELS, NO TOOLTIP. IF IT NEEDS A NUMBER IT IS NOT A SPARKLINE</div></div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">WHEN DIRECTION MATTERS AND MAGNITUDE DOESN'T · MAX 30 POINTS</div>
+      </div>
+
+      <div id="BLK-MARGIN" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-MARGIN</span><span style="font-size:11.5px;font-weight:600">Margin note</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">DEEP DIVES</span></div>
+        <div style="padding:16px 14px;flex:1;display:flex;gap:14px"><div style="flex:1;font-family:'Newsreader',serif;font-size:15px;line-height:1.66;color:#26241f">A 60% secondary component means most proceeds go to the parent rather than the balance sheet.</div><div style="flex:none;width:118px;border-left:1px solid #dcd8cc;padding-left:11px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a">NOTE</div><div style="font-size:10.5px;color:#57534a;line-height:1.5;margin-top:4px">Standard for GCC privatisation floats since 2019.</div></div></div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">CONTEXT A READER MAY SKIP · NEVER LOAD-BEARING · AUTHORED, NOT BOUND</div>
+      </div>
+    </div>
+  </div>
+  
+
+  <!-- ================= B · STATEMENT ================= -->
+  
+  <div id="famB" style="max-width:1560px;margin-top:34px">
+    <div style="display:flex;align-items:baseline;gap:12px;background:#14120e;color:#f6f4ee;padding:10px 18px">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.2em">B · STATEMENT BLOCKS</span>
+      <span style="font-size:12px;color:#a8a396">Each one takes a position — so each one is rules-checked and attributable to a human.</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px">
+
+      <div id="BLK-THESIS" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-THESIS</span><span style="font-size:11.5px;font-weight:600">Argument in three lines</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">FEATURE · NOTE</span></div>
+        <div style="padding:16px 14px;flex:1"><div style="border-top:2px solid #14120e;border-bottom:1px solid #dcd8cc;padding:13px 0"><div style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.16em;color:#8a857a">THE ARGUMENT IN THREE LINES</div><div style="display:flex;gap:9px;align-items:baseline;margin-top:9px"><span style="width:5px;height:5px;background:#14120e;flex:none;transform:translateY(-2px)"></span><span style="font-size:12px;line-height:1.5;color:#33302a">Gas is 11.4% of revenue, up 730 bp in seven years.</span></div><div style="display:flex;gap:9px;align-items:baseline;margin-top:6px"><span style="width:5px;height:5px;background:#14120e;flex:none;transform:translateY(-2px)"></span><span style="font-size:12px;line-height:1.5;color:#33302a">Phase 3 sanctioned early at 18% below Phase 1 cost.</span></div><div style="display:flex;gap:9px;align-items:baseline;margin-top:6px"><span style="width:5px;height:5px;background:#14120e;flex:none;transform:translateY(-2px)"></span><span style="font-size:12px;line-height:1.5;color:#33302a">At 27.15 the shares price no gas re-rating at all.</span></div></div></div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">EXACTLY THREE LINES, EACH INDEPENDENTLY CHECKABLE · SITS ABOVE PARAGRAPH ONE</div>
+      </div>
+
+      <div id="BLK-PULLQUOTE" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-PULLQUOTE</span><span style="font-size:11.5px;font-weight:600">Pull quote</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">FEATURE</span></div>
+        <div style="padding:18px 14px;flex:1"><div style="border-left:3px solid #14120e;padding:2px 0 2px 20px"><div style="font-family:'Newsreader',serif;font-size:21px;font-style:italic;line-height:1.38;letter-spacing:-.006em">"You do not sanction a $46bn expansion early because the returns are strategic."</div><div style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.1em;color:#8a857a;margin-top:10px">— GULF INFRASTRUCTURE FUND PM</div></div></div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">ONE PER 1,500 WORDS · A HUMAN VOICE, NEVER A RESTATED STATISTIC</div>
+      </div>
+
+      <div id="BLK-BIGNUM" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-BIGNUM</span><span style="font-size:11.5px;font-weight:600">The number that matters</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">ALL</span></div>
+        <div style="padding:18px 14px;flex:1;display:flex;align-items:center;gap:18px"><div style="font-family:'Newsreader',serif;font-size:60px;font-weight:700;line-height:.86;letter-spacing:-.03em;flex:none">11.4%</div><div style="border-left:1px solid #dcd8cc;padding-left:16px"><div style="font-size:13px;font-weight:600;line-height:1.4">Share of Aramco revenue from gas and NGLs, Q1 2026</div><div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#57534a;margin-top:5px">FROM 4.1% IN 2019 · +730 BP</div></div></div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">ONE PER PIECE · THE FIGURE THE HEADLINE RESTS ON · ONE LAKE FIELD, NOT AN AGGREGATE</div>
+      </div>
+
+      <div id="BLK-VERDICT" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-VERDICT</span><span style="font-size:11.5px;font-weight:600">Rating card</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">NOTES ONLY</span></div>
+        <div style="padding:16px 14px;flex:1"><div style="background:#14120e;color:#f6f4ee;padding:15px 17px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.16em;color:#8a857a">RATING · CHANGED IN THIS NOTE</div><div style="display:flex;align-items:baseline;gap:10px;margin-top:9px"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600">1120</span><span style="font-family:'Newsreader',serif;font-size:19px;font-weight:700">Al Rajhi Bank</span></div><div style="display:flex;align-items:center;gap:9px;margin-top:11px"><span style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:#f6f4ee;color:#14120e;padding:4px 10px">Overweight</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:#8a857a">FROM NEUTRAL</span></div><div style="display:flex;gap:0;border-top:1px solid #26241f;margin-top:13px"><div style="flex:1;padding:10px 0;border-right:1px solid #26241f"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">TARGET</div><div style="font-family:'Newsreader',serif;font-size:21px;font-weight:700;margin-top:2px">112.00</div></div><div style="flex:1;padding:10px 0 10px 16px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">UPSIDE</div><div style="font-family:'Newsreader',serif;font-size:21px;font-weight:700;margin-top:2px;color:#4fc47f">+14.1%</div></div></div></div></div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">ONLY ON PIECES WITH A FORMAL CALL · MUST NAME THE PRIOR RATING · NEVER ON WIRES</div>
+      </div>
+
+      <div id="BLK-TAKE" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-TAKE</span><span style="font-size:11.5px;font-weight:600">Marsad Take · gated</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">PREMIUM</span></div>
+        <div style="padding:16px 14px;flex:1"><div style="border:1px solid #14120e;background:#f6f4ee;padding:13px 15px"><div style="display:flex;align-items:center;gap:7px"><span style="width:7px;height:7px;background:#14120e;transform:rotate(45deg)"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.14em">MARSAD TAKE</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;border:1px solid #14120e;padding:2px 5px">PREMIUM</span></div><div style="filter:blur(3px);pointer-events:none;user-select:none;margin-top:9px"><div style="font-family:'Newsreader',serif;font-size:15px;font-weight:600;line-height:1.35">Fair value OMR 0.128 — subscribe at the top of the range</div><div style="font-size:11px;color:#57534a;line-height:1.5;margin-top:4px">The implied yield over-compensates for offtake concentration.</div></div><span style="display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;background:#14120e;color:#f6f4ee;padding:7px 12px;text-transform:uppercase;margin-top:10px;cursor:pointer">Unlock the take →</span></div></div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">BLUR 3PX + UNLOCK · THE HEADLINE STAYS READABLE, THE JUDGEMENT DOESN'T</div>
+      </div>
+
+      <div id="BLK-FALSIFY" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-FALSIFY</span><span style="font-size:11.5px;font-weight:600">What would change this view</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">NOTE · AI</span></div>
+        <div style="padding:16px 14px;flex:1"><div style="border:1px solid #dcd8cc;background:#f6f4ee;padding:13px 15px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.14em;color:#8a857a">WHAT WOULD CHANGE THIS VIEW</div><div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid #e3dfd4;margin-top:6px"><span style="width:6px;height:6px;background:#c0342b;transform:rotate(45deg);flex:none;margin-top:5px"></span><span style="font-size:11.5px;line-height:1.5;color:#33302a">Two consecutive quarters of CASA erosion</span></div><div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid #e3dfd4"><span style="width:6px;height:6px;background:#c0342b;transform:rotate(45deg);flex:none;margin-top:5px"></span><span style="font-size:11.5px;line-height:1.5;color:#33302a">A cost-of-funds print above 3.40%</span></div><div style="display:flex;gap:10px;padding:7px 0"><span style="width:6px;height:6px;background:#c0342b;transform:rotate(45deg);flex:none;margin-top:5px"></span><span style="font-size:11.5px;line-height:1.5;color:#33302a">A second SAMA cut before year-end</span></div></div></div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">REQUIRED ON ANY PIECE WITH A VIEW · FALSIFIABILITY IS THE FEATURE</div>
+      </div>
+    </div>
+  </div>
+  
+
+  <!-- ================= C · TABULAR ================= -->
+  
+  <div id="famC" style="max-width:1560px;margin-top:34px">
+    <div style="display:flex;align-items:baseline;gap:12px;background:#14120e;color:#f6f4ee;padding:10px 18px">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.2em">C · TABULAR</span>
+      <span style="font-size:12px;color:#a8a396">Mono numerals, tabular-nums, hairline rows, black header bar. Estimate columns are always marked.</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:16px">
+
+      <div id="BLK-STATSTRIP" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-STATSTRIP</span><span style="font-size:11.5px;font-weight:600">Four-up stat strip</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">ALL</span></div>
+        <div style="padding:16px 14px;flex:1"><div style="display:flex;border:1px solid #dcd8cc;background:#f6f4ee"><div style="flex:1;padding:13px 15px;border-right:1px solid #dcd8cc"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a">GROSS CAPEX</div><div style="font-family:'Newsreader',serif;font-size:24px;font-weight:700;margin-top:4px">SAR 46bn</div></div><div style="flex:1;padding:13px 15px;border-right:1px solid #dcd8cc"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a">CAPACITY</div><div style="font-family:'Newsreader',serif;font-size:24px;font-weight:700;margin-top:4px">2.0 bcf/d</div></div><div style="flex:1;padding:13px 15px;border-right:1px solid #dcd8cc"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a">VS PHASE 1</div><div style="font-family:'Newsreader',serif;font-size:24px;font-weight:700;margin-top:4px;color:#0a7a3c">−18%</div></div><div style="flex:1;padding:13px 15px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a">FIRST GAS</div><div style="font-family:'Newsreader',serif;font-size:24px;font-weight:700;margin-top:4px">2028</div></div></div></div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">3–5 CELLS MAX · ONE FACT EACH · NEVER A PLACE TO DUMP LEFTOVER NUMBERS</div>
+      </div>
+
+      <div id="BLK-KEYSTATS" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-KEYSTATS</span><span style="font-size:11.5px;font-weight:600">Facts grid</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">IPO · PROFILE</span></div>
+        <div style="padding:16px 14px;flex:1"><div style="display:grid;grid-template-columns:repeat(4,1fr);border-left:1px solid #dcd8cc;border-top:1px solid #dcd8cc"><div style="border-right:1px solid #dcd8cc;border-bottom:1px solid #dcd8cc;padding:10px 13px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a">PRICE RANGE</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;margin-top:3px">0.106–0.111</div></div><div style="border-right:1px solid #dcd8cc;border-bottom:1px solid #dcd8cc;padding:10px 13px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a">RAISE</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;margin-top:3px">≈ $660M</div></div><div style="border-right:1px solid #dcd8cc;border-bottom:1px solid #dcd8cc;padding:10px 13px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a">MIN LOT</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;margin-top:3px">OMR 11.10</div></div><div style="border-right:1px solid #dcd8cc;border-bottom:1px solid #dcd8cc;padding:10px 13px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a">REFUNDS BY</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;margin-top:3px">16 JUL</div></div></div><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#a8a396;margin-top:9px;line-height:1.7">MIN LOT AND REFUND DATE ARE GCC-RETAIL ESSENTIALS — NEVER DROP THEM FOR SPACE</div></div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">4 OR 8 CELLS · MECHANICS AND CONSEQUENCES MIXED DELIBERATELY</div>
+      </div>
+
+      <div id="BLK-FINTABLE" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-FINTABLE</span><span style="font-size:11.5px;font-weight:600">Financials with estimate column</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">NOTE · DEEP DIVE</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="display:grid;grid-template-columns:1fr 62px 62px 62px 62px;gap:8px;padding:7px 0 5px;border-bottom:1px solid #dcd8cc"><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.08em;color:#8a857a">OMR M</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;text-align:right">FY23</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;text-align:right">FY24</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;text-align:right">FY25</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#14120e;font-weight:600;text-align:right">FY26E</span></div>
+          <div style="display:grid;grid-template-columns:1fr 62px 62px 62px 62px;gap:8px;padding:7px 0;border-bottom:1px solid #efece3;background:#f6f4ee"><span style="font-size:12px;font-weight:700">Revenue</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right">742</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right">781</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right">804</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;text-align:right">831</span></div>
+          <div style="display:grid;grid-template-columns:1fr 62px 62px 62px 62px;gap:8px;padding:7px 0;border-bottom:1px solid #efece3"><span style="font-size:12px;color:#33302a">EBITDA</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;color:#57534a">296</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;color:#57534a">312</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;color:#57534a">328</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;text-align:right">344</span></div>
+          <div style="display:grid;grid-template-columns:1fr 62px 62px 62px 62px;gap:8px;padding:7px 0;border-bottom:1px solid #efece3"><span style="font-size:12px;color:#33302a">Margin</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;color:#57534a">39.9%</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;color:#57534a">40.0%</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;color:#57534a">40.8%</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;text-align:right">41.4%</span></div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#a8a396;margin-top:8px;line-height:1.7">FY26E COLUMN HEADER IS INK, VALUES ARE BOLD — A DESK ESTIMATE MUST NEVER READ AS AN ACTUAL</div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">MAX 8 ROWS INLINE · LONGER TABLES GO TO THE XLSX · BINDS <b>FILING.FINANCIALS</b></div>
+      </div>
+
+      <div id="BLK-SCENARIO" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-SCENARIO</span><span style="font-size:11.5px;font-weight:600">Three paths</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">NOTE · FEATURE</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="display:flex;align-items:baseline;gap:10px;background:#14120e;color:#f6f4ee;padding:7px 12px"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.14em">THREE PATHS TO 2028</span></div>
+          <div style="display:grid;grid-template-columns:1.3fr 62px 68px 1fr;gap:10px;padding:7px 12px 5px;border-bottom:1px solid #dcd8cc"><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">SCENARIO</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;text-align:right">EPS</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;text-align:right">RETURN</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">TRIGGER</span></div>
+          <div style="display:grid;grid-template-columns:1.3fr 62px 68px 1fr;gap:10px;padding:9px 12px;border-bottom:1px solid #efece3;align-items:baseline"><span style="font-size:12px;font-weight:600">Gas re-rate lands</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right">2.24</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;color:#0a7a3c;text-align:right">+31%</span><span style="font-size:11px;color:#57534a;line-height:1.4">Segment split at H1</span></div>
+          <div style="display:grid;grid-template-columns:1.3fr 62px 68px 1fr;gap:10px;padding:9px 12px;border-bottom:1px solid #efece3;align-items:baseline;background:#f6f4ee"><span style="font-size:12px;font-weight:700">Base — our case</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right">2.02</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;color:#0a7a3c;text-align:right">+20%</span><span style="font-size:11px;color:#57534a;line-height:1.4">Phase 2 on schedule</span></div>
+          <div style="display:grid;grid-template-columns:1.3fr 62px 68px 1fr;gap:10px;padding:9px 12px;border-bottom:1px solid #efece3;align-items:baseline"><span style="font-size:12px;font-weight:600">Crude drags</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right">1.14</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;color:#c0342b;text-align:right">−13%</span><span style="font-size:11px;color:#57534a;line-height:1.4">Base dividend cut</span></div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">EXACTLY THREE · BASE ROW TINTED · EVERY PATH NEEDS AN OBSERVABLE TRIGGER</div>
+      </div>
+
+      <div id="BLK-RANKROW" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-RANKROW</span><span style="font-size:11.5px;font-weight:600">League table</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">RANKED LIST</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="display:grid;grid-template-columns:26px 1fr 74px 74px;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid #efece3"><span style="font-family:'Newsreader',serif;font-size:18px;font-weight:600;color:#cfcabe">1</span><span style="font-size:12.5px;font-weight:600">Najm Insurance <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#8a857a">QE</span></span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;text-align:right">8.8%</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#c0342b;text-align:right">PAYOUT 118%</span></div>
+          <div style="display:grid;grid-template-columns:26px 1fr 74px 74px;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid #efece3"><span style="font-family:'Newsreader',serif;font-size:18px;font-weight:600;color:#cfcabe">2</span><span style="font-size:12.5px;font-weight:600">Muscat Telecom <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#8a857a">MSX</span></span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;text-align:right">6.1%</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;text-align:right">PAYOUT 74%</span></div>
+          <div style="display:grid;grid-template-columns:26px 1fr 74px 74px;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid #efece3"><span style="font-family:'Newsreader',serif;font-size:18px;font-weight:600;color:#cfcabe">3</span><span style="font-size:12.5px;font-weight:600">stc <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#8a857a">TDWL</span></span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;text-align:right">5.4%</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;text-align:right">PAYOUT 81%</span></div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#a8a396;margin-top:8px;line-height:1.7">THE RANKED METRIC ALWAYS CARRIES A QUALIFYING COLUMN — A YIELD TABLE WITHOUT PAYOUT IS A TRAP</div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">5–10 ROWS · RANK NUMERALS IN NEWSREADER, VALUES IN MONO</div>
+      </div>
+
+      <div id="BLK-BEATMISS" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-BEATMISS</span><span style="font-size:11.5px;font-weight:600">Actual vs consensus</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">EARNINGS</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="display:grid;grid-template-columns:1fr 68px 68px 74px 66px;gap:9px;padding:7px 0 5px;border-bottom:1px solid #dcd8cc"><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">NAME</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;text-align:right">ACTUAL</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;text-align:right">CONS.</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;text-align:right">SURPRISE</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;text-align:right">REACTION</span></div>
+          <div style="display:grid;grid-template-columns:1fr 68px 68px 74px 66px;gap:9px;padding:8px 0;border-bottom:1px solid #efece3;align-items:baseline"><span style="font-size:12px">SNB <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#8a857a">1180</span></span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;font-weight:600">0.79</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;color:#57534a">0.76</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;font-weight:700;color:#0a7a3c">+4.2%</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;color:#0a7a3c">+2.1%</span></div>
+          <div style="display:grid;grid-template-columns:1fr 68px 68px 74px 66px;gap:9px;padding:8px 0;border-bottom:1px solid #efece3;align-items:baseline"><span style="font-size:12px">SABIC <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#8a857a">2010</span></span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;font-weight:600">0.38</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;color:#57534a">0.42</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;font-weight:700;color:#c0342b">−9.5%</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;color:#c0342b">−2.1%</span></div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#a8a396;margin-top:8px;line-height:1.7">SURPRISE AND PRICE REACTION SIT SIDE BY SIDE — THEY DISAGREE MORE OFTEN THAN READERS EXPECT</div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">BINDS <b>FILING.EPS</b> + <b>CONSENSUS.EPS</b> · REACTION IS T+0 CLOSE</div>
+      </div>
+
+      <div id="BLK-EXDATE" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-EXDATE</span><span style="font-size:11.5px;font-weight:600">Dividend row</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">DIVIDENDS</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="display:grid;grid-template-columns:56px 1fr 68px 78px 58px 66px;gap:9px;padding:7px 0 5px;border-bottom:1px solid #dcd8cc"><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">TICKER</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">TYPE</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;text-align:right">DPS</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;text-align:right">EX-DATE</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;text-align:right">YIELD</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;text-align:right">PAY</span></div>
+          <div style="display:grid;grid-template-columns:56px 1fr 68px 78px 58px 66px;gap:9px;padding:8px 0;border-bottom:1px solid #efece3;align-items:center"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600">7010</span><span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;border:1px solid #cfcabe;color:#57534a;padding:2px 6px">INTERIM</span></span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right">0.55</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;font-weight:700">13 JUL</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;font-weight:700">5.4%</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;text-align:right;color:#57534a">30 JUL</span></div>
+          <div style="display:grid;grid-template-columns:56px 1fr 68px 78px 58px 66px;gap:9px;padding:8px 0;border-bottom:1px solid #efece3;align-items:center"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600">NAJM</span><span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;background:#14120e;color:#f6f4ee;padding:2px 6px">SPECIAL</span></span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right">0.90</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;font-weight:700">14 JUL</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;font-weight:700">8.8%</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;text-align:right;color:#57534a">2 AUG</span></div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#a8a396;margin-top:8px;line-height:1.7">SPECIAL TYPE CHIP INVERTS TO INK · EX-DATE IS THE BOLD COLUMN, NOT PAY DATE</div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">BINDS <b>DIVIDEND.EXDATE</b> · ONE ROW PER DECLARATION, NOT PER PAYMENT</div>
+      </div>
+
+      <div id="BLK-COMPARE" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-COMPARE</span><span style="font-size:11.5px;font-weight:600">Transposed comparison</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">2–4 NAMES</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="display:grid;grid-template-columns:104px 1fr 1fr 1fr">
+            <div style="border-bottom:1px solid #dcd8cc"></div>
+            <div style="border-bottom:1px solid #dcd8cc;border-left:1px solid #e3dfd4;padding:9px 12px"><div style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600">1120</div><div style="font-size:12px;font-weight:600;margin-top:2px">Al Rajhi</div></div>
+            <div style="border-bottom:1px solid #dcd8cc;border-left:1px solid #e3dfd4;padding:9px 12px"><div style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600">QNBK</div><div style="font-size:12px;font-weight:600;margin-top:2px">QNB</div></div>
+            <div style="border-bottom:1px solid #dcd8cc;border-left:1px dashed #cfcabe;padding:9px 12px;display:grid;place-items:center;color:#8a857a"><span style="font-size:11px;font-weight:600">+ Add</span></div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a;align-self:center">MKT CAP (USD)</div>
+            <div style="border-left:1px solid #e3dfd4;border-bottom:1px solid #efece3;padding:9px 12px;font-size:12.5px;font-weight:600">104.8B</div>
+            <div style="border-left:1px solid #e3dfd4;border-bottom:1px solid #efece3;padding:9px 12px;font-size:12.5px">45.4B</div>
+            <div style="border-left:1px dashed #cfcabe;border-bottom:1px solid #efece3"></div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a;align-self:center">DIV YIELD</div>
+            <div style="border-left:1px solid #e3dfd4;border-bottom:1px solid #efece3;padding:9px 12px;font-size:12.5px">4.1%</div>
+            <div style="border-left:1px solid #e3dfd4;border-bottom:1px solid #efece3;padding:9px 12px;font-size:12.5px;font-weight:600">5.7%</div>
+            <div style="border-left:1px dashed #cfcabe;border-bottom:1px solid #efece3"></div>
+          </div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#a8a396;margin-top:9px;line-height:1.7">PRICES STAY LOCAL, MARKET CAP IS USD-NORMALISED · BEST-IN-ROW IS BOLD · EMPTY SLOT KEEPS ITS DASHED COLUMN SO THE GRID NEVER REFLOWS</div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">METRICS AS ROWS, NAMES AS COLUMNS · MAX 4 NAMES, 8 METRICS</div>
+      </div>
+    </div>
+  </div>
+  
+
+  <!-- ================= D · CHARTS ================= -->
+  
+  <div id="famD" style="max-width:1560px;margin-top:34px">
+    <div style="display:flex;align-items:baseline;gap:12px;background:#14120e;color:#f6f4ee;padding:10px 18px">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.2em">D · CHARTS</span>
+      <span style="font-size:12px;color:#a8a396">One shape per question. Ink 2px lines, rgba(20,18,14,.07) fills, mono 8px axes, #efece3 gridlines, estimates in green or dashed. Never a second accent colour.</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px">
+
+      <div id="BLK-LINE" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-LINE</span><span style="font-size:11.5px;font-weight:600">Annotated time series</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">"WHEN DID IT TURN?"</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <svg width="100%" height="130" viewBox="0 0 420 130" preserveAspectRatio="none" style="display:block">
+            <line x1="0" y1="110" x2="420" y2="110" style="stroke:#dcd8cc;stroke-width:1"></line>
+            <line x1="0" y1="74" x2="420" y2="74" style="stroke:#efece3;stroke-width:1"></line>
+            <line x1="0" y1="38" x2="420" y2="38" style="stroke:#efece3;stroke-width:1"></line>
+            <line x1="252" y1="10" x2="252" y2="110" style="stroke:#a8a396;stroke-width:1;stroke-dasharray:4 4"></line>
+            <polyline points="0,30 60,44 120,58 180,70 240,78 300,66 360,50 420,36" style="fill:none;stroke:#14120e;stroke-width:2.2"></polyline>
+            <circle cx="252" cy="78" r="4" style="fill:#fdfcf9;stroke:#14120e;stroke-width:2"></circle>
+          </svg>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;margin-top:7px;line-height:1.7">DASHED VERTICAL + HOLLOW MARKER = THE EVENT THE PROSE IS ABOUT</div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">EVERY LINE CHART MUST ANNOTATE ITS INFLECTION OR IT IS DECORATION</div>
+      </div>
+
+      <div id="BLK-AREA" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-AREA</span><span style="font-size:11.5px;font-weight:600">Share-of-total area</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">"HOW MUCH NOW?"</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <svg width="100%" height="130" viewBox="0 0 420 130" preserveAspectRatio="none" style="display:block">
+            <line x1="0" y1="110" x2="420" y2="110" style="stroke:#dcd8cc;stroke-width:1"></line>
+            <line x1="0" y1="60" x2="420" y2="60" style="stroke:#efece3;stroke-width:1"></line>
+            <polygon points="0,104 60,98 120,90 180,66 240,48 300,28 360,16 420,10 420,110 0,110" style="fill:rgba(20,18,14,.07)"></polygon>
+            <polyline points="0,104 60,98 120,90 180,66 240,48 300,28 360,16 420,10" style="fill:none;stroke:#14120e;stroke-width:2.2"></polyline>
+            <circle cx="420" cy="10" r="4" style="fill:#14120e"></circle>
+          </svg>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;margin-top:7px;line-height:1.7">FILL ONLY WHEN THE AREA MEANS SOMETHING — A SHARE, A CUMULATIVE TOTAL</div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">NEVER STACK MORE THAN 3 AREAS · BEYOND THAT USE BLK-STACK</div>
+      </div>
+
+      <div id="BLK-BARS" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-BARS</span><span style="font-size:11.5px;font-weight:600">Categorical bars</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">"WHO IS BIGGEST?"</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="display:flex;align-items:flex-end;gap:12px;height:130px">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600">$2.9b</span><span style="width:100%;background:#14120e;height:92px"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">TDWL</span></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600">$1.7b</span><span style="width:100%;background:#14120e;height:54px"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">ADX</span></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600">$1.1b</span><span style="width:100%;background:#14120e;height:35px"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">DFM</span></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600">$0.7b</span><span style="width:100%;background:#57534a;height:22px"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">MSX</span></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600">$0.4b</span><span style="width:100%;background:#a8a396;height:12px"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">QSE</span></div>
+          </div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">VALUE LABELS ON TOP, NEVER AN AXIS · GREY DOWN THE TAIL TO FOCUS THE LEAD</div>
+      </div>
+
+      <div id="BLK-STACK" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-STACK</span><span style="font-size:11.5px;font-weight:600">Proportional bar</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">"WHAT'S IT MADE OF?"</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="display:flex;height:46px;border:1px solid #dcd8cc">
+            <div style="width:68%;background:#14120e;color:#f6f4ee;display:flex;flex-direction:column;justify-content:center;padding:0 12px"><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#a8a396">CAPACITY</span><span style="font-size:12px;font-weight:600">68%</span></div>
+            <div style="width:24%;background:#a8a396;color:#14120e;display:flex;flex-direction:column;justify-content:center;padding:0 10px"><span style="font-family:'IBM Plex Mono',monospace;font-size:8px">VARIABLE</span><span style="font-size:11.5px;font-weight:600">24%</span></div>
+            <div style="width:8%;background:#e3dfd4;color:#57534a;display:grid;place-items:center"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600">8%</span></div>
+          </div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;margin-top:9px;line-height:1.7">ONE BAR, LABELS INSIDE THE SEGMENTS · INK → GREY → PALE, DARKEST IS LARGEST</div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">MAX 4 SEGMENTS · IF A SEGMENT IS UNDER 5% MERGE IT INTO "OTHER"</div>
+      </div>
+
+      <div id="BLK-WATERFALL" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-WATERFALL</span><span style="font-size:11.5px;font-weight:600">Bridge</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">"WHAT MOVED IT?"</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <svg width="100%" height="130" viewBox="0 0 420 130" style="display:block">
+            <line x1="0" y1="112" x2="420" y2="112" style="stroke:#dcd8cc;stroke-width:1"></line>
+            <rect x="6" y="52" width="52" height="60" style="fill:#a8a396"></rect>
+            <rect x="76" y="34" width="52" height="18" style="fill:#0a7a3c"></rect>
+            <rect x="146" y="24" width="52" height="10" style="fill:#0a7a3c"></rect>
+            <rect x="216" y="24" width="52" height="14" style="fill:#c0342b"></rect>
+            <rect x="286" y="38" width="52" height="8" style="fill:#c0342b"></rect>
+            <rect x="356" y="46" width="52" height="66" style="fill:#14120e"></rect>
+            <line x1="58" y1="52" x2="76" y2="52" style="stroke:#a8a396;stroke-width:1;stroke-dasharray:2 2"></line>
+            <line x1="128" y1="34" x2="146" y2="34" style="stroke:#a8a396;stroke-width:1;stroke-dasharray:2 2"></line>
+            <line x1="198" y1="24" x2="216" y2="24" style="stroke:#a8a396;stroke-width:1;stroke-dasharray:2 2"></line>
+            <line x1="268" y1="38" x2="286" y2="38" style="stroke:#a8a396;stroke-width:1;stroke-dasharray:2 2"></line>
+            <line x1="338" y1="46" x2="356" y2="46" style="stroke:#a8a396;stroke-width:1;stroke-dasharray:2 2"></line>
+            <text x="32" y="126" style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;fill:#8a857a;text-anchor:middle">FY25</text>
+            <text x="102" y="126" style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;fill:#8a857a;text-anchor:middle">VOL</text>
+            <text x="172" y="126" style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;fill:#8a857a;text-anchor:middle">PRICE</text>
+            <text x="242" y="126" style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;fill:#8a857a;text-anchor:middle">COST</text>
+            <text x="312" y="126" style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;fill:#8a857a;text-anchor:middle">FX</text>
+            <text x="382" y="126" style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;fill:#8a857a;text-anchor:middle">FY26E</text>
+          </svg>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">START AND END BARS SIT ON THE BASELINE · CONNECTORS DASHED · 4–6 DRIVERS</div>
+      </div>
+
+      <div id="BLK-SCATTER" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-SCATTER</span><span style="font-size:11.5px;font-weight:600">Bubble scatter</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">"WHO'S POSITIONED?"</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <svg width="100%" height="130" viewBox="0 0 420 130" style="display:block">
+            <line x1="26" y1="6" x2="26" y2="112" style="stroke:#dcd8cc;stroke-width:1"></line>
+            <line x1="26" y1="112" x2="414" y2="112" style="stroke:#dcd8cc;stroke-width:1"></line>
+            <line x1="220" y1="6" x2="220" y2="112" style="stroke:#a8a396;stroke-width:1;stroke-dasharray:4 4"></line>
+            <line x1="26" y1="60" x2="414" y2="60" style="stroke:#a8a396;stroke-width:1;stroke-dasharray:4 4"></line>
+            <circle cx="330" cy="30" r="17" style="fill:rgba(20,18,14,.16);stroke:#14120e;stroke-width:1.6"></circle>
+            <text x="330" y="33" style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;fill:#14120e;text-anchor:middle">1120</text>
+            <circle cx="286" cy="48" r="11" style="fill:rgba(20,18,14,.16);stroke:#14120e;stroke-width:1.5"></circle>
+            <circle cx="238" cy="66" r="9" style="fill:rgba(20,18,14,.08);stroke:#a8a396;stroke-width:1.3"></circle>
+            <circle cx="190" cy="58" r="8" style="fill:rgba(20,18,14,.08);stroke:#a8a396;stroke-width:1.3"></circle>
+            <circle cx="150" cy="88" r="15" style="fill:rgba(192,52,43,.12);stroke:#c0342b;stroke-width:1.6"></circle>
+            <text x="150" y="91" style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;fill:#c0342b;text-anchor:middle">1180</text>
+            <circle cx="98" cy="74" r="7" style="fill:rgba(20,18,14,.08);stroke:#a8a396;stroke-width:1.3"></circle>
+          </svg>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;margin-top:6px;line-height:1.7">QUADRANT LINES AT THE MEDIANS · ONLY THE ARGUMENT'S NAMES ARE LABELLED</div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">RADIUS = A THIRD VARIABLE, ALWAYS STATED · RATING DRIVES THE OUTLINE COLOUR</div>
+      </div>
+
+      <div id="BLK-DIST" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-DIST</span><span style="font-size:11.5px;font-weight:600">Distribution</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">"HOW SPREAD OUT?"</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <svg width="100%" height="130" viewBox="0 0 420 130" preserveAspectRatio="none" style="display:block">
+            <line x1="0" y1="66" x2="420" y2="66" style="stroke:#14120e;stroke-width:1.5"></line>
+            <rect x="6" y="36" width="26" height="30" style="fill:#0a7a3c"></rect>
+            <rect x="38" y="42" width="26" height="24" style="fill:#0a7a3c"></rect>
+            <rect x="70" y="28" width="26" height="38" style="fill:#0a7a3c"></rect>
+            <rect x="102" y="48" width="26" height="18" style="fill:#0a7a3c"></rect>
+            <rect x="134" y="40" width="26" height="26" style="fill:#0a7a3c"></rect>
+            <rect x="166" y="54" width="26" height="12" style="fill:#0a7a3c"></rect>
+            <rect x="198" y="58" width="26" height="8" style="fill:#0a7a3c"></rect>
+            <rect x="230" y="66" width="26" height="10" style="fill:#c0342b"></rect>
+            <rect x="262" y="66" width="26" height="18" style="fill:#c0342b"></rect>
+            <rect x="294" y="66" width="26" height="26" style="fill:#c0342b"></rect>
+            <rect x="326" y="66" width="26" height="34" style="fill:#c0342b"></rect>
+            <rect x="358" y="66" width="26" height="48" style="fill:#c0342b"></rect>
+          </svg>
+          <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#a8a396;margin-top:5px"><span>19 BEATS</span><span>MEDIAN +2.1%</span><span>9 MISSES</span></div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">ZERO LINE IS THE HEAVY RULE · BARS HANG BOTH WAYS FROM IT</div>
+      </div>
+
+      <div id="BLK-DUMBBELL" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-DUMBBELL</span><span style="font-size:11.5px;font-weight:600">Before / after</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">"WHAT CHANGED?"</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <svg width="100%" height="130" viewBox="0 0 420 130" style="display:block">
+            <line x1="70" y1="22" x2="250" y2="22" style="stroke:#dcd8cc;stroke-width:2"></line>
+            <circle cx="70" cy="22" r="5" style="fill:#fdfcf9;stroke:#a8a396;stroke-width:2"></circle>
+            <circle cx="250" cy="22" r="5" style="fill:#14120e"></circle>
+            <text x="4" y="26" style="font-family:'IBM Plex Mono',monospace;font-size:9px;fill:#14120e">1120</text>
+            <text x="266" y="26" style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;fill:#0a7a3c">+8.0</text>
+            <line x1="90" y1="56" x2="196" y2="56" style="stroke:#dcd8cc;stroke-width:2"></line>
+            <circle cx="90" cy="56" r="5" style="fill:#fdfcf9;stroke:#a8a396;stroke-width:2"></circle>
+            <circle cx="196" cy="56" r="5" style="fill:#14120e"></circle>
+            <text x="4" y="60" style="font-family:'IBM Plex Mono',monospace;font-size:9px;fill:#14120e">1150</text>
+            <text x="212" y="60" style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;fill:#0a7a3c">+3.0</text>
+            <line x1="150" y1="90" x2="122" y2="90" style="stroke:#dcd8cc;stroke-width:2"></line>
+            <circle cx="150" cy="90" r="5" style="fill:#fdfcf9;stroke:#a8a396;stroke-width:2"></circle>
+            <circle cx="122" cy="90" r="5" style="fill:#14120e"></circle>
+            <text x="4" y="94" style="font-family:'IBM Plex Mono',monospace;font-size:9px;fill:#14120e">1180</text>
+            <text x="166" y="94" style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;fill:#c0342b">−1.5</text>
+            <text x="4" y="120" style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;fill:#a8a396">HOLLOW = OLD TARGET · SOLID = NEW</text>
+          </svg>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">BEST BLOCK FOR PRICE-TARGET AND ESTIMATE REVISIONS · DIRECTION READS INSTANTLY</div>
+      </div>
+
+      <div id="BLK-SLOPE" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-SLOPE</span><span style="font-size:11.5px;font-weight:600">Rank change</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">"WHO OVERTOOK WHOM?"</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <svg width="100%" height="130" viewBox="0 0 420 130" style="display:block">
+            <line x1="90" y1="8" x2="90" y2="118" style="stroke:#dcd8cc;stroke-width:1"></line>
+            <line x1="330" y1="8" x2="330" y2="118" style="stroke:#dcd8cc;stroke-width:1"></line>
+            <polyline points="90,20 330,20" style="fill:none;stroke:#a8a396;stroke-width:1.4"></polyline>
+            <polyline points="90,48 330,76" style="fill:none;stroke:#c0342b;stroke-width:2"></polyline>
+            <polyline points="90,76 330,48" style="fill:none;stroke:#14120e;stroke-width:2.4"></polyline>
+            <polyline points="90,104 330,104" style="fill:none;stroke:#a8a396;stroke-width:1.4"></polyline>
+            <text x="82" y="23" style="font-family:'IBM Plex Mono',monospace;font-size:8px;fill:#8a857a;text-anchor:end">TDWL</text>
+            <text x="82" y="51" style="font-family:'IBM Plex Mono',monospace;font-size:8px;fill:#c0342b;text-anchor:end">QSE</text>
+            <text x="82" y="79" style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;fill:#14120e;text-anchor:end">MSX</text>
+            <text x="82" y="107" style="font-family:'IBM Plex Mono',monospace;font-size:8px;fill:#8a857a;text-anchor:end">BHB</text>
+            <text x="90" y="128" style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;fill:#a8a396">2025</text>
+            <text x="330" y="128" style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;fill:#a8a396;text-anchor:end">2026 YTD</text>
+          </svg>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;margin-top:5px;line-height:1.7">ONLY THE CROSSING PAIR GETS COLOUR — EVERYTHING ELSE GREYS OUT</div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">TWO PERIODS ONLY · MORE THAN 6 LINES AND IT STOPS READING</div>
+      </div>
+
+      <div id="BLK-RANGE" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-RANGE</span><span style="font-size:11.5px;font-weight:600">Valuation range</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">"WHERE'S FAIR?"</span></div>
+        <div style="padding:22px 14px;flex:1">
+          <div style="position:relative;height:5px;background:#e3dfd4">
+            <span style="position:absolute;left:20%;right:28%;top:0;bottom:0;background:#14120e"></span>
+            <span style="position:absolute;left:38%;top:-5px;width:11px;height:11px;background:#fdfcf9;border:2px solid #14120e;transform:rotate(45deg)"></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:#8a857a;margin-top:12px"><span>BEAR 23.50</span><span style="color:#14120e;font-weight:700">LAST 27.15</span><span>BASE 29.80</span><span>BULL 34.20</span></div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#a8a396;margin-top:11px;line-height:1.7">DIAMOND MARKER IS THE LIVE PRICE · INK BAND IS THE BEAR-TO-BULL SPAN</div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">MUST STATE THE METHOD AND BASIS · A RANGE WITHOUT A DECK IS A GUESS</div>
+      </div>
+
+      <div id="BLK-HEAT" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-HEAT</span><span style="font-size:11.5px;font-weight:600">Mini heat grid</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">"WHERE'S THE PATTERN?"</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="display:grid;grid-template-columns:52px repeat(6,1fr);gap:3px;align-items:center">
+            <span></span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;color:#8a857a;text-align:center">Q1</span><span style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;color:#8a857a;text-align:center">Q2</span><span style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;color:#8a857a;text-align:center">Q3</span><span style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;color:#8a857a;text-align:center">Q4</span><span style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;color:#8a857a;text-align:center">Q1</span><span style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;color:#8a857a;text-align:center">Q2</span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#33302a">Banks</span>
+            <span style="height:22px;background:#203a27"></span><span style="height:22px;background:#1a5c32"></span><span style="height:22px;background:#1f8a45"></span><span style="height:22px;background:#1a5c32"></span><span style="height:22px;background:#1f8a45"></span><span style="height:22px;background:#1f8a45"></span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#33302a">Energy</span>
+            <span style="height:22px;background:#32241e"></span><span style="height:22px;background:#203a27"></span><span style="height:22px;background:#232e22"></span><span style="height:22px;background:#5c261f"></span><span style="height:22px;background:#32241e"></span><span style="height:22px;background:#203a27"></span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#33302a">Petchem</span>
+            <span style="height:22px;background:#5c261f"></span><span style="height:22px;background:#7a291f"></span><span style="height:22px;background:#5c261f"></span><span style="height:22px;background:#7a291f"></span><span style="height:22px;background:#5c261f"></span><span style="height:22px;background:#32241e"></span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#33302a">Utilities</span>
+            <span style="height:22px;background:#1a5c32"></span><span style="height:22px;background:#1f8a45"></span><span style="height:22px;background:#1a5c32"></span><span style="height:22px;background:#1f8a45"></span><span style="height:22px;background:#1f8a45"></span><span style="height:22px;background:#1c6b38"></span>
+          </div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;margin-top:9px;line-height:1.7">SAME 7-STOP RAMP AS THE SECTOR HEATMAP — NEVER INVENT A SECOND SCALE</div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">MAX 8×8 · THE ONE BLOCK THAT MAY CARRY THE DARK-ROOM PALETTE ON PAPER</div>
+      </div>
+
+      <div id="BLK-INDEXED" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-INDEXED</span><span style="font-size:11.5px;font-weight:600">Rebased performance</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">"VS WHAT?"</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <svg width="100%" height="130" viewBox="0 0 420 130" preserveAspectRatio="none" style="display:block">
+            <line x1="0" y1="88" x2="420" y2="88" style="stroke:#a8a396;stroke-width:1;stroke-dasharray:4 4"></line>
+            <polyline points="0,88 60,80 120,86 180,68 240,58 300,64 360,44 420,30" style="fill:none;stroke:#14120e;stroke-width:2.2"></polyline>
+            <polyline points="0,88 60,86 120,90 180,82 240,78 300,80 360,74 420,70" style="fill:none;stroke:#a8a396;stroke-width:1.8;stroke-dasharray:5 5"></polyline>
+          </svg>
+          <div style="display:flex;gap:16px;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#57534a;margin-top:7px"><span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:2px;background:#14120e"></span>2222 +19%</span><span style="display:flex;align-items:center;gap:5px"><span style="width:14px;height:0;border-top:2px dashed #a8a396"></span>TASI +7%</span><span style="margin-left:auto;color:#a8a396">BASE 100</span></div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">ALWAYS REBASE TO 100 AND ALWAYS SHOW THE BENCHMARK · SUBJECT SOLID, BENCHMARK DASHED</div>
+      </div>
+
+      <div id="BLK-DONUT" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-DONUT</span><span style="font-size:11.5px;font-weight:600">Composition ring</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">OWNERSHIP · CAPITAL</span></div>
+        <div style="padding:16px 14px;flex:1;display:flex;gap:16px;align-items:center">
+          <div style="flex:none;width:104px;height:104px;border-radius:50%;background:conic-gradient(#14120e 0 81.5%,#57534a 81.5% 93.5%,#a8a396 93.5% 97.5%,#cfcabe 97.5% 100%);display:grid;place-items:center">
+            <div style="width:58px;height:58px;border-radius:50%;background:#fdfcf9;display:grid;place-items:center"><div style="text-align:center"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">FLOAT</div><div style="font-family:'Newsreader',serif;font-size:17px;font-weight:700;line-height:1">2.6%</div></div></div>
+          </div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:baseline;gap:8px;padding:5px 0;border-bottom:1px solid #efece3"><span style="width:9px;height:9px;background:#14120e;flex:none"></span><span style="font-size:11.5px;flex:1">Government of Saudi Arabia</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:700">81.5%</span></div>
+            <div style="display:flex;align-items:baseline;gap:8px;padding:5px 0;border-bottom:1px solid #efece3"><span style="width:9px;height:9px;background:#57534a;flex:none"></span><span style="font-size:11.5px;flex:1">Public Investment Fund</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px">12.0%</span></div>
+            <div style="display:flex;align-items:baseline;gap:8px;padding:5px 0;border-bottom:1px solid #efece3"><span style="width:9px;height:9px;background:#a8a396;flex:none"></span><span style="font-size:11.5px;flex:1">Sanabil Investments</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px">4.0%</span></div>
+            <div style="display:flex;align-items:baseline;gap:8px;padding:5px 0"><span style="width:9px;height:9px;background:#cfcabe;flex:none"></span><span style="font-size:11.5px;flex:1">Everyone else</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px">2.5%</span></div>
+          </div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">MONOCHROME RAMP, DARKEST = LARGEST · MAX 5 SEGMENTS · THE HOLE CARRIES THE ONE NUMBER THAT MATTERS</div>
+      </div>
+
+      <div id="BLK-COVER" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-COVER</span><span style="font-size:11.5px;font-weight:600">Subscription cover meter</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">IPO PROFILE</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="display:flex;align-items:baseline;gap:10px"><span style="font-family:'Newsreader',serif;font-size:30px;font-weight:700;line-height:1">3.1×</span><span style="font-size:11.5px;color:#57534a">retail tranche covered</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">DAY 12 OF 14</span></div>
+          <div style="position:relative;height:24px;border:1px solid #dcd8cc;background:#f6f4ee;margin-top:12px">
+            <span style="position:absolute;left:0;top:0;bottom:0;width:77.5%;background:#14120e"></span>
+            <span style="position:absolute;left:25%;top:-4px;bottom:-4px;width:2px;background:#c0342b"></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;margin-top:6px"><span>0</span><span style="color:#c0342b;font-weight:600">1.0× FULLY SUBSCRIBED</span><span>4.0×</span></div>
+          <div style="display:flex;gap:14px;border-top:1px solid #efece3;margin-top:12px;padding-top:9px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:#57534a"><span>INST <b>4.6×</b></span><span>RETAIL <b>3.1×</b></span><span style="margin-left:auto">CLOSES 9 JUL 13:00</span></div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">THE 1.0× LINE IS ALWAYS DRAWN IN RED — BELOW IT AN OFFER IS UNDERSUBSCRIBED, WHICH IS THE STORY</div>
+      </div>
+
+      <div id="BLK-CANDLE" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-CANDLE</span><span style="font-size:11.5px;font-weight:600">Session candles</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">LISTING DAY</span></div>
+        <div style="padding:14px 14px 10px;flex:1">
+          <div style="position:relative;border:1px solid #efece3;padding:12px 12px 8px">
+            <svg width="100%" height="132" viewBox="0 0 320 132" preserveAspectRatio="none" style="display:block">
+              <line x1="0" y1="104" x2="320" y2="104" style="stroke:#a8a396;stroke-width:1.5;stroke-dasharray:5 5"></line>
+              <line x1="22" y1="18" x2="22" y2="52" style="stroke:#0a7a3c;stroke-width:1.5"></line><rect x="15" y="26" width="14" height="20" style="fill:#0a7a3c"></rect>
+              <line x1="62" y1="24" x2="62" y2="64" style="stroke:#c0342b;stroke-width:1.5"></line><rect x="55" y="32" width="14" height="24" style="fill:#c0342b"></rect>
+              <line x1="102" y1="34" x2="102" y2="72" style="stroke:#0a7a3c;stroke-width:1.5"></line><rect x="95" y="42" width="14" height="22" style="fill:#0a7a3c"></rect>
+              <line x1="142" y1="42" x2="142" y2="86" style="stroke:#c0342b;stroke-width:1.5"></line><rect x="135" y="50" width="14" height="28" style="fill:#c0342b"></rect>
+              <line x1="182" y1="54" x2="182" y2="92" style="stroke:#0a7a3c;stroke-width:1.5"></line><rect x="175" y="62" width="14" height="22" style="fill:#0a7a3c"></rect>
+              <line x1="222" y1="48" x2="222" y2="88" style="stroke:#0a7a3c;stroke-width:1.5"></line><rect x="215" y="56" width="14" height="24" style="fill:#0a7a3c"></rect>
+              <line x1="262" y1="56" x2="262" y2="96" style="stroke:#c0342b;stroke-width:1.5"></line><rect x="255" y="64" width="14" height="24" style="fill:#c0342b"></rect>
+              <line x1="302" y1="50" x2="302" y2="84" style="stroke:#0a7a3c;stroke-width:1.5"></line><rect x="295" y="58" width="14" height="20" style="fill:#0a7a3c"></rect>
+            </svg>
+            <span style="position:absolute;right:12px;bottom:26px;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;background:#fdfcf9;padding:1px 5px">OFFER 22.00</span>
+            <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#a8a396;margin-top:5px"><span>10:00</span><span>12:00</span><span>14:30</span></div>
+          </div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">WICK TAKES THE BODY COLOUR · ON A DEBUT THE REFERENCE LINE IS THE OFFER PRICE, NOT A PRIOR CLOSE</div>
+      </div>
+    </div>
+  </div>
+  
+  <div id="famE" style="max-width:1560px;margin-top:34px">
+    <div style="display:flex;align-items:baseline;gap:12px;background:#14120e;color:#f6f4ee;padding:10px 18px">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.2em">E · MECHANISM &amp; EXPLAINER</span>
+      <span style="font-size:12px;color:#a8a396">Teach a process rather than report a number. Evergreen — they carry a review date, not a timestamp.</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:16px">
+
+      <div id="BLK-TIMELINE" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-TIMELINE</span><span style="font-size:11.5px;font-weight:600">Dates in order</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">EXPLAINER · IPO</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="display:flex;align-items:stretch">
+            <div style="flex:1;border-top:3px solid #14120e;padding:11px 12px 0"><div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;background:#14120e;transform:rotate(45deg)"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.12em">1 · DECLARED</span></div><div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;margin-top:6px">5 JUL</div><div style="font-size:11px;color:#57534a;line-height:1.5;margin-top:4px">Board announces amount and dates.</div></div>
+            <div style="flex:1;border-top:3px solid #c0342b;padding:11px 12px 0;background:#f6f4ee"><div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;background:#c0342b;transform:rotate(45deg)"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:700;letter-spacing:.12em;color:#c0342b">2 · EX-DATE</span></div><div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;margin-top:6px">12 JUL</div><div style="font-size:11px;color:#33302a;line-height:1.5;margin-top:4px"><b>The deadline.</b> Buy now and it goes to the seller.</div></div>
+            <div style="flex:1;border-top:3px solid #14120e;padding:11px 12px 0"><div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;background:#14120e;transform:rotate(45deg)"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.12em">3 · RECORD</span></div><div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;margin-top:6px">13 JUL</div><div style="font-size:11px;color:#57534a;line-height:1.5;margin-top:4px">Registrar photographs the register.</div></div>
+            <div style="flex:1;border-top:3px solid #14120e;padding:11px 12px 0"><div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;background:#14120e;transform:rotate(45deg)"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.12em">4 · PAID</span></div><div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;margin-top:6px">25 JUL</div><div style="font-size:11px;color:#57534a;line-height:1.5;margin-top:4px">Cash lands with whoever was on it.</div></div>
+          </div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">EXACTLY ONE STAGE IN RED — THE ONE THAT COSTS MONEY IF MISSED</div>
+      </div>
+
+      <div id="BLK-STEPS" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-STEPS</span><span style="font-size:11.5px;font-weight:600">Numbered mechanism</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">EXPLAINER</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="display:flex;gap:12px;align-items:baseline;padding:9px 0;border-bottom:1px solid #efece3"><span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;color:#57534a;flex:none;width:20px">01</span><div><div style="font-size:13px;font-weight:700">You place an order with your broker</div><div style="font-size:11.5px;color:#57534a;line-height:1.55;margin-top:2px">Submitted to the exchange during the session.</div></div></div>
+          <div style="display:flex;gap:12px;align-items:baseline;padding:9px 0;border-bottom:1px solid #efece3"><span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;color:#57534a;flex:none;width:20px">02</span><div><div style="font-size:13px;font-weight:700">The trade executes — but does not settle</div><div style="font-size:11.5px;color:#57534a;line-height:1.55;margin-top:2px">You have a contract, not yet the shares.</div></div></div>
+          <div style="display:flex;gap:12px;align-items:baseline;padding:9px 0"><span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;color:#57534a;flex:none;width:20px">03</span><div><div style="font-size:13px;font-weight:700">Two days later ownership transfers</div><div style="font-size:11.5px;color:#57534a;line-height:1.55;margin-top:2px">Only now does the registrar see your name.</div></div></div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">3–5 STEPS · A BOLD CLAIM PLUS ONE CLARIFYING LINE, NEVER A PARAGRAPH</div>
+      </div>
+
+      <div id="BLK-FLOW" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-FLOW</span><span style="font-size:11.5px;font-weight:600">Money flow</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">DEEP DIVE</span></div>
+        <div style="padding:20px 14px;flex:1">
+          <div style="display:flex;align-items:center">
+            <div style="flex:1;border:1px solid #14120e;background:#f6f4ee;padding:11px 13px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">OFFTAKER</div><div style="font-size:12px;font-weight:700;margin-top:3px">SWPC</div><div style="font-size:10.5px;color:#57534a;margin-top:2px">State-guaranteed</div></div>
+            <div style="flex:none;width:54px;display:flex;flex-direction:column;align-items:center;gap:3px"><span style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;color:#8a857a">CAPACITY</span><span style="width:100%;height:2px;background:#14120e"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;color:#8a857a">68%</span></div>
+            <div style="flex:1;border:1px solid #14120e;background:#14120e;color:#f6f4ee;padding:11px 13px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#a8a396">PROJECT CO</div><div style="font-size:12px;font-weight:700;margin-top:3px">Ras Al-Khair</div><div style="font-size:10.5px;color:#cfcabe;margin-top:2px">1.03m m³/day</div></div>
+            <div style="flex:none;width:54px;display:flex;flex-direction:column;align-items:center;gap:3px"><span style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;color:#8a857a">DEBT SVC</span><span style="width:100%;height:2px;background:#a8a396"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:7.5px;color:#8a857a">FIRST</span></div>
+            <div style="flex:1;border:1px solid #dcd8cc;padding:11px 13px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">THEN EQUITY</div><div style="font-size:12px;font-weight:700;margin-top:3px">Sponsors</div><div style="font-size:10.5px;color:#57534a;margin-top:2px">Residual only</div></div>
+          </div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;margin-top:12px;line-height:1.7">ARROW WEIGHT SHOWS SENIORITY, NOT SIZE · EQUITY IS ALWAYS THE PALE BOX AT THE END</div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">MAX 4 NODES, LEFT TO RIGHT · NEVER BRANCHES — USE BLK-DECISION</div>
+      </div>
+
+      <div id="BLK-ANATOMY" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-ANATOMY</span><span style="font-size:11.5px;font-weight:600">Annotated document</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">EXPLAINER</span></div>
+        <div style="padding:16px 14px;flex:1;display:flex;gap:14px">
+          <div style="flex:none;width:172px;border:1px solid #dcd8cc;background:#f6f4ee;padding:11px 12px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:7px;color:#8a857a;letter-spacing:.1em">TADAWUL · CG-1</div>
+            <div style="height:5px;background:#14120e;margin-top:7px;width:74%"></div>
+            <div style="height:4px;background:#cfcabe;margin-top:5px"></div>
+            <div style="height:4px;background:#cfcabe;margin-top:4px;width:88%"></div>
+            <div style="display:flex;gap:5px;margin-top:9px"><span style="height:16px;flex:1;border:1px solid #c0342b;background:rgba(192,52,43,.08)"></span><span style="height:16px;flex:1;border:1px solid #14120e;background:rgba(20,18,14,.06)"></span></div>
+            <div style="height:4px;background:#cfcabe;margin-top:9px;width:64%"></div>
+            <div style="height:4px;background:#cfcabe;margin-top:4px;width:80%"></div>
+          </div>
+          <div style="flex:1">
+            <div style="display:flex;gap:9px;align-items:baseline;padding:6px 0;border-bottom:1px solid #efece3"><span style="width:8px;height:8px;border:1px solid #c0342b;background:rgba(192,52,43,.08);flex:none;margin-top:3px"></span><div><div style="font-size:11.5px;font-weight:700">DPS and currency</div><div style="font-size:10.5px;color:#57534a;line-height:1.45">The only figure that changes your cash.</div></div></div>
+            <div style="display:flex;gap:9px;align-items:baseline;padding:6px 0;border-bottom:1px solid #efece3"><span style="width:8px;height:8px;border:1px solid #14120e;background:rgba(20,18,14,.06);flex:none;margin-top:3px"></span><div><div style="font-size:11.5px;font-weight:700">Eligibility date block</div><div style="font-size:10.5px;color:#57534a;line-height:1.45">Ex, record and pay — in that order, always.</div></div></div>
+            <div style="display:flex;gap:9px;align-items:baseline;padding:6px 0"><span style="width:8px;height:8px;background:#cfcabe;flex:none;margin-top:3px"></span><div><div style="font-size:11.5px;font-weight:700">Boilerplate</div><div style="font-size:10.5px;color:#57534a;line-height:1.45">Identical every quarter. Skip it.</div></div></div>
+          </div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">ABSTRACTED WIREFRAME, NEVER A SCREENSHOT · TEACHES WHERE TO LOOK</div>
+      </div>
+
+      <div id="BLK-WORKED" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-WORKED</span><span style="font-size:11.5px;font-weight:600">Worked example</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">EXPLAINER</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;border:1px solid #dcd8cc">
+            <div style="padding:8px 12px;border-right:1px solid #efece3;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">1,000 SHARES</span></div>
+            <div style="padding:8px 12px;border-right:1px solid #efece3;border-bottom:1px solid #dcd8cc;background:#f6f4ee;text-align:right"><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">CLOSE 11 JUL</span></div>
+            <div style="padding:8px 12px;border-bottom:1px solid #dcd8cc;background:#f6f4ee;text-align:right"><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#14120e;font-weight:600">OPEN 12 JUL</span></div>
+            <div style="padding:8px 12px;border-right:1px solid #efece3;border-bottom:1px solid #efece3;font-size:11.5px">Share value</div>
+            <div style="padding:8px 12px;border-right:1px solid #efece3;border-bottom:1px solid #efece3;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px">27,150</div>
+            <div style="padding:8px 12px;border-bottom:1px solid #efece3;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700">26,950</div>
+            <div style="padding:8px 12px;border-right:1px solid #efece3;border-bottom:1px solid #efece3;font-size:11.5px">Dividend receivable</div>
+            <div style="padding:8px 12px;border-right:1px solid #efece3;border-bottom:1px solid #efece3;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8a857a">—</div>
+            <div style="padding:8px 12px;border-bottom:1px solid #efece3;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;color:#0a7a3c">204.30</div>
+            <div style="padding:9px 12px;border-right:1px solid #efece3;background:#f6f4ee;font-size:11.5px;font-weight:700">Total</div>
+            <div style="padding:9px 12px;border-right:1px solid #efece3;background:#f6f4ee;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700">27,150</div>
+            <div style="padding:9px 12px;background:#f6f4ee;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700">27,154</div>
+          </div>
+          <div style="font-size:11px;color:#57534a;line-height:1.55;margin-top:9px">The four-riyal difference is the market moving, not the dividend.</div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">ROUND NUMBERS, REAL TICKER · MUST END IN A TOTAL ROW THAT SETTLES THE POINT</div>
+      </div>
+
+      <div id="BLK-MYTH" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-MYTH</span><span style="font-size:11.5px;font-weight:600">Assumption vs mechanism</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">EXPLAINER</span></div>
+        <div style="padding:16px 14px;flex:1;display:flex;gap:14px">
+          <div style="flex:1;border:1px solid #dcd8cc;border-top:3px solid #c0342b;padding:12px 14px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:700;letter-spacing:.14em;color:#c0342b">WHAT PEOPLE ASSUME</div><div style="font-family:'Newsreader',serif;font-size:14.5px;line-height:1.42;margin-top:8px;font-style:italic">"A bonus issue is free shares, so I'm better off."</div></div>
+          <div style="flex:1;border:1px solid #dcd8cc;border-top:3px solid #0a7a3c;padding:12px 14px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:700;letter-spacing:.14em;color:#0a7a3c">WHAT ACTUALLY HAPPENS</div><div style="font-size:12px;line-height:1.55;color:#33302a;margin-top:8px">A 5% bonus adjusts the price down ~4.8% and gives you 5% more shares. The screen looks cheaper overnight; your position is unchanged.</div></div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">NEVER MOCK THE ASSUMPTION · STATE IT IN THE READER'S OWN WORDS, THEN CORRECT IT</div>
+      </div>
+
+      <div id="BLK-DECISION" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-DECISION</span><span style="font-size:11.5px;font-weight:600">If / then</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">EXPLAINER</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="border:1px solid #14120e;background:#f6f4ee;padding:10px 13px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.12em;color:#8a857a">START</div><div style="font-size:12px;font-weight:700;margin-top:3px">Do you own the shares before the ex-date open?</div></div>
+          <div style="display:flex;gap:12px;margin-top:12px">
+            <div style="flex:1"><div style="display:flex;align-items:center;gap:7px"><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:700;background:#0f5f31;color:#f6f4ee;padding:2px 7px">YES</span><span style="flex:1;height:1px;background:#dcd8cc"></span></div><div style="border:1px solid #dcd8cc;padding:10px 12px;margin-top:8px"><div style="font-size:11.5px;line-height:1.5;color:#33302a">You are on the register. Cash arrives on the pay date — nothing to do.</div></div></div>
+            <div style="flex:1"><div style="display:flex;align-items:center;gap:7px"><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:700;background:#c0342b;color:#f6f4ee;padding:2px 7px">NO</span><span style="flex:1;height:1px;background:#dcd8cc"></span></div><div style="border:1px solid #dcd8cc;padding:10px 12px;margin-top:8px"><div style="font-size:11.5px;line-height:1.5;color:#33302a">The seller collects. You hold at the adjusted price and wait for the next declaration.</div></div></div>
+          </div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">ONE QUESTION, TWO OUTCOMES · NEVER NEST — A SECOND LEVEL MEANS THE EXPLAINER IS WRONG</div>
+      </div>
+
+      <div id="BLK-GLOSSARY" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-GLOSSARY</span><span style="font-size:11.5px;font-weight:600">Terms on this page</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">RAIL</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="padding:8px 0;border-bottom:1px solid #efece3"><div style="font-size:12px;font-weight:700">Ex-date</div><div style="font-size:11px;color:#57534a;line-height:1.5;margin-top:2px">First trading day on which a buyer is <i>not</i> entitled to the declared dividend.</div></div>
+          <div style="padding:8px 0;border-bottom:1px solid #efece3"><div style="font-size:12px;font-weight:700">Payout ratio</div><div style="font-size:11px;color:#57534a;line-height:1.5;margin-top:2px">Dividends as a share of earnings. Above 100% the company distributes more than it earns.</div></div>
+          <div style="padding:8px 0"><div style="font-size:12px;font-weight:700">Capacity charge</div><div style="font-size:11px;color:#57534a;line-height:1.5;margin-top:2px">Fixed payment for being available to produce, whether or not output is drawn.</div></div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">AUTO-ASSEMBLED FROM EVERY BLK-TERM ON THE PAGE · SHARED STORE WITH LEARN</div>
+      </div>
+    </div>
+  </div>
+  <div id="famF" style="max-width:1560px;margin-top:34px">
+    <div style="display:flex;align-items:baseline;gap:12px;background:#14120e;color:#f6f4ee;padding:10px 18px">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.2em">F · WIRE &amp; LIVE STATE</span>
+      <span style="font-size:12px;color:#a8a396">Timestamped, perishable, and honest about being stale. Every block here carries a clock.</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:16px">
+
+      <div id="BLK-TAPEROW" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-TAPEROW</span><span style="font-size:11.5px;font-weight:600">Tape entry</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">THE TAPE</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="display:grid;grid-template-columns:66px 1fr;gap:16px">
+            <div><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600">10:12</div><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#a8a396;margin-top:3px">TADAWUL</div></div>
+            <div>
+              <div style="display:flex;align-items:center;gap:7px"><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.12em;border:1px solid #cfcabe;color:#57534a;padding:2px 6px">DIVIDEND</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#a8a396">7010 · CG-1</span></div>
+              <div style="font-family:'Newsreader',serif;font-size:17px;font-weight:600;line-height:1.3;margin-top:6px">stc lifts the interim dividend to SAR 0.55</div>
+              <div style="font-size:12px;color:#57534a;line-height:1.55;margin-top:4px">Up from 0.50, payable 30 July. Payout to 81%.</div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">TIME IN THE GUTTER, VENUE UNDER IT · MAX 40 WORDS FOR AGENT AUTO-PUBLISH</div>
+      </div>
+
+      <div id="BLK-CHIPROW" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-CHIPROW</span><span style="font-size:11.5px;font-weight:600">Data chip row</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">WIRE</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;border:1px solid #14120e;padding:3px 8px">7010 <b style="color:#0a7a3c">+2.4%</b></span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;border:1px solid #cfcabe;color:#57534a;padding:3px 8px">DPS 0.50 → 0.55</span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;border:1px solid #cfcabe;color:#57534a;padding:3px 8px">EX 13 JUL</span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;border:1px solid #cfcabe;color:#57534a;padding:3px 8px">YLD 5.4%</span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;border:1px solid #cfcabe;color:#57534a;padding:3px 8px">PAYOUT 81%</span>
+          </div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;margin-top:11px;line-height:1.7">THE MOVING NUMBER GETS THE INK BORDER · CONTEXT CHIPS STAY GREY</div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">3–5 CHIPS · THE CHEAPEST WAY TO ATTACH DATA TO A 30-WORD ITEM</div>
+      </div>
+
+      <div id="BLK-SNAPSHOT" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-SNAPSHOT</span><span style="font-size:11.5px;font-weight:600">Mini chart card</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">WIRE</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="border:1px solid #dcd8cc">
+            <div style="display:flex;align-items:baseline;gap:9px;padding:7px 12px;border-bottom:1px solid #efece3;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.14em;color:#57534a">SNAPSHOT</span><span style="font-size:11px;color:#57534a">Cost of funds, sector weighted</span></div>
+            <div style="padding:11px 13px;display:flex;align-items:flex-end;gap:7px;height:84px">
+              <span style="flex:1;background:#a8a396;height:52%"></span><span style="flex:1;background:#a8a396;height:62%"></span><span style="flex:1;background:#a8a396;height:72%"></span><span style="flex:1;background:#a8a396;height:82%"></span><span style="flex:1;background:#a8a396;height:90%"></span><span style="flex:1;background:#14120e;height:100%"></span><span style="flex:1;background:#0a7a3c;height:88%"></span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:0 13px 8px;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#a8a396"><span>Q4 '24</span><span>PEAK 3.34%</span><span>NOW 3.27%</span></div>
+          </div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">ONE SERIES, NO AXES, THREE LABELS MAX · THE WIRE'S ONLY PERMITTED CHART</div>
+      </div>
+
+      <div id="BLK-COUNTDOWN" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-COUNTDOWN</span><span style="font-size:11.5px;font-weight:600">Deadline clock</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">IPO · EX-DATE</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="background:#14120e;color:#f6f4ee;padding:14px 16px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.14em;color:#a8a396">RETAIL BOOKS CLOSE IN</div>
+            <div style="font-family:'Newsreader',serif;font-size:36px;font-weight:700;line-height:1;margin-top:7px">2d 09h</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:#a8a396;margin-top:7px">9 JUL 13:00 GST · RETAIL 3.1× COVERED</div>
+            <span style="display:block;text-align:center;background:#f6f4ee;color:#14120e;font-size:10.5px;font-weight:700;letter-spacing:.06em;padding:9px 0;text-transform:uppercase;margin-top:12px;cursor:pointer">Subscribe via your broker</span>
+          </div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">ABSOLUTE DEADLINE UNDER THE RELATIVE ONE · MARSAD NEVER TAKES THE ORDER</div>
+      </div>
+
+      <div id="BLK-HALT" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-HALT</span><span style="font-size:11.5px;font-weight:600">Trading halt</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">WIRE · STOCK</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="border:1px solid #dcd8cc;border-left:3px solid #c0342b;background:#f6f4ee;padding:12px 14px">
+            <div style="display:flex;align-items:center;gap:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.12em;background:#c0342b;color:#f6f4ee;padding:2.5px 7px">HALTED</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600">7010</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:#57534a">SINCE 10:12 · EXPECTED 10:38</span></div>
+            <div style="font-size:12px;color:#33302a;line-height:1.55;margin-top:8px">Pending a dividend disclosure. Last traded 41.15; the quote is frozen, not stale.</div>
+          </div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">MUST DISTINGUISH FROZEN FROM STALE · STATES THE REASON AND THE EXPECTED LIFT</div>
+      </div>
+
+      <div id="BLK-CORRECTION" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-CORRECTION</span><span style="font-size:11.5px;font-weight:600">Correction note</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">ALL TYPES</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="border:1px solid #dcd8cc;border-left:3px solid #c9a227;background:#f6f4ee;padding:12px 14px">
+            <div style="display:flex;align-items:center;gap:8px"><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.12em;background:#c9a227;color:#14120e;padding:2.5px 7px">REVISED</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:#57534a">ORIGINAL 09:04 · CORRECTED 14:58</span></div>
+            <div style="font-size:12px;color:#33302a;line-height:1.55;margin-top:8px">Deposit growth was <b>+1.8% m/m</b>, not +2.1%. We used a vendor figure that conflicted with the SAMA primary release. The lake object was corrected and every piece citing it was flagged. The conclusion is unchanged.</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.08em;color:#8a857a;margin-top:8px">RULE R-07 · APPENDED, NEVER SILENT</div>
+          </div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">AMBER, NOT RED — A CORRECTION IS INTEGRITY · SAYS WHETHER THE ARGUMENT SURVIVED</div>
+      </div>
+
+      <div id="BLK-BREADTH" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-BREADTH</span><span style="font-size:11.5px;font-weight:600">Session breadth</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">CLOSE</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="display:flex;height:20px;border:1px solid #dcd8cc">
+            <span style="width:56%;background:#0a7a3c;display:flex;align-items:center;padding:0 8px;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;color:#f6f4ee">312 ADV</span>
+            <span style="width:36%;background:#c0342b;display:flex;align-items:center;padding:0 8px;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;color:#f6f4ee">198 DEC</span>
+            <span style="width:8%;background:#e3dfd4"></span>
+          </div>
+          <div style="display:flex;border:1px solid #dcd8cc;border-top:none">
+            <div style="flex:1;padding:9px 12px;border-right:1px solid #efece3"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">MEDIAN MOVE</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;margin-top:2px">+0.22%</div></div>
+            <div style="flex:1;padding:9px 12px;border-right:1px solid #efece3"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">BEST</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;margin-top:2px">2082 +4.2%</div></div>
+            <div style="flex:1;padding:9px 12px"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">VALUE</div><div style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;margin-top:2px">SAR 8.4bn</div></div>
+          </div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">MEDIAN MOVE MATTERS MORE THAN THE INDEX — IT SAYS WHETHER THE DAY WAS BROAD</div>
+      </div>
+
+      <div id="BLK-VENUEHEAD" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-VENUEHEAD</span><span style="font-size:11.5px;font-weight:600">Venue column header</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">BY-MARKET</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="display:flex;align-items:baseline;gap:10px;padding:11px 16px;background:#14120e;color:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:.16em">QATAR · KUWAIT · OMAN</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10px">QSI <b>+0.27%</b></span></div>
+          <div style="display:flex;gap:14px;padding:8px 16px;border:1px solid #dcd8cc;border-top:none;background:#f6f4ee;font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:#57534a"><span>BKP +0.51%</span><span style="color:#c9a227">MSX30 DELAYED</span><span style="margin-left:auto">3 ITEMS</span></div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;margin-top:10px;line-height:1.7">A DEGRADED FEED IS NAMED IN THE HEADER, NOT HIDDEN IN A FOOTNOTE</div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">BINDS <b>MARKET.STATUS</b> PER VENUE · CARRIES ITS OWN ITEM COUNT</div>
+      </div>
+    </div>
+  </div>
+  <div id="famG" style="max-width:1560px;margin-top:34px">
+    <div style="display:flex;align-items:baseline;gap:12px;background:#14120e;color:#f6f4ee;padding:10px 18px">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.2em">G · PROVENANCE &amp; TRUST</span>
+      <span style="font-size:12px;color:#a8a396">The family that makes agent-written journalism publishable. Not decoration — the audit trail, rendered.</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px">
+
+      <div id="BLK-PROV" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-PROV</span><span style="font-size:11.5px;font-weight:600">Lake object stamp</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">EVERY EXHIBIT</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid #dcd8cc;background:#f6f4ee"><span style="width:6px;height:6px;background:#0a7a3c;transform:rotate(45deg);flex:none"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.08em;color:#57534a;line-height:1.7">LAKE OBJECT <b>FILING.SEGMENT.REVENUE · 2222</b> · 29 QUARTERS · VERIFIED BY DATA-TDWL 09:04 · FILED STATEMENTS, NOT VENDOR FEED</span></div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#a8a396;margin-top:10px;line-height:1.7">GREEN DIAMOND = VERIFIED · INK = DESK COMPUTATION · AMBER = PENDING</div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">MANDATORY UNDER EVERY CHART AND TABLE · NAMES OBJECT, AGENT AND SOURCE CLASS</div>
+      </div>
+
+      <div id="BLK-AGENTS" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-AGENTS</span><span style="font-size:11.5px;font-weight:600">How this was built</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">RAIL · FOOTER</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="border:1px solid #dcd8cc;background:#f6f4ee;padding:12px 14px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.14em;color:#8a857a">HOW THIS WAS BUILT</div>
+            <div style="font-size:11.5px;color:#33302a;line-height:1.6;margin-top:7px">Data agents parsed 29 quarters of filings into the lake. A writer agent drafted from verified objects only; the desk edited, rules-checked and published under a human byline.</div>
+            <div style="display:flex;gap:5px;margin-top:9px;flex-wrap:wrap">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;border:1px solid #cfcabe;color:#57534a;padding:2px 6px">◆ DATA-TDWL</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;border:1px solid #cfcabe;color:#57534a;padding:2px 6px">◆ WRITER-2</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;border:1px solid #cfcabe;color:#57534a;padding:2px 6px">◆ EDITOR-1</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;border:1px solid #14120e;padding:2px 6px">L. AL-RASHID</span>
+            </div>
+          </div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">AGENT CHIPS CARRY ◆, HUMANS DON'T · THE HUMAN IS ALWAYS LAST IN THE CHAIN</div>
+      </div>
+
+      <div id="BLK-FRESH" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-FRESH</span><span style="font-size:11.5px;font-weight:600">Freshness badge</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">ANY LIVE FIGURE</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <span style="display:inline-flex;align-items:center;gap:6px;width:fit-content"><span style="width:6px;height:6px;border-radius:50%;background:#0a7a3c"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.08em;color:#57534a">LIVE · 14:32 GST</span></span>
+            <span style="display:inline-flex;align-items:center;gap:6px;width:fit-content"><span style="width:6px;height:6px;border-radius:50%;background:#c9a227"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.08em;color:#57534a">DELAYED 15 MIN · MSX</span></span>
+            <span style="display:inline-flex;align-items:center;gap:6px;width:fit-content"><span style="width:6px;height:6px;border-radius:50%;background:#8a857a"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.08em;color:#57534a">CLOSED · THU CLOSE</span></span>
+            <span style="display:inline-flex;align-items:center;gap:6px;width:fit-content"><span style="width:6px;height:6px;border-radius:50%;background:#c0342b"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:8.5px;letter-spacing:.08em;color:#57534a">FEED OFFLINE · RETRY 4</span></span>
+          </div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">SHARED WITH THE READER APP'S FreshnessBadge · NEVER A NUMBER WITHOUT ONE OF THESE FOUR</div>
+      </div>
+
+      <div id="BLK-ESTIMATE" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-ESTIMATE</span><span style="font-size:11.5px;font-weight:600">Desk-estimate marker</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">ANY FORECAST</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#8a857a">FY25</span><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#57534a">328</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.1em;color:#14120e;font-weight:600;margin-left:8px">FY26E</span><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700">344</span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.1em;border:1px solid #14120e;padding:2px 6px">MARSAD DESK</span></div>
+          <div style="border-left:3px solid #14120e;background:#f6f4ee;padding:10px 12px;margin-top:12px;font-size:11px;color:#33302a;line-height:1.55">Where a number is a desk computation rather than a company disclosure, the block says so — in the header, the values and the footnote.</div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">THREE SIGNALS AT ONCE: "E" SUFFIX, INK HEADER, BOLD VALUE · NEVER COLOUR ALONE</div>
+      </div>
+
+      <div id="BLK-CONFLICT" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-CONFLICT</span><span style="font-size:11.5px;font-weight:600">Held from writers</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">RARE · DESK</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="border:1px solid #c0342b;background:#f6f4ee;padding:12px 14px">
+            <div style="display:flex;align-items:center;gap:7px"><span style="width:7px;height:7px;background:#c0342b;transform:rotate(45deg)"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.12em;color:#c0342b">SOURCES DISAGREE — FIGURE WITHHELD</span></div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #e3dfd4;margin-top:7px"><span style="font-size:11px;color:#57534a">Vendor feed</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px">SAR 50.1B</span></div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0"><span style="font-size:11px;color:#57534a">Filing (primary)</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:700">SAR 50.4B</span></div>
+            <div style="font-size:11px;color:#33302a;line-height:1.55;margin-top:7px">Q2 free cash flow is not quoted in this piece until the desk resolves it. Primary wins unless overridden.</div>
+          </div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">PUBLISHING A GAP BEATS PUBLISHING A GUESS · SHOWS BOTH, PICKS NEITHER</div>
+      </div>
+
+      <div id="BLK-RULE" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-RULE</span><span style="font-size:11.5px;font-weight:600">Rule applied</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">RISK FRAMING</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="border-left:3px solid #c0342b;background:#f6f4ee;padding:11px 13px"><div style="font-size:11.5px;color:#33302a;line-height:1.6"><b>Rule R-06 applied:</b> stretched payout metrics are framed as risk, never as a recommendation. The screener flags any payout above 100% automatically.</div></div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#a8a396;margin-top:10px;line-height:1.7">NAMING THE RULE IS THE POINT — THE READER LEARNS THE HOUSE STANDARD BY SEEING IT ENFORCED</div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">WHEN A RULE VISIBLY SHAPED THE COPY · CITES THE ID FROM THE PUBLISHING RULESET</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="famH" style="max-width:1560px;margin-top:34px">
+    <div style="display:flex;align-items:baseline;gap:12px;background:#14120e;color:#f6f4ee;padding:10px 18px">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.2em">H · GATES &amp; CALLS TO ACTION</span>
+      <span style="font-size:12px;color:#a8a396">Where the business model touches the page. They must never interrupt an argument mid-sentence.</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:16px">
+
+      <div id="BLK-CUT" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-CUT</span><span style="font-size:11.5px;font-weight:600">Premium cut</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">GATED</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="position:relative">
+            <div style="filter:blur(3.5px);pointer-events:none;user-select:none"><div style="font-family:'Newsreader',serif;font-size:15px;line-height:1.66;color:#26241f">Our FY26 free-cash-flow build covers the base distribution to a $58 Brent deck on unchanged costs — six dollars of headroom, thinner than the company's language implies but wider than the bears assume.</div></div>
+            <div style="position:absolute;left:0;right:0;bottom:0;height:56px;background:linear-gradient(rgba(253,252,249,0),#fdfcf9)"></div>
+          </div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a;margin-top:10px;line-height:1.7">BLUR 3.5PX PLUS A GRADIENT TO PAPER · THE CUT FALLS AFTER A COMPLETE THOUGHT, NEVER MID-SENTENCE (R-09)</div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">MUST SIT AFTER AT LEAST ONE DATA BLOCK — THE READER SEES THE WORK BEFORE THE WALL</div>
+      </div>
+
+      <div id="BLK-PAYWALL" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-PAYWALL</span><span style="font-size:11.5px;font-weight:600">In-article paywall band</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">GATED</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="border:2px solid #14120e;background:#f6f4ee;padding:16px 18px">
+            <div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;background:#14120e;transform:rotate(45deg)"></span><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.18em">CONTINUE WITH PREMIUM</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;border:1px solid #cfcabe;color:#57534a;padding:2px 6px">3 / 3 FREE READS USED</span></div>
+            <div style="font-family:'Newsreader',serif;font-size:17px;font-weight:600;line-height:1.3;margin-top:9px">The ten-year build and the model file are for members.</div>
+            <div style="display:flex;align-items:center;gap:12px;margin-top:12px"><span style="background:#14120e;color:#f6f4ee;font-size:10.5px;font-weight:700;letter-spacing:.06em;padding:10px 16px;text-transform:uppercase;cursor:pointer">Start 14-day trial</span><span style="font-size:11px;color:#57534a">cancel anytime</span></div>
+          </div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">STATES WHAT IS BEHIND IT SPECIFICALLY · NAMES THE METER STATE · SAME COMPONENT AS THE MODAL</div>
+      </div>
+
+      <div id="BLK-ALERTCTA" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-ALERTCTA</span><span style="font-size:11.5px;font-weight:600">Turn this into an alert</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">TRACKED SERIES</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="border:1px solid #14120e;background:#f6f4ee;padding:12px 14px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.14em;color:#8a857a">KEEP WATCHING THIS</div>
+            <div style="font-family:'Newsreader',serif;font-size:15px;font-weight:600;line-height:1.3;margin-top:7px">Get pinged when the segment split is disclosed</div>
+            <div style="font-size:11px;color:#57534a;line-height:1.5;margin-top:4px">We expect it at H1 results on 4 August.</div>
+            <span style="display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;background:#14120e;color:#f6f4ee;padding:7px 12px;text-transform:uppercase;margin-top:9px;cursor:pointer">Create alert →</span>
+          </div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">PRE-FILLS THE ALERT FROM THE PIECE'S OWN SUBJECT · THE BEST CTA IN THE PRODUCT</div>
+      </div>
+
+      <div id="BLK-DOWNLOAD" style="border:1px solid #dcd8cc;background:#fdfcf9;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:baseline;gap:9px;padding:9px 14px;border-bottom:1px solid #dcd8cc;background:#f6f4ee"><span style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.1em">BLK-DOWNLOAD</span><span style="font-size:11.5px;font-weight:600">Take the data</span><span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;color:#8a857a">DEEP DIVE · NOTE</span></div>
+        <div style="padding:16px 14px;flex:1">
+          <div style="display:flex;align-items:center;gap:16px;border-top:2px solid #14120e;padding-top:14px">
+            <div style="flex:1"><div style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.14em;color:#8a857a">EVERY SERIES IS DOWNLOADABLE</div><div style="font-size:11.5px;color:#57534a;line-height:1.6;margin-top:5px">One .xlsx with the lake object IDs, so you can trace any figure back to its filing.</div></div>
+            <span style="font-size:10.5px;font-weight:600;border:1px solid #14120e;padding:9px 14px;white-space:nowrap;cursor:pointer">Download 9 series</span>
+          </div>
+        </div>
+        <div style="padding:8px 14px;border-top:1px solid #efece3;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.06em;color:#8a857a;line-height:1.7">SHIPPING THE OBJECT IDS IS THE DIFFERENTIATOR — IT MAKES THE RESEARCH AUDITABLE</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width:1560px;margin-top:34px;border-top:2px solid #14120e;padding-top:16px;display:flex;gap:30px">
+    <div style="flex:1">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.14em;color:#8a857a">HOW THE PUBLISHING AGENT USES THIS</div>
+      <div style="font-size:12px;color:#57534a;line-height:1.65;margin-top:6px">A writer agent produces prose plus a list of block codes and object IDs. The publishing agent resolves each code against this library, fits the template, and refuses to publish a block whose binding is unverified or whose family is not allowed for that piece type. No agent may invent a new block.</div>
+    </div>
+    <div style="flex:1">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.14em;color:#8a857a">THE THREE HARD RULES</div>
+      <div style="font-size:12px;color:#57534a;line-height:1.65;margin-top:6px">One accent only — ink, with green and red reserved for direction. Every number carries a freshness state and a provenance stamp. A desk estimate is marked three ways at once, so it can never be mistaken for a filed figure.</div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

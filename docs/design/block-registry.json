@@ -1,0 +1,1645 @@
+{
+  "tokens": {
+    "colors": {
+      "#e8e5dc": "page background (body) — the room the cards sit in",
+      "#fdfcf9": "card / paper surface; also the fill of hollow markers and the terminal colour of the premium-cut gradient",
+      "#f6f4ee": "inset panel, tinted table row, card-header bar, 'paper on paper'; also the paper-coloured text/inversion on ink",
+      "#efece3": "lightest hairline — chart gridlines, table row dividers, card-footer divider",
+      "#e3dfd4": "pale fill / meter track / stack tail segment / faint row rule",
+      "#dcd8cc": "standard card border and hairline rule; chart baseline / axis line",
+      "#cfcabe": "palest step of the ink ramp — chip hairline borders, rank numerals, wireframe body lines, donut smallest segment",
+      "#a8a396": "de-emphasised grey — faint mono notes, benchmark dashed series, greyed-out slope lines, waterfall start bar, annotation dashes, muted text on ink",
+      "#8a857a": "mono meta/label colour — every block footer, column headers, kickers; also the CLOSED freshness dot",
+      "#57534a": "secondary body text, muted table values, link hover; second step of the bar emphasis ramp",
+      "#33302a": "secondary prose / list-item text",
+      "#26241f": "serif running-prose ink",
+      "#14120e": "INK — the one accent. Primary text, family header bars, black header bars, rules, bar fills, borders on emphasis, inverted cards, CTA buttons, estimate column headers",
+      "#0a7a3c": "GREEN — direction only (positive/up/beat/verified diamond/LIVE dot). Never emphasis, never decoration",
+      "#c0342b": "RED — direction only (negative/down/miss/falsifier bullet/halt/1.0x cover line/critical timeline stage/withheld-figure border/FEED OFFLINE dot)",
+      "#c9a227": "AMBER — corrections (BLK-CORRECTION), DELAYED freshness state, degraded-feed flag in the venue header. Explicitly not red",
+      "#4fc47f": "green-on-ink variant — the upside figure inside the inverted BLK-VERDICT rating card (only occurrence)",
+      "#0f5f31": "deep green chip background — the YES branch label in BLK-DECISION (only occurrence)",
+      "#1f8a45": "dark-room heat ramp — strongest positive (BLK-HEAT only)",
+      "#1c6b38": "dark-room heat ramp — strong positive (BLK-HEAT only)",
+      "#1a5c32": "dark-room heat ramp — positive (BLK-HEAT only)",
+      "#203a27": "dark-room heat ramp — mild positive (BLK-HEAT only)",
+      "#232e22": "dark-room heat ramp — neutral (BLK-HEAT only)",
+      "#32241e": "dark-room heat ramp — mild negative (BLK-HEAT only)",
+      "#5c261f": "dark-room heat ramp — negative (BLK-HEAT only)",
+      "#7a291f": "dark-room heat ramp — strong negative (BLK-HEAT only)",
+      "rgba(20,18,14,.07)": "ink area-chart fill (BLK-AREA)",
+      "rgba(20,18,14,.16)": "ink bubble fill, emphasised point (BLK-SCATTER)",
+      "rgba(20,18,14,.08)": "ink bubble fill, de-emphasised point (BLK-SCATTER); ink annotation swatch",
+      "rgba(20,18,14,.06)": "ink annotation highlight on the wireframe document (BLK-ANATOMY)",
+      "rgba(192,52,43,.12)": "red bubble fill for a red-rated name (BLK-SCATTER)",
+      "rgba(192,52,43,.08)": "red annotation highlight on the wireframe document (BLK-ANATOMY)",
+      "rgba(253,252,249,0)": "transparent start of the premium-cut gradient, resolving to #fdfcf9 (BLK-CUT)"
+    },
+    "heat_ramp": {
+      "note": "BLK-HEAT card states 'SAME 7-STOP RAMP AS THE SECTOR HEATMAP — NEVER INVENT A SECOND SCALE'; 8 distinct swatches are actually rendered in the specimen, listed here darkest-positive to darkest-negative",
+      "stops": [
+        "#1f8a45",
+        "#1c6b38",
+        "#1a5c32",
+        "#203a27",
+        "#232e22",
+        "#32241e",
+        "#5c261f",
+        "#7a291f"
+      ],
+      "scope": "BLK-HEAT is the only block permitted to carry the dark-room palette on paper; scale is single-sourced with the sector heatmap (screen 1e)"
+    },
+    "ink_ramp": {
+      "note": "monochrome emphasis ramp used by BLK-BARS, BLK-STACK, BLK-DONUT — darkest is always largest/lead",
+      "stops": [
+        "#14120e",
+        "#57534a",
+        "#a8a396",
+        "#cfcabe",
+        "#e3dfd4"
+      ]
+    },
+    "fonts": {
+      "'Newsreader', serif": "editorial display + running prose + big numerals (BLK-BIGNUM 60px, BLK-COUNTDOWN 36px, page title 32px, BLK-COVER 30px, stat values 24px, pull quote 21px italic, rank numerals 18px). Variable axes loaded: ital, opsz 6..72, wght 400..800 / italic 400..700",
+      "'Libre Franklin', sans-serif": "document default set on body — UI/label/short-copy sans. Loaded wght 300..800, italic 400..600",
+      "'IBM Plex Mono', monospace": "all metadata, kickers, column headers, chips, tabular numerals, block codes and every card footer. Loaded wght 400;500;600. 469 explicit uses — the highest-frequency family in the file",
+      "'Noto Naskh Arabic'": "loaded in the webfont link (wght 400..700) but not used by any specimen in this file"
+    },
+    "type_scale_px": {
+      "7": "smallest wireframe kicker (BLK-ANATOMY document label)",
+      "8": "the workhorse mono meta size — every block footer, every column header, kickers, chips (258 uses)",
+      "9": "block code in the card header, mono chips, citation markers, rank/venue tags, breadth labels (89 uses)",
+      "10": "small CTA labels, pay-date cells",
+      "11": "table body values in mono, secondary descriptions (67 uses)",
+      "12": "table row labels, standard body copy, ticker mono in the rating card (47 uses)",
+      "13": "step headline, timeline date, estimate value",
+      "14": "delta figures in mono inside prose",
+      "15": "premium-cut teaser serif, margin-note prose, alert-CTA headline",
+      "16": "standard inline-block host prose (serif)",
+      "17": "tape headline, paywall headline, donut centre value",
+      "18": "league-table rank numeral",
+      "19": "company name inside the rating card",
+      "21": "pull quote; rating-card target and upside",
+      "24": "stat-strip value",
+      "30": "BLK-COVER headline multiple",
+      "32": "page title",
+      "36": "BLK-COUNTDOWN relative time",
+      "60": "BLK-BIGNUM",
+      "7.5": "SVG axis / in-chart tick labels, flow-diagram edge labels, heat-grid column headers",
+      "8.5": "freshness/halt/correction timestamps, thesis + falsify kickers, valuation-range scale labels",
+      "9.5": "step numerals (BLK-STEPS), data chips (BLK-CHIPROW)",
+      "10.5": "footnote lines, legend values, CTA button text, donut legend values",
+      "11.5": "card title in the header + primary short body copy (93 uses)",
+      "12.5": "comparison-grid values, league-table names",
+      "14.5": "myth assumption quote (italic serif)",
+      "15.5": "citation-chip host prose"
+    },
+    "font_weights": [
+      400,
+      600,
+      700
+    ],
+    "letter_spacing": {
+      ".2em": "family header bar label (A · INLINE etc.)",
+      ".18em": "paywall band kicker",
+      ".16em": "page eyebrow, rating-card kicker, thesis kicker, venue header",
+      ".14em": "section kickers inside specimens (MARSAD TAKE, HOW THIS WAS BUILT, SNAPSHOT, KEEP WATCHING THIS)",
+      ".12em": "timeline stage labels, halt/tape/conflict status chips",
+      ".1em": "the default mono label tracking — block codes, column headers, cell labels (86 uses)",
+      ".08em": "provenance stamp body, freshness labels",
+      ".06em": "every block-footer line; CTA button labels (65 uses)",
+      "-.006em": "pull quote (serif optical tightening)",
+      "-.016em": "page title",
+      "-.03em": "BLK-BIGNUM"
+    },
+    "line_heights": {
+      "1.7": "the mono footer/meta default (84 uses)",
+      "1.5 / 1.55 / 1.6": "body copy",
+      "1.66 / 1.75 / 1.8 / 1.95": "serif running prose (1.95 when a sparkline is inline)",
+      "1.3 / 1.35 / 1.38 / 1.42": "display headlines and pull quote",
+      "1 / .86": "big numerals"
+    },
+    "three_hard_rules": [
+      "1. One accent only — ink. Green (#0a7a3c) and red (#c0342b) are reserved for *direction*, never for emphasis or decoration.",
+      "2. Every number carries a freshness state and a provenance stamp (BLK-FRESH, BLK-PROV).",
+      "3. A desk estimate is marked three ways at once — `E` suffix, ink column header, bold value — so it can never be mistaken for a filed figure. Never colour alone."
+    ],
+    "accent_policy": {
+      "ink": "#14120e is the only accent. All emphasis, hierarchy and decoration is ink or a step on the ink ramp.",
+      "green": "#0a7a3c — direction only: up/positive/beat/verified/LIVE. The arrow is semantic not literal (a falling cost of funds is green).",
+      "red": "#c0342b — direction only: down/negative/miss/halt/withheld/the 1.0x cover line/the one timeline stage that costs money/feed offline.",
+      "amber": "#c9a227 — corrections and degraded state only; a correction is integrity, so it is amber and never red.",
+      "second_accent": "prohibited — 'Never a second accent colour' (D family header)."
+    }
+  },
+  "dimensions": {
+    "border_widths": {
+      "1px": "the hairline default — card borders, table rules, chart baselines, chip borders (325 uses)",
+      "2px": "heavy rule — page title underline, BLK-THESIS top rule, BLK-DOWNLOAD top rule, BLK-PAYWALL band border, hollow-marker stroke, footer rule",
+      "3px": "accent bar — BLK-PULLQUOTE left rule, BLK-HALT/BLK-CORRECTION/BLK-RULE/BLK-ESTIMATE left rules, BLK-TIMELINE stage top rules, BLK-MYTH panel top rules",
+      "1px dashed": "empty-slot column in BLK-COMPARE (keeps the grid from reflowing)",
+      "1px dotted": "BLK-TERM defined-term underline (never link blue)",
+      "2px dashed": "benchmark legend swatch in BLK-INDEXED"
+    },
+    "border_radius": {
+      "0": "everything — the system is square; no rounded corners appear anywhere",
+      "50%": "the only radius used: freshness dots (6px), scatter bubbles, chart end markers, BLK-DONUT ring and hole"
+    },
+    "spacing_steps_px": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      16,
+      18,
+      20,
+      22,
+      30,
+      34,
+      36,
+      40,
+      60
+    ],
+    "card_anatomy": {
+      "card_border": "1px solid #dcd8cc",
+      "card_background": "#fdfcf9",
+      "header_padding": "9px 14px",
+      "header_background": "#f6f4ee",
+      "header_border_bottom": "1px solid #dcd8cc",
+      "body_padding": "16px 14px (variants 14px/18px/20px/22px 14px where the specimen needs air)",
+      "footer_padding": "8px 14px",
+      "footer_border_top": "1px solid #efece3",
+      "footer_style": "IBM Plex Mono 8px / .06em / #8a857a / line-height 1.7, uppercase, ' · ' separated"
+    },
+    "layout": {
+      "page_max_width": "1560px",
+      "page_padding": "36px 40px 60px",
+      "family_block_margin_top": "34px",
+      "family_header_bar": "background #14120e, color #f6f4ee, padding 10px 18px",
+      "card_grid_gap": "16px",
+      "grid_columns_by_family": {
+        "A": 3,
+        "B": 3,
+        "C": 2,
+        "D": 3,
+        "E": 2,
+        "F": 2,
+        "G": 3,
+        "H": 2
+      }
+    },
+    "chart_geometry": {
+      "standard_svg": "width 100%, height 130, viewBox 0 0 420 130",
+      "candle_svg": "viewBox 0 0 320 132",
+      "sparkline_svg": "72 x 20, stroke-width 1.6",
+      "stroke_widths": {
+        "1": "axis, baseline, gridline",
+        "2": "hollow marker stroke, dumbbell connector, slope crossing line",
+        "1.3": "de-emphasised scatter bubble outline",
+        "1.4": "greyed-out slope line",
+        "1.5": "heavy zero rule (BLK-DIST), candle wicks, reference line",
+        "1.6": "sparkline, emphasised scatter bubble outline",
+        "1.8": "benchmark series (BLK-INDEXED)",
+        "2.2": "primary ink series (BLK-LINE, BLK-AREA, BLK-INDEXED subject)",
+        "2.4": "the winning slope line"
+      },
+      "dash_arrays": {
+        "2 2": "waterfall connectors",
+        "4 4": "event annotation vertical, scatter median quadrant lines",
+        "5 5": "benchmark series, candle reference (offer-price) line"
+      },
+      "marker_radii": {
+        "4": "line/area end and event markers",
+        "5": "dumbbell dots",
+        "7-17": "scatter bubbles (radius = the third variable)"
+      },
+      "gridline_color": "#efece3",
+      "baseline_color": "#dcd8cc",
+      "area_fill": "rgba(20,18,14,.07)"
+    },
+    "gating_geometry": {
+      "BLK-TAKE blur": "3px",
+      "BLK-CUT blur": "3.5px",
+      "BLK-CUT gradient": "56px tall, linear-gradient(rgba(253,252,249,0), #fdfcf9)",
+      "BLK-PAYWALL border": "2px solid #14120e"
+    }
+  },
+  "families": [
+    {
+      "key": "A",
+      "name": "Inline",
+      "header_label": "A · INLINE & SENTENCE-LEVEL",
+      "purpose": "Units that live inside a sentence: ticker chip, delta, citation chip, defined term, sparkline, margin note. Live inside running prose. No block borders, no vertical margin — they must not break the line rhythm.",
+      "count": 6
+    },
+    {
+      "key": "B",
+      "name": "Statement",
+      "header_label": "B · STATEMENT BLOCKS",
+      "purpose": "Where the desk commits to a view: thesis, pull quote, big number, rating card, gated Marsad Take, falsifiers. Each one takes a position — so each one is rules-checked and attributable to a human.",
+      "count": 6
+    },
+    {
+      "key": "C",
+      "name": "Tabular",
+      "header_label": "C · TABULAR",
+      "purpose": "Stat strip, facts grid, financials (with marked estimate column), scenarios, league table, beat/miss, ex-date row, transposed compare. Mono numerals, tabular-nums, hairline rows, black header bar. Estimate columns are always marked.",
+      "count": 8
+    },
+    {
+      "key": "D",
+      "name": "Charts",
+      "header_label": "D · CHARTS",
+      "purpose": "One shape per question — line, area, bars, proportional stack, waterfall, scatter, distribution, dumbbell, slope, valuation range, heat grid, rebased performance, donut, IPO cover meter, candles. Ink 2px lines, rgba(20,18,14,.07) fills, mono 8px axes, #efece3 gridlines, estimates in green or dashed. Never a second accent colour.",
+      "count": 15
+    },
+    {
+      "key": "E",
+      "name": "Mechanism",
+      "header_label": "E · MECHANISM & EXPLAINER",
+      "purpose": "Teach a process: timeline, steps, money flow, annotated document, worked example, assumption-vs-mechanism, if/then, glossary. Evergreen — they carry a review date, not a timestamp.",
+      "count": 8
+    },
+    {
+      "key": "F",
+      "name": "Wire & live state",
+      "header_label": "F · WIRE & LIVE STATE",
+      "purpose": "Timestamped and perishable: tape entry, chip row, snapshot, countdown, halt, correction, breadth, venue header. Timestamped, perishable, and honest about being stale. Every block here carries a clock.",
+      "count": 8
+    },
+    {
+      "key": "G",
+      "name": "Provenance & trust",
+      "header_label": "G · PROVENANCE & TRUST",
+      "purpose": "The audit trail rendered: lake stamp, build chain, freshness, desk-estimate marker, source conflict, rule applied. The family that makes agent-written journalism publishable. Not decoration — the audit trail, rendered.",
+      "count": 6
+    },
+    {
+      "key": "H",
+      "name": "Gates & CTAs",
+      "header_label": "H · GATES & CALLS TO ACTION",
+      "purpose": "Premium cut, paywall band, alert CTA, data download. Where the business model touches the page. They must never interrupt an argument mid-sentence.",
+      "count": 4
+    }
+  ],
+  "blocks": [
+    {
+      "code": "BLK-TICKER",
+      "family": "A",
+      "family_name": "Inline",
+      "name": "Inline instrument chip",
+      "allowed_piece_types": "ALL",
+      "binding_rule": "FIRST MENTION OF ANY LISTED NAME · HOVER → QUOTE CARD · BINDS MARKET.QUOTE LIVE",
+      "binds_to": "market.quote (live)",
+      "required_payload_fields": [
+        "ticker_code (e.g. '2222')",
+        "change_pct with sign (e.g. '−0.6%')",
+        "direction (drives green/red)",
+        "host sentence text the chip is embedded in",
+        "quote-card payload for hover"
+      ],
+      "constraints": [
+        "First mention of any listed name only",
+        "Hover reveals a quote card",
+        "Chip is a 1px ink-bordered inline-flex, mono ticker + coloured change",
+        "No vertical margin — must not break line rhythm (family rule)"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-DELTA",
+      "family": "A",
+      "family_name": "Inline",
+      "name": "Sentence delta",
+      "allowed_piece_types": "ALL",
+      "binding_rule": "ANY CHANGE THE READER SHOULD FEEL · MONO LIFTS IT OUT OF THE SERIF",
+      "binds_to": null,
+      "required_payload_fields": [
+        "magnitude + unit (e.g. '110 bp')",
+        "arrow glyph ▲ / ▼",
+        "semantic polarity (good/bad → green/red, independent of the arrow direction)",
+        "host sentence text"
+      ],
+      "constraints": [
+        "ARROW IS SEMANTIC, NOT LITERAL — A FALLING COST OF FUNDS IS GREEN",
+        "Value set in IBM Plex Mono 14px bold to lift it out of the serif"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-CITE",
+      "family": "A",
+      "family_name": "Inline",
+      "name": "Citation chip",
+      "allowed_piece_types": "AI · NOTES",
+      "binding_rule": "MANDATORY ON EVERY AI FACTUAL CLAIM (R-03) · BINDS LAKE.OBJECT.ID",
+      "binds_to": "lake.object.id",
+      "required_payload_fields": [
+        "marker index (1, 2, …)",
+        "lake object id per marker",
+        "source label per marker (e.g. 'FY25 annual report, p.47')",
+        "source kind (filing vs desk model)",
+        "host claim sentence"
+      ],
+      "constraints": [
+        "Mandatory on every AI factual claim",
+        "Numbered chip is a 1px #cfcabe box in mono 9px; footnote list rendered under the paragraph",
+        "Clickable / resolvable back to the lake object"
+      ],
+      "gating_related": false,
+      "rule_id": "R-03"
+    },
+    {
+      "code": "BLK-TERM",
+      "family": "A",
+      "family_name": "Inline",
+      "name": "Defined term",
+      "allowed_piece_types": "EXPLAINERS",
+      "binding_rule": "FIRST USE ONLY · DOTTED RULE, NEVER LINK BLUE · BINDS GLOSSARY.TERM",
+      "binds_to": "glossary.term",
+      "required_payload_fields": [
+        "term string as it appears in prose",
+        "glossary key",
+        "term label for the tooltip header (uppercase mono)",
+        "definition (one or two sentences)"
+      ],
+      "constraints": [
+        "First use only",
+        "1px dotted ink underline — never link blue",
+        "Definition card is 1px ink bordered on #f6f4ee, max-width 290px",
+        "Feeds BLK-GLOSSARY"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-SPARK",
+      "family": "A",
+      "family_name": "Inline",
+      "name": "Inline sparkline",
+      "allowed_piece_types": "ALL",
+      "binding_rule": "WHEN DIRECTION MATTERS AND MAGNITUDE DOESN'T · MAX 30 POINTS",
+      "binds_to": null,
+      "required_payload_fields": [
+        "one numeric series, ≤ 30 points (y values; x implied even spacing)",
+        "host sentence text"
+      ],
+      "constraints": [
+        "MAX 30 POINTS",
+        "NO AXES, NO LABELS, NO TOOLTIP. IF IT NEEDS A NUMBER IT IS NOT A SPARKLINE",
+        "72×20 SVG, ink polyline stroke-width 1.6, vertical-align middle",
+        "Use only when direction matters and magnitude doesn't"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-MARGIN",
+      "family": "A",
+      "family_name": "Inline",
+      "name": "Margin note",
+      "allowed_piece_types": "DEEP DIVES",
+      "binding_rule": "CONTEXT A READER MAY SKIP · NEVER LOAD-BEARING · AUTHORED, NOT BOUND",
+      "binds_to": null,
+      "required_payload_fields": [
+        "host paragraph text",
+        "note label (default 'NOTE')",
+        "note body (one or two sentences)"
+      ],
+      "constraints": [
+        "AUTHORED, NOT BOUND — the one A-family block with no data binding",
+        "Never load-bearing: the argument must survive the reader skipping it",
+        "118px fixed rail, separated by a 1px #dcd8cc left border"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-THESIS",
+      "family": "B",
+      "family_name": "Statement",
+      "name": "Argument in three lines",
+      "allowed_piece_types": "FEATURE · NOTE",
+      "binding_rule": "EXACTLY THREE LINES, EACH INDEPENDENTLY CHECKABLE · SITS ABOVE PARAGRAPH ONE",
+      "binds_to": null,
+      "required_payload_fields": [
+        "kicker 'THE ARGUMENT IN THREE LINES'",
+        "exactly 3 claim strings, each independently verifiable against a lake object"
+      ],
+      "constraints": [
+        "EXACTLY THREE LINES — not two, not four",
+        "Each line independently checkable",
+        "Sits above paragraph one",
+        "2px ink top rule, 1px #dcd8cc bottom rule, 5px rotated ink bullets"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-PULLQUOTE",
+      "family": "B",
+      "family_name": "Statement",
+      "name": "Pull quote",
+      "allowed_piece_types": "FEATURE",
+      "binding_rule": "ONE PER 1,500 WORDS · A HUMAN VOICE, NEVER A RESTATED STATISTIC",
+      "binds_to": null,
+      "required_payload_fields": [
+        "quote text (in quotation marks)",
+        "attribution string (role/desk, uppercase mono, em-dash prefixed)"
+      ],
+      "constraints": [
+        "ONE PER 1,500 WORDS",
+        "Must be a human voice — never a restated statistic",
+        "3px ink left rule; Newsreader 21px italic, letter-spacing -.006em"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-BIGNUM",
+      "family": "B",
+      "family_name": "Statement",
+      "name": "The number that matters",
+      "allowed_piece_types": "ALL",
+      "binding_rule": "ONE PER PIECE · THE FIGURE THE HEADLINE RESTS ON · ONE LAKE FIELD, NOT AN AGGREGATE",
+      "binds_to": "a single lake field (must not be an aggregate; specific object not named on the card)",
+      "required_payload_fields": [
+        "value string (e.g. '11.4%')",
+        "caption — what the figure is, with entity and period",
+        "context line (prior value + change, uppercase mono)"
+      ],
+      "constraints": [
+        "ONE PER PIECE",
+        "Must be the figure the headline rests on",
+        "ONE LAKE FIELD, NOT AN AGGREGATE",
+        "Newsreader 60px 700, line-height .86, letter-spacing -.03em; caption separated by a 1px left border"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-VERDICT",
+      "family": "B",
+      "family_name": "Statement",
+      "name": "Rating card",
+      "allowed_piece_types": "NOTES ONLY",
+      "binding_rule": "ONLY ON PIECES WITH A FORMAL CALL · MUST NAME THE PRIOR RATING · NEVER ON WIRES",
+      "binds_to": null,
+      "required_payload_fields": [
+        "ticker",
+        "company name",
+        "new rating (e.g. 'Overweight')",
+        "prior rating (e.g. 'FROM NEUTRAL') — mandatory",
+        "target price",
+        "upside %",
+        "changed-in-this-note flag"
+      ],
+      "constraints": [
+        "Only on pieces with a formal call",
+        "MUST NAME THE PRIOR RATING",
+        "NEVER ON WIRES",
+        "Inverted card: #14120e ground, #f6f4ee text; rating badge inverts to paper; upside uses the on-ink green #4fc47f"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-TAKE",
+      "family": "B",
+      "family_name": "Statement",
+      "name": "Marsad Take · gated",
+      "allowed_piece_types": "PREMIUM",
+      "binding_rule": "BLUR 3PX + UNLOCK · THE HEADLINE STAYS READABLE, THE JUDGEMENT DOESN'T",
+      "binds_to": null,
+      "required_payload_fields": [
+        "take headline (the judgement, e.g. fair value + action)",
+        "take body (one supporting sentence)",
+        "PREMIUM badge",
+        "unlock CTA label ('Unlock the take →')",
+        "entitlement state"
+      ],
+      "constraints": [
+        "BLUR 3PX on the take content, pointer-events none, user-select none",
+        "The headline stays readable, the judgement doesn't",
+        "1px ink border on #f6f4ee, rotated ink diamond + 'MARSAD TAKE' kicker"
+      ],
+      "gating_related": true,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-FALSIFY",
+      "family": "B",
+      "family_name": "Statement",
+      "name": "What would change this view",
+      "allowed_piece_types": "NOTE · AI",
+      "binding_rule": "REQUIRED ON ANY PIECE WITH A VIEW · FALSIFIABILITY IS THE FEATURE",
+      "binds_to": null,
+      "required_payload_fields": [
+        "kicker 'WHAT WOULD CHANGE THIS VIEW'",
+        "list of falsifier conditions (3 in the specimen), each an observable, checkable event or threshold"
+      ],
+      "constraints": [
+        "REQUIRED ON ANY PIECE WITH A VIEW",
+        "Each item must be falsifiable — a threshold or event, not a sentiment",
+        "6px red rotated diamond bullets on #f6f4ee, hairline #e3dfd4 row dividers"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-STATSTRIP",
+      "family": "C",
+      "family_name": "Tabular",
+      "name": "Four-up stat strip",
+      "allowed_piece_types": "ALL",
+      "binding_rule": "3–5 CELLS MAX · ONE FACT EACH · NEVER A PLACE TO DUMP LEFTOVER NUMBERS",
+      "binds_to": null,
+      "required_payload_fields": [
+        "3–5 cells, each {label (uppercase mono 8px), value (Newsreader 24px 700), optional direction colour}"
+      ],
+      "constraints": [
+        "3–5 CELLS MAX",
+        "ONE FACT EACH",
+        "Never a place to dump leftover numbers",
+        "Direction colour (green/red) only where the value is a change"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-KEYSTATS",
+      "family": "C",
+      "family_name": "Tabular",
+      "name": "Facts grid",
+      "allowed_piece_types": "IPO · PROFILE",
+      "binding_rule": "4 OR 8 CELLS · MECHANICS AND CONSEQUENCES MIXED DELIBERATELY",
+      "binds_to": null,
+      "required_payload_fields": [
+        "4 or 8 cells, each {label, value in mono 12.5px 600}",
+        "for IPOs specifically: price range, raise, min lot, refunds-by date"
+      ],
+      "constraints": [
+        "4 OR 8 CELLS — no other counts",
+        "Mechanics and consequences mixed deliberately",
+        "MIN LOT AND REFUND DATE ARE GCC-RETAIL ESSENTIALS — NEVER DROP THEM FOR SPACE",
+        "4-column CSS grid with hairline #dcd8cc cell borders"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-FINTABLE",
+      "family": "C",
+      "family_name": "Tabular",
+      "name": "Financials with estimate column",
+      "allowed_piece_types": "NOTE · DEEP DIVE",
+      "binding_rule": "MAX 8 ROWS INLINE · LONGER TABLES GO TO THE XLSX · BINDS FILING.FINANCIALS",
+      "binds_to": "filing.financials",
+      "required_payload_fields": [
+        "unit header (e.g. 'OMR M')",
+        "period columns with an is_estimate flag each (FY23, FY24, FY25, FY26E)",
+        "≤8 rows, each {line-item label, one value per period}",
+        "footnote explaining the estimate marking"
+      ],
+      "constraints": [
+        "MAX 8 ROWS INLINE — longer tables go to the XLSX",
+        "FY26E COLUMN HEADER IS INK, VALUES ARE BOLD — A DESK ESTIMATE MUST NEVER READ AS AN ACTUAL",
+        "Actual values are #57534a mono; the header row of the estimate column is #14120e 600",
+        "Fixed column widths 62px, mono tabular numerals right-aligned"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-SCENARIO",
+      "family": "C",
+      "family_name": "Tabular",
+      "name": "Three paths",
+      "allowed_piece_types": "NOTE · FEATURE",
+      "binding_rule": "EXACTLY THREE · BASE ROW TINTED · EVERY PATH NEEDS AN OBSERVABLE TRIGGER",
+      "binds_to": null,
+      "required_payload_fields": [
+        "title bar (e.g. 'THREE PATHS TO 2028')",
+        "exactly 3 rows, each {scenario name, EPS, return % with sign, observable trigger, is_base}",
+        "column headers SCENARIO / EPS / RETURN / TRIGGER"
+      ],
+      "constraints": [
+        "EXACTLY THREE scenarios",
+        "BASE ROW TINTED (#f6f4ee) and bolded",
+        "EVERY PATH NEEDS AN OBSERVABLE TRIGGER",
+        "Return column coloured green/red by direction only",
+        "Ink title bar above the grid"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-RANKROW",
+      "family": "C",
+      "family_name": "Tabular",
+      "name": "League table",
+      "allowed_piece_types": "RANKED LIST",
+      "binding_rule": "5–10 ROWS · RANK NUMERALS IN NEWSREADER, VALUES IN MONO",
+      "binds_to": null,
+      "required_payload_fields": [
+        "5–10 rows, each {rank, name, venue code (TDWL/QE/MSX/…), ranked metric value, qualifying metric value + risk flag}"
+      ],
+      "constraints": [
+        "5–10 ROWS",
+        "RANK NUMERALS IN NEWSREADER (18px, #cfcabe), VALUES IN MONO",
+        "THE RANKED METRIC ALWAYS CARRIES A QUALIFYING COLUMN — A YIELD TABLE WITHOUT PAYOUT IS A TRAP",
+        "Qualifying column turns red when it flags risk (payout > 100%)"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-BEATMISS",
+      "family": "C",
+      "family_name": "Tabular",
+      "name": "Actual vs consensus",
+      "allowed_piece_types": "EARNINGS",
+      "binding_rule": "BINDS FILING.EPS + CONSENSUS.EPS · REACTION IS T+0 CLOSE",
+      "binds_to": "filing.eps + consensus.eps (reaction computed at T+0 close)",
+      "required_payload_fields": [
+        "rows, each {name, ticker, actual EPS, consensus EPS, surprise % (signed), price reaction % at T+0 close (signed)}",
+        "column headers NAME / ACTUAL / CONS. / SURPRISE / REACTION"
+      ],
+      "constraints": [
+        "Reaction is the T+0 close, not intraday",
+        "SURPRISE AND PRICE REACTION SIT SIDE BY SIDE — THEY DISAGREE MORE OFTEN THAN READERS EXPECT",
+        "Surprise bold + direction-coloured; consensus muted #57534a"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-EXDATE",
+      "family": "C",
+      "family_name": "Tabular",
+      "name": "Dividend row",
+      "allowed_piece_types": "DIVIDENDS",
+      "binding_rule": "BINDS DIVIDEND.EXDATE · ONE ROW PER DECLARATION, NOT PER PAYMENT",
+      "binds_to": "dividend.exdate",
+      "required_payload_fields": [
+        "rows, each {ticker, type (INTERIM / SPECIAL / …), DPS, ex-date, yield, pay date}",
+        "column headers TICKER / TYPE / DPS / EX-DATE / YIELD / PAY"
+      ],
+      "constraints": [
+        "ONE ROW PER DECLARATION, NOT PER PAYMENT",
+        "SPECIAL TYPE CHIP INVERTS TO INK (ink ground, paper text); ordinary types are a #cfcabe hairline chip",
+        "EX-DATE IS THE BOLD COLUMN, NOT PAY DATE"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-COMPARE",
+      "family": "C",
+      "family_name": "Tabular",
+      "name": "Transposed comparison",
+      "allowed_piece_types": "2–4 NAMES",
+      "binding_rule": "METRICS AS ROWS, NAMES AS COLUMNS · MAX 4 NAMES, 8 METRICS",
+      "binds_to": null,
+      "required_payload_fields": [
+        "2–4 names, each {ticker, short name}",
+        "≤8 metric rows, each {label, one value per name, best-in-row index}",
+        "empty 'add' slot state"
+      ],
+      "constraints": [
+        "METRICS AS ROWS, NAMES AS COLUMNS",
+        "MAX 4 NAMES, 8 METRICS",
+        "PRICES STAY LOCAL, MARKET CAP IS USD-NORMALISED",
+        "BEST-IN-ROW IS BOLD",
+        "EMPTY SLOT KEEPS ITS DASHED COLUMN SO THE GRID NEVER REFLOWS (1px dashed #cfcabe)"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-LINE",
+      "family": "D",
+      "family_name": "Charts",
+      "name": "Annotated time series",
+      "allowed_piece_types": "\"WHEN DID IT TURN?\"",
+      "binding_rule": "EVERY LINE CHART MUST ANNOTATE ITS INFLECTION OR IT IS DECORATION",
+      "binds_to": null,
+      "required_payload_fields": [
+        "one time series: array of {x, y} points",
+        "the annotated event: {x position, y position for the marker, what happened}",
+        "y gridline positions (2 in the specimen) plus baseline"
+      ],
+      "constraints": [
+        "EVERY LINE CHART MUST ANNOTATE ITS INFLECTION OR IT IS DECORATION",
+        "DASHED VERTICAL + HOLLOW MARKER = THE EVENT THE PROSE IS ABOUT (dash 4 4, #a8a396; marker r=4 paper fill, 2px ink stroke)",
+        "Series is ink #14120e stroke-width 2.2",
+        "Never a second accent colour (family rule)"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-AREA",
+      "family": "D",
+      "family_name": "Charts",
+      "name": "Share-of-total area",
+      "allowed_piece_types": "\"HOW MUCH NOW?\"",
+      "binding_rule": "NEVER STACK MORE THAN 3 AREAS · BEYOND THAT USE BLK-STACK",
+      "binds_to": null,
+      "required_payload_fields": [
+        "one series of {x, y} points (a share or a cumulative total)",
+        "baseline for the polygon close",
+        "terminal value marker"
+      ],
+      "constraints": [
+        "NEVER STACK MORE THAN 3 AREAS · BEYOND THAT USE BLK-STACK",
+        "FILL ONLY WHEN THE AREA MEANS SOMETHING — A SHARE, A CUMULATIVE TOTAL",
+        "Fill is rgba(20,18,14,.07); line is ink 2.2; end marker is a solid ink r=4 dot"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-BARS",
+      "family": "D",
+      "family_name": "Charts",
+      "name": "Categorical bars",
+      "allowed_piece_types": "\"WHO IS BIGGEST?\"",
+      "binding_rule": "VALUE LABELS ON TOP, NEVER AN AXIS · GREY DOWN THE TAIL TO FOCUS THE LEAD",
+      "binds_to": null,
+      "required_payload_fields": [
+        "categories sorted descending, each {label, value, formatted value label}",
+        "emphasis rank (which entries are the lead vs the tail)"
+      ],
+      "constraints": [
+        "VALUE LABELS ON TOP, NEVER AN AXIS",
+        "GREY DOWN THE TAIL TO FOCUS THE LEAD — ink #14120e for leaders, #57534a then #a8a396 down the tail",
+        "130px plot height, 12px gaps"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-STACK",
+      "family": "D",
+      "family_name": "Charts",
+      "name": "Proportional bar",
+      "allowed_piece_types": "\"WHAT'S IT MADE OF?\"",
+      "binding_rule": "MAX 4 SEGMENTS · IF A SEGMENT IS UNDER 5% MERGE IT INTO \"OTHER\"",
+      "binds_to": null,
+      "required_payload_fields": [
+        "≤4 segments, each {label, percentage}, summing to 100%",
+        "segment order largest → smallest"
+      ],
+      "constraints": [
+        "MAX 4 SEGMENTS",
+        "IF A SEGMENT IS UNDER 5% MERGE IT INTO \"OTHER\"",
+        "ONE BAR, LABELS INSIDE THE SEGMENTS",
+        "INK → GREY → PALE, DARKEST IS LARGEST (#14120e / #a8a396 / #e3dfd4)",
+        "46px bar height with a 1px #dcd8cc border"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-WATERFALL",
+      "family": "D",
+      "family_name": "Charts",
+      "name": "Bridge",
+      "allowed_piece_types": "\"WHAT MOVED IT?\"",
+      "binding_rule": "START AND END BARS SIT ON THE BASELINE · CONNECTORS DASHED · 4–6 DRIVERS",
+      "binds_to": null,
+      "required_payload_fields": [
+        "start bar {label, value}",
+        "4–6 driver bars, each {label, delta, sign}",
+        "end bar {label, value} — carries the estimate suffix where it is a forecast (FY26E)"
+      ],
+      "constraints": [
+        "4–6 DRIVERS",
+        "START AND END BARS SIT ON THE BASELINE",
+        "CONNECTORS DASHED (2 2, #a8a396)",
+        "Start bar grey #a8a396, end bar ink #14120e; positive drivers green #0a7a3c, negative red #c0342b — direction only"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-SCATTER",
+      "family": "D",
+      "family_name": "Charts",
+      "name": "Bubble scatter",
+      "allowed_piece_types": "\"WHO'S POSITIONED?\"",
+      "binding_rule": "RADIUS = A THIRD VARIABLE, ALWAYS STATED · RATING DRIVES THE OUTLINE COLOUR",
+      "binds_to": null,
+      "required_payload_fields": [
+        "points, each {x, y, r (third variable), ticker, rating, is_labelled}",
+        "the name of the third variable (must be stated)",
+        "median x and median y for the quadrant lines",
+        "x and y axis lines"
+      ],
+      "constraints": [
+        "RADIUS = A THIRD VARIABLE, ALWAYS STATED",
+        "RATING DRIVES THE OUTLINE COLOUR (ink for a positive call, red #c0342b for negative, #a8a396 for unrated/neutral)",
+        "QUADRANT LINES AT THE MEDIANS (dash 4 4, #a8a396)",
+        "ONLY THE ARGUMENT'S NAMES ARE LABELLED"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-DIST",
+      "family": "D",
+      "family_name": "Charts",
+      "name": "Distribution",
+      "allowed_piece_types": "\"HOW SPREAD OUT?\"",
+      "binding_rule": "ZERO LINE IS THE HEAVY RULE · BARS HANG BOTH WAYS FROM IT",
+      "binds_to": null,
+      "required_payload_fields": [
+        "bins, each {bucket, count/magnitude, sign relative to zero}",
+        "summary labels: positive count, median, negative count (3 labels)"
+      ],
+      "constraints": [
+        "ZERO LINE IS THE HEAVY RULE (ink, stroke-width 1.5)",
+        "BARS HANG BOTH WAYS FROM IT — above the line green #0a7a3c, below red #c0342b",
+        "26px bar width, 6px gutter"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-DUMBBELL",
+      "family": "D",
+      "family_name": "Charts",
+      "name": "Before / after",
+      "allowed_piece_types": "\"WHAT CHANGED?\"",
+      "binding_rule": "BEST BLOCK FOR PRICE-TARGET AND ESTIMATE REVISIONS · DIRECTION READS INSTANTLY",
+      "binds_to": null,
+      "required_payload_fields": [
+        "rows, each {ticker/label, old value, new value, delta label with sign}",
+        "shared x scale across rows"
+      ],
+      "constraints": [
+        "HOLLOW = OLD TARGET · SOLID = NEW (hollow r=5 paper fill + 2px #a8a396 stroke; solid r=5 ink)",
+        "Connector is 2px #dcd8cc",
+        "Delta label coloured green/red by direction only"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-SLOPE",
+      "family": "D",
+      "family_name": "Charts",
+      "name": "Rank change",
+      "allowed_piece_types": "\"WHO OVERTOOK WHOM?\"",
+      "binding_rule": "TWO PERIODS ONLY · MORE THAN 6 LINES AND IT STOPS READING",
+      "binds_to": null,
+      "required_payload_fields": [
+        "two period labels (e.g. '2025', '2026 YTD')",
+        "≤6 entities, each {label, rank/value at period 1, rank/value at period 2}",
+        "which pair crosses"
+      ],
+      "constraints": [
+        "TWO PERIODS ONLY",
+        "MORE THAN 6 LINES AND IT STOPS READING",
+        "ONLY THE CROSSING PAIR GETS COLOUR — EVERYTHING ELSE GREYS OUT (#a8a396 stroke 1.4; the riser ink 2.4, the faller red 2.0)"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-RANGE",
+      "family": "D",
+      "family_name": "Charts",
+      "name": "Valuation range",
+      "allowed_piece_types": "\"WHERE'S FAIR?\"",
+      "binding_rule": "MUST STATE THE METHOD AND BASIS · A RANGE WITHOUT A DECK IS A GUESS",
+      "binds_to": null,
+      "required_payload_fields": [
+        "bear value",
+        "base value",
+        "bull value",
+        "last / live price (the marker position)",
+        "valuation method and basis (e.g. the commodity deck) — mandatory"
+      ],
+      "constraints": [
+        "MUST STATE THE METHOD AND BASIS · A RANGE WITHOUT A DECK IS A GUESS",
+        "DIAMOND MARKER IS THE LIVE PRICE (11px rotated, paper fill, 2px ink border)",
+        "INK BAND IS THE BEAR-TO-BULL SPAN on a 5px #e3dfd4 track",
+        "LAST label is the only one in ink 700"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-HEAT",
+      "family": "D",
+      "family_name": "Charts",
+      "name": "Mini heat grid",
+      "allowed_piece_types": "\"WHERE'S THE PATTERN?\"",
+      "binding_rule": "MAX 8×8 · THE ONE BLOCK THAT MAY CARRY THE DARK-ROOM PALETTE ON PAPER",
+      "binds_to": "the shared sector-heatmap change ramp (single-sourced with screen 1e)",
+      "required_payload_fields": [
+        "row labels (≤8, e.g. sectors)",
+        "column labels (≤8, e.g. quarters)",
+        "matrix of change values mapped onto the shared 7-stop ramp"
+      ],
+      "constraints": [
+        "MAX 8×8",
+        "SAME 7-STOP RAMP AS THE SECTOR HEATMAP — NEVER INVENT A SECOND SCALE",
+        "The only block permitted to carry the dark-room palette on paper",
+        "22px cell height, 3px gap, no cell borders"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-INDEXED",
+      "family": "D",
+      "family_name": "Charts",
+      "name": "Rebased performance",
+      "allowed_piece_types": "\"VS WHAT?\"",
+      "binding_rule": "ALWAYS REBASE TO 100 AND ALWAYS SHOW THE BENCHMARK · SUBJECT SOLID, BENCHMARK DASHED",
+      "binds_to": null,
+      "required_payload_fields": [
+        "subject series rebased to 100: array of {x, y}",
+        "benchmark series rebased to 100: array of {x, y}",
+        "legend entries {ticker, total return %} for both",
+        "the base-100 reference line"
+      ],
+      "constraints": [
+        "ALWAYS REBASE TO 100",
+        "ALWAYS SHOW THE BENCHMARK",
+        "SUBJECT SOLID (ink, 2.2), BENCHMARK DASHED (#a8a396, 1.8, dash 5 5)",
+        "Base-100 line dashed 4 4 in #a8a396; 'BASE 100' stated in the legend"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-DONUT",
+      "family": "D",
+      "family_name": "Charts",
+      "name": "Composition ring",
+      "allowed_piece_types": "OWNERSHIP · CAPITAL",
+      "binding_rule": "MONOCHROME RAMP, DARKEST = LARGEST · MAX 5 SEGMENTS · THE HOLE CARRIES THE ONE NUMBER THAT MATTERS",
+      "binds_to": null,
+      "required_payload_fields": [
+        "≤5 segments, each {holder/label, percentage}, ordered largest → smallest",
+        "centre label + centre value (the one number that matters, e.g. FLOAT 2.6%)",
+        "legend swatch per segment"
+      ],
+      "constraints": [
+        "MAX 5 SEGMENTS",
+        "MONOCHROME RAMP, DARKEST = LARGEST (#14120e → #57534a → #a8a396 → #cfcabe)",
+        "THE HOLE CARRIES THE ONE NUMBER THAT MATTERS",
+        "104px ring, 58px hole, conic-gradient; largest segment's legend value is bold"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-COVER",
+      "family": "D",
+      "family_name": "Charts",
+      "name": "Subscription cover meter",
+      "allowed_piece_types": "IPO PROFILE",
+      "binding_rule": "THE 1.0× LINE IS ALWAYS DRAWN IN RED — BELOW IT AN OFFER IS UNDERSUBSCRIBED, WHICH IS THE STORY",
+      "binds_to": null,
+      "required_payload_fields": [
+        "headline cover multiple + which tranche it is",
+        "day X of Y of the book",
+        "scale minimum (0) and maximum (e.g. 4.0×)",
+        "per-tranche covers (institutional, retail)",
+        "absolute close date/time"
+      ],
+      "constraints": [
+        "THE 1.0× LINE IS ALWAYS DRAWN IN RED (2px #c0342b, overhanging the 24px track by 4px top and bottom) — below it an offer is undersubscribed, which is the story",
+        "Scale endpoints and the 1.0× label always shown",
+        "Fill is ink on a #f6f4ee track with a 1px #dcd8cc border"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-CANDLE",
+      "family": "D",
+      "family_name": "Charts",
+      "name": "Session candles",
+      "allowed_piece_types": "LISTING DAY",
+      "binding_rule": "WICK TAKES THE BODY COLOUR · ON A DEBUT THE REFERENCE LINE IS THE OFFER PRICE, NOT A PRIOR CLOSE",
+      "binds_to": null,
+      "required_payload_fields": [
+        "OHLC candles per interval: {open, high, low, close} → body rect + wick line, up/down flag",
+        "reference line value and its label (offer price on a debut; prior close otherwise)",
+        "session time-axis labels (3 in the specimen)"
+      ],
+      "constraints": [
+        "WICK TAKES THE BODY COLOUR (no neutral wicks)",
+        "ON A DEBUT THE REFERENCE LINE IS THE OFFER PRICE, NOT A PRIOR CLOSE (dashed 5 5, #a8a396, labelled)",
+        "Up candles green #0a7a3c, down candles red #c0342b — direction only",
+        "14px body width, 1.5px wick"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-TIMELINE",
+      "family": "E",
+      "family_name": "Mechanism",
+      "name": "Dates in order",
+      "allowed_piece_types": "EXPLAINER · IPO",
+      "binding_rule": "EXACTLY ONE STAGE IN RED — THE ONE THAT COSTS MONEY IF MISSED",
+      "binds_to": null,
+      "required_payload_fields": [
+        "ordered stages, each {index, stage name, date, one-line description, is_critical}",
+        "exactly one stage flagged critical"
+      ],
+      "constraints": [
+        "EXACTLY ONE STAGE IN RED — THE ONE THAT COSTS MONEY IF MISSED",
+        "Critical stage gets a 3px red top rule, red rotated diamond, red label, bold date and a tinted #f6f4ee panel; all others 3px ink",
+        "Stages are equal-width flex columns, left to right in date order"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-STEPS",
+      "family": "E",
+      "family_name": "Mechanism",
+      "name": "Numbered mechanism",
+      "allowed_piece_types": "EXPLAINER",
+      "binding_rule": "3–5 STEPS · A BOLD CLAIM PLUS ONE CLARIFYING LINE, NEVER A PARAGRAPH",
+      "binds_to": null,
+      "required_payload_fields": [
+        "3–5 steps, each {zero-padded number ('01'), bold claim, one clarifying line}"
+      ],
+      "constraints": [
+        "3–5 STEPS",
+        "A BOLD CLAIM PLUS ONE CLARIFYING LINE, NEVER A PARAGRAPH",
+        "Numerals are mono 9.5px 600 #57534a in a fixed 20px gutter",
+        "Rows separated by 1px #efece3, last row unruled"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-FLOW",
+      "family": "E",
+      "family_name": "Mechanism",
+      "name": "Money flow",
+      "allowed_piece_types": "DEEP DIVE",
+      "binding_rule": "MAX 4 NODES, LEFT TO RIGHT · NEVER BRANCHES — USE BLK-DECISION",
+      "binds_to": null,
+      "required_payload_fields": [
+        "≤4 nodes in order, each {role label, name, qualifier line}",
+        "connectors between nodes, each {label, seniority weight, value/share}",
+        "which node is the terminal equity node"
+      ],
+      "constraints": [
+        "MAX 4 NODES, LEFT TO RIGHT",
+        "NEVER BRANCHES — USE BLK-DECISION",
+        "ARROW WEIGHT SHOWS SENIORITY, NOT SIZE (2px ink for senior, 2px #a8a396 for subordinated)",
+        "EQUITY IS ALWAYS THE PALE BOX AT THE END; the operating node is the inverted ink box"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-ANATOMY",
+      "family": "E",
+      "family_name": "Mechanism",
+      "name": "Annotated document",
+      "allowed_piece_types": "EXPLAINER",
+      "binding_rule": "ABSTRACTED WIREFRAME, NEVER A SCREENSHOT · TEACHES WHERE TO LOOK",
+      "binds_to": null,
+      "required_payload_fields": [
+        "document type label (e.g. 'TADAWUL · CG-1')",
+        "wireframe regions with relative widths and a highlight class (critical / secondary / boilerplate)",
+        "annotations, each {swatch colour, title, why it matters}"
+      ],
+      "constraints": [
+        "ABSTRACTED WIREFRAME, NEVER A SCREENSHOT",
+        "Highlight classes: red 1px + rgba(192,52,43,.08) = the figure that changes your cash; ink 1px + rgba(20,18,14,.06) = the date block; #cfcabe = boilerplate to skip",
+        "172px fixed wireframe rail beside the annotation list"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-WORKED",
+      "family": "E",
+      "family_name": "Mechanism",
+      "name": "Worked example",
+      "allowed_piece_types": "EXPLAINER",
+      "binding_rule": "ROUND NUMBERS, REAL TICKER · MUST END IN A TOTAL ROW THAT SETTLES THE POINT",
+      "binds_to": null,
+      "required_payload_fields": [
+        "premise header (e.g. '1,000 SHARES')",
+        "two state columns (before / after, each dated)",
+        "line rows, each {label, before value, after value}",
+        "total row (mandatory)",
+        "closing sentence stating what the difference actually is"
+      ],
+      "constraints": [
+        "ROUND NUMBERS, REAL TICKER",
+        "MUST END IN A TOTAL ROW THAT SETTLES THE POINT",
+        "The 'after' column header is ink 600 (it carries the desk's computation); its values are bold",
+        "Total row tinted #f6f4ee"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-MYTH",
+      "family": "E",
+      "family_name": "Mechanism",
+      "name": "Assumption vs mechanism",
+      "allowed_piece_types": "EXPLAINER",
+      "binding_rule": "NEVER MOCK THE ASSUMPTION · STATE IT IN THE READER'S OWN WORDS, THEN CORRECT IT",
+      "binds_to": null,
+      "required_payload_fields": [
+        "the assumption, quoted in the reader's own words (serif italic)",
+        "what actually happens: the mechanism, with the arithmetic"
+      ],
+      "constraints": [
+        "NEVER MOCK THE ASSUMPTION",
+        "Two equal panels: assumption gets a 3px red #c0342b top rule and a red kicker; mechanism gets a 3px green #0a7a3c top rule and a green kicker",
+        "Assumption is set in italic Newsreader 14.5px; mechanism in 12px sans"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-DECISION",
+      "family": "E",
+      "family_name": "Mechanism",
+      "name": "If / then",
+      "allowed_piece_types": "EXPLAINER",
+      "binding_rule": "ONE QUESTION, TWO OUTCOMES · NEVER NEST — A SECOND LEVEL MEANS THE EXPLAINER IS WRONG",
+      "binds_to": null,
+      "required_payload_fields": [
+        "the single START question",
+        "YES outcome text",
+        "NO outcome text"
+      ],
+      "constraints": [
+        "ONE QUESTION, TWO OUTCOMES",
+        "NEVER NEST — A SECOND LEVEL MEANS THE EXPLAINER IS WRONG",
+        "YES chip on deep green #0f5f31, NO chip on red #c0342b, both with paper text",
+        "Start box is 1px ink on #f6f4ee"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-GLOSSARY",
+      "family": "E",
+      "family_name": "Mechanism",
+      "name": "Terms on this page",
+      "allowed_piece_types": "RAIL",
+      "binding_rule": "AUTO-ASSEMBLED FROM EVERY BLK-TERM ON THE PAGE · SHARED STORE WITH LEARN",
+      "binds_to": "the glossary store shared with Learn; assembled from every BLK-TERM instance on the page",
+      "required_payload_fields": [
+        "derived — no writer payload: term + definition pairs are collected from the page's BLK-TERM instances"
+      ],
+      "constraints": [
+        "AUTO-ASSEMBLED — a writer agent does not author this block, it emits BLK-TERM and this follows",
+        "SHARED STORE WITH LEARN (definitions must be single-sourced)",
+        "Rendered in the rail; 1px #efece3 dividers, last entry unruled"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-TAPEROW",
+      "family": "F",
+      "family_name": "Wire & live state",
+      "name": "Tape entry",
+      "allowed_piece_types": "THE TAPE",
+      "binding_rule": "TIME IN THE GUTTER, VENUE UNDER IT · MAX 40 WORDS FOR AGENT AUTO-PUBLISH",
+      "binds_to": null,
+      "required_payload_fields": [
+        "timestamp (HH:MM)",
+        "venue (e.g. TADAWUL)",
+        "category chip (e.g. DIVIDEND)",
+        "ticker + filing reference (e.g. '7010 · CG-1')",
+        "headline (serif 17px)",
+        "body — max 40 words"
+      ],
+      "constraints": [
+        "MAX 40 WORDS FOR AGENT AUTO-PUBLISH",
+        "TIME IN THE GUTTER, VENUE UNDER IT (66px fixed gutter)",
+        "Carries a clock — every F-family block does"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-CHIPROW",
+      "family": "F",
+      "family_name": "Wire & live state",
+      "name": "Data chip row",
+      "allowed_piece_types": "WIRE",
+      "binding_rule": "3–5 CHIPS · THE CHEAPEST WAY TO ATTACH DATA TO A 30-WORD ITEM",
+      "binds_to": null,
+      "required_payload_fields": [
+        "3–5 chips, each {label, value, is_moving}",
+        "for the moving chip: the direction sign that colours the value"
+      ],
+      "constraints": [
+        "3–5 CHIPS",
+        "THE MOVING NUMBER GETS THE INK BORDER · CONTEXT CHIPS STAY GREY (1px #cfcabe, #57534a text)",
+        "Mono 9.5px, 3px 8px padding, flex-wrap"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-SNAPSHOT",
+      "family": "F",
+      "family_name": "Wire & live state",
+      "name": "Mini chart card",
+      "allowed_piece_types": "WIRE",
+      "binding_rule": "ONE SERIES, NO AXES, THREE LABELS MAX · THE WIRE'S ONLY PERMITTED CHART",
+      "binds_to": null,
+      "required_payload_fields": [
+        "title / what the series measures",
+        "one series of bar values",
+        "≤3 labels (start period, peak, now)",
+        "which bar is the peak and which is the latest"
+      ],
+      "constraints": [
+        "ONE SERIES, NO AXES, THREE LABELS MAX",
+        "THE WIRE'S ONLY PERMITTED CHART — no other D-family block may appear on the wire",
+        "Bars are #a8a396; the peak is ink; the latest bar takes the direction colour",
+        "84px plot height"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-COUNTDOWN",
+      "family": "F",
+      "family_name": "Wire & live state",
+      "name": "Deadline clock",
+      "allowed_piece_types": "IPO · EX-DATE",
+      "binding_rule": "ABSOLUTE DEADLINE UNDER THE RELATIVE ONE · MARSAD NEVER TAKES THE ORDER",
+      "binds_to": null,
+      "required_payload_fields": [
+        "kicker naming what closes",
+        "relative time remaining (e.g. '2d 09h')",
+        "absolute deadline with timezone (e.g. '9 JUL 13:00 GST')",
+        "context line (e.g. cover level)",
+        "CTA label that routes the reader elsewhere"
+      ],
+      "constraints": [
+        "ABSOLUTE DEADLINE UNDER THE RELATIVE ONE — never the relative alone",
+        "MARSAD NEVER TAKES THE ORDER — the CTA sends the reader to their broker",
+        "Inverted ink panel, Newsreader 36px counter"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-HALT",
+      "family": "F",
+      "family_name": "Wire & live state",
+      "name": "Trading halt",
+      "allowed_piece_types": "WIRE · STOCK",
+      "binding_rule": "MUST DISTINGUISH FROZEN FROM STALE · STATES THE REASON AND THE EXPECTED LIFT",
+      "binds_to": null,
+      "required_payload_fields": [
+        "HALTED status chip",
+        "ticker",
+        "halted-since time",
+        "expected lift time",
+        "reason for the halt",
+        "last traded price",
+        "explicit frozen-not-stale statement"
+      ],
+      "constraints": [
+        "MUST DISTINGUISH FROZEN FROM STALE — the copy must say which",
+        "STATES THE REASON AND THE EXPECTED LIFT",
+        "3px red #c0342b left rule on a 1px #dcd8cc / #f6f4ee panel; HALTED chip is red ground, paper text"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-CORRECTION",
+      "family": "F",
+      "family_name": "Wire & live state",
+      "name": "Correction note",
+      "allowed_piece_types": "ALL TYPES",
+      "binding_rule": "AMBER, NOT RED — A CORRECTION IS INTEGRITY · SAYS WHETHER THE ARGUMENT SURVIVED",
+      "binds_to": "the corrected lake object (every piece citing it is flagged)",
+      "required_payload_fields": [
+        "REVISED chip",
+        "original publish time",
+        "corrected time",
+        "the corrected value and the wrong value it replaces",
+        "why it was wrong (which source conflicted)",
+        "what was done to the lake object and downstream pieces",
+        "whether the conclusion/argument survived",
+        "rule id R-07"
+      ],
+      "constraints": [
+        "AMBER #c9a227, NOT RED — a correction is integrity",
+        "APPENDED, NEVER SILENT",
+        "MUST SAY WHETHER THE ARGUMENT SURVIVED",
+        "3px amber left rule; REVISED chip is amber ground with ink text"
+      ],
+      "gating_related": false,
+      "rule_id": "R-07"
+    },
+    {
+      "code": "BLK-BREADTH",
+      "family": "F",
+      "family_name": "Wire & live state",
+      "name": "Session breadth",
+      "allowed_piece_types": "CLOSE",
+      "binding_rule": "MEDIAN MOVE MATTERS MORE THAN THE INDEX — IT SAYS WHETHER THE DAY WAS BROAD",
+      "binds_to": null,
+      "required_payload_fields": [
+        "advancers count",
+        "decliners count",
+        "unchanged count (the remainder bar)",
+        "median move %",
+        "best performer {ticker, %}",
+        "value traded"
+      ],
+      "constraints": [
+        "MEDIAN MOVE MATTERS MORE THAN THE INDEX",
+        "Advance/decline bar is green #0a7a3c / red #c0342b / #e3dfd4 for unchanged, widths proportional",
+        "20px bar, counts printed inside the segments in paper mono"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-VENUEHEAD",
+      "family": "F",
+      "family_name": "Wire & live state",
+      "name": "Venue column header",
+      "allowed_piece_types": "BY-MARKET",
+      "binding_rule": "BINDS MARKET.STATUS PER VENUE · CARRIES ITS OWN ITEM COUNT",
+      "binds_to": "market.status (per venue)",
+      "required_payload_fields": [
+        "venue group title (e.g. 'QATAR · KUWAIT · OMAN')",
+        "headline index + change",
+        "secondary index chips + changes",
+        "degraded-feed flag per venue (e.g. 'MSX30 DELAYED')",
+        "item count for the column"
+      ],
+      "constraints": [
+        "A DEGRADED FEED IS NAMED IN THE HEADER, NOT HIDDEN IN A FOOTNOTE (amber #c9a227)",
+        "CARRIES ITS OWN ITEM COUNT",
+        "Ink header bar with paper text; sub-bar is #f6f4ee with a 1px #dcd8cc border"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-PROV",
+      "family": "G",
+      "family_name": "Provenance & trust",
+      "name": "Lake object stamp",
+      "allowed_piece_types": "EVERY EXHIBIT",
+      "binding_rule": "MANDATORY UNDER EVERY CHART AND TABLE · NAMES OBJECT, AGENT AND SOURCE CLASS",
+      "binds_to": "lake object id (e.g. FILING.SEGMENT.REVENUE · 2222) plus the verifying agent",
+      "required_payload_fields": [
+        "lake object type + entity (e.g. 'FILING.SEGMENT.REVENUE · 2222')",
+        "coverage / depth (e.g. '29 QUARTERS')",
+        "verifying agent id (e.g. DATA-TDWL)",
+        "verification timestamp",
+        "source class (e.g. 'FILED STATEMENTS, NOT VENDOR FEED')",
+        "status: verified / desk computation / pending"
+      ],
+      "constraints": [
+        "MANDATORY UNDER EVERY CHART AND TABLE",
+        "GREEN DIAMOND = VERIFIED · INK = DESK COMPUTATION · AMBER = PENDING",
+        "Must name object, agent AND source class — all three",
+        "Prerequisite for every other family's footer (README build order: G first)"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-AGENTS",
+      "family": "G",
+      "family_name": "Provenance & trust",
+      "name": "How this was built",
+      "allowed_piece_types": "RAIL · FOOTER",
+      "binding_rule": "AGENT CHIPS CARRY ◆, HUMANS DON'T · THE HUMAN IS ALWAYS LAST IN THE CHAIN",
+      "binds_to": null,
+      "required_payload_fields": [
+        "narrative paragraph describing the build chain",
+        "ordered chain entries, each {name, is_agent}",
+        "the human editor/byline as the final entry"
+      ],
+      "constraints": [
+        "AGENT CHIPS CARRY ◆, HUMANS DON'T",
+        "THE HUMAN IS ALWAYS LAST IN THE CHAIN",
+        "Agent chips are 1px #cfcabe with #57534a text; the human chip is 1px ink"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-FRESH",
+      "family": "G",
+      "family_name": "Provenance & trust",
+      "name": "Freshness badge",
+      "allowed_piece_types": "ANY LIVE FIGURE",
+      "binding_rule": "SHARED WITH THE READER APP'S FreshnessBadge · NEVER A NUMBER WITHOUT ONE OF THESE FOUR",
+      "binds_to": "market.status per venue (stated in the handoff README; the card names only the shared FreshnessBadge component)",
+      "required_payload_fields": [
+        "state: one of LIVE / DELAYED / CLOSED / FEED OFFLINE",
+        "timestamp + timezone (LIVE)",
+        "delay in minutes + venue (DELAYED)",
+        "last close reference (CLOSED)",
+        "retry count (FEED OFFLINE)"
+      ],
+      "constraints": [
+        "EXACTLY FOUR STATES — never a number without one of them",
+        "Dot colours: LIVE #0a7a3c, DELAYED #c9a227, CLOSED #8a857a, FEED OFFLINE #c0342b; 6px circle",
+        "Shared component with the reader app's FreshnessBadge — not a re-implementation",
+        "Hard rule 2: every number carries a freshness state AND a provenance stamp"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-ESTIMATE",
+      "family": "G",
+      "family_name": "Provenance & trust",
+      "name": "Desk-estimate marker",
+      "allowed_piece_types": "ANY FORECAST",
+      "binding_rule": "THREE SIGNALS AT ONCE: \"E\" SUFFIX, INK HEADER, BOLD VALUE · NEVER COLOUR ALONE",
+      "binds_to": "desk computation (as opposed to a company disclosure)",
+      "required_payload_fields": [
+        "actual period label + value (muted)",
+        "estimate period label with the E suffix + value (bold)",
+        "'MARSAD DESK' attribution badge",
+        "footnote stating the number is a desk computation, not a company disclosure"
+      ],
+      "constraints": [
+        "THREE SIGNALS AT ONCE: 'E' SUFFIX, INK HEADER, BOLD VALUE",
+        "NEVER COLOUR ALONE",
+        "Hard rule 3 of the system — an estimate can never be mistaken for a filed figure",
+        "3px ink left rule on the explanatory note"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-CONFLICT",
+      "family": "G",
+      "family_name": "Provenance & trust",
+      "name": "Held from writers",
+      "allowed_piece_types": "RARE · DESK",
+      "binding_rule": "PUBLISHING A GAP BEATS PUBLISHING A GUESS · SHOWS BOTH, PICKS NEITHER",
+      "binds_to": "the two conflicting source objects (vendor feed vs primary filing)",
+      "required_payload_fields": [
+        "name of the withheld figure and its period",
+        "source A {label, value}",
+        "source B {label, value, is_primary}",
+        "resolution statement — that the figure is not quoted until the desk resolves it, and that primary wins unless overridden"
+      ],
+      "constraints": [
+        "THE FIGURE IS WITHHELD — publishing a gap beats publishing a guess",
+        "SHOWS BOTH, PICKS NEITHER",
+        "Primary wins unless overridden",
+        "1px red #c0342b border, red rotated diamond, 'SOURCES DISAGREE — FIGURE WITHHELD' kicker; the primary value is the bold one"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-RULE",
+      "family": "G",
+      "family_name": "Provenance & trust",
+      "name": "Rule applied",
+      "allowed_piece_types": "RISK FRAMING",
+      "binding_rule": "WHEN A RULE VISIBLY SHAPED THE COPY · CITES THE ID FROM THE PUBLISHING RULESET",
+      "binds_to": "the publishing ruleset (rule id)",
+      "required_payload_fields": [
+        "rule id (specimen: R-06)",
+        "what the rule requires, in plain language",
+        "how it shaped this specific piece",
+        "the automated check that enforces it (e.g. the screener flags payout > 100%)"
+      ],
+      "constraints": [
+        "Only used WHEN A RULE VISIBLY SHAPED THE COPY",
+        "MUST CITE THE ID FROM THE PUBLISHING RULESET",
+        "NAMING THE RULE IS THE POINT — THE READER LEARNS THE HOUSE STANDARD BY SEEING IT ENFORCED",
+        "3px red #c0342b left rule on #f6f4ee"
+      ],
+      "gating_related": false,
+      "rule_id": "R-06 (specimen; the block cites whichever ruleset id applied)"
+    },
+    {
+      "code": "BLK-CUT",
+      "family": "H",
+      "family_name": "Gates & CTAs",
+      "name": "Premium cut",
+      "allowed_piece_types": "GATED",
+      "binding_rule": "MUST SIT AFTER AT LEAST ONE DATA BLOCK — THE READER SEES THE WORK BEFORE THE WALL",
+      "binds_to": null,
+      "required_payload_fields": [
+        "the teaser paragraph to blur",
+        "cut position — must land after a complete thought",
+        "count of data blocks rendered before the cut (must be ≥ 1)"
+      ],
+      "constraints": [
+        "BLUR 3.5PX PLUS A GRADIENT TO PAPER (56px, rgba(253,252,249,0) → #fdfcf9)",
+        "THE CUT FALLS AFTER A COMPLETE THOUGHT, NEVER MID-SENTENCE (R-09)",
+        "MUST SIT AFTER AT LEAST ONE DATA BLOCK",
+        "pointer-events none, user-select none on the blurred content",
+        "Must never interrupt an argument mid-sentence (family rule)"
+      ],
+      "gating_related": true,
+      "rule_id": "R-09"
+    },
+    {
+      "code": "BLK-PAYWALL",
+      "family": "H",
+      "family_name": "Gates & CTAs",
+      "name": "In-article paywall band",
+      "allowed_piece_types": "GATED",
+      "binding_rule": "STATES WHAT IS BEHIND IT SPECIFICALLY · NAMES THE METER STATE · SAME COMPONENT AS THE MODAL",
+      "binds_to": "the free-read meter state",
+      "required_payload_fields": [
+        "kicker 'CONTINUE WITH PREMIUM'",
+        "meter state string (e.g. '3 / 3 FREE READS USED')",
+        "specific statement of what is behind the wall (not generic)",
+        "primary CTA label (e.g. 'Start 14-day trial')",
+        "reassurance line (e.g. 'cancel anytime')"
+      ],
+      "constraints": [
+        "STATES WHAT IS BEHIND IT SPECIFICALLY — no generic 'subscribe to read more'",
+        "NAMES THE METER STATE",
+        "SAME COMPONENT AS THE MODAL — one implementation, two placements",
+        "2px ink border on #f6f4ee; ink CTA button with paper text"
+      ],
+      "gating_related": true,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-ALERTCTA",
+      "family": "H",
+      "family_name": "Gates & CTAs",
+      "name": "Turn this into an alert",
+      "allowed_piece_types": "TRACKED SERIES",
+      "binding_rule": "PRE-FILLS THE ALERT FROM THE PIECE'S OWN SUBJECT · THE BEST CTA IN THE PRODUCT",
+      "binds_to": "the piece's own subject (entity + tracked series) → the alert definition",
+      "required_payload_fields": [
+        "kicker 'KEEP WATCHING THIS'",
+        "alert headline — what will trigger the ping",
+        "expected event + date",
+        "pre-filled alert subject (entity, series, condition)",
+        "CTA label ('Create alert →')"
+      ],
+      "constraints": [
+        "PRE-FILLS THE ALERT FROM THE PIECE'S OWN SUBJECT — the reader must not re-specify it",
+        "1px ink border on #f6f4ee; ink CTA button",
+        "Must never interrupt an argument mid-sentence (family rule)"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    },
+    {
+      "code": "BLK-DOWNLOAD",
+      "family": "H",
+      "family_name": "Gates & CTAs",
+      "name": "Take the data",
+      "allowed_piece_types": "DEEP DIVE · NOTE",
+      "binding_rule": "SHIPPING THE OBJECT IDS IS THE DIFFERENTIATOR — IT MAKES THE RESEARCH AUDITABLE",
+      "binds_to": "the lake object IDs behind every series in the piece",
+      "required_payload_fields": [
+        "count of downloadable series (e.g. 'Download 9 series')",
+        "file format (.xlsx)",
+        "the lake object ID for every series in the file",
+        "kicker 'EVERY SERIES IS DOWNLOADABLE' + explanatory line"
+      ],
+      "constraints": [
+        "The .xlsx must carry the lake object IDs so any figure traces back to its filing",
+        "2px ink top rule; outlined (not filled) button — it is not the primary CTA"
+      ],
+      "gating_related": false,
+      "rule_id": null
+    }
+  ]
+}

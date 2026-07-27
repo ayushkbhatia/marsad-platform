@@ -1,0 +1,2044 @@
+{
+  "chassis": {
+    "source_package": "handoff_longform/ (README.md + 4 fully-resolved inline-styled HTML exports, 1440px desktop, self-contained)",
+    "source_design_file": "Marsad Longform.dc.html",
+    "base_template": "1a",
+    "canvas": {
+      "outer_body_background": "#e8e5dc",
+      "outer_body_layout": "display:flex; justify-content:center; margin:0; padding:0",
+      "page_shell_width_px": 1440,
+      "page_shell_background": "#fdfcf9",
+      "page_shell_text_color": "#14120e",
+      "page_shell_border": "1px solid #cfcabe",
+      "box_sizing": "border-box on all elements",
+      "page_horizontal_padding_px": 34,
+      "full_bleed_content_width_px": 1372,
+      "screen_label_attribute": "data-screen-label on the shell div"
+    },
+    "grid": {
+      "stated_in_readme": "88px marker gutter | ~760px measure | 300px rail",
+      "as_built": "The exports implement the body as a 2-column CSS grid (measure + rail) inside a centred max-width container. The 88px marker gutter is a chassis rule, not a materialised grid column in these four files: no BLK-MARGIN / citation-anchor instance appears in any of the four pages, so no export needed the column. The whitespace left of the measure comes from centring the body container inside the 1440 shell (1a: 174px from shell edge to measure start; 3a/3b: 164px).",
+      "per_template_measured": {
+        "1a": {
+          "container_max_width": 1160,
+          "container_padding_x": 34,
+          "inner_width": 1092,
+          "grid_template_columns": "1fr 300px",
+          "column_gap": 52,
+          "measure_px": 740,
+          "rail_px": 300
+        },
+        "1b": {
+          "container_max_width": 1160,
+          "container_padding_x": 34,
+          "inner_width": 1092,
+          "grid_template_columns": "1fr 1fr (prose | exhibit) and full-width bands",
+          "column_gap": 44,
+          "measure_px": 524,
+          "rail_px": null
+        },
+        "3a": {
+          "container_max_width": 1180,
+          "container_padding_x": 34,
+          "inner_width": 1112,
+          "grid_template_columns": "1fr 296px",
+          "column_gap": 54,
+          "measure_px": 762,
+          "rail_px": 296
+        },
+        "3b": {
+          "container_max_width": 1180,
+          "container_padding_x": 34,
+          "inner_width": 1112,
+          "grid_template_columns": "1fr 300px",
+          "column_gap": 54,
+          "measure_column_px": 758,
+          "measure_text_cap_px": 740,
+          "rail_px": 300
+        }
+      },
+      "recommended_build": "88px gutter | 740-762px measure | 296-300px rail, gaps 52-54px, all inside a 1160-1180px centred container with 34px page padding. Treat 740px as the canonical measure and 300px as the canonical rail.",
+      "gutter_role": "Not padding. Carries section markers, BLK-MARGIN notes and citation anchors that must align vertically to the paragraph they annotate.",
+      "measure_rule": "The measure is fixed. Body copy never reflows to the full 1440px. This is stated as the single most important thing to preserve.",
+      "exhibit_break_rule_stated": "Exhibits break the measure deliberately: charts and tables span gutter + measure, never the rail, so they read as evidence interrupting the argument rather than decoration beside it.",
+      "exhibit_break_rule_as_built": "Two mechanisms are visible: (1) exhibits placed inside the measure column run edge-to-edge of the measure with a full-bleed ink header bar (1a EXHIBIT 1/2/3, 3a EXHIBIT 1/2/3, 3b worked example); (2) genuinely measure-breaking exhibits are hoisted OUT of the body grid into their own full-container-width band (1b master exhibit and quarterly NIM table at 1092px; 3b timeline hero at 1112px). Neither mechanism ever intrudes on the rail column.",
+      "scroll_behaviour": "The rail is the only independently scrolling column: position:sticky; top:20px. Every other region scrolls with the page.",
+      "vertical_rhythm": {
+        "body_paragraph_gap_px": [
+          14,
+          16,
+          18,
+          22,
+          24,
+          26
+        ],
+        "exhibit_margin_top_px": [
+          6,
+          20,
+          22,
+          24
+        ],
+        "section_subhead_margin_top_px": 34,
+        "chapter_rule_margin_top_px": [
+          32,
+          36
+        ],
+        "footer_block_margin_top_px": 26
+      }
+    },
+    "fonts": {
+      "loaded": "Google Fonts: Newsreader (ital,opsz 6..72,wght 400..800), Libre Franklin (300..800), IBM Plex Mono (400;500;600), Noto Naskh Arabic (400..700)",
+      "roles": {
+        "Newsreader (serif)": "headlines, standfirsts, body copy, pull quotes, big stat values, chapter numbers/titles, related-item titles",
+        "Libre Franklin (sans)": "default body font-family of the document; UI labels, bullets, table cells, rail item text, buttons",
+        "IBM Plex Mono": "eyebrows, kickers, datelines, all numerics in tables/rails, provenance strips, agent chips, axis labels",
+        "Noto Naskh Arabic": "Arabic wordmark and Arabic company names"
+      }
+    },
+    "type_scale": {
+      "body_stated_in_readme": "Newsreader 17px / 1.72",
+      "body_as_built": {
+        "1a": "19px / 1.68",
+        "1b": "17px / 1.66",
+        "3a": "19px / 1.68",
+        "3b": "18px / 1.68"
+      },
+      "body_color": "#26241f",
+      "h1": {
+        "1a": "60px / 1.06, -0.022em, centred",
+        "1b": "44px / 1.10, -0.018em, left",
+        "3a": "58px / 1.06, -0.022em, left, reverse on ink",
+        "3b": "52px / 1.08, -0.020em, left"
+      },
+      "h1_common": "Newsreader 700, text-wrap:balance",
+      "standfirst": {
+        "1a": "Newsreader 20/1.5 #57534a, max-width 780, centred",
+        "1b": "Newsreader 17.5/1.5 #57534a, max-width 660",
+        "3a": "Newsreader 20/1.5 #a8a396 on ink, max-width 820",
+        "3b": "Newsreader 19/1.52 #57534a inside an 840px block"
+      },
+      "drop_cap": "Newsreader 64px 700, float:left, line-height .78, padding 8px 12px 0 0 (1a opening paragraph; 3a chapter-one opening paragraph only)",
+      "section_subhead": {
+        "1a": "Newsreader 25px 700, -0.012em",
+        "3b": "Newsreader 26px 700, -0.014em"
+      },
+      "chapter_heading": "number Newsreader 44px 700 #cfcabe line-height .9; eyebrow IBM Plex Mono 8.5px 600 .18em #8a857a; title Newsreader 30px 700 /1.16 -0.014em; block sits under a 2px #14120e top rule with 14px padding-top",
+      "pull_quote": {
+        "1a_3a": "Newsreader 27px italic /1.38, -0.008em, 3px #14120e left rule, padding-left 26px",
+        "1b": "Newsreader 21px italic /1.42, -0.006em, 3px left rule, padding-left 22px"
+      },
+      "kicker": "IBM Plex Mono 9.5px 600, letter-spacing .2em, preceded by a 7-8px ink diamond (transform:rotate(45deg))",
+      "masthead_eyebrow": "IBM Plex Mono 9px 600, .18em, #57534a",
+      "dateline": "IBM Plex Mono 9px, .08em, #8a857a, margin-left:auto",
+      "rail_section_header": "10px 700, .18em, uppercase, border-bottom 2px #14120e, padding-bottom 8px",
+      "exhibit_header": "ink bar, padding 10px 16px; label IBM Plex Mono 9.5px 600 .16em; title 12px; right-aligned unit note IBM Plex Mono 8px #a8a396",
+      "provenance_strip": "padding 8px 16px, border-top 1px #dcd8cc, background #f6f4ee, 6px rotated diamond + IBM Plex Mono 8px .08em #57534a, optional right-aligned underlined action",
+      "footnote_line": "IBM Plex Mono 8-8.5px, #8a857a / #a8a396, line-height 1.7"
+    },
+    "color_tokens": {
+      "ink": "#14120e",
+      "body_ink": "#26241f",
+      "text_mid": "#33302a",
+      "text_secondary": "#57534a",
+      "muted": "#8a857a",
+      "muted_light": "#a8a396",
+      "paper": "#fdfcf9",
+      "panel": "#f6f4ee",
+      "canvas": "#e8e5dc",
+      "fill_light": "#e3dfd4",
+      "rule_strong": "#dcd8cc",
+      "rule_light": "#efece3",
+      "border": "#cfcabe",
+      "reverse_text_on_ink": "#f6f4ee",
+      "rule_on_ink": "#26241f",
+      "positive": "#0a7a3c",
+      "positive_on_ink": "#4fc47f",
+      "positive_chip": "#0f5f31",
+      "warning_chip": "#c9a227",
+      "negative": "#c0342b"
+    },
+    "shared_components": {
+      "masthead_strip": "height 46px, padding 0 34px, background #f6f4ee, border-bottom 1px #dcd8cc, gap 16px: Marsad wordmark (Newsreader 21px 700) [+ Arabic mark in 1a only] | 1x18px divider | section eyebrow | optional access pill | margin-left:auto dateline or series position",
+      "access_pill": "premium = IBM Plex Mono 8px 600 .1em, background #14120e, colour #f6f4ee, padding 2.5px 6px; free = same type with 1px #cfcabe border, colour #57534a, no fill",
+      "avatar_monogram": "circle 38-42px, 1.5px border, Newsreader 14-15px 600, two initials",
+      "action_button_secondary": "10.5px 600, 1px #cfcabe border, #57534a, padding 7px 12px",
+      "action_button_primary": "10.5px 700, .06em, background #14120e, colour #f6f4ee, padding 7px 13px, uppercase",
+      "exhibit_frame": "1px solid #14120e wrapper; ink header bar; #fdfcf9 body; optional provenance strip footer",
+      "provenance_diamond": "green #0a7a3c = verified filed/lake source; ink #14120e = Marsad desk model or desk computation",
+      "stat_strip": "flex row of equal cells, 1px #dcd8cc border, background #f6f4ee, cell padding 14px 18px; label IBM Plex Mono 8px .1em #8a857a; value Newsreader 27px 700",
+      "paywall_card": "2px solid #14120e, background #f6f4ee, padding 26px 30px, margin-top 6px",
+      "blur_teaser": "filter:blur(3.5px); pointer-events:none; user-select:none; with an absolutely positioned 120px linear-gradient scrim to #fdfcf9",
+      "method_disclosure_footer": "border-top 1px #dcd8cc, padding 14px 0 34px, two equal flex columns (METHOD | DISCLOSURE), label IBM Plex Mono 8px 600 .14em #8a857a, copy 11.5px /1.6 #57534a",
+      "agent_chip": "IBM Plex Mono 8px, 1px #cfcabe border, #57534a, padding 2px 6px, prefixed with a diamond glyph for agents; human bylines use a 1px #14120e border and no diamond",
+      "image_slot": "<image-slot id placeholder> custom element filling a fixed-height bordered box"
+    },
+    "conditional_flags": {
+      "showProv": "default true; wraps every provenance strip (1a x3, 1b x2, 3a x2; absent in 3b)",
+      "showRail": "default true; wraps the whole sticky rail (1a, 3a, 3b; absent in 1b, which has no rail)",
+      "isFree": "default true; wraps the blurred teaser + paywall card (1a, 3a only)",
+      "isPremium": "default false; wraps the unblurred continuation + end-matter (1a, 3a only)",
+      "syntax": "<sc-if value=\"{{ flag }}\" hint-placeholder-val=\"{{ true|false }}\">"
+    },
+    "chassis_rules": [
+      "1a is the chassis; build it first. Everything else is furniture swaps on the same grid.",
+      "The measure is fixed and never reflows to the full 1440px.",
+      "The gutter is not padding; margin notes and citation anchors must align to the paragraph they annotate.",
+      "Exhibits span gutter + measure, never the rail.",
+      "The rail is the only independently scrolling (sticky) column.",
+      "Every figure cites a verified data-lake object; where a number is a desk computation rather than a company disclosure, the exhibit must say so.",
+      "Corrections are appended, never silent.",
+      "Analysts may not hold positions in covered names.",
+      "Standing disclosure: Marsad is research and data, not investment advice. Regulated by DFSA, Marsad FZ-LLC, DIFC.",
+      "Every visual unit is an instance of a BLK-* block from the 61-block library in handoff_article_blocks/; article templates are arrangements, blocks are the vocabulary.",
+      "Suggested build order: 1a chassis, then 3b, then 1b, then 3a."
+    ],
+    "chassis_discrepancies": [
+      "README states body is Newsreader 17px/1.72; no export uses that pair (1a/3a 19/1.68, 1b 17/1.66, 3b 18/1.68). Treat 17/1.72 as the token and the per-type values as the shipped overrides, or reconcile before build.",
+      "README states an 88px marker gutter column; no export materialises it, because no page contains a BLK-MARGIN or citation-anchor instance.",
+      "README states the measure is ~760px; only 3a (762px) and 3b's column (758px) match. 1a, the declared chassis, is 740px."
+    ]
+  },
+  "templates": [
+    {
+      "id": "1a",
+      "name": "Feature long read",
+      "file": "Feature Long Read - 1a.html",
+      "title_tag": "Marsad — Feature long read (1a)",
+      "role": "The base chassis. Journalist-authored argument feature.",
+      "stated_read_length": {
+        "readme": "~18 min",
+        "markup_byline": "21 MIN READ",
+        "markup_audio": "Listen · 21m",
+        "discrepancy": true
+      },
+      "access_tier": {
+        "readme": "Metered",
+        "badge_in_markup": "PREMIUM (ink pill in the headline kicker row, not the masthead)",
+        "meter_state_shown": "3 / 3 FREE READS USED",
+        "effective": "metered — free reads counted, then a mid-article cut"
+      },
+      "page_grid": {
+        "shell_width_px": 1440,
+        "page_padding_x_px": 34,
+        "headline_container_max_width_px": 1020,
+        "byline_container_max_width_px": 1020,
+        "hero_width_px": 1372,
+        "body_container_max_width_px": 1160,
+        "body_grid": "display:grid; grid-template-columns:1fr 300px; column-gap:52px; align-items:start; padding:26px 34px 0",
+        "gutter_px": "0 as built (88px per chassis rule, unpopulated)",
+        "measure_px": 740,
+        "rail_px": 300
+      },
+      "body_typography": {
+        "font": "Newsreader",
+        "size_px": 19,
+        "line_height": 1.68,
+        "color": "#26241f",
+        "text_wrap": "pretty",
+        "drop_cap": "64px Newsreader 700 on the opening paragraph"
+      },
+      "section_sequence": [
+        {
+          "order": 1,
+          "region": "masthead",
+          "required": true,
+          "contains": "Marsad wordmark + Arabic مرصد + divider + 'THE LONG READ' eyebrow + right-aligned dateline 'SAT 4 JUL 2026 · 06:00 GST'",
+          "width": "full 1440, padding 0 34"
+        },
+        {
+          "order": 2,
+          "region": "headline_block",
+          "required": true,
+          "contains": "kicker row (diamond + 'ENERGY · SAUDI ARABIA' + PREMIUM pill), h1 60px, standfirst 20px (max-width 780)",
+          "width": "max-width 1020, centred text"
+        },
+        {
+          "order": 3,
+          "region": "master_photo",
+          "required": true,
+          "contains": "image-slot lf-feature-hero, 1372x520 box on #e8e5dc with 1px #dcd8cc border; caption 11px #57534a (max-width 760) + right-aligned credit 'PHOTO · MARSAD DESK'; closes with a 1px bottom rule",
+          "width": "1372 full bleed inside page padding"
+        },
+        {
+          "order": 4,
+          "region": "byline_bar",
+          "required": true,
+          "contains": "42px monogram avatar, name + beat, mono meta line, action cluster (Save / Share / Listen · 21m / Follow 2222)",
+          "width": "max-width 1020"
+        },
+        {
+          "order": 5,
+          "region": "body_rail_grid",
+          "required": true,
+          "contains": "the two-column measure + rail region; everything below is inside it",
+          "width": "max-width 1160"
+        },
+        {
+          "order": 6,
+          "region": "measure > standfirst_bullets",
+          "required": true,
+          "contains": "'THE ARGUMENT IN THREE LINES' label + exactly 3 square-bulleted 13.5px lines; framed by a 2px ink top rule and a 1px bottom rule"
+        },
+        {
+          "order": 7,
+          "region": "measure > opening_paragraph",
+          "required": true,
+          "contains": "drop-capped first paragraph"
+        },
+        {
+          "order": 8,
+          "region": "measure > paragraph",
+          "required": true,
+          "contains": "argument prose"
+        },
+        {
+          "order": 9,
+          "region": "measure > inline_ticker_card",
+          "required": false,
+          "contains": "ticker + EN/AR company name | LAST price + change | MARSAD SCORE + verdict | 150x42 sparkline + 12M relative vs TASI + PT and upside + 'Open workspace' CTA; 1px ink border, internal 1px #dcd8cc dividers"
+        },
+        {
+          "order": 10,
+          "region": "measure > paragraph",
+          "required": true,
+          "contains": "the disagreement / against-consensus paragraph"
+        },
+        {
+          "order": 11,
+          "region": "measure > pull_quote",
+          "required": false,
+          "contains": "27px italic quote + mono attribution line"
+        },
+        {
+          "order": 12,
+          "region": "measure > exhibit_1",
+          "required": true,
+          "contains": "area+line chart (640x220 viewBox, 5 gridlines, shaded polygon, end dot, dashed event marker), x-axis year labels, 3-part footnote row, provenance strip (green diamond, lake object id, 29 quarters, verifying agent + time, 'DOWNLOAD SERIES')"
+        },
+        {
+          "order": 13,
+          "region": "measure > paragraph",
+          "required": true,
+          "contains": "learning-curve paragraph"
+        },
+        {
+          "order": 14,
+          "region": "measure > stat_strip",
+          "required": false,
+          "contains": "4 equal cells (label + Newsreader 27px value; third value tinted green) + a mono provenance caption naming two lake objects and flagging the desk computation"
+        },
+        {
+          "order": 15,
+          "region": "measure > section_subhead",
+          "required": false,
+          "contains": "Newsreader 25px 700 'What the market is still pricing'"
+        },
+        {
+          "order": 16,
+          "region": "measure > paragraph",
+          "required": true,
+          "contains": "reverse-DCF setup paragraph"
+        },
+        {
+          "order": 17,
+          "region": "measure > exhibit_2",
+          "required": false,
+          "contains": "5-row horizontal bar sensitivity (label 210px + bar + value + delta), grey bar = base, ink = upside, red = downside; footnote; provenance strip naming the desk model id, 41 lake objects, reviewer, 'OPEN MODEL'"
+        },
+        {
+          "order": 18,
+          "region": "measure > paragraph",
+          "required": true,
+          "contains": "risk-to-the-view paragraph"
+        },
+        {
+          "order": 19,
+          "region": "measure > exhibit_3_scenario_table",
+          "required": false,
+          "contains": "grid 1.4fr 90px 90px 100px 1fr: scenario / FY28 EPS / target / total return / trigger to watch; 3 rows, base case row shaded #f6f4ee"
+        },
+        {
+          "order": 20,
+          "region": "measure > premium_cut",
+          "required": true,
+          "contains": "sc-if isFree: blurred 2-paragraph teaser + 120px scrim, then the paywall card (meter chip, offer headline, 3 benefit lines, trial CTA, billing line + Sign in)"
+        },
+        {
+          "order": 21,
+          "region": "measure > premium_continuation",
+          "required": true,
+          "contains": "sc-if isPremium: 2 closing paragraphs + END row (mono 'END' + diamond + author position disclosure)"
+        },
+        {
+          "order": 22,
+          "region": "measure > method_disclosure_footer",
+          "required": true,
+          "contains": "METHOD column + DISCLOSURE column"
+        },
+        {
+          "order": 23,
+          "region": "rail",
+          "required": false,
+          "contains": "sc-if showRail; sticky top:20px; 4 stacked modules (see rail)"
+        }
+      ],
+      "unique_to_this_type": [
+        "Centred headline block (every other type is left-aligned)",
+        "Arabic wordmark مرصد in the masthead",
+        "Master photo at 520px with caption + credit",
+        "'THE ARGUMENT IN THREE LINES' standfirst bullets",
+        "Inline ticker card with sparkline, Marsad Score and 'Open workspace'",
+        "Share and Follow-ticker actions in the byline",
+        "Rail 'Key numbers' + 'In this piece' + 'Related' reading furniture"
+      ],
+      "inherited_from_1a": "n/a — this is the source of the chassis",
+      "rail": {
+        "present": true,
+        "width_px": 300,
+        "behaviour": "position:sticky; top:20px; the only independently scrolling column; wrapped in sc-if showRail (default true)",
+        "modules": [
+          {
+            "order": 1,
+            "name": "KEY NUMBERS",
+            "style": "ink panel #14120e / #f6f4ee, padding 16px 18px",
+            "contains": "4 label/value rows separated by 1px #26241f rules"
+          },
+          {
+            "order": 2,
+            "name": "In this piece",
+            "style": "rail section header",
+            "contains": "3 ticker rows: code (56px) + company + day change tinted green/red"
+          },
+          {
+            "order": 3,
+            "name": "HOW THIS WAS BUILT",
+            "style": "1px #dcd8cc box on #f6f4ee",
+            "contains": "provenance narrative + agent chips (DATA-TDWL, DATA-FILINGS, WRITER-2) + human byline chip"
+          },
+          {
+            "order": 4,
+            "name": "Related",
+            "style": "rail section header",
+            "contains": "2 items: Newsreader 14.5px title + mono meta 'TIER · TYPE · DATE'"
+          }
+        ]
+      },
+      "gutter": {
+        "present_as_column": false,
+        "stated_contents": "section markers, BLK-MARGIN notes, citation anchors aligned to their paragraph",
+        "instances_in_this_file": 0
+      },
+      "block_instances": [
+        {
+          "order": 1,
+          "region": "masthead",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-MASTHEAD",
+          "label": "Masthead strip"
+        },
+        {
+          "order": 2,
+          "region": "headline_block",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-KICKER",
+          "label": "Kicker + access pill"
+        },
+        {
+          "order": 3,
+          "region": "headline_block",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-HEADLINE",
+          "label": "Headline + standfirst"
+        },
+        {
+          "order": 4,
+          "region": "master_photo",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-PHOTO",
+          "label": "Master photo + caption + credit"
+        },
+        {
+          "order": 5,
+          "region": "byline_bar",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-BYLINE",
+          "label": "Byline bar with actions"
+        },
+        {
+          "order": 6,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-BULLETS",
+          "label": "Argument-in-three-lines bullets"
+        },
+        {
+          "order": 7,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-DROPCAP",
+          "label": "Drop-capped opening paragraph"
+        },
+        {
+          "order": 8,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-TICKER",
+          "label": "Inline ticker card"
+        },
+        {
+          "order": 9,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-QUOTE",
+          "label": "Pull quote"
+        },
+        {
+          "order": 10,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-EXHIBIT",
+          "label": "Exhibit 1 — area chart + provenance"
+        },
+        {
+          "order": 11,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-STATSTRIP",
+          "label": "4-cell stat strip + provenance caption"
+        },
+        {
+          "order": 12,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-EXHIBIT",
+          "label": "Exhibit 2 — sensitivity bars + model provenance"
+        },
+        {
+          "order": 13,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-TABLE",
+          "label": "Exhibit 3 — scenario table"
+        },
+        {
+          "order": 14,
+          "region": "measure",
+          "block_id": "BLK-CUT",
+          "stated": "named in README as one of the blocks used in this package",
+          "label": "Blurred teaser + paywall card"
+        },
+        {
+          "order": 15,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-ENDMATTER",
+          "label": "END row + author position disclosure"
+        },
+        {
+          "order": 16,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-METHOD",
+          "label": "Method + Disclosure footer"
+        },
+        {
+          "order": 17,
+          "region": "rail",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-KEYNUMBERS",
+          "label": "Key numbers panel"
+        },
+        {
+          "order": 18,
+          "region": "rail",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-INPIECE",
+          "label": "In this piece ticker list"
+        },
+        {
+          "order": 19,
+          "region": "rail",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-HOWBUILT",
+          "label": "How this was built + agent chips"
+        },
+        {
+          "order": 20,
+          "region": "rail",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-RELATED",
+          "label": "Related pieces"
+        },
+        {
+          "order": null,
+          "region": "gutter",
+          "block_id": "BLK-MARGIN",
+          "stated": true,
+          "label": "Margin note — named in the file header comment and README as gutter furniture; zero instances present in this export"
+        }
+      ],
+      "premium_cut": {
+        "present": true,
+        "falls_after": "Exhibit 3 (the scenario table) and the risk paragraph — roughly two thirds through the argument, before the dividend / free-cash-flow build",
+        "mechanism": "sc-if isFree renders a 2-paragraph blurred teaser (blur 3.5px, 120px gradient scrim) then the paywall card; sc-if isPremium renders the real continuation",
+        "meter_rule": "3 / 3 FREE READS USED — metered access, cut fires when the meter is exhausted",
+        "paywall_copy": {
+          "eyebrow": "CONTINUE WITH MARSAD PREMIUM",
+          "headline": "The ten-year build, the tariff case and the model file are for members.",
+          "benefits": [
+            "Every premium note & model file",
+            "Marsad Score on 812 GCC stocks",
+            "Screens, alerts & datapoint feeds"
+          ],
+          "cta": "Start 14-day trial — SAR 89/mo",
+          "fine_print": "Billed annually · cancel anytime · Sign in"
+        }
+      },
+      "byline_disclosure_timestamp_fields": {
+        "byline": [
+          "author_initials (monogram)",
+          "author_name",
+          "author_beat",
+          "publish_date",
+          "read_time_minutes",
+          "attachment_note (e.g. MODEL FILE ATTACHED)",
+          "updated_timestamp + timezone"
+        ],
+        "actions": [
+          "save",
+          "share",
+          "listen + audio_duration",
+          "follow_entity_ticker"
+        ],
+        "masthead_timestamp": "weekday + date + time + timezone (SAT 4 JUL 2026 · 06:00 GST)",
+        "disclosure": [
+          "author position statement in the END row ('She holds no position in 2222')",
+          "METHOD column copy",
+          "DISCLOSURE column copy with regulator + legal entity"
+        ],
+        "provenance": "every exhibit carries a provenance strip: lake object id(s), record count, verifying agent, verification time, source characterisation, and an explicit desk-computation flag where applicable"
+      },
+      "writer_metadata_fields": {
+        "identity": [
+          "section_kicker",
+          "access_tier",
+          "masthead_section_label",
+          "publish_datetime",
+          "updated_datetime",
+          "read_time_minutes",
+          "audio_duration_minutes"
+        ],
+        "headline_set": [
+          "headline",
+          "standfirst",
+          "argument_bullets[3]"
+        ],
+        "hero": [
+          "hero_image_asset",
+          "hero_caption",
+          "hero_credit",
+          "hero_dimensions"
+        ],
+        "author": [
+          "author_name",
+          "author_initials",
+          "author_beat",
+          "author_position_disclosure"
+        ],
+        "entity": [
+          "primary_ticker",
+          "company_name_en",
+          "company_name_ar",
+          "last_price",
+          "day_change_pct",
+          "marsad_score",
+          "marsad_score_verdict",
+          "sparkline_series",
+          "relative_performance_12m_vs_index",
+          "price_target",
+          "implied_upside_pct",
+          "workspace_link"
+        ],
+        "narrative": [
+          "body_paragraphs[]",
+          "drop_cap_flag_on_first",
+          "section_subheads[]",
+          "pull_quote_text",
+          "pull_quote_attribution"
+        ],
+        "exhibits": [
+          "exhibit_number",
+          "exhibit_title",
+          "unit_or_axis_note",
+          "chart_type",
+          "series_data",
+          "annotation_markers",
+          "footnote_lines[]",
+          "provenance.lake_object_ids[]",
+          "provenance.record_count",
+          "provenance.verifying_agent",
+          "provenance.verified_at",
+          "provenance.source_statement",
+          "provenance.is_desk_computation",
+          "provenance.action_label + link"
+        ],
+        "stat_strip": [
+          "4 x {label, value, tone}"
+        ],
+        "scenario_table": [
+          "rows[] {scenario, eps, target, total_return, trigger_to_watch}",
+          "highlight_row_index"
+        ],
+        "paywall": [
+          "teaser_paragraphs[2]",
+          "meter_used",
+          "meter_limit",
+          "paywall_eyebrow",
+          "paywall_headline",
+          "benefit_lines[3]",
+          "plan_price",
+          "trial_days",
+          "billing_note"
+        ],
+        "closing": [
+          "premium_continuation_paragraphs[]",
+          "end_label",
+          "author_position_line",
+          "method_copy",
+          "disclosure_copy",
+          "regulator",
+          "legal_entity"
+        ],
+        "rail": [
+          "key_numbers[4] {label, value}",
+          "in_this_piece[] {ticker, name, change_pct}",
+          "how_built_narrative",
+          "agent_chips[]",
+          "human_editor_chip",
+          "related[] {title, tier, type, date}"
+        ]
+      },
+      "hard_rules": [
+        "1a is the chassis — build it first; all other types are furniture swaps on this grid.",
+        "The measure is fixed; body copy never reflows to the full 1440px.",
+        "Exhibits span gutter + measure, never the rail.",
+        "The rail is the only independently scrolling column.",
+        "Exactly three standfirst bullets under 'THE ARGUMENT IN THREE LINES'.",
+        "Every figure cites a verified data-lake object; desk computations must be labelled as such on the exhibit.",
+        "Corrections are appended, never silent.",
+        "Analysts may not hold positions in covered names; the author's position is stated in the end matter.",
+        "The metered cut must fall after the reader has seen substantive evidence (here: three exhibits and the scenario table)."
+      ],
+      "discrepancies": [
+        "README says ~18 min; the byline and audio chip both say 21 min.",
+        "README classifies 1a as Metered but the headline kicker carries the ink PREMIUM pill; the meter chip inside the paywall ('3 / 3 FREE READS USED') is what makes it metered."
+      ]
+    },
+    {
+      "id": "1b",
+      "name": "Research note (analyst note with a formal call)",
+      "file": "Research Note - 1b.html",
+      "title_tag": "Marsad — Research note (1b)",
+      "role": "The analyst's output, not the journalist's. Same chassis, furniture swapped to carry a formal call.",
+      "stated_read_length": {
+        "readme": "~14 min",
+        "markup_masthead": "24 MIN",
+        "discrepancy": true
+      },
+      "access_tier": {
+        "readme": "Premium",
+        "badge_in_markup": "PREMIUM ink pill in the masthead",
+        "effective": "premium — whole document gated; there is no in-page cut and no isFree/isPremium branch in this file"
+      },
+      "page_grid": {
+        "shell_width_px": 1440,
+        "page_padding_x_px": 34,
+        "title_band_grid": "full-width 1440: display:grid; grid-template-columns:1fr 380px; column-gap:0; border-bottom:2px solid #14120e",
+        "title_band_left_cell_px": 1060,
+        "rating_panel_px": 380,
+        "section_container_max_width_px": 1160,
+        "section_inner_width_px": 1092,
+        "prose_grid": "display:grid; grid-template-columns:1fr 1fr; column-gap:44px",
+        "prose_column_px": 524,
+        "measure_px": 524,
+        "rail_px": null,
+        "note": "1b abandons the measure+rail grid: prose runs in a 524px column beside a 524px exhibit column, and heavy exhibits get their own full 1092px band. The 740px measure does not appear."
+      },
+      "body_typography": {
+        "font": "Newsreader",
+        "size_px": 17,
+        "line_height": 1.66,
+        "color": "#26241f",
+        "text_wrap": "pretty",
+        "drop_cap": "none"
+      },
+      "section_sequence": [
+        {
+          "order": 1,
+          "region": "masthead",
+          "required": true,
+          "contains": "Marsad wordmark (no Arabic mark) + divider + 'RESEARCH NOTE · SECTOR' + PREMIUM pill + right-aligned 'NOTE 2026-114 · 28 JUN 2026 · 24 MIN'"
+        },
+        {
+          "order": 2,
+          "region": "title_band > title_cell",
+          "required": true,
+          "contains": "kicker (diamond + 'GCC BANKS · SECTOR INITIATION UPDATE'), h1 44px, thesis dek 17.5px (max-width 660), analyst byline row with rank/track record and PDF / Model .xlsx / Follow analyst actions",
+          "width": "1060px cell, padding 34px 34px 26px"
+        },
+        {
+          "order": 3,
+          "region": "title_band > rating_panel",
+          "required": true,
+          "contains": "ink panel: 'TOP PICK · RATING CHANGE' label, ticker + company, rating chip + prior rating, 2-cell grid (PRICE TARGET + prior / IMPLIED UPSIDE + last price), 3-cell multiple strip (FY27E P/E, P/B, YLD), Marsad Score block labelled 'INDEPENDENT OF THIS CALL' with quant verdict + agreement flag",
+          "width": "380px, padding 28px 30px"
+        },
+        {
+          "order": 4,
+          "region": "whats_changed",
+          "required": true,
+          "contains": "1px ink box: 150px ink label cell ('WHAT'S CHANGED' + since-date) + 3 numbered items, index tinted green (supports) or red (argues against)",
+          "width": "1092"
+        },
+        {
+          "order": 5,
+          "region": "master_exhibit",
+          "required": true,
+          "contains": "EXHIBIT 1 · MASTER — 1050x300 bubble scatter (bubble = market cap, quadrant crosshairs, per-name labels, colour by rating), rating legend row + takeaway line, provenance strip",
+          "width": "1092 — breaks the measure entirely"
+        },
+        {
+          "order": 6,
+          "region": "prose_column (left of 2-col)",
+          "required": true,
+          "contains": "3 body paragraphs + a 21px pull quote"
+        },
+        {
+          "order": 7,
+          "region": "coverage_table (right of 2-col)",
+          "required": true,
+          "contains": "EXHIBIT 2 'Coverage & ratings' — grid 58px 1fr 88px 60px 58px 54px: ticker / rating / PT (was) / upside / P/E / NIM; 5 of 14 rows shown, raised ratings flagged with a green triangle, top two rows shaded; footnote 'FULL TABLE IN THE PDF'"
+        },
+        {
+          "order": 8,
+          "region": "quarterly_metric_table",
+          "required": true,
+          "contains": "EXHIBIT 3 — grid 180px repeat(8,1fr): 8 quarters x 3 metric rows (Sector NIM shaded, CASA share, Cost of funds); current quarters bolded, estimate column labelled Q3 '26E in muted grey; provenance strip stating the estimate is labelled as such everywhere it appears",
+          "width": "1092"
+        },
+        {
+          "order": 9,
+          "region": "valuation_bridge (left of 2-col)",
+          "required": true,
+          "contains": "'Valuation — how we get to 112': 5 label/value rows ending in a 2px-ruled price target row"
+        },
+        {
+          "order": 10,
+          "region": "risks_and_falsifiers (right of 2-col)",
+          "required": true,
+          "contains": "'Risks to the call' — 3 red-diamond items — followed by the falsifier box ('What would change our view: …', 3px ink left rule on #f6f4ee)"
+        },
+        {
+          "order": 11,
+          "region": "compliance_footer",
+          "required": true,
+          "contains": "single mono strip: note id, published timestamp, rules check score, positions statement, ratings definitions, track-record immutability, advice disclaimer, regulator and entity",
+          "width": "1092"
+        }
+      ],
+      "unique_to_this_type": [
+        "Rating header panel above/beside the headline (ink, 380px) — ticker, recommendation, prior rating, price target + prior, implied upside, last price, multiples, Marsad Score marked independent of the call",
+        "Analyst track record in the byline (rank, win rate, names covered, contact email)",
+        "PDF and Model .xlsx actions instead of Save/Share/Listen",
+        "'WHAT'S CHANGED' since-last-note block",
+        "Master exhibit at full container width",
+        "Coverage & ratings table with prior price targets and rating-change flags",
+        "Valuation bridge (EPS, target multiple, sustainable ROE, cost of equity, price target)",
+        "Mandatory falsifier box",
+        "Compliance footer with ratings definitions and rules-check score",
+        "No rail, no hero photo, no drop cap, no meter/paywall"
+      ],
+      "inherited_from_1a": [
+        "Page shell and 34px page padding",
+        "Masthead strip pattern",
+        "Kicker + diamond + access pill",
+        "Pull quote",
+        "Exhibit frame (ink header + provenance strip)",
+        "Avatar monogram + byline row + action cluster",
+        "Rail-header type style reused for 'Valuation' and 'Risks to the call'",
+        "sc-if showProv provenance convention"
+      ],
+      "rail": {
+        "present": false,
+        "width_px": null,
+        "behaviour": "No sticky rail exists in this export and there is no sc-if showRail wrapper.",
+        "stated_intent": "README: 'Rail carries valuation scaffolding (scenarios, key financials), not reading furniture.'",
+        "as_built_equivalent": "The valuation scaffolding is delivered by the 380px ink rating panel in the title band plus the bottom 2-column valuation bridge and risks/falsifiers grid.",
+        "discrepancy": true
+      },
+      "gutter": {
+        "present_as_column": false,
+        "stated_contents": "same chassis gutter role",
+        "instances_in_this_file": 0
+      },
+      "block_instances": [
+        {
+          "order": 1,
+          "region": "masthead",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-MASTHEAD",
+          "label": "Masthead with note id + minutes"
+        },
+        {
+          "order": 2,
+          "region": "title_band",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-RATING",
+          "label": "Rating header panel (ticker, recommendation, PT, upside, multiples, score)"
+        },
+        {
+          "order": 3,
+          "region": "title_band",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-HEADLINE",
+          "label": "Kicker + headline"
+        },
+        {
+          "order": 4,
+          "region": "title_band",
+          "block_id": "BLK-THESIS",
+          "stated": true,
+          "label": "Thesis statement — replaces the standfirst. NOTE: in this export it is rendered as a plain 17.5px dek, not the bordered thesis box the README specifies"
+        },
+        {
+          "order": 5,
+          "region": "title_band",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-BYLINE-ANALYST",
+          "label": "Analyst byline with track record + PDF/model actions"
+        },
+        {
+          "order": 6,
+          "region": "whats_changed",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-CHANGED",
+          "label": "What's changed since the last note"
+        },
+        {
+          "order": 7,
+          "region": "master_exhibit",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-EXHIBIT",
+          "label": "Master bubble scatter + provenance"
+        },
+        {
+          "order": 8,
+          "region": "prose_column",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-QUOTE",
+          "label": "Pull quote (no attribution line in this type)"
+        },
+        {
+          "order": 9,
+          "region": "coverage_table",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-COVERAGE",
+          "label": "Coverage & ratings table"
+        },
+        {
+          "order": 10,
+          "region": "quarterly_metric_table",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-TABLE",
+          "label": "Quarterly metric table with a labelled estimate column"
+        },
+        {
+          "order": 11,
+          "region": "valuation_bridge",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-VALUATION",
+          "label": "Valuation bridge to the price target"
+        },
+        {
+          "order": 12,
+          "region": "risks",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-RISKS",
+          "label": "Risks to the call"
+        },
+        {
+          "order": 13,
+          "region": "risks",
+          "block_id": "BLK-FALSIFY",
+          "stated": true,
+          "label": "Falsifiers — 'What would change our view'. MANDATORY: a note without stated falsifiers does not pass the ruleset"
+        },
+        {
+          "order": 14,
+          "region": "compliance_footer",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-COMPLIANCE",
+          "label": "Compliance / ratings-definition footer"
+        }
+      ],
+      "premium_cut": {
+        "present": false,
+        "rule": "The whole note is premium; access is enforced at document level, not by an in-article cut. No isFree/isPremium branches and no paywall card exist in this file."
+      },
+      "byline_disclosure_timestamp_fields": {
+        "byline": [
+          "analyst_initials",
+          "analyst_name",
+          "analyst_title",
+          "analyst_rank (e.g. #1 ranked)",
+          "win_rate_pct",
+          "names_covered_count",
+          "analyst_email"
+        ],
+        "actions": [
+          "download_pdf",
+          "download_model_xlsx",
+          "follow_analyst"
+        ],
+        "masthead_timestamp": "note_id + publication date + read minutes (NOTE 2026-114 · 28 JUN 2026 · 24 MIN)",
+        "footer_timestamp": "published date + time + timezone (28 JUN 2026 09:14 GST)",
+        "disclosure": [
+          "rules_check_result (6/6 PASSED)",
+          "positions statement (NO POSITIONS DISCLOSED)",
+          "ratings definitions (12-month total return vs venue index: Overweight >10%, Neutral ±10%, Underweight <−10%)",
+          "track-record immutability statement",
+          "advice disclaimer",
+          "regulator + legal entity"
+        ],
+        "stated_rule": "README: disclosure is structural, not a footnote — holdings position and coverage status sit in the byline bar. As built, the byline bar carries the track record (win rate, names covered) while the holdings/positions statement sits in the compliance footer."
+      },
+      "writer_metadata_fields": {
+        "identity": [
+          "note_id",
+          "publish_date",
+          "publish_time + timezone",
+          "read_time_minutes",
+          "masthead_section_label",
+          "access_tier",
+          "section_kicker"
+        ],
+        "call": [
+          "top_pick_ticker",
+          "company_name",
+          "rating",
+          "prior_rating",
+          "price_target",
+          "prior_price_target",
+          "implied_upside_pct",
+          "last_price",
+          "currency",
+          "fy_forward_pe",
+          "price_to_book",
+          "dividend_yield",
+          "marsad_score",
+          "marsad_score_verdict",
+          "score_agreement_flag",
+          "rating_change_label"
+        ],
+        "thesis": [
+          "thesis_statement",
+          "headline"
+        ],
+        "analyst": [
+          "analyst_name",
+          "analyst_initials",
+          "analyst_title",
+          "analyst_rank",
+          "win_rate_pct",
+          "names_covered_count",
+          "analyst_email"
+        ],
+        "whats_changed": [
+          "reference_note_date",
+          "items[3] {index, tone(supports|against), text}"
+        ],
+        "exhibits": [
+          "master_exhibit {title, axis_labels, bubble_metric, points[] {ticker, x, y, size, rating_class}, legend, takeaway_line}",
+          "coverage_table rows[] {ticker, rating, price_target, prior_price_target, upside_pct, pe, nim, raised_flag}",
+          "coverage_footnote {rows_shown, rows_total, where_full_table_lives}",
+          "quarterly_table {metric_rows[3], periods[8], estimate_period_flags, current_period_flags}",
+          "provenance per exhibit {lake_object_ids, derivation, recompute_trigger, estimate_labelling_rule}"
+        ],
+        "narrative": [
+          "body_paragraphs[]",
+          "pull_quote_text"
+        ],
+        "valuation": [
+          "forward_eps",
+          "target_multiple + context",
+          "sustainable_roe",
+          "cost_of_equity",
+          "price_target"
+        ],
+        "risk": [
+          "risks[3]",
+          "falsifiers_statement (mandatory)"
+        ],
+        "compliance": [
+          "rules_check_score",
+          "positions_disclosed",
+          "ratings_definitions",
+          "track_record_policy",
+          "advice_disclaimer",
+          "regulator",
+          "legal_entity"
+        ]
+      },
+      "hard_rules": [
+        "The rating header comes first, above the headline, because it is the thing being asserted.",
+        "The standfirst is replaced by a thesis box (BLK-THESIS): the claim, stated once, before any argument begins.",
+        "A falsifiers block (BLK-FALSIFY) is MANDATORY near the end. A note without stated falsifiers does not pass the ruleset.",
+        "Disclosure is structural, not a footnote: holdings position and coverage status sit in the byline bar.",
+        "The rail carries valuation scaffolding, not reading furniture.",
+        "The Marsad Score is shown as independent of the analyst's call and labelled so.",
+        "Estimates are labelled E everywhere they appear (stated on the quarterly-table provenance strip).",
+        "Ratings are defined as 12-month total return vs the venue index: Overweight >10%, Neutral ±10%, Underweight <−10%.",
+        "Track records are public and cannot be edited retroactively.",
+        "A rules check must be run and its score published (6/6 PASSED)."
+      ],
+      "discrepancies": [
+        "README says ~14 min; the masthead says 24 MIN.",
+        "README specifies a bordered thesis box; the export renders the thesis as an unbordered dek in the title cell.",
+        "README specifies a rail carrying valuation scaffolding; the export has no rail at all — the scaffolding lives in the 380px rating panel and the bottom two-column grid.",
+        "README says holdings position sits in the byline bar; as built the byline carries track record and the positions statement is in the compliance footer."
+      ]
+    },
+    {
+      "id": "3a",
+      "name": "Sector deep dive (multi-part series investigation)",
+      "file": "Sector Deep Dive - 3a.html",
+      "title_tag": "Marsad — Sector deep dive (3a)",
+      "role": "The heaviest type in the system; signals its weight three ways (reverse headline, series position, opening contract).",
+      "stated_read_length": {
+        "readme": "~40 min",
+        "markup_byline": "40 MIN READ",
+        "markup_audio": "Listen · 40m",
+        "markup_rail": "CHAPTERS · 40 MIN",
+        "chapter_minutes_sum": 40,
+        "discrepancy": false
+      },
+      "access_tier": {
+        "readme": "Premium",
+        "badge_in_markup": "PREMIUM ink pill in the masthead",
+        "effective": "premium with a chapter-level cut — three chapters free, chapter 4 and the database gated"
+      },
+      "page_grid": {
+        "shell_width_px": 1440,
+        "page_padding_x_px": 34,
+        "title_band": "full-width ink band (#14120e), padding 40px 34px 34px, inner max-width 1000",
+        "hero_width_px": 1372,
+        "hero_height_px": 440,
+        "body_container_max_width_px": 1180,
+        "body_grid": "display:grid; grid-template-columns:1fr 296px; column-gap:54px; align-items:start; padding:24px 34px 0",
+        "measure_px": 762,
+        "rail_px": 296
+      },
+      "body_typography": {
+        "font": "Newsreader",
+        "size_px": 19,
+        "line_height": 1.68,
+        "color": "#26241f",
+        "text_wrap": "pretty",
+        "drop_cap": "64px Newsreader 700, chapter one opening paragraph only"
+      },
+      "section_sequence": [
+        {
+          "order": 1,
+          "region": "masthead",
+          "required": true,
+          "contains": "Marsad wordmark + divider + 'DEEP DIVE · FOUR CHAPTERS' + PREMIUM pill + right-aligned SERIES POSITION 'SERIES: THE WATER ECONOMY · PART 2 OF 3' (replaces the dateline)"
+        },
+        {
+          "order": 2,
+          "region": "title_band_reverse",
+          "required": true,
+          "contains": "ink band: kicker with pale diamond, h1 58px reversed on ink, standfirst 20px #a8a396 (max-width 820), then a rule and the byline row rendered in reverse (pale avatar, name + beat, meta '27 JUL 2026 · 40 MIN READ · 9 EXHIBITS · MODEL FILE + PLANT DATABASE', actions Save / Listen · 40m / Download database with an inverted primary button)"
+        },
+        {
+          "order": 3,
+          "region": "master_photo",
+          "required": true,
+          "contains": "image-slot lf-dd-hero 1372x440 (borders left/right/bottom only — the ink band supplies the top edge), caption + 'PHOTO · MARSAD DESK' credit"
+        },
+        {
+          "order": 4,
+          "region": "body_rail_grid",
+          "required": true,
+          "contains": "measure 762 + rail 296"
+        },
+        {
+          "order": 5,
+          "region": "measure > what_this_establishes",
+          "required": true,
+          "contains": "1px ink box on #f6f4ee: 'WHAT THIS DEEP DIVE ESTABLISHES' + a 2x2 grid of 4 numbered claims the reader will be able to make"
+        },
+        {
+          "order": 6,
+          "region": "measure > chapter_1_heading",
+          "required": true,
+          "contains": "2px ink top rule + 44px pale chapter number + 'CHAPTER ONE' eyebrow + 30px display title"
+        },
+        {
+          "order": 7,
+          "region": "measure > chapter_1_body",
+          "required": true,
+          "contains": "drop-capped paragraph + 1 paragraph"
+        },
+        {
+          "order": 8,
+          "region": "measure > exhibit_1",
+          "required": true,
+          "contains": "Anatomy exhibit — proportional stacked bar 68% capacity / 24% pass-through / 8% O&M (ink / #a8a396 / #e3dfd4) + a 3-column 'who bears what' row keyed to the same three fills; provenance strip flagging the split as a desk average across 19 contracts"
+        },
+        {
+          "order": 9,
+          "region": "measure > chapter_2_heading",
+          "required": true,
+          "contains": "chapter rule + number 02 + 'CHAPTER TWO' + title"
+        },
+        {
+          "order": 10,
+          "region": "measure > chapter_2_body",
+          "required": true,
+          "contains": "paragraph + 27px pull quote (no attribution)"
+        },
+        {
+          "order": 11,
+          "region": "measure > exhibit_2",
+          "required": true,
+          "contains": "Paired-bar exhibit — 5 operators, grey bar = project debt spread, ink bar = implied equity COE, value pair per row; legend + median-gap note; provenance strip separating verified market data from the desk reverse-DCF model"
+        },
+        {
+          "order": 12,
+          "region": "measure > chapter_3_heading",
+          "required": true,
+          "contains": "chapter rule + number 03 + title"
+        },
+        {
+          "order": 13,
+          "region": "measure > chapter_3_body",
+          "required": true,
+          "contains": "paragraph introducing the table"
+        },
+        {
+          "order": 14,
+          "region": "measure > exhibit_3",
+          "required": true,
+          "contains": "Four-market offtaker table — grid 118px 1.1fr 78px 92px 82px 1fr: market / offtaker / plants / contracted / RISK chip / what to watch; risk chips green #0f5f31 (LOWEST, LOW), amber #c9a227 (MEDIUM), red #c0342b (HIGHEST); mandatory footnote 'RISK RANKING IS A DESK ASSESSMENT OF PAYMENT STRUCTURE, NOT A CREDIT RATING'"
+        },
+        {
+          "order": 15,
+          "region": "measure > chapter_4_heading",
+          "required": true,
+          "contains": "chapter rule + number 04 + title"
+        },
+        {
+          "order": 16,
+          "region": "measure > chapter_4_opening",
+          "required": true,
+          "contains": "one free paragraph before the cut"
+        },
+        {
+          "order": 17,
+          "region": "measure > premium_cut",
+          "required": true,
+          "contains": "sc-if isFree: 2 blurred paragraphs + 120px scrim, then the paywall card with the chapter-progress chip"
+        },
+        {
+          "order": 18,
+          "region": "measure > premium_continuation",
+          "required": true,
+          "contains": "sc-if isPremium: closing paragraph + 'END OF PART 2' row with the next-part title and publication date"
+        },
+        {
+          "order": 19,
+          "region": "measure > method_disclosure_footer",
+          "required": true,
+          "contains": "METHOD (build provenance + the desk-assessment caveat restated) + DISCLOSURE"
+        },
+        {
+          "order": 20,
+          "region": "rail",
+          "required": false,
+          "contains": "sc-if showRail; sticky chapter navigator + 5 further modules"
+        }
+      ],
+      "unique_to_this_type": [
+        "Headline set in reverse on ink (reserved for series work)",
+        "Series position in the masthead in place of the dateline, and repeated in the rail",
+        "'What this deep dive establishes' contract block opening the piece",
+        "Four numbered chapter headings with display titles",
+        "Rail chapter navigator with per-chapter minutes and a current-chapter highlight",
+        "Rail 'The series' module (parts 1/2/3 with the forthcoming part dated)",
+        "Rail 'The scope' panel and 'Names in scope' list",
+        "Byline actions rendered in reverse on ink, with 'Download database'",
+        "Chapter-progress paywall chip instead of a free-read meter",
+        "'END OF PART 2' end matter pointing at the next part"
+      ],
+      "inherited_from_1a": [
+        "Page shell, 34px page padding, masthead strip",
+        "Master photo + caption + credit pattern",
+        "Byline row structure (avatar, name + beat, mono meta, action cluster)",
+        "Two-column measure + sticky rail body grid",
+        "Drop cap on the opening paragraph",
+        "Pull quote",
+        "Exhibit frame with ink header + provenance strip",
+        "isFree/isPremium cut mechanism (blur 3.5px + 120px scrim + 2px paywall card)",
+        "METHOD / DISCLOSURE footer",
+        "Rail 'HOW THIS WAS BUILT' module with agent chips",
+        "Rail ink key-figures panel (here 'THE SCOPE')"
+      ],
+      "rail": {
+        "present": true,
+        "width_px": 296,
+        "behaviour": "position:sticky; top:20px; sc-if showRail; a chapter NAVIGATOR that tracks position through a long argument, not a contents list",
+        "modules": [
+          {
+            "order": 1,
+            "name": "CHAPTERS · 40 MIN",
+            "style": "1px ink box with ink header",
+            "contains": "4 rows: number, chapter title (abridged), per-chapter minutes (9m / 11m / 8m / 12m); current chapter bolded and shaded #f6f4ee"
+          },
+          {
+            "order": 2,
+            "name": "The series",
+            "style": "rail section header",
+            "contains": "PT 1 (published), PT 2 (current, shaded + bold), PT 3 (forthcoming, muted, dated 10 Aug)"
+          },
+          {
+            "order": 3,
+            "name": "THE SCOPE",
+            "style": "ink panel",
+            "contains": "4 label/value rows: plants, contracted revenue, contract end year, debt/equity gap"
+          },
+          {
+            "order": 4,
+            "name": "Names in scope",
+            "style": "rail section header",
+            "contains": "4 ticker rows with day change"
+          },
+          {
+            "order": 5,
+            "name": "HOW THIS WAS BUILT",
+            "style": "1px #dcd8cc box on #f6f4ee",
+            "contains": "build narrative + agent chips (DATA-FILINGS, RESEARCH-2) + human byline chip"
+          }
+        ]
+      },
+      "gutter": {
+        "present_as_column": false,
+        "stated_contents": "chassis gutter role; chapter numbers here sit inside the measure rather than in the gutter",
+        "instances_in_this_file": 0
+      },
+      "block_instances": [
+        {
+          "order": 1,
+          "region": "masthead",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-MASTHEAD",
+          "label": "Masthead with series position"
+        },
+        {
+          "order": 2,
+          "region": "title_band",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-HEADLINE-REVERSE",
+          "label": "Reverse headline on ink + standfirst"
+        },
+        {
+          "order": 3,
+          "region": "title_band",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-BYLINE",
+          "label": "Byline bar rendered in reverse"
+        },
+        {
+          "order": 4,
+          "region": "master_photo",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-PHOTO",
+          "label": "Master photo + caption + credit"
+        },
+        {
+          "order": 5,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-ESTABLISHES",
+          "label": "What this deep dive establishes (4-item contract)"
+        },
+        {
+          "order": 6,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-CHAPTER",
+          "label": "Chapter 1 heading"
+        },
+        {
+          "order": 7,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-DROPCAP",
+          "label": "Drop-capped opening paragraph"
+        },
+        {
+          "order": 8,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-EXHIBIT-STACK",
+          "label": "Exhibit 1 — proportional stacked bar + who-bears-what"
+        },
+        {
+          "order": 9,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-CHAPTER",
+          "label": "Chapter 2 heading"
+        },
+        {
+          "order": 10,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-QUOTE",
+          "label": "Pull quote"
+        },
+        {
+          "order": 11,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-EXHIBIT-PAIRED",
+          "label": "Exhibit 2 — paired bars, debt vs equity discount rate"
+        },
+        {
+          "order": 12,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-CHAPTER",
+          "label": "Chapter 3 heading"
+        },
+        {
+          "order": 13,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-TABLE-RISK",
+          "label": "Exhibit 3 — four-market offtaker table with desk-assessment risk chips (R-06)"
+        },
+        {
+          "order": 14,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-CHAPTER",
+          "label": "Chapter 4 heading"
+        },
+        {
+          "order": 15,
+          "region": "measure",
+          "block_id": "BLK-CUT",
+          "stated": "named in README",
+          "label": "Blurred teaser + paywall card with chapter-progress chip (R-09)"
+        },
+        {
+          "order": 16,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-ENDMATTER",
+          "label": "END OF PART 2 + next-part pointer"
+        },
+        {
+          "order": 17,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-METHOD",
+          "label": "Method + Disclosure footer"
+        },
+        {
+          "order": 18,
+          "region": "rail",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-CHAPTERNAV",
+          "label": "Chapter navigator with per-chapter minutes"
+        },
+        {
+          "order": 19,
+          "region": "rail",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-SERIES",
+          "label": "The series (parts list)"
+        },
+        {
+          "order": 20,
+          "region": "rail",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-KEYNUMBERS",
+          "label": "The scope panel"
+        },
+        {
+          "order": 21,
+          "region": "rail",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-INPIECE",
+          "label": "Names in scope"
+        },
+        {
+          "order": 22,
+          "region": "rail",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-HOWBUILT",
+          "label": "How this was built + agent chips"
+        }
+      ],
+      "premium_cut": {
+        "present": true,
+        "falls_at": "Chapter 4 — after the chapter-4 heading and its first paragraph",
+        "stated_rule": "R-09: the cut falls at chapter 4, after three complete chapters, so the reader has seen the work before the wall",
+        "progress_chip_in_markup": "2 OF 4 CHAPTERS READ",
+        "mechanism": "identical to 1a: sc-if isFree renders 2 blurred paragraphs (blur 3.5px) + 120px scrim + paywall card; sc-if isPremium renders the real closing paragraph and end matter",
+        "paywall_copy": {
+          "eyebrow": "CHAPTERS 4 & THE PLANT DATABASE ARE FOR MEMBERS",
+          "headline": "The 61-plant database, the membrane schedule and six repriced models.",
+          "benefits": [
+            "All four chapters & 9 exhibits",
+            "Plant-level database (.xlsx)",
+            "Part 3 when it publishes"
+          ],
+          "cta": "Start 14-day trial — SAR 89/mo",
+          "fine_print": "Billed annually · cancel anytime · Sign in"
+        },
+        "note": "The README says the cut follows three complete chapters while the chip reads '2 OF 4 CHAPTERS READ' — reconcile the counter semantics (chapters completed vs chapters fully unlocked) before build."
+      },
+      "byline_disclosure_timestamp_fields": {
+        "byline": [
+          "author_initials",
+          "author_name",
+          "author_beat",
+          "publish_date",
+          "read_time_minutes",
+          "exhibit_count",
+          "attachments (MODEL FILE + PLANT DATABASE)"
+        ],
+        "actions": [
+          "save",
+          "listen + duration",
+          "download_database"
+        ],
+        "masthead": "series name + part position INSTEAD of a dateline",
+        "end_matter": [
+          "END OF PART 2 label",
+          "next part title (italic)",
+          "next part publication date"
+        ],
+        "disclosure": [
+          "METHOD copy restating that risk rankings are desk assessments, not credit ratings",
+          "DISCLOSURE copy with regulator + legal entity"
+        ],
+        "provenance": "2 provenance strips: one flagging a desk average across 19 contracts, one separating verified daily bond spreads from the desk reverse-DCF model id"
+      },
+      "writer_metadata_fields": {
+        "series": [
+          "series_name",
+          "part_number",
+          "parts_total",
+          "prior_part_title",
+          "next_part_title",
+          "next_part_publish_date",
+          "series_parts[] {label, title, state}"
+        ],
+        "identity": [
+          "section_kicker",
+          "access_tier",
+          "masthead_section_label (DEEP DIVE · FOUR CHAPTERS)",
+          "publish_date",
+          "read_time_minutes",
+          "exhibit_count",
+          "attachments[]"
+        ],
+        "headline_set": [
+          "headline (reverse on ink)",
+          "standfirst"
+        ],
+        "hero": [
+          "hero_image_asset",
+          "hero_caption",
+          "hero_credit",
+          "hero_dimensions 1372x440"
+        ],
+        "author": [
+          "author_name",
+          "author_initials",
+          "author_beat"
+        ],
+        "contract": [
+          "establishes_items[4] {index, claim}"
+        ],
+        "chapters": [
+          "chapters[4] {number, ordinal_word, display_title, rail_short_title, minutes, is_current}",
+          "total_minutes (must equal the sum of chapter minutes)"
+        ],
+        "exhibits": [
+          "stacked_bar {segments[3] {label, pct, fill, description}, who_bears_what[3]}",
+          "paired_bars {rows[] {entity, debt_rate, equity_rate, debt_bar_px, equity_bar_px}, legend, median_gap, widest, narrowest}",
+          "risk_table {rows[] {market, offtaker, plants, contracted_value, risk_level, risk_chip_colour, what_to_watch}, mandatory_desk_assessment_footnote}",
+          "provenance per exhibit {lake_object_ids, synthesis_method, desk_computation_flag, model_id}"
+        ],
+        "narrative": [
+          "chapter_body_paragraphs[]",
+          "drop_cap_flag (chapter one only)",
+          "pull_quote_text"
+        ],
+        "paywall": [
+          "teaser_paragraphs[2]",
+          "chapters_read",
+          "chapters_total",
+          "paywall_eyebrow",
+          "paywall_headline",
+          "benefit_lines[3]",
+          "plan_price",
+          "trial_days"
+        ],
+        "rail": [
+          "scope_panel[4] {label, value}",
+          "names_in_scope[] {ticker, name, change_pct}",
+          "how_built_narrative",
+          "agent_chips[]",
+          "human_byline_chip"
+        ],
+        "closing": [
+          "premium_continuation_paragraph",
+          "end_of_part_label",
+          "method_copy",
+          "disclosure_copy"
+        ]
+      },
+      "hard_rules": [
+        "Headline is set in reverse on ink, not paper. Reserved for series work.",
+        "Series position appears in the masthead AND the rail.",
+        "A 'what this establishes' contract opens the piece — state the payoff before demanding forty minutes.",
+        "Four numbered chapters, each with its own display heading and its own minute count in the rail.",
+        "The rail is a chapter navigator, not a contents list.",
+        "R-06: the offtaker table's risk column is explicitly labelled a desk assessment of payment structure, not a credit rating — and is re-stated in the METHOD footer.",
+        "R-09: the cut falls at chapter 4, after three complete chapters, so the reader sees the work before the wall.",
+        "Exhibits carry the argument (stacked bar for the WPA anatomy, paired bars for the discount-rate gap, four-market offtaker table).",
+        "Chapter minutes must sum to the stated total read time (9+11+8+12 = 40).",
+        "The masthead dateline slot is given over to the series position."
+      ],
+      "discrepancies": [
+        "README says the cut falls after three complete chapters; the paywall chip reads '2 OF 4 CHAPTERS READ'."
+      ]
+    },
+    {
+      "id": "3b",
+      "name": "Explainer (mechanism teaching)",
+      "file": "Explainer - 3b.html",
+      "title_tag": "Marsad — Explainer (3b)",
+      "role": "The inverse of a research note. No byline furniture, no thesis, no rating, because it asserts nothing. The free acquisition surface.",
+      "stated_read_length": {
+        "readme": "~11 min",
+        "markup_masthead": "11 MIN",
+        "discrepancy": false
+      },
+      "access_tier": {
+        "readme": "Free",
+        "badge_in_markup": "FREE TO READ (outlined chip, 1px #cfcabe, no ink fill)",
+        "effective": "free — no meter, no cut, no premium branch"
+      },
+      "page_grid": {
+        "shell_width_px": 1440,
+        "page_padding_x_px": 34,
+        "headline_container_max_width_px": 1180,
+        "headline_text_block_max_width_px": 840,
+        "hero_container_max_width_px": 1180,
+        "hero_inner_width_px": 1112,
+        "body_container_max_width_px": 1180,
+        "body_grid": "display:grid; grid-template-columns:1fr 300px; column-gap:54px; align-items:start; padding:26px 34px 0",
+        "measure_column_px": 758,
+        "measure_text_cap_px": 740,
+        "rail_px": 300
+      },
+      "body_typography": {
+        "font": "Newsreader",
+        "size_px": 18,
+        "line_height": 1.68,
+        "color": "#26241f",
+        "text_wrap": "pretty",
+        "drop_cap": "none"
+      },
+      "section_sequence": [
+        {
+          "order": 1,
+          "region": "masthead",
+          "required": true,
+          "contains": "Marsad wordmark + divider + 'LEARN · EXPLAINER' + FREE TO READ chip + right-aligned 'EVERGREEN · REVIEWED 12 JUL 2026 · 11 MIN' (review date, NOT a publication timestamp)"
+        },
+        {
+          "order": 2,
+          "region": "headline_block",
+          "required": true,
+          "contains": "kicker (diamond + 'CORPORATE ACTIONS · LEVEL 1' — topic + difficulty level), h1 52px left-aligned, standfirst 19px; all inside an 840px block. No byline, no avatar, no actions."
+        },
+        {
+          "order": 3,
+          "region": "hero_diagram",
+          "required": true,
+          "contains": "The explainer hero is a DIAGRAM, not a photo: a 1px ink box on #f6f4ee with an ink header ('THE TIMELINE' / 'Four dates, in the order they occur' / right-aligned instrument + period + DPS), a 4-column equal-flex timeline, and a 'THE ONE-LINE VERSION' summary row under a 1px rule",
+          "width": "1112 — breaks the measure entirely"
+        },
+        {
+          "order": 4,
+          "region": "body_rail_grid",
+          "required": true,
+          "contains": "measure 758 (text capped 740) + rail 300"
+        },
+        {
+          "order": 5,
+          "region": "measure > section_subhead",
+          "required": true,
+          "contains": "Newsreader 26px 700 'Why the price drops on the ex-date'"
+        },
+        {
+          "order": 6,
+          "region": "measure > explanation_paragraphs",
+          "required": true,
+          "contains": "2 paragraphs of mechanism prose"
+        },
+        {
+          "order": 7,
+          "region": "measure > worked_example",
+          "required": true,
+          "contains": "Exhibit-framed 'WORKED EXAMPLE' on 1,000 shares of a real ticker: 3-column grid (1.3fr 1fr 1fr) — position / close before / open on ex — with 4 rows (share price, value of position, dividend receivable, TOTAL) and a closing note; the total row is shaded and settles the point"
+        },
+        {
+          "order": 8,
+          "region": "measure > failure_modes",
+          "required": true,
+          "contains": "Newsreader 26px subhead 'Three ways this trips people up' + exactly 3 numbered items {title 14px bold, explanation 12.5px}, item 3 carrying a cross-link to a separate explainer"
+        },
+        {
+          "order": 9,
+          "region": "measure > what_this_is_not",
+          "required": true,
+          "contains": "3px ink left rule on #f6f4ee: an explicit refusal to endorse the strategy the mechanism enables"
+        },
+        {
+          "order": 10,
+          "region": "measure > review_footer",
+          "required": true,
+          "contains": "'REVIEWED BY THE DESK' — evergreen cadence statement, last review date + outcome, next review date; plus two chips (◆ WRITER-3 DRAFT, DESK VERIFIED). Replaces the METHOD/DISCLOSURE footer of 1a."
+        },
+        {
+          "order": 11,
+          "region": "rail",
+          "required": false,
+          "contains": "sc-if showRail; sticky; 4 modules"
+        }
+      ],
+      "unique_to_this_type": [
+        "Difficulty level in the kicker (LEVEL 1) and in the rail 'Next in Learn' list (L1/L2)",
+        "Review date + next review date in place of a publication timestamp; 'EVERGREEN' label",
+        "Diagram hero (four-date timeline) in place of a master photo",
+        "Exactly one timeline stage in red",
+        "'THE ONE-LINE VERSION' summary row",
+        "Worked example table ending in a total row",
+        "Three named failure modes",
+        "'WHAT THIS IS NOT' refusal box",
+        "Desk-review footer with writer/verifier chips instead of METHOD + DISCLOSURE",
+        "Rail glossary of defined terms and a 'USE IT NOW' product cross-sell card",
+        "No byline, no author, no thesis, no rating, no provenance strips, no paywall"
+      ],
+      "inherited_from_1a": [
+        "Page shell, 34px page padding, masthead strip",
+        "Kicker + diamond marker pattern",
+        "Headline + standfirst pattern (left-aligned here)",
+        "Two-column measure + sticky rail body grid",
+        "Exhibit frame (1px ink border + ink header bar) reused for the timeline hero and the worked example",
+        "Rail section-header type style",
+        "Section subhead pattern",
+        "Agent/verifier chip pattern"
+      ],
+      "rail": {
+        "present": true,
+        "width_px": 300,
+        "behaviour": "position:sticky; top:20px; sc-if showRail; teaching furniture — navigation, definitions and a route into the product",
+        "modules": [
+          {
+            "order": 1,
+            "name": "ON THIS PAGE",
+            "style": "1px ink box with ink header",
+            "contains": "5 anchor rows mirroring the measure's sections; current section bold + shaded"
+          },
+          {
+            "order": 2,
+            "name": "Terms on this page",
+            "style": "rail section header",
+            "contains": "BLK-GLOSSARY — 4 term/definition pairs, auto-assembled from BLK-TERM instances in the body"
+          },
+          {
+            "order": 3,
+            "name": "USE IT NOW",
+            "style": "1px ink box on #f6f4ee",
+            "contains": "product cross-sell: count headline ('12 GCC names go ex-dividend this week'), one-line explanation, ink CTA 'Open the calendar →'"
+          },
+          {
+            "order": 4,
+            "name": "Next in Learn",
+            "style": "rail section header",
+            "contains": "4 further explainers, each tagged with its level (L1/L2)"
+          }
+        ]
+      },
+      "gutter": {
+        "present_as_column": false,
+        "stated_contents": "chassis gutter role; README's build order says the explainer 'exercises the gutter and glossary', but this export contains no gutter instances",
+        "instances_in_this_file": 0
+      },
+      "block_instances": [
+        {
+          "order": 1,
+          "region": "masthead",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-MASTHEAD",
+          "label": "Masthead with review date"
+        },
+        {
+          "order": 2,
+          "region": "headline_block",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-HEADLINE",
+          "label": "Kicker (topic + level) + headline + standfirst"
+        },
+        {
+          "order": 3,
+          "region": "hero_diagram",
+          "block_id": "BLK-TIMELINE",
+          "stated": true,
+          "label": "Four-date timeline; exactly one stage (the ex-date) in red"
+        },
+        {
+          "order": 4,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-SUBHEAD",
+          "label": "Section subhead + mechanism paragraphs"
+        },
+        {
+          "order": 5,
+          "region": "measure",
+          "block_id": "BLK-WORKED",
+          "stated": true,
+          "label": "Worked example on 1,000 real shares, ending in a total row"
+        },
+        {
+          "order": 6,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-FAILMODES",
+          "label": "Three named failure modes"
+        },
+        {
+          "order": 7,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-NOTTHIS",
+          "label": "What this is not — refusal box"
+        },
+        {
+          "order": 8,
+          "region": "measure",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-REVIEW",
+          "label": "Reviewed-by-the-desk footer with writer/verifier chips"
+        },
+        {
+          "order": 9,
+          "region": "rail",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-ONTHISPAGE",
+          "label": "On this page navigator"
+        },
+        {
+          "order": 10,
+          "region": "rail",
+          "block_id": "BLK-GLOSSARY",
+          "stated": true,
+          "label": "Terms on this page — auto-assembled from BLK-TERM instances"
+        },
+        {
+          "order": 11,
+          "region": "measure (inline, implied)",
+          "block_id": "BLK-TERM",
+          "stated": true,
+          "label": "Defined-term instance; named in the file header as the source of the glossary. No explicit inline markup for it exists in this export — the 4 glossary entries imply 4 BLK-TERM instances in the body"
+        },
+        {
+          "order": 12,
+          "region": "rail",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-USEITNOW",
+          "label": "Use it now — product cross-sell card"
+        },
+        {
+          "order": 13,
+          "region": "rail",
+          "block_id": null,
+          "stated": false,
+          "suggested_id": "BLK-NEXTINLEARN",
+          "label": "Next in Learn list with level tags"
+        }
+      ],
+      "premium_cut": {
+        "present": false,
+        "rule": "Free tier by design — this is the acquisition surface. No meter, no blur, no paywall card, and no isFree/isPremium branches in the file."
+      },
+      "byline_disclosure_timestamp_fields": {
+        "byline": "NONE — the explainer carries no author furniture by design, because it asserts nothing",
+        "timestamp": "Review date, not a publication timestamp: masthead 'EVERGREEN · REVIEWED 12 JUL 2026 · 11 MIN'",
+        "review_footer_fields": [
+          "cadence statement (written once, re-verified every six months, re-dated when venue rules change)",
+          "last_review_date",
+          "last_review_outcome ('no changes')",
+          "next_review_date"
+        ],
+        "attribution_chips": [
+          "◆ WRITER-3 DRAFT (agent)",
+          "DESK VERIFIED (human)"
+        ],
+        "disclosure": "Delivered as the 'WHAT THIS IS NOT' box — an explicit refusal to recommend the strategy — rather than a regulatory DISCLOSURE column. No DFSA/entity line appears on this type."
+      },
+      "writer_metadata_fields": {
+        "identity": [
+          "topic_category",
+          "difficulty_level (L1/L2)",
+          "masthead_section_label (LEARN · EXPLAINER)",
+          "access_tier (FREE TO READ)",
+          "evergreen_flag",
+          "review_date",
+          "next_review_date",
+          "read_time_minutes"
+        ],
+        "headline_set": [
+          "headline",
+          "standfirst"
+        ],
+        "timeline": [
+          "instrument_context {ticker, company, period, dividend_per_share, currency}",
+          "stages[4] {index, name, date, description, is_critical}",
+          "critical_stage_index (exactly one)",
+          "one_line_version"
+        ],
+        "explanation": [
+          "section_subhead",
+          "mechanism_paragraphs[]"
+        ],
+        "worked_example": [
+          "share_count",
+          "ticker",
+          "column_labels {before, after}",
+          "rows[] {label, before_value, after_value}",
+          "dividend_amount",
+          "total_row {before, after}",
+          "closing_note",
+          "counterfactual_note (what happens if you buy on the ex-date)"
+        ],
+        "failure_modes": [
+          "items[3] {index, title, explanation, optional_cross_link {label, target}}"
+        ],
+        "refusal": [
+          "what_this_is_not_copy"
+        ],
+        "review": [
+          "review_cadence_months",
+          "last_review_date",
+          "last_review_outcome",
+          "next_review_date",
+          "writer_agent_chip",
+          "verifier_chip"
+        ],
+        "rail": [
+          "on_this_page[] {label, anchor, is_current}",
+          "glossary_terms[] {term, definition}",
+          "use_it_now {eyebrow, headline, body, cta_label, cta_target}",
+          "next_in_learn[] {level, title, target}"
+        ]
+      },
+      "hard_rules": [
+        "No byline furniture, no thesis, no rating — the explainer asserts nothing.",
+        "Opens on the mechanism: a four-date timeline is the hero, not a photo.",
+        "EXACTLY ONE timeline stage is in red, always — the date that costs money if missed.",
+        "The worked example uses round numbers and a real ticker, and ends in a total row that settles the point.",
+        "Exactly three named failure modes.",
+        "A 'what this is not' box is required: an explainer that teaches a mechanism must decline to recommend using it.",
+        "Evergreen — it carries a review date, not a timestamp. Re-verified every six months and re-dated when venue rules change. A stale explainer is worse than none.",
+        "Free tier by design; this is the acquisition surface, so no meter and no cut.",
+        "The glossary (BLK-GLOSSARY) is auto-assembled from BLK-TERM instances in the body, not hand-authored.",
+        "Difficulty level is declared in the kicker and carried through to the 'Next in Learn' ladder."
+      ],
+      "discrepancies": [
+        "README's build order says 3b 'exercises the gutter and glossary', but the export has no gutter instances; only the rail glossary is present.",
+        "BLK-TERM is named as the source of the glossary but no inline term markup exists in the export — the binding between body terms and the rail glossary is unimplemented in this reference."
+      ]
+    }
+  ]
+}

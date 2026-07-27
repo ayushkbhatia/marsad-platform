@@ -1,9 +1,11 @@
 # Marsad — Bridge Build Plan (backend ↔ front-end)
 
-_Written 2026-07-26. Executable plan for taking every front-end surface from sample-seeded to
-live data. Companion to `BRIDGE-PLAN.md` (the **strategy** — the contract seam, the `surfaces`
-catalog, the phase idea) and `BUILD-STATUS.md §7` (the **ledger**). This document is the
-**execution** layer: numbered steps, exact files, acceptance criteria._
+_Written 2026-07-26; amended 2026-07-27 (phases **PD**/**PE**, decisions **D-8…D-13**).
+Executable plan for taking every front-end surface from sample-seeded to live data. Companion to
+`BRIDGE-PLAN.md` (the **strategy** — the contract seam, the `surfaces` catalog, the phase idea),
+`architecture/09-signal-to-article.md` (the **signal → article domain architecture**), and
+`BUILD-STATUS.md §7` (the **ledger**). This document is the **execution** layer: numbered steps,
+exact files, acceptance criteria._
 
 > **This plan EXECUTES `BRIDGE-PLAN.md`, it does not replace it.** That doc's Phase 0 and
 > Phase 1 were never started — `src/lib/contracts/`, `src/lib/data/adapters/` and
@@ -145,6 +147,17 @@ Answer these; the plan branches on them. Recommendation given for each.
 | **D-6** | Stock page prerender scale | (a) `generateStaticParams` over all 705 quoted names; (b) prerender a top-N and serve the rest on demand | **(b)** — prerender ~60 (index constituents + most-active), rest on-demand. 705 × 6 tabs = 4,230 prerenders is a slow build for little gain. |
 | **D-7** | Fate of the sample modules | (a) permanent feature-flagged fallback; (b) retire per surface as it goes live | **(b) with a transitional fallback.** Keep `withSampleFallback` during P1–P3 so an empty read can never blank a pixel-perfect screen, then delete per surface. Tracked so it can't linger. |
 
+### 2.0a Decisions added 2026-07-27 (signal → article planning; see `architecture/09-signal-to-article.md`)
+
+| id | decision | options | recommendation |
+|---|---|---|---|
+| **D-8** | **Where does a published number come from?** | (a) the writer writes the number into prose and rules verify it after the fact; (b) the writer emits a **binding** `{block_code, object_id, field}` and the renderer reads the value from `lake.objects` at render time | **(b), and this is the load-bearing decision of the whole design.** It makes a fabricated figure *structurally impossible* rather than statistically unlikely, and makes R-07 corrections work by construction — fix the object once, every citing piece updates. (a) remains in force for inline prose numerals only, which is what R-03/R-04 are for. |
+| **D-9** | **Document comprehension stack** | (a) keep `pdftotext`+tesseract+one LLM call; (b) a single hosted document-AI API; (c) tiered: deterministic first, model only on what it fails, validation mandatory | **(c).** Tier 0 LiteParse (Apache-2.0, native Node, bboxes) partitions the corpus and closes the `full_text` gap for born-digital PDFs at ~zero cost; Tier 1 PaddleOCR-VL (Apache-2.0, best-measured Arabic by 3×) handles image-only/tables/bilingual; Tier 2 repositions the existing LLM call to *map* structured tables rather than read digits; Tier 3 validates against XBRL. **marker/surya/Chandra are licence-blocked** (output-restricting OpenRAIL-M with a competing-product clause); Nougat is CC-BY-NC. |
+| **D-10** | **Intake eligibility** — supersedes and sharpens **D-3** | (a) promote to VERIFIED; (b) accept PENDING broadly; (c) per-`object_type` state set **+ a provenance floor** | **(c).** D-3 already chose (c); ground truth now shows (a) is *not implementable* — researchers bypass `lake.staging_rows` entirely, so cross-check has nothing to gather and VERIFIED is structurally unreachable for every fundamentals object. Pair the broadened state with a provenance floor: allowlisted type **+** `parse_runs` lineage to bytes we still hold **+** passed Tier-3 validation. That is a *stronger* guarantee than "two scrapers agreed". |
+| **D-11** | **Block vocabulary** | (a) grow `ops.story_blocks` organically as renderers land; (b) freeze all 61 from the design handoff up front, renderers to follow | **(b).** The registry is the refusal surface — the fit stage can only reject "block not permitted for this piece type" if the full vocabulary and its family permissions exist as data. Renderers land family-by-family behind it (G → A+C → D → B,E,F,H). |
+| **D-12** | **Chart contract** | (a) agent emits a Vega-Lite spec; (b) agent emits `{shape, series[], caption}` and a deterministic compiler produces the spec | **(b).** A chart spec *is* layout, so (a) violates our own rule. Six enum values are trivially constrainable, and the compiler owns the house theme — plus **SVG for web, PNG for email**, because Outlook retired inline SVG in late 2025. The design's D family is already question-indexed ("WHAT MOVED IT?" → waterfall), so the agent picks a *question*. |
+| **D-13** | **Adopt a document/content format or CMS?** | (a) Portable Text / ProseMirror / MDX / a headless CMS; (b) keep rows in Postgres | **(b) — adopt nothing.** `content_blocks` rows already give per-block RLS (which is how the premium cut physically works), an FK target for `lake.citations`, and per-block revalidation. Borrow exactly two conventions: a stable `_key` per block, and `@portabletext/react`'s "unregistered kind is loud but non-fatal at render" posture. **MDX is disqualified** — it compiles to executable JS and `next-mdx-remote` 4.3.0–5.0.0 carries CVE-2026-0969 (RCE during SSR of untrusted MDX). Agent output is untrusted input. |
+
 ### 2.1 Owner-blocked items (cannot be executed by an agent)
 
 - **O-1** Confirm `yjsncnpbjuueaoeejrqj` is the production project (BRIDGE-PLAN O-1, still open).
@@ -187,11 +200,17 @@ Merge order is the phase order. P6 is independently sequenced (see D-2).
 | **P1** | Real entity routes (stocks) | 705 real stock pages | none — data is live |
 | **P2** | Market-data rails + calendars | home, wire, earnings | none (dividends/IPO stay honest-empty) |
 | **P3** | Editorial seed + re-wire reader | home lead, wire, research, articles, analysts | seed rows (D-1) |
-| **P4** | Newsroom repair: supply + guardrails | agent-written content can exist | — |
-| **P5** | Newsroom craft: voice, structure, selection | content worth reading | — |
+| **PD** | **Block & template system** | 61 blocks render; the fit stage can refuse | **none** — front-end + registry; runs parallel to P1–P3 |
+| **PE** | **Signal enrichment: comprehension + eligibility** | **P4 at all** — gives the newsroom something to write about and something that can trigger it | none (25 GB of bytes are already stored) |
+| **P4** | Newsroom repair: supply + guardrails | agent-written content can exist | **PE** |
+| **P5** | Newsroom craft: voice, structure, selection | content worth reading | PE, PD |
 | **P6** | Auth + member surfaces | watchlist, alerts, 2FA, premium cut | owner (D-2, O-3) |
 | **P7** | Remaining producers | IPO, ownership, consensus, dividends | worker fleet |
 | **P8** | Hardening + doc reconciliation | launch readiness | none |
+
+> **PD and PE were added 2026-07-27.** They are *inserted*, not renumbered — every existing
+> `P{n}.{step}` id stays valid; P4 and P5 are amended in place (§P4.10–P4.12, §P5.9–P5.11).
+> Rationale and full architecture: [`architecture/09-signal-to-article.md`](architecture/09-signal-to-article.md).
 
 ---
 
@@ -466,9 +485,179 @@ _Accept:_ a seeded article is findable at `/search?q=<its headline>` and present
 
 ---
 
+### PD — Block & template system _(parallel to P1–P3; no producer dependency)_
+
+_Owner's point #4. The design system is stored in `docs/design/`; this phase turns it into a
+runtime registry, renderers, and a refusal surface. It pays off before the newsroom produces
+anything, because it also fixes how the P3 seeded content renders._
+
+**PD.0 — The assets are stored (DONE 2026-07-27).** `docs/design/artifacts/` holds the 61-block
+library and the 4 longform templates verbatim; `docs/design/block-registry.json` (61 blocks ×
+8 families) and `docs/design/article-templates.json` (4 templates + chassis) are the
+machine-readable extraction; `docs/design/README.md` is the consumption contract.
+_Accept:_ ✅ `jq '.blocks|length' docs/design/block-registry.json` = 61; `.templates|length` = 4.
+
+**PD.1 — Extend the registry schema.** Migration adding to `ops.story_blocks`: `family text`,
+`family_name text`, `allowed_piece_types text[]`, `binding_rule text`, `payload_schema jsonb`,
+`requires_binding boolean not null default false`, `constraints jsonb`, `rule_id text`,
+`schema_version int not null default 1`. New `ops.article_templates` (`id`, `name`,
+`access_tier`, `block_keys text[]`, `allowed_families text[]`, `section_sequence jsonb`,
+`writer_metadata_fields jsonb`, `hard_rules jsonb`). Keep `ops.templates` (TPL-01…08) — it is the
+*pipeline* template axis and is FK'd from four places; `ops.article_templates` is the *layout*
+axis (1a/1b/3a/3b). Document the two-axis split in `02-data-lake.md §10`.
+_Accept:_ migration applied **and committed as a `.sql`** (the MCP-apply drift trap); ledger reconciled.
+
+**PD.2 — Seed 61 blocks + 4 templates from the JSON.** A generator script reads
+`docs/design/*.json` and emits the seed migration, so the JSON stays the single source and drift
+is a diff. Grandfather the existing 14 rows by `key` (do not delete — `lake_object_type` and
+`consuming_templates` on them are already correct).
+_Accept:_ `select count(*) from ops.story_blocks` = 61; every pre-existing key retained with its
+`lake_object_type` intact.
+
+**PD.3 — Payload schemas in Zod.** `src/lib/blocks/schemas/*.ts`, one Zod v4 schema per block,
+`z.toJSONSchema()` → `ops.story_blocks.payload_schema`. Zod is the source; the DB column is the
+projection. (Not `zod-to-json-schema` — unmaintained since Nov 2025.)
+_Accept:_ every block with `requires_binding` has a schema whose binding field is required;
+a CI check asserts DB `payload_schema` matches the emitted schema.
+
+**PD.4 — Fix the live renderer bugs first (2 lines, large blast radius).**
+`src/lib/data/adapters/research.ts:63` matches `"pullquote"` but the DB holds `"pull_quote"`, and
+does not match `"heading"` at all — so **every heading and every pull quote in every seeded
+article currently renders as a plain paragraph**. Normalise kinds in the adapter.
+_Accept:_ a seeded article shows real `<h2>`s and a styled `<blockquote>`; screenshot at 1440px.
+
+**PD.5 — Block renderers, family order G → A + C → D → B, E, F, H.** Create
+`src/components/blocks/` (does not exist today; `ops.story_blocks.renderer_component` names 14
+components, **none of which exist**). G first — provenance, freshness and estimate markers are
+prerequisites for every other family's footer. Unregistered block code = **loud, logged,
+non-fatal** at render; the *publisher* hard-refuses, not the renderer.
+_Accept:_ per family, a fixture story renders every block in it; visual diff against
+`docs/design/artifacts/artifact-library-61-blocks.html`.
+
+**PD.6 — The chart compiler (D-12).** `src/lib/blocks/chart-compiler.ts`: `(shape, resolved
+series) → themed Vega-Lite spec`. Web renders SVG; email/social render **PNG** via
+`@resvg/resvg-js` (MPL-2.0, prebuilt napi binaries incl. linux musl — no node-gyp, no cairo).
+⚠️ Do **not** add `vega-cli`: it declares `node-canvas` as a dependency, which means cairo/pango
+system libs and a native build on the VPS. Use the `vl-convert` CLI as a subprocess, or `vega` +
+canvas only if measured to be fine.
+_Accept:_ one spec produces byte-stable SVG and PNG; the 15 D-family shapes each have a golden test.
+
+**PD.7 — Stable block keys.** Add `content_blocks.block_key text` (opaque, stable) so citations
+and corrections bind to block **identity** rather than `seq`, which reordering invalidates.
+Backfill from `seq` for existing rows.
+_Accept:_ reordering a piece's blocks leaves every citation resolving.
+
+**PD.8 — The fit stage (the refusal surface).** New `worker/src/handlers/newsroom/fit.ts`,
+deterministic, no LLM: resolve codes → check family permission → check binding → numeric-consistency
+over prose → apply per-block hard constraints → place the premium cut (R-09) → **refuse on any
+failure**. This is the first code in the repo that reads `ops.templates` / `ops.story_blocks`
+(§P4.12 confirms today's reader count is zero).
+_Accept:_ a fixture piece with a block not in its template's `allowed_families` is refused with
+the offending code as evidence; a piece whose prose says 12.4% while its bound object says 12.1%
+is refused.
+
+---
+
+### PE — Signal enrichment: comprehension and eligibility _(hard prerequisite of P4)_
+
+_Owner's points #1 and #2. Today 14,409 filings carry a `pdf_storage_key` and **374 (2.6%) have
+any text**; TDWL RESULTS is 7,133 PDFs with zero. The lake holds numbers and no meaning._
+
+**PE.0 — Close the enqueue gap (~20 lines, unlocks 25 GB).** `ops.filing_extract_queue` is
+**empty** (374 rows, all `done`) because its only producer is `filings-detail-poll.ts:244`. The
+five researchers that archived ~14,000 PDFs write `public.filings` + storage directly and never
+enqueue — so **TDWL (7,133), QE (2,118) and BHB (366) have never had a single filing offered to
+the extractor**. Add a backfill enqueue over `public.filings where pdf_storage_key is not null`
+and an ongoing enqueue in the researchers' archive path (or a trigger on `public.filings`).
+_Accept:_ queue depth ≈ 14,000 pending; per-venue counts match §1 of `09-signal-to-article.md`;
+`DEF-FILING-EXTRACT-ENQUEUE-GAP` closed.
+
+**PE.1 — Tier 0 triage on the real hardware.** `@llamaindex/liteparse` with OCR off over the
+corpus: per-PDF page count, per-page char count, spatial text + bboxes; classify born-digital vs
+image-only. **Benchmark on the actual 4-core Hetzner box before sizing anything** — the quoted
+1721 pg/s was sustained-concurrent throughput on a B200 host and does not transpose.
+_Accept:_ every stored PDF has a measured page count and a `born_digital` verdict; the **true
+corpus page count** is known (it is currently a guess, and it drives every cost estimate);
+born-digital `full_text` coverage goes from 2.6% to the born-digital share.
+
+**PE.2 — The bake-off (the highest-value experiment in this plan).** 100 real GCC filings,
+including bilingual ones, through PaddleOCR-VL-1.6 vs docling vs DeepSeek-OCR-2, **scored against
+our existing XBRL** (TDWL + QE) — we already own the labels. Also settle two open facts: whether
+Novita serves PaddleOCR-VL **1.6** or the base model (its id is the base name; base is
+94.18/90.65 TEDS vs 1.6's 96.34/94.76), and 1.6's **Arabic** performance (unmeasured; only the
+base model's 0.122 edit distance is published).
+_Accept:_ a scored comparison on our own documents with a per-tool table-accuracy number; a
+decision recorded in `09-signal-to-article.md §2.5`.
+
+**PE.3 — Tier 1 + Tier 2 in the extractor.** Route image-only pages, table-bearing born-digital
+pages and **all** bilingual pages to the chosen model; reposition the existing `claude -p` call to
+map already-structured tables (never to read digits). Respect the licence gate (D-9):
+marker/surya/Chandra/Nougat are blocked.
+_Accept:_ a TDWL RESULTS PDF yields structured income/balance/cashflow tables with page+bbox per
+cell; the model never sees a page Tier 0 already handled.
+
+**PE.4 — Tier 3 validation, mandatory.** Arithmetic identities (reuse the QE Islamic-bank/Takaful
+three-taxonomy balance-sheet validator), XBRL cross-reconciliation as the scoring harness, and
+two-model disagreement quarantine. **Never publish an unvalidated number** — prefer `NULL` plus a
+provenance pointer, which is `BLK-CONFLICT`'s stated behaviour.
+_Accept:_ a deliberately corrupted fixture is quarantined, not published; the XBRL-scored accuracy
+number is recorded and tracked over time.
+
+**PE.5 — New object families.** `DOC.PAGE`, `DOC.TABLE`, `DOC.SECTION` from PE.1–PE.3; then
+`DISCLOSURE.DPS`, `FILING.SEGMENT.*`, `GUIDANCE.*` from Tier 2. ⚠️ `lake.objects.object_type` has
+**no CHECK, no enum, no FK** — a new type is never rejected, it is **silently invisible**, because
+every consumer is an exact string match. The registration checklist is: producer (Lane A mapper +
+discriminator, or Lane B researcher) → `LIVE_LATEST_TYPES` / `isDividendKey` / `price_sensitive`
+decision → `lake.fn_*_project()` + **two** triggers (INSERT *and* UPDATE) → target-table CHECK
+widening → `ops.materiality_prefilter` row (absent ⇒ every object burns an LLM classifier call) →
+`ops.templates` / `ops.story_blocks` binding → **`lake.fn_writer_context` top-level key** (it is a
+hand-written jsonb literal; a new type is invisible to the writer without it) → cron `ops.beat` →
+`ops.check_worker_function_grants` allow-list → docs. Copy `FINANCIALS.XCHECK` (full treatment) or
+`DIVIDEND.EXDATE` (the 57-line minimum).
+_Accept:_ ≥1 object of each new type flows end-to-end to a projection **and** appears in the
+writer context pack.
+
+**PE.6 — Intake eligibility (D-10).** Change `lake.fn_verified_enqueue` to a per-`object_type`
+acceptable-state set plus the provenance floor: allowlisted type **+** `parse_runs` lineage
+resolving to bytes we still hold **+** passed PE.4 validation. Keep R-03's
+`distinct_lineage_roots >= 2` as the **auto-publish** gate — the intake gate and the auto-publish
+gate are different bars, and conflating them is what produced D-3's confusion.
+_Accept:_ a PENDING `FILING.FINANCIALS` with lineage enqueues; a PENDING object of a non-allowlisted
+type does not; a PENDING object whose snapshot was purged does not.
+
+**PE.7 — The human-confirm path for price-sensitive objects.** `fn_object_state_guard` requires a
+**human** `verified_by` when `price_sensitive` — and **no code implements it**; the guard exists and
+waits. One RPC mirroring `ops.desk_decide_approval`'s guard shape (capability check, `FOR UPDATE`,
+audit row) plus a Desk queue view. Without this, `BLK-EXDATE`, `BLK-COUNTDOWN` and the entire
+dividend wire class can never publish, regardless of P7.1.
+_Accept:_ an owner confirms a `DIVIDEND.EXDATE` object; it reaches VERIFIED with a human
+`verified_by` and enqueues; a non-human actor attempting the same raises.
+
+**PE.8 — Register the HuggingFace provider.** Add `huggingface` to `PROVIDER_NAMES` (base
+`https://router.huggingface.co/v1`, `Authorization: Bearer`, optional `X-HF-Bill-To`). Four traps,
+all load-bearing: **(a)** the gateway appends `/chat/completions` to the base — correct for the
+auto-router, **wrong for pinned-provider routes** (Novita's is `/v3/openai/chat/completions`), so
+pin via the *model string*, never by rewriting the base URL; **(b)** there is **no
+`/v1/embeddings`** on the auto-router; **(c)** `supports_structured_output` varies by
+*(model, provider)*, so pin the provider for every JSON role; **(d)** unauthenticated errors return
+**HTML**, so guard `res.json()` on non-2xx. Plus one trap in our own code: **`pricing.ts` returns
+`cost_usd = 0` for unknown models** with only a one-time warn — add a price row per configured
+model or the budget ladder silently reads $0.
+_Accept:_ a role routed to HF completes, returns strict JSON, and writes a **non-zero** `cost_usd`
+to `ops.llm_runs`.
+
+---
+
 ### P4 — Newsroom repair, part 1: supply and guardrails (owner's point #2)
 
 _Nothing here is a writing problem. This phase makes it possible for a correct story to exist._
+
+> **Amended 2026-07-27.** P4 is now gated on **PE**. Two of its original premises were wrong:
+> **P4.7's "promote `FILING.FINANCIALS`/`FILING.REF` to VERIFIED" is not an available operation** —
+> researchers bypass `lake.staging_rows`, so cross-check has nothing to gather (see D-10); and the
+> **96 filings flagged `is_market_moving` are a measurement of the 374 documents the extractor
+> processed**, not of the corpus, because the extractor sets that flag. Steps P4.10–P4.12 below are
+> new.
 
 **P4.0 — File the missing backlog rows FIRST.** None of the newsroom's real defects has a `§7`
 row, which is why it read as "done". Add, with triggers and homes (`03-agent-newsroom.md`):
@@ -540,6 +729,33 @@ _Accept:_ replaying the QNB double-trigger yields one piece.
 `ops.llm_runs` for one full cycle before widening.
 _Accept:_ ≥5 pieces reach `approval` **without** rule blocks; LLM spend within the ladder.
 
+**P4.10 — Fix the citation allow-set (a terminal-failure bug, added 2026-07-27).**
+`draft.ts:156-170` `idsInPack()` collects **string** values under `source_object_id`, `row_id`,
+`object_id`, `source_filing_id` — but in `lake.fn_writer_context` `row_id` and `source_filing_id`
+are **bigints**, so only statement `source_object_id` survives. **The `price`, `ratios`, `score`,
+`identity` and `filings` sections carry no citable id at all**, so any draft citing a share price,
+a P/E or the Marsad Score is rejected as "invented" and sent terminally to `reassigned_human` —
+which is how both recorded real drafts died. Fix by having the *server* construct the allow-set
+alongside the pack (P5.9 removes the class entirely), not by widening the JSON walk.
+_Accept:_ a golden test asserts a draft citing `price.quote.last` passes; the allow-set is built
+from a typed structure, not by walking untyped JSON.
+
+**P4.11 — `q_pipeline` concurrency contradicts its own contract.** `consumer.ts:22-27` states LLM
+stages "must stay one-at-a-time at vt 600", but `q_pipeline` is the batching queue —
+`pipelineReadQty` 25, `pipelineConcurrency` 12 — and newsroom LLM stages share it with
+`cross_check`. Either honour the contract for the LLM handlers or amend the comment and the
+`03 Revisions #2` claim it cites. Do not leave the code and its stated invariant disagreeing.
+_Accept:_ the comment and the behaviour agree; whichever way it is resolved is recorded.
+
+**P4.12 — Make the registry load-bearing.** `ops.templates` and `ops.story_blocks` have **zero
+readers in the entire repo** (verified by exhaustive grep over every table *and column* name); all
+four policy values are re-hard-coded in three or four places each — `max_words` 40 appears as
+`AUTO_WORD_CAP_DEFAULT`, as a literal `autoWordCap: 40`, and again in
+`fn_enforce_agent_publish_gate`. Point the rules engine and PD.8's fit stage at the registry and
+delete the literals.
+_Accept:_ changing `ops.templates.max_words` for TPL-01 changes the auto-publish behaviour with no
+code edit; `grep -rn '40' ` on the gate paths finds no surviving literal cap.
+
 ---
 
 ### P5 — Newsroom repair, part 2: craft (owner's point #2, the real fix)
@@ -594,6 +810,36 @@ _Accept:_ either a brief is assembled, or the crons are removed and a `§7` row 
 "rules-fail > 15% or owner send-back > 30%" — **nothing measures either**. Build the ANALYTICS-1
 rollups.
 _Accept:_ a daily rollup reports rule-pass rate and send-back rate.
+
+**P5.9 — The research stage (added 2026-07-27; `09-signal-to-article.md §4`).** Today the writer
+is one LLM call doing retrieval, analysis, editing and layout at once, over a context pack
+truncated to 12,000 characters. Insert `worker/src/handlers/newsroom/research.ts` between
+`classify` and `draft`: **deterministic SQL exhibit queries keyed by `event_type`**, each
+returning an evidence bundle that already carries its `lake.objects` id and its natural block.
+The LLM's job collapses to *selection and interpretation* over a bounded, auditable candidate set.
+This also removes the P4.10 bug class rather than patching it — every bundle is constructed with
+its object id, so the allow-set is built server-side.
+_Accept:_ for `EARNINGS_RESULT`, ≥5 bundles are produced from SQL alone with zero LLM calls; the
+draft prompt receives bundles, not a truncated blob.
+
+**P5.10 — Compose against the closed vocabulary (needs PD).** Replace the single draft call with
+two passes: outline `[{block_code, binding_object_id, one_line_intent}]` against **only** the
+template's legal `block_keys` (~5–12 codes, not 61), validated against `ops.story_blocks` and
+`lake.objects` before pass 2; then one constrained fill per block against its `payload_schema`.
+Per **D-8**, the fill emits *bindings*, never numbers. Bound repair loops at 2, then human — a
+block that needed repair twice is a block whose schema is wrong.
+_Accept:_ TPL-01 and TPL-08 produce structurally different pieces; ≥3 block kinds per piece; every
+data block carries a non-null `bound_object_id` (today **every agent-written block has NULL**,
+which is why R-09 can only ever warn).
+
+**P5.11 — Numeric-consistency check.** Extract every numeral from block prose; require each to
+match a value reachable from that block's citations within tolerance, else refuse. No open-source
+project does this well — it is ours to own. ⚠️ **Do not reach for MiniCheck / Bespoke-MiniCheck-7B**
+as the entailment layer: the weights are **CC BY-NC 4.0** (the repo's Apache-2.0 covers code only,
+and the HF model card governs). The smaller Flan-T5/RoBERTa/DeBERTa checkpoints must be
+licence-checked individually.
+_Accept:_ a fixture whose prose says 12.4% against a bound object of 12.1% is refused with both
+values as evidence.
 
 ---
 
@@ -696,13 +942,20 @@ Status: **READY** = data live, wire it · **PARTIAL** = wire with honest degrada
 | **Corrupt PE from `DEF-TDWL-EPS-MAPPING`** silently feeds the Score's Value factor | P1.6 suppresses TDWL EPS/PE until P7.7 |
 | **Producer status is inferred, not verified** — VPS timers paused 2026-07-17 | O-2 must be answered before P4/P7 estimates are trusted |
 | **Doc drift makes the ledger untrustworthy** | P0.8 + Law #4/#5; P4.0 files the 14 missing newsroom rows before any newsroom work |
+| **Licence contamination of a permanent data asset** — marker/surya/Chandra restrict their **Output**, with a competing-product clause and $5M/$2M revenue-or-funding thresholds; Nougat is CC-BY-NC. Extracting 29k documents with one of these builds an asset whose licence status flips on a funding round | D-9 blocks them by name; PE.3 states the gate as an acceptance criterion. Apache-2.0 alternatives (PaddleOCR-VL, docling, LiteParse) are at least as good |
+| **A self-consistent wrong number** — a VLM misreads a line item and silently adjusts the subtotal to match its own arithmetic. The output passes a checksum | PE.4 is mandatory, not advisory: XBRL cross-reconciliation is the only check that catches it. Tier 1 is a discriminative-layout model, not a monolithic VLM, for exactly this reason |
+| **Silently invisible object types** — `lake.objects.object_type` has no CHECK, no enum, no FK, so a new type is never *rejected*, it just does nothing | PE.5 carries the complete registration checklist; acceptance requires the type to appear in a projection **and** in `lake.fn_writer_context` |
+| **The budget ladder silently reads $0** — `pricing.ts` returns `cost_usd = 0` for any unknown model with a one-time warn, so a newly configured model makes the ladder stop working exactly when spend starts | PE.8 acceptance requires a **non-zero** `cost_usd` row in `ops.llm_runs` |
+| **Backfill cost is unmeasured** — every figure depends on a corpus page count nobody has | PE.1 produces the page count before PE.2 spends anything; the model tier is tens of dollars only if Tier 0 keeps the page volume down |
 
 ---
 
 ## 7. Sequencing
 
 ```
-P0 ──▶ P1 ──▶ P2 ──▶ P3 ──▶ P4 ──▶ P5 ──▶ P8
+P0 ──▶ P1 ──▶ P2 ──▶ P3 ─────────────▶ PE ──▶ P4 ──▶ P5 ──▶ P8
+       │               │                            ▲
+       └──▶ PD ────────┴────────────────────────────┘   (PD is parallel; P5.10 needs it)
                        │
                        └────────────────▶ P7 (producers, parallel — worker fleet)
 P6 (auth) ── owner-gated, independent, any time after P0
@@ -712,8 +965,18 @@ P6 (auth) ── owner-gated, independent, any time after P0
 pages, a live wire, a live home page, real research and real analyst profiles — with no
 dependency on the newsroom rebuild or on auth.
 
-**The moat** (`FORWARD-BUILD §0` finish line C) is P4 → P5. It is the largest single body of
-work in this plan and the one the owner has called out; it should not be compressed.
+**The moat** (`FORWARD-BUILD §0` finish line C) is **PE → P4 → P5**, with **PD** running
+alongside. It is the largest single body of work in this plan and the one the owner has called
+out; it should not be compressed. PE was added because P4 could not otherwise succeed: the
+newsroom has nothing to write about (2.6% of filings are readable), nothing that can trigger it
+(VERIFIED is structurally unreachable for researcher-produced objects), and — without PD —
+nothing that knows how to lay the result out.
 
 **Recommended first merge:** P0 + P1 together — foundations plus the single most visible fix
 (705 real stock pages instead of Aramco everywhere).
+
+**Two cheap, high-leverage items that need not wait for their phase:**
+- **PE.0** — the extract-queue enqueue gap. ~20 lines, unlocks 25 GB of already-paid-for PDFs.
+  Landing it early means the corpus is being read while P1–P3 proceed.
+- **PD.4** — the `pull_quote` / `heading` adapter mismatch. Two lines, and it currently flattens
+  every heading and pull quote in every seeded article.
