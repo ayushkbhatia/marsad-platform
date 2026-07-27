@@ -348,9 +348,12 @@ A 26-document stratified sample across all six venues (1,120 pages), parsed with
 2. **The corpus is ~454,000 pages, not ~236,000.** 10,529 pending PDFs × 43.1 pages/doc. §2.5's
    estimate assumed ~8 pages/doc; the real figure is **5×** that. Every page-count-derived number
    above should be read against 454k.
-3. **Tier 0 is hours, not days.** 536 pages/s single-threaded on an M-series Mac. Even assuming the
-   4-core Hetzner box is 10× slower, 454k pages ≈ 2 hours; at 20× slower, ≈ 4 hours. ⚠️ Still
-   unmeasured *on the VPS* — that benchmark remains PE.1's acceptance criterion.
+3. **Tier 0 is hours, not days.** 536 pages/s single-threaded on an M-series Mac.
+   ✅ **Confirmed on the VPS 2026-07-27: 54.2 pages/s** over a 400-document run (420 s, 22,791
+   pages, 0 failures) — 10× slower than the Mac, inside the predicted band. Note the box is
+   **2 vCPU, not 4** as earlier text in this document assumed, and the real figure is **57
+   pages/doc, not 43**, so the corpus is ≈ **600,000 pages**. The corpus still completes in ~9 h of
+   wall-clock (~3.1 h of compute) at the deployed 400-doc / 20-min cadence.
 4. **Tables survive the deterministic pass.** 8,610 markdown table rows recovered from 1,120 pages
    without a model. Combined with (1), this means the cheap tier alone plausibly delivers most of
    what §2.1 asks for, and the model tier becomes a *targeted* tool for the image-only 14%.

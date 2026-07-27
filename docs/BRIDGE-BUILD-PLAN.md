@@ -661,11 +661,40 @@ was exercised on a real queue row inside a self-rolling-back transaction — que
 `pages=74, digital_pages=67, text_chars=59790`, `filings.full_text`/`pdf_pages`/`pdf_sha256` all
 written, zero residue.
 
-_Remaining to accept (all need VPS access — **O-2**):_ `npm ci` in `worker/`; benchmark on the
-4-core box (the quoted 536 pages/s is an M-series figure); enable `marsad-tier0-triage.timer`; run
-Tier 0 over the corpus so every stored PDF has a measured page count and a born-digital verdict;
-confirm `ops.v_tier0_coverage` reproduces the 86% sample figure at scale; `full_text` coverage goes
-from 2.6% to the born-digital share.
+**✅ DEPLOYED AND BENCHMARKED 2026-07-27.** `/opt/marsad` pulled `a83fb52` → `c181a86`;
+`@llamaindex/liteparse` installed (`linux-x64-gnu` prebuild, loads); units installed;
+`marsad-tier0-triage.timer` **enabled and active** at 20 min.
+
+First supervised run — **this is the acceptance gate**:
+
+```
+claimed 400 (max 400, conc 3)
+DONE 420s | text_ready 318 | needs_ocr 80 | failed 0 | retry 0
+        | pages 22791 (81% with text) | sha backfilled 398 | 595MB | 54.2 pages/s
+```
+
+**Three published numbers were wrong and are corrected here:**
+
+| | claimed | measured |
+|---|---|---|
+| the box | "4-core Hetzner" | **2 vCPU** (`nproc` = 2, 3.8 GB) |
+| pages/doc | 43.1 (26-doc sample) | **57** (22,791 / 400) ⇒ corpus ≈ **600k pages**, not 454k |
+| throughput | 536 pages/s (M-series) | **54.2 pages/s** — 10× slower, inside the predicted 10–20× band |
+
+Holding up: **81% of pages carry text** across all triaged docs (90.2% within the `text_ready`
+subset; the two differ because the 81% includes image-only documents at 0%) — against the 86%
+sample estimate. **Zero failures, zero retries** over 400 documents. 1.49 MB/doc egress ⇒ ~15 GB
+corpus-wide, matching the ~16 GB projection.
+
+**398 of 400 rows had `pdf_sha256` backfilled in the same pass** — `DEF-FILINGS-NO-CONTENT-HASH`
+is closing itself as Tier 0 walks the corpus, at zero extra I/O, exactly as designed.
+
+Runway: 10,082 pending at 400/run × 72 runs/day ⇒ the corpus completes in **~9 hours**, ~3.1 h of
+which is actual compute. `needs_ocr` is accumulating the Tier-1 backlog (80 of 398 docs, 20%).
+
+_Remaining to accept:_ let the timer walk the corpus; confirm `ops.v_tier0_coverage` holds ~81%
+across all six venues (only QE has been sampled at scale so far — it drains first by the value
+ordering); `full_text` coverage rises from 2.6% toward the born-digital share.
 
 **PE.2 — The bake-off (the highest-value experiment in this plan).** 100 real GCC filings,
 including bilingual ones, through PaddleOCR-VL-1.6 vs docling vs DeepSeek-OCR-2, **scored against
