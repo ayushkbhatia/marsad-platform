@@ -4,8 +4,8 @@
  * The owner edits this file when prices move — it is deliberately a dumb table,
  * not an API lookup, so the cost column in ops.llm_runs is deterministic and
  * auditable. Prices are list prices as of 2026-07 (03 §11); OpenRouter cards
- * should be re-verified when models are swapped. Unknown models cost $0 and log
- * a one-time warning so silent spend is at least visible in worker logs.
+ * should be re-verified when models are swapped. Unknown models are charged a
+ * PESSIMISTIC fallback (never $0) so the budget ladder cannot read new spend as free.
  */
 
 import type { ChatUsage, ProviderName } from "./types.js";
@@ -34,7 +34,7 @@ export const PRICE_TABLE: Record<string, ModelPrice> = {
   // Same-model prices differ per provider, so these track the pins chosen in roles.ts.
   "openai/gpt-oss-20b": { inputPerMtok: 0.04, outputPerMtok: 0.15 }, // novita
   "openai/gpt-oss-120b": { inputPerMtok: 0.05, outputPerMtok: 0.25 }, // novita
-  "Qwen/Qwen3-235B-A22B-Instruct-2507": { inputPerMtok: 0.09, outputPerMtok: 0.55 }, // deepinfra
+  "Qwen/Qwen3-235B-A22B-Instruct-2507": { inputPerMtok: 0.09, outputPerMtok: 0.58 }, // novita
   "Qwen/Qwen3-4B-Instruct-2507": { inputPerMtok: 0.01, outputPerMtok: 0.03 }, // nscale
   "zai-org/GLM-4.6": { inputPerMtok: 0.5, outputPerMtok: 2.0 }, // deepinfra
 };

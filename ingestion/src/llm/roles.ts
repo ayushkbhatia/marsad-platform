@@ -52,13 +52,21 @@ export const DEFAULT_MODELS: Record<ProviderName, Record<AgentRole, string>> = {
    * markup) and are mirrored in pricing.ts — update both together or the budget ladder lies.
    */
   huggingface: {
-    // gpt-oss-20b on Novita: $0.04/$0.15, structured output, ~271ms TTFT. The cheap workhorse.
+    // Verified live against GET /v1/models/{id} on 2026-07-27 — every pin below is a provider
+    // whose `supports_structured_output` is TRUE. The check is not academic: on gpt-oss-20b the
+    // FASTEST upstream (groq, 693 tok/s) reports it FALSE, so the router's default `:fastest`
+    // policy would route strict-JSON work to the one provider that cannot do it.
+    // Re-verify with: node scripts/llm/verify-hf-pins.mjs
+    //
+    // gpt-oss-20b @ novita: $0.04/$0.15, JSON ✓, 143 tok/s. The cheap workhorse.
     classifier: "openai/gpt-oss-20b:novita",
-    // Reader-facing prose needs the bigger model; DeepInfra serves it with structured output.
-    writer: "Qwen/Qwen3-235B-A22B-Instruct-2507:deepinfra",
+    // Qwen3-235B @ NOVITA, not deepinfra: same price ($0.09/$0.58 vs $0.09/$0.55) but deepinfra
+    // reports supports_structured_output=FALSE and is 2.7x slower (18 vs 48 tok/s).
+    writer: "Qwen/Qwen3-235B-A22B-Instruct-2507:novita",
     editor: "openai/gpt-oss-20b:novita",
     summarizer: "openai/gpt-oss-20b:novita",
-    analyst_take: "zai-org/GLM-4.6:deepinfra",
+    analyst_take: "zai-org/GLM-4.6:deepinfra", // JSON ✓, $0.50/$2.00 — sole live provider
+
     // No /v1/embeddings on the auto-router — it is chat-completions only. Embeddings need a
     // provider-specific route or local ONNX; the gateway throws for this role regardless.
     embedder: "",
