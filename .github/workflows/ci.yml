@@ -64,11 +64,21 @@ jobs:
       - run: npx tsc --noEmit
       - run: npm run lint
       - name: next build
-        # Dummy values (same names as .env.example) — the build must never
-        # require real secrets; runtime values come from Vercel env vars.
+        # Real publishable creds, NOT dummies. `generateStaticParams` is backed by
+        # `prerenderHead` (src/lib/data/prerender.ts), which reaches the DB twice —
+        # primary, then fallback — and deliberately throws when BOTH come back empty
+        # or failing, because by then something is genuinely wrong. Against an
+        # unresolvable host every route fails both halves, so a secretless build can
+        # never satisfy a prerender head: CI died on /filings/[filingId] while Vercel,
+        # which has the real values, built the same commit green. CI has to build the
+        # way production does or it is not a gate.
+        #
+        # Nothing secret is exposed. The anon key is a publishable key (sb_publishable_…),
+        # shipped inside the browser bundle by design and constrained by RLS; it is held
+        # as a repo secret for rotation, not confidentiality.
         env:
-          NEXT_PUBLIC_SUPABASE_URL: https://dummy-project.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key-for-ci-build-only
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: npm run build
 
   worker:
