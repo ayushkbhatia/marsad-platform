@@ -193,12 +193,19 @@ on conflict (id) do update set
 --    (content_blocks.published_read: `(not gated) or jwt_tier() <> 'free'`) is what
 --    truncates the piece for anon — not a CSS mask.
 -- ---------------------------------------------------------------------------
+-- `bound_object_id` is a LOOKUP, not a literal, on purpose. These 23 object ids are
+-- real rows the scrapers produced; they exist in the live database and in no other.
+-- Written as literals, a from-scratch replay dies on `content_blocks_bound_object_id_fkey`,
+-- which broke the CI job that proves the schema can be rebuilt. A scalar subquery yields
+-- the id where the object exists and NULL where it does not, and the column is nullable —
+-- so live is byte-identical and a fresh database gets unbound blocks rather than no blocks.
+-- The prose never depended on the binding; it is provenance, not content.
 insert into public.content_blocks (content_id, seq, block_kind, body, bound_object_id, gated) values
 
 -- === 1. Qatar banks (premium, cut after block 4) ===========================
 ('a1000000-0000-4000-a000-000000000001',1,'text',
  jsonb_build_object('text','Every Qatari bank that has filed for the second quarter has now told the same story twice: the top line is working, and less of it is arriving at the bottom. Across the nine lenders on the Qatar Exchange with a comparable Q2 2026 income statement, revenue reached QAR 21.66bn against QAR 20.20bn a year earlier — up 7.2%. Net profit reached QAR 7.53bn against QAR 7.40bn — up 1.7%.'),
- 'be1b03cf-a41c-4e81-8d00-db74138d6fb4', false),
+ (select o.id from lake.objects o where o.id = 'be1b03cf-a41c-4e81-8d00-db74138d6fb4'), false),
 ('a1000000-0000-4000-a000-000000000001',2,'text',
  jsonb_build_object('text','That five-and-a-half point gap is the quarter. It shows up as margin: 34.76% of revenue reached net profit, against 36.63% a year earlier — 187 basis points surrendered in twelve months. The obvious suspect is credit, and the obvious suspect is innocent. Aggregate impairment charges across the same nine banks were QAR 3.36bn, down 1.2% from QAR 3.40bn. Whatever is eating the margin, it is not, in aggregate, bad loans.'),
  null, false),
@@ -207,28 +214,28 @@ insert into public.content_blocks (content_id, seq, block_kind, body, bound_obje
  null, false),
 ('a1000000-0000-4000-a000-000000000001',4,'text',
  jsonb_build_object('text','The aggregate hides an unusually wide spread: five of the nine grew profit, four shrank it. QNB, alone more than half the sample''s revenue, lifted net profit 5.0% to QAR 4.43bn on revenue up 11.2% to QAR 11.80bn, and carried total assets to QAR 1.438 trillion. Qatar Islamic Bank added 4.8% to QAR 1.24bn. Dukhan managed 2.4%, International Islamic 3.8%. Lesha Bank, the smallest of the nine, grew profit 72.5% off a base of QAR 43.5m.'),
- 'f811963a-bb92-458e-b249-6d37d6362ed4', false),
+ (select o.id from lake.objects o where o.id = 'f811963a-bb92-458e-b249-6d37d6362ed4'), false),
 ('a1000000-0000-4000-a000-000000000001',5,'heading',
  jsonb_build_object('text','Where the shortfall actually sits'), null, true),
 ('a1000000-0000-4000-a000-000000000001',6,'text',
  jsonb_build_object('text','Two banks account for essentially the whole miss. The Commercial Bank grew revenue 12.4% to QAR 1.28bn and lost 16.0% of net profit, down to QAR 512.3m from QAR 610.0m. Its impairment charge went the other way from the sector: QAR 302.1m against QAR 172.7m, a 74.9% increase. The distance between operating profit and pre-tax profit widened from QAR 95m to QAR 299m in a single year. Earnings per share fell to QAR 0.13 from QAR 0.16.'),
- 'c778accb-59bf-4351-aae1-e4caa1cf0523', true),
+ (select o.id from lake.objects o where o.id = 'c778accb-59bf-4351-aae1-e4caa1cf0523'), true),
 ('a1000000-0000-4000-a000-000000000001',7,'text',
  jsonb_build_object('text','Masraf Al Rayan is the other. Revenue fell 5.4% to QAR 2.14bn and net profit fell 19.0% to QAR 339.3m. Its total impairment line was lower than a year ago — QAR 189.4m against QAR 204.2m — but the composition moved hard, with the charge recognised directly in profit or loss rising to QAR 243.9m from QAR 75.5m. Operating expenses rose 54.8% to QAR 494.9m and the tax line went from QAR 8.7m to QAR 49.8m. Between them, Commercial Bank and Al Rayan gave back QAR 177m of profit; the other seven added QAR 306m.'),
- '1bdeddaf-1ef4-4631-b4f9-48fb59bbba19', true),
+ (select o.id from lake.objects o where o.id = '1bdeddaf-1ef4-4631-b4f9-48fb59bbba19'), true),
 ('a1000000-0000-4000-a000-000000000001',8,'heading',
  jsonb_build_object('text','The market voted before the filings landed'), null, true),
 ('a1000000-0000-4000-a000-000000000001',9,'text',
  jsonb_build_object('text','On 26 July, QNB traded at QAR 16.60 — 0.6% above its 52-week low of QAR 16.50 — on a trailing price/earnings ratio of 9.5x. Qatar Islamic at QAR 21.42 was 2.5% off its low of QAR 20.90. Commercial Bank at QAR 4.02 sat 1.0% above QAR 3.98. Al Rayan at QAR 1.963 was through its QAR 1.970 low. Doha Bank is the exception: 16.9% above its low and up 39.2% over the trailing twelve months to one month ago. Four of Qatar''s five largest listed lenders are priced at the bottom of their year in the same week they reported the sector''s highest revenue on record in this dataset. Either the margin compression is permanent, or something here is mispriced.'),
- '6b1fce39-98be-42d7-9a2c-0d06e2f053f0', true),
+ (select o.id from lake.objects o where o.id = '6b1fce39-98be-42d7-9a2c-0d06e2f053f0'), true),
 
 -- === 2. Almarai (premium, cut after block 3) ===============================
 ('a1000000-0000-4000-a000-000000000002',1,'text',
  jsonb_build_object('text','Almarai sold more in the first half of 2026 than in any comparable period in its filed history, and made slightly less money doing it. Revenue across the two quarters came to SAR 12.03bn against SAR 11.06bn a year earlier, up 8.8%. Net profit came to SAR 1.369bn against SAR 1.379bn — down 0.7%.'),
- '45de2a63-74d5-454a-a7d2-91ad7ecddd24', false),
+ (select o.id from lake.objects o where o.id = '45de2a63-74d5-454a-a7d2-91ad7ecddd24'), false),
 ('a1000000-0000-4000-a000-000000000002',2,'text',
  jsonb_build_object('text','The squeeze is entirely at the gross line. Half-year gross profit was SAR 3.69bn on SAR 12.03bn of sales, a 30.68% margin, against 31.49% a year earlier. The second quarter alone was worse: 31.08% against 32.39%, 131 basis points gone. Cost of sales rose 10.1% while revenue rose 8.8%. That is the whole of the earnings story, and on its own it would be unremarkable.'),
- '7272b5e7-df67-4f01-b8b0-95fb285648a0', false),
+ (select o.id from lake.objects o where o.id = '7272b5e7-df67-4f01-b8b0-95fb285648a0'), false),
 ('a1000000-0000-4000-a000-000000000002',3,'pull_quote',
  jsonb_build_object('text','SAR 1.14bn went out as dividends. SAR 579m of free cash flow came in to fund it.'),
  null, false),
@@ -236,13 +243,13 @@ insert into public.content_blocks (content_id, seq, block_kind, body, bound_obje
  jsonb_build_object('text','The half-year cash statement'), null, true),
 ('a1000000-0000-4000-a000-000000000002',5,'text',
  jsonb_build_object('text','Almarai files its cash flow statement cumulatively, and that is where the strain shows. Operating cash flow for the half was SAR 2.372bn, down 7.1% from SAR 2.553bn. Capital expenditure was SAR 1.793bn, down 14.5% from SAR 2.097bn. That leaves SAR 579m of free cash flow, against SAR 456m a year earlier — an improvement. Dividends paid were SAR 1.137bn, up 15.4% from SAR 985m. The payout was 1.96 times what the business generated after capex; last year it was 2.16 times. Two halves in a row.'),
- '6767da37-c469-4d39-8dea-dce5f3c65a57', true),
+ (select o.id from lake.objects o where o.id = '6767da37-c469-4d39-8dea-dce5f3c65a57'), true),
 ('a1000000-0000-4000-a000-000000000002',6,'text',
  jsonb_build_object('text','The balance sheet absorbed the difference. Cash fell to SAR 457m at 30 June from SAR 900m three months earlier. Equity fell to SAR 20.63bn from SAR 21.12bn over the same quarter even as total assets rose to SAR 42.81bn. Measured against a year ago the asymmetry is clearer still: assets up 13.4%, equity up 6.5%. The growth is being funded, and it is not being funded out of retained profit.'),
- '7bf54256-100c-486d-b686-5bb460002d19', true),
+ (select o.id from lake.objects o where o.id = '7bf54256-100c-486d-b686-5bb460002d19'), true),
 ('a1000000-0000-4000-a000-000000000002',7,'text',
  jsonb_build_object('text','None of this is distress. Almarai is a SAR 46.2bn company that earned SAR 1.369bn in the half and returned SAR 1.137bn of it to shareholders. But a business that funds growth and dividends out of operations is a different business from one that needs the balance sheet to bridge capex, and 2026 is the second consecutive half in which the second description fits better. The shares closed at SAR 45.10 on 26 July, down 2.3% on the day, having returned minus 4.4% over the twelve months to one month ago and plus 10.4% over the last three.'),
- 'a0086fda-e4a9-4dec-9a27-a8d1106d920c', true),
+ (select o.id from lake.objects o where o.id = 'a0086fda-e4a9-4dec-9a27-a8d1106d920c'), true),
 
 -- === 3. Alba (free) ========================================================
 ('a1000000-0000-4000-a000-000000000003',1,'text',
@@ -250,7 +257,7 @@ insert into public.content_blocks (content_id, seq, block_kind, body, bound_obje
  null, false),
 ('a1000000-0000-4000-a000-000000000003',2,'text',
  jsonb_build_object('text','The 2025 quarters make the shape obvious. Net profit ran BHD 18.1m, then 24.6m, then 67.3m, then 108.7m, while revenue ran BHD 409.0m, 434.1m, 449.4m, 486.3m. Revenue rose 18.9% from the first quarter to the fourth. Profit rose 500%. The full year landed at BHD 1,778.8m of revenue and BHD 218.7m of profit, against BHD 1,621.7m and BHD 184.5m in 2024 — up 9.7% and 18.5% respectively.'),
- '3fef5f85-bd6b-4943-b9f9-3ec70dce7a95', false),
+ (select o.id from lake.objects o where o.id = '3fef5f85-bd6b-4943-b9f9-3ec70dce7a95'), false),
 ('a1000000-0000-4000-a000-000000000003',3,'pull_quote',
  jsonb_build_object('text','Revenue up 2.6%. Profit up 315.6%. Net margin 17.95% against 4.43%.'),
  null, false),
@@ -261,7 +268,7 @@ insert into public.content_blocks (content_id, seq, block_kind, body, bound_obje
  jsonb_build_object('text','What the market paid for it'), null, false),
 ('a1000000-0000-4000-a000-000000000003',6,'text',
  jsonb_build_object('text','Not much. Alba closed at BHD 0.924 on 26 July, capitalising the company at BHD 1.31bn. On trailing twelve-month earnings per share of BHD 0.1949 — a figure that already contains both the strong fourth quarter and this first quarter — that is a price/earnings ratio of 4.7x. Over the twelve months to one month ago the shares returned minus 3.1%.'),
- '0789bdd9-f12a-45ec-9164-40242c7d94ef', false),
+ (select o.id from lake.objects o where o.id = '0789bdd9-f12a-45ec-9164-40242c7d94ef'), false),
 ('a1000000-0000-4000-a000-000000000003',7,'text',
  jsonb_build_object('text','There are honest reasons a cyclical smelter trades at four-and-a-half times a peak-ish earnings number, and a reader can supply most of them without help. What is not in dispute is the distance between what the accounts did and what the price did. It is also worth noting how stale the best available information is: none of the 41 Bahraini securities we track has yet filed a second-quarter income statement, so a March-quarter print remains the market''s most recent hard number on Alba, almost four months after the period closed.'),
  null, false),
@@ -275,7 +282,7 @@ insert into public.content_blocks (content_id, seq, block_kind, body, bound_obje
  null, false),
 ('a1000000-0000-4000-a000-000000000004',3,'text',
  jsonb_build_object('text','The sequential picture is more sober and belongs alongside it. Sohar''s second-quarter revenue of OMR 65.2m was well below the OMR 88.0m it booked in the first quarter, and National Bank of Oman''s OMR 40.4m was below OMR 46.2m. Both still grew profit quarter on quarter — Sohar OMR 26.9m against OMR 26.1m, NBO OMR 19.6m against OMR 19.5m. A smaller quarter that earned more of itself is a cost story, not a growth story.'),
- '48f4e76a-4a53-4be6-b04b-d9d84565913f', false),
+ (select o.id from lake.objects o where o.id = '48f4e76a-4a53-4be6-b04b-d9d84565913f'), false),
 ('a1000000-0000-4000-a000-000000000004',4,'pull_quote',
  jsonb_build_object('text','Oman''s three lenders grew profit 14.0%. Qatar''s nine managed 1.7%.'),
  null, false),
@@ -283,21 +290,21 @@ insert into public.content_blocks (content_id, seq, block_kind, body, bound_obje
  jsonb_build_object('text','The rest of the Omani tape'), null, false),
 ('a1000000-0000-4000-a000-000000000004',6,'text',
  jsonb_build_object('text','Muscat is the Gulf''s second-busiest second-quarter reporter: 20 of its 120 listed securities have a filed Q2 2026 income statement, against 17 of 49 in Doha, six of 72 in Dubai, four of 93 in Abu Dhabi, two of 387 in Riyadh and none of 41 in Manama. Among the industrials, OQ Base Industries reported net profit of OMR 26.4m against OMR 12.1m, Phoenix Power OMR 16.1m against OMR 9.4m, and Oman Cables OMR 5.87m against OMR 5.76m on revenue up 40.4%.'),
- 'ac66526f-2ff5-4fdb-9194-20b5ef4ef709', false),
+ (select o.id from lake.objects o where o.id = 'ac66526f-2ff5-4fdb-9194-20b5ef4ef709'), false),
 ('a1000000-0000-4000-a000-000000000004',7,'text',
  jsonb_build_object('text','Oman Cables is the one to sit with: revenue up 40.4%, net profit up 2.0%. Gross profit went from OMR 9.52m to OMR 10.66m while cost of sales went from OMR 58.68m to OMR 85.10m — an 11.1% gross margin against 14.0%. That is revenue arriving thinner, the exact inverse of Alba''s quarter, and by far the more common shape in this reporting season.'),
  null, false),
 ('a1000000-0000-4000-a000-000000000004',8,'text',
  jsonb_build_object('text','Sohar traded at OMR 0.173 on 26 July and National Bank of Oman at OMR 0.450. OQ Base Industries traded at OMR 0.237, up 1.3% on the day. Over the trailing twelve months to one month ago Phoenix Power has returned 181.5% and OQ Base Industries 84.5%, while Oman Cables has returned minus 84.4% — three names, one market, and no common factor worth the name.'),
- '17bc5dd6-58f5-4422-a8d3-cf937fda573b', false),
+ (select o.id from lake.objects o where o.id = '17bc5dd6-58f5-4422-a8d3-cf937fda573b'), false),
 
 -- === 5. Dubai Taxi (free) ==================================================
 ('a1000000-0000-4000-a000-000000000005',1,'text',
  jsonb_build_object('text','Dubai Taxi Company reported second-quarter revenue of AED 484.5m, down 22.5% from AED 625.1m a year earlier, and net profit of AED 10.4m against AED 105.4m — a fall of 90.1%. The revenue decline is bad. The margin decline is the story.'),
- 'c69d453b-2e30-40aa-9408-1884c162658f', false),
+ (select o.id from lake.objects o where o.id = 'c69d453b-2e30-40aa-9408-1884c162658f'), false),
 ('a1000000-0000-4000-a000-000000000005',2,'text',
  jsonb_build_object('text','Three consecutive quarters of gross margin: 24.5% in Q2 2025, 18.1% in Q1 2026, 9.8% in Q2 2026. In absolute terms gross profit went from AED 153.3m to AED 99.6m to AED 47.2m while revenue went from AED 625.1m to AED 551.1m to AED 484.5m. Revenue fell 22.5% across the year. Gross profit fell 69.2%.'),
- 'cc1c04ec-b520-46a4-bf2c-c7fbc4d7649e', false),
+ (select o.id from lake.objects o where o.id = 'cc1c04ec-b520-46a4-bf2c-c7fbc4d7649e'), false),
 ('a1000000-0000-4000-a000-000000000005',3,'pull_quote',
  jsonb_build_object('text','Revenue fell 22.5%. Gross profit fell 69.2%. Operating profit fell 82.2%.'),
  null, false),
@@ -306,13 +313,13 @@ insert into public.content_blocks (content_id, seq, block_kind, body, bound_obje
  null, false),
 ('a1000000-0000-4000-a000-000000000005',5,'text',
  jsonb_build_object('text','Cash held up better than earnings, which is what you would expect of a fleet. First-half operating cash flow was AED 243.0m against AED 108.2m of depreciation, the company paid AED 142.0m of dividends, and closed June with AED 317.6m of cash. The gap between reported profit and cash generated is almost entirely the depreciation line — which also means the eventual replacement of that fleet is a future cash event the income statement has already partly recognised.'),
- '70cd0776-b5aa-4ac0-a5f6-f20d6c928a82', false),
+ (select o.id from lake.objects o where o.id = '70cd0776-b5aa-4ac0-a5f6-f20d6c928a82'), false),
 ('a1000000-0000-4000-a000-000000000005',6,'text',
  jsonb_build_object('text','The shares closed at AED 2.10 on 24 July, down 0.9%, inside a 52-week range of AED 1.97 to AED 2.89 and capitalising the company at AED 5.25bn. On trailing earnings per share of AED 0.0914 that is 23 times — and the trailing figure still contains three quarters that look nothing like this one.'),
  null, false),
 ('a1000000-0000-4000-a000-000000000005',7,'text',
  jsonb_build_object('text','For context on the Dubai tape: six of the emirate''s 72 listed securities have filed a second-quarter income statement so far. Dubai Islamic Bank, much the largest of them, reported net profit of AED 1.856bn against AED 1.858bn — flat to four significant figures.'),
- '1bb13619-091b-4c92-aede-945c5812e474', false),
+ (select o.id from lake.objects o where o.id = '1bb13619-091b-4c92-aede-945c5812e474'), false),
 
 -- === 6. Explainer (free, evergreen) ========================================
 ('a1000000-0000-4000-a000-000000000006',1,'text',
@@ -325,12 +332,12 @@ insert into public.content_blocks (content_id, seq, block_kind, body, bound_obje
  null, false),
 ('a1000000-0000-4000-a000-000000000006',4,'text',
  jsonb_build_object('text','The counter-example sits in the same dataset. Emirates NBD''s filed Q3 2025 income statement reports AED 19.0bn of net profit; its filed Q2 2025 statement reports AED 6.301bn and its filed Q4 2025 statement AED 5.045bn. Add the three and you get AED 30.35bn against a filed full-year AED 23.981bn. The reconciliation fails, which tells you the interim figures are cumulative, not discrete — the Q3 number is a nine-month total wearing a quarterly label. Treated as a quarter it would describe a bank that earned three times as much in three months as in the six months before. It did not; the label did.'),
- '8cff089b-2cac-475f-85c3-383aa294b877', false),
+ (select o.id from lake.objects o where o.id = '8cff089b-2cac-475f-85c3-383aa294b877'), false),
 ('a1000000-0000-4000-a000-000000000006',5,'heading',
  jsonb_build_object('text','Statement types can disagree inside one filing'), null, false),
 ('a1000000-0000-4000-a000-000000000006',6,'text',
  jsonb_build_object('text','It is not even consistent within a single issuer. Almarai files discrete quarterly income statements — Q1 2026 revenue SAR 6.160bn, Q2 2026 revenue SAR 5.868bn — alongside a cumulative cash flow statement. Its Q2 2026 statement of changes in equity reports profit for the period of SAR 1,368,618,000, which is exactly Q1''s SAR 732,438,000 plus Q2''s SAR 636,180,000. So the income statement is discrete and the equity and cash flow statements are half-year. A reader who takes operating cash flow of SAR 2.372bn for a quarterly number overstates it by roughly a factor of two.'),
- '447cb561-f77d-455e-ac7a-274cffcee3d8', false),
+ (select o.id from lake.objects o where o.id = '447cb561-f77d-455e-ac7a-274cffcee3d8'), false),
 ('a1000000-0000-4000-a000-000000000006',7,'heading',
  jsonb_build_object('text','Why the calendar matters more than usual right now'), null, false),
 ('a1000000-0000-4000-a000-000000000006',8,'text',
@@ -343,16 +350,16 @@ insert into public.content_blocks (content_id, seq, block_kind, body, bound_obje
 -- === 7-10. Wires ===========================================================
 ('a1000000-0000-4000-a000-000000000007',1,'text',
  jsonb_build_object('text','The Commercial Bank reported Q2 2026 net profit of QAR 512.3m, down 16.0% from QAR 610.0m, on revenue up 12.4% to QAR 1.28bn. Its impairment charge rose to QAR 302.1m from QAR 172.7m.'),
- 'c778accb-59bf-4351-aae1-e4caa1cf0523', false),
+ (select o.id from lake.objects o where o.id = 'c778accb-59bf-4351-aae1-e4caa1cf0523'), false),
 ('a1000000-0000-4000-a000-000000000008',1,'text',
  jsonb_build_object('text','Lesha Bank reported Q2 2026 net profit of QAR 75.1m, up 72.5% from QAR 43.5m, on revenue up 69.5% to QAR 211.4m. Operating profit was QAR 160.6m; total assets reached QAR 11.08bn.'),
- '84e7fef0-5be9-4733-8ae9-f7f865940766', false),
+ (select o.id from lake.objects o where o.id = '84e7fef0-5be9-4733-8ae9-f7f865940766'), false),
 ('a1000000-0000-4000-a000-000000000009',1,'text',
  jsonb_build_object('text','Sharjah Islamic Bank reported Q2 2026 net profit of AED 423.2m, up 11.9% from AED 378.3m, on revenue up 20.0% to AED 756.9m. Net financing income rose 28.3% to AED 490.9m. Total assets reached AED 94.55bn.'),
- 'b37e096a-7900-4c89-9c3e-79418b70483d', false),
+ (select o.id from lake.objects o where o.id = 'b37e096a-7900-4c89-9c3e-79418b70483d'), false),
 ('a1000000-0000-4000-a000-000000000010',1,'text',
  jsonb_build_object('text','OQ Base Industries reported Q2 2026 net profit of OMR 26.4m, up 117.6% from OMR 12.1m, on revenue up 88.7% to OMR 107.3m. The shares traded at OMR 0.237 on 26 July, up 1.3%.'),
- '17bc5dd6-58f5-4422-a8d3-cf937fda573b', false);
+ (select o.id from lake.objects o where o.id = '17bc5dd6-58f5-4422-a8d3-cf937fda573b'), false);
 
 -- ---------------------------------------------------------------------------
 -- 3. content_tickers — bind each piece to real securities.
@@ -398,7 +405,15 @@ insert into public.content_tickers (content_id, security_id, is_primary) values
 --    citations are seeded only for the free pieces (3, 4, 5, 6 and the four wires);
 --    the two premium pieces still carry `content_blocks.bound_object_id` bindings.
 -- ---------------------------------------------------------------------------
-insert into lake.citations (content_id, object_id, block_key, claim_text, quoted_value, cited_by, claim_key) values
+-- Same reason as the bindings above, but `lake.citations.object_id` is NOT NULL, so a
+-- missing object cannot be softened to NULL — the row itself has to not exist. Hence
+-- VALUES + `where exists` instead of a plain VALUES list: live keeps all 15 citations,
+-- a fresh database keeps none, and neither fails. A citation to an object that was never
+-- ingested would be a false provenance claim anyway.
+insert into lake.citations (content_id, object_id, block_key, claim_text, quoted_value, cited_by, claim_key)
+select v.content_id::uuid, v.object_id::uuid, v.block_key, v.claim_text, v.quoted_value,
+       v.cited_by::uuid, v.claim_key
+  from (values
 ('a1000000-0000-4000-a000-000000000003','3fef5f85-bd6b-4943-b9f9-3ec70dce7a95','b2',
  'Alba full-year 2025 revenue and net profit as filed','BHD 1,778.8m revenue / BHD 218.7m net profit',
  '00000000-0000-4000-a000-00000000d35c','albh.fy2025.income'),
@@ -447,6 +462,8 @@ insert into lake.citations (content_id, object_id, block_key, claim_text, quoted
  '00000000-0000-4000-a000-00000000d35c','sib.q2-2026.income'),
 ('a1000000-0000-4000-a000-000000000010','17bc5dd6-58f5-4422-a8d3-cf937fda573b','b1',
  'OQ Base Industries last traded price, 26 July 2026','OMR 0.237 (+1.28%)',
- '00000000-0000-4000-a000-00000000d35c','oqbi.quote.2026-07-26.wire');
+ '00000000-0000-4000-a000-00000000d35c','oqbi.quote.2026-07-26.wire')
+       ) as v(content_id, object_id, block_key, claim_text, quoted_value, cited_by, claim_key)
+ where exists (select 1 from lake.objects o where o.id = v.object_id::uuid);
 
 commit;
