@@ -364,7 +364,14 @@ insert into public.content_blocks (content_id, seq, block_kind, body, bound_obje
 -- ---------------------------------------------------------------------------
 -- 3. content_tickers — bind each piece to real securities.
 -- ---------------------------------------------------------------------------
-insert into public.content_tickers (content_id, security_id, is_primary) values
+-- `security_id` is NOT NULL and FKs to `public.securities`, whose rows come from the
+-- venue scrapers — so, like the object bindings below, these ids exist live and nowhere
+-- else. Filtered rather than softened for the same reason as `lake.citations`: the column
+-- cannot take NULL. Live keeps every ticker chip; a fresh database gets none of them and
+-- the piece still renders, because the chips are navigation, not content.
+insert into public.content_tickers (content_id, security_id, is_primary)
+select v.content_id::uuid, v.security_id, v.is_primary
+  from (values
 -- 1: Qatar banks
 ('a1000000-0000-4000-a000-000000000001',579,true),   -- QNBK
 ('a1000000-0000-4000-a000-000000000001',573,false),  -- QIBK
@@ -397,7 +404,9 @@ insert into public.content_tickers (content_id, security_id, is_primary) values
 ('a1000000-0000-4000-a000-000000000007',543,true),   -- CBQK
 ('a1000000-0000-4000-a000-000000000008',568,true),   -- QFBQ
 ('a1000000-0000-4000-a000-000000000009',470,true),   -- SIB
-('a1000000-0000-4000-a000-000000000010',635,true);   -- OQBI
+('a1000000-0000-4000-a000-000000000010',635,true)   -- OQBI
+       ) as v(content_id, security_id, is_primary)
+ where exists (select 1 from public.securities s where s.id = v.security_id);
 
 -- ---------------------------------------------------------------------------
 -- 4. lake.citations — the row-level claim ledger that `public.v_content_citations`
