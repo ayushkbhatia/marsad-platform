@@ -52,6 +52,33 @@ delete from public.content_tickers where content_id in (
   'a1000000-0000-4000-a000-000000000009','a1000000-0000-4000-a000-000000000010');
 
 -- ---------------------------------------------------------------------------
+-- 0. The house byline principal this seed's FK depends on.
+-- ---------------------------------------------------------------------------
+-- `content_items.author_id` is NOT NULL and FKs to `iam.principals`, and every row
+-- below is authored by MARSAD-DESK. That principal's own migration is
+-- 20260727090000_marsad_desk_principal — a LATER version than this file, so on a
+-- from-scratch replay the FK has nothing to point at and the seed dies with
+-- `content_items_author_id_fkey (SQLSTATE 23503)`. The live database never noticed:
+-- both migrations were already applied there, so nothing re-ran in dependency order.
+-- CI could not see it either, because the from-scratch job only runs when supabase/**
+-- or ci.yml changes, and neither had since.
+--
+-- Inserted here rather than renaming 20260727090000 to sort earlier: that version is
+-- already stamped in live `supabase_migrations.schema_migrations`, and renaming an
+-- applied migration is precisely the drift the ledger exists to prevent. This is
+-- idempotent and byte-identical to the row that migration writes, so whichever runs
+-- first wins and the other is a no-op.
+insert into iam.principals (id, kind, handle, display_name, is_active)
+values (
+  '00000000-0000-4000-a000-00000000d35c',
+  'system',
+  'MARSAD-DESK',
+  'Marsad Desk',
+  true
+)
+on conflict (id) do nothing;
+
+-- ---------------------------------------------------------------------------
 -- 1. content_items
 -- ---------------------------------------------------------------------------
 insert into public.content_items
