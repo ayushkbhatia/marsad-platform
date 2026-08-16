@@ -39,12 +39,32 @@ verification against live before being trusted. Landed since:
 | 08-16 | `20260816120000_pe6c_financials_verify_from_xcheck` | **VERIFIED 1,553 → 11,469**; `FILING.FINANCIALS` verified 1 → 9,915 across 523 securities; 2,586 disagreements marked `CONFLICT`; `verification_basis` records how each row earned its state |
 | 08-16 | `20260816130000_prefilter_hygiene_and_event_type` | `COMPUTED.RATIOS`, `FINANCIALS.XCHECK`, `INDEX.LEVEL`, `FILING.EVENT` registered — a missing prefilter row was a NULL verdict, which passes the `not_material` short-circuit and escalates to the paid LLM tier. Adds `event_type` to the deterministic tier |
 | 08-16 | `20260816140000_researcher_heartbeats_and_reaper` | The researcher fleet is watched for the first time: 16 registered, **11 found silent 16–27 days**, incidents raised. Stuck parse runs are reaped |
+| 08-16 | `20260816150000_pipeline_state_machine_complete` | `research`/`compose`/`fit` become legal stages (all switches OFF) and **`reassigned_human` finally has an exit** — it had no `when` arm, so every transition out of it raised and two items were frozen 27 days. Adds `ops.desk_resume_item`, `pipeline.resume` for owner+eic, and `public.v_desk_stuck` |
+| 08-16 | `20260816160000_r03_citation_provenance_floor_v10` | **Ruleset v10.** R-03 stops demanding `VERIFIED` (which PE.6 intake was designed to bypass) and asserts the provenance floor instead: type's `citable_states`, not superseded, not CONFLICT, parse-run lineage succeeded |
+| 08-16 | `20260816170000` + `20260816180000` | `fn_writer_context` v3: every citable section carries `source_object_id` (price freshness-gated to 26h), and anything the ruleset would refuse is **withheld rather than advertised** |
+| 08-16 | CI runs the tests (#87), pack builder + R-04 units (#88), revision brief (#89) | 739 → 762 tests, all now executed on every PR |
 
-**Still true and still blocking** (from the audit, not yet fixed): `pipeline_intake_enabled` is
-false; R-03 demands `VERIFIED` while intake was widened to `PENDING`; `draft.ts` truncates the
-context pack mid-JSON at 12,000 chars, destroying `statements`; `reassigned_human` has no outbound
-transition edge and two items have been frozen there since 2026-07-20; 41 of 61 blocks have no
-renderer; the fit stage is dead behind three locks. Plan: `.claude/plans/` (2026-08-16).
+### Newsroom status, measured by running it (2026-08-16)
+
+`pipeline_intake_enabled` is **still false** — the front door is deliberately shut until the
+conveyor proves itself on the two historical items. But the conveyor itself now moves:
+
+| | before today | after |
+|---|---|---|
+| R-03 outcome | blocked 6 of 6 runs on `cited_object_not_verified` | PENDING objects admitted; final run **R-03 clean** |
+| Context pack | cut mid-token at 12,000 chars, `statements` absent on every call | ordered, element-trimmed, always parseable, ~18.6k for QNBK |
+| Citable sections | statements/ratios/score only | + identity, price, filings |
+| Retry loop | 3 independent resamples (word count 168→163→178) | previous draft + generated brief naming surface, remedy, and what passed |
+| `reassigned_human` | no exit, 2 items frozen 27 days | `desk_resume_item`, and item 3 has been round-tripped repeatedly |
+
+Item 3 now reaches `rules` and fails on **genuine** defects (a number not covered by its
+citations) rather than on a contradiction between two subsystems.
+
+**Still blocking, not yet fixed:** 41 of 61 blocks have no renderer and the reader renders a
+private 6-kind vocabulary, so a designed article cannot ship; the chart compiler and the series
+contract do not exist; `FILING.EVENT`/`DIVIDEND.EXDATE` canonicalisation is unbuilt, so 5 of 6
+signal families still have no producer; 11 researchers remain silent (now alerting).
+Plan: `.claude/plans/` (2026-08-16).
 
 ---
 

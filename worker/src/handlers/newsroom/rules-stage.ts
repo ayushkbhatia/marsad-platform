@@ -14,6 +14,22 @@ import { enqueueStage, loadItem, resolvePrincipal, switchOn, transition } from '
 import { revisionSignature } from './revision.js';
 
 interface RulesMsg { pipeline_item_id?: number }
+/**
+ * The standard disclaimer R-01 guarantees is present on every piece.
+ *
+ * Lives here as a constant for now, deliberately: the prompt/copy pack (ops.prompts) does not
+ * exist yet, and a compliance artefact that is "about to be configurable" but currently
+ * missing is strictly worse than one that is hard-coded and actually on the page. Move it to
+ * ops.prompts under key STANDARD_DISCLAIMER when that lands; R-01's contract does not change.
+ *
+ * Deliberately carries NO numbers — a disclaimer that tripped R-03/R-04 would block the very
+ * piece it was appended to.
+ */
+const STANDARD_DISCLAIMER =
+  'Marsad publishes market information, not investment advice. Figures are taken from exchange '
+  + 'filings and market data and are cited to their source; they may be restated by the issuer. '
+  + 'Nothing here is a recommendation to buy or sell any security.';
+
 const MAX_RULES_LOOPS = 2;
 
 export function makeRulesStage(): Handler {
@@ -55,6 +71,17 @@ export function makeRulesStage(): Handler {
         const outcome = r.outcome === 'auto_fixed' ? 'auto_fixed' : r.outcome === 'passed_after_fix' ? 'passed_after_fix' : r.outcome === 'warned' ? 'warned' : 'blocked';
         await tx`insert into ops.rule_violations (content_id, ruleset_version, rule_key, outcome, detail, actor_id)
           values (${item.content_id}::uuid, ${rulesetVersion}, ${r.rule_key}, ${outcome}, ${sql.json(r.detail as never)}::jsonb, ${editorId}::uuid)`;
+      }
+      // R-01 is an AUTO_FIX rule that, until now, fixed nothing: it returned
+      // outcome='auto_fixed' with {appended:'standard_disclaimer'} and no code appended a
+      // disclaimer anywhere. Every one of those rows was cosmetic — the compliance artefact
+      // the rule exists to guarantee was never on the page. Do the append it claims.
+      const r01 = engine.results.find((r) => r.rule_key === 'R-01');
+      if (r01?.outcome === 'auto_fixed') {
+        const seq = ((await tx`select coalesce(max(seq), 0) + 1 as next from public.content_blocks where content_id = ${item.content_id}::uuid`) as unknown as Array<{ next: number }>)[0]?.next ?? 1;
+        await tx`
+          insert into public.content_blocks (content_id, seq, block_kind, body, gated)
+          values (${item.content_id}::uuid, ${seq}, 'disclaimer', ${sql.json({ text: STANDARD_DISCLAIMER } as never)}::jsonb, false)`;
       }
       await tx`update ops.pipeline_items set rules_passed_version = ${engine.passed ? rulesetVersion : null} where id = ${item.id}`;
       if (engine.finalHeadline !== rc.headline) {
