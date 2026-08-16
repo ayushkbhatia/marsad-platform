@@ -11,7 +11,7 @@
 import type { Handler, HandlerContext } from '../index.js';
 import { autoMarkNumbers, chatComplete, parseMagnitude } from 'marsad-ingestion';
 import { budgetState, enqueueStage, loadItem, outputHalted, parseJsonReply, resolvePrincipal, transition, wordCount } from './shared.js';
-import { buildPack, renderCitableFacts } from './pack.js';
+import { buildPack, factsForObject, renderCitableFacts } from './pack.js';
 import { renderRevisionBrief } from './revision.js';
 
 /** Every rule key the engine runs, so a brief can state what PASSED as well as what failed. */
@@ -44,7 +44,7 @@ const WRITER_SYSTEM = [
   'carries an id. Write a tight, factual news piece. Return ONLY JSON:',
   '{"headline":"<=90 chars, no clickbait","dek":"one sentence or null",',
   ' "blocks":[{"kind":"text","body":"prose with [c1] markers"}],',
-  ' "citations":{"c1":{"object_id":"<lake object id from the pack/trigger>","quoted_value":"<the number/fact as used>","claim":"<what c1 supports>"}}}',
+  ' "citations":{"c1":{"object_id":"<lake object id from the pack/trigger>","payload_path":"<the path= shown beside that fact>","quoted_value":"<the number/fact as used>","claim":"<what c1 supports>"}}}',
   'HARD RULES: every sentence containing a number/percent/currency MUST carry a [cN] marker; every [cN]',
   'must map to an object_id present in the TRIGGER or CONTEXT — NEVER invent an id or a number. Numbers',
   'must match the cited object exactly. British English, no advice, no hype.',
@@ -52,6 +52,11 @@ const WRITER_SYSTEM = [
   'lake number. The lake stores a growth rate as a FRACTION (0.1159); writing "11.6%" and freezing',
   '0.1159 is the single most common reason a draft is rejected — the rules engine compares your prose',
   'against what you froze, and 11.6 is not 0.1159.',
+  'COPY "payload_path" FROM THE `path=` SHOWN BESIDE THE FACT YOU CITED. It names WHICH number of',
+  'that object you used — an object holds many (a balance sheet has thirty line items; a ratios',
+  'object has two dozen). Without it the rules engine cannot tell your revenue growth figure from',
+  'the price/earnings ratio sitting beside it. If the fact you cited shows no `path=`, omit the',
+  'field rather than guessing one.',
   'The DEK is citation-scanned exactly like the body: if the dek states a number/percent/currency it MUST',
   'carry a [cN] marker; otherwise omit that number from the dek.',
   'Every sentence stating a number — including comparisons, prior-period figures, totals, and any',
@@ -65,7 +70,7 @@ const WRITER_SYSTEM = [
   'EXAMPLE (note the dek carries a marker and [c1] is reused in the body):',
   '{"headline":"QNB lifts nine-month net profit","dek":"Qatar\'s largest lender posted a net profit of QAR 12.7bn [c1].",',
   ' "blocks":[{"kind":"text","body":"QNB reported a net profit of QAR 12.7bn for the nine months [c1]. Total assets reached QAR 1.44 trillion [c2]. The QAR 12.7bn result was up on a year earlier [c1]."}],',
-  ' "citations":{"c1":{"object_id":"...","quoted_value":"QAR 12.7bn","claim":"nine-month net profit"},"c2":{"object_id":"...","quoted_value":"QAR 1.44 trillion","claim":"total assets"}}}',
+  ' "citations":{"c1":{"object_id":"...","payload_path":"line_items.net_income","quoted_value":"QAR 12.7bn","claim":"nine-month net profit"},"c2":{"object_id":"...","payload_path":"line_items.total_assets","quoted_value":"QAR 1.44 trillion","claim":"total assets"}}}',
 ].join('\n');
 
 const WIRE_MODE = [
@@ -126,7 +131,10 @@ export function makeDraft(): Handler {
       'CONTEXT pack:',
       built.text,
       '',
-      renderCitableFacts([{ objectId: trig[0].id, section: 'trigger', label: trig[0].object_type, value: '' }, ...built.facts]),
+      renderCitableFacts([
+        ...factsForObject('trigger', trig[0].object_type, trig[0].id, trig[0].payload),
+        ...built.facts,
+      ]),
     ].join('\n');
 
     // ── REVISION vs FIRST DRAFT ────────────────────────────────────────────────────────
@@ -152,7 +160,7 @@ export function makeDraft(): Handler {
       log.info('draft: revising with brief', { loop: loopNo, blocked: blocked.map((b) => b.rule_key) });
     }
 
-    let draft: { headline?: string; dek?: string | null; blocks?: { kind?: string; body?: string }[]; citations?: Record<string, { object_id?: string; quoted_value?: unknown; claim?: string }> };
+    let draft: { headline?: string; dek?: string | null; blocks?: { kind?: string; body?: string }[]; citations?: Record<string, { object_id?: string; quoted_value?: unknown; claim?: string; payload_path?: unknown }> };
     try {
       const res = await chatComplete('writer', messages,
         { system: WRITER_SYSTEM, json: true, maxTokens: 2500, temperature: 0.2, budgetDegraded: budget !== 'ok', runContext: { agentId: writerId, pipelineItemId: String(item.id), purpose: `draft:${item.template_hint ?? 'TPL'}:${trig[0].object_type}` } });
@@ -213,8 +221,12 @@ export function makeDraft(): Handler {
         // block_key ALSO carries the claim key: the citations_uni index is
         // (content_id, object_id, coalesce(block_key,'')), so two markers citing the
         // SAME object need distinct block_keys to both persist (a legitimate case).
-        await tx`insert into lake.citations (content_id, object_id, block_key, claim_key, claim_text, quoted_value, cited_by)
-          values (${item.content_id}::uuid, ${c.object_id}::uuid, ${key}, ${key}, ${c.claim ?? null}, ${c.quoted_value == null ? null : String(c.quoted_value)}, ${writerId}::uuid)`;
+        // payload_path names WHICH field of the object this citation is about. R-04's drift
+        // check reads exactly it; a citation without one is reported unchecked rather than
+        // compared against whichever number of that object happens to sit nearest.
+        const path = typeof c.payload_path === 'string' && c.payload_path.trim() ? c.payload_path.trim() : null;
+        await tx`insert into lake.citations (content_id, object_id, block_key, claim_key, claim_text, quoted_value, payload_path, cited_by)
+          values (${item.content_id}::uuid, ${c.object_id}::uuid, ${key}, ${key}, ${c.claim ?? null}, ${c.quoted_value == null ? null : String(c.quoted_value)}, ${path}, ${writerId}::uuid)`;
       }
     });
 

@@ -70,15 +70,18 @@ test('the allow-set includes ratios, score and filings — not just statements',
   assert.ok(sections.has('score'));
 });
 
-test('facts are de-duplicated by object id', () => {
+test('facts are de-duplicated by (object, field), not by object alone', () => {
+  // The de-dupe key widened when facts became per-field. Keying on objectId alone would now
+  // collapse a balance sheet's thirty line items into whichever one came first — the same
+  // blindness that left R-04 with no field to check.
   const p = pack(2, 1) as Record<string, unknown>;
   // same object surfacing twice, as it legitimately can
   const filings = p.filings as Record<string, unknown>[];
   const statements = p.statements as Record<string, unknown>[];
   filings[0]!.source_object_id = statements[0]!.source_object_id;
   const built = buildPack(p);
-  const ids = built.facts.map((f) => f.objectId);
-  assert.equal(new Set(ids).size, ids.length);
+  const keys = built.facts.map((f) => `${f.objectId}::${f.path ?? ''}`);
+  assert.equal(new Set(keys).size, keys.length, 'no (object, field) pair appears twice');
 });
 
 test('an unrecognised section is kept, not silently discarded', () => {
@@ -99,4 +102,67 @@ test('an empty pack yields no citable facts and says so', () => {
   assert.equal(built.text, '{}');
   assert.equal(built.facts.length, 0);
   assert.match(renderCitableFacts(built.facts), /do not cite any number/);
+});
+
+test('a statement object yields one fact per line item, each with its path', () => {
+  // The old collector emitted ONE fact per object, labelled "balance Q1 2026" — telling the
+  // writer an object existed but not which of its thirty line items it was about. It then cited
+  // the object and wrote whichever number it liked, and R-04 had no field to check against.
+  const built = buildPack({
+    statements: [{
+      source_object_id: 'c1b608a0-a866-49dd-bff4-6cd0918bc962',
+      statement_type: 'balance', fiscal_period: 'Q1 2026', period_end: '2026-03-31',
+      row_id: 427, version: 1, currency: 'SAR',
+      line_items: { total_assets: 537083416000, equity: 79164920000 },
+    }],
+  });
+  const paths = built.facts.map((f) => f.path);
+  assert.ok(paths.includes('line_items.total_assets'));
+  assert.ok(paths.includes('line_items.equity'));
+  // Bookkeeping is not a citable figure.
+  assert.ok(!paths.includes('row_id'));
+  assert.ok(!paths.includes('version'));
+  // The object itself is still offered, for blocks that reference it rather than a number.
+  assert.ok(paths.includes(null));
+});
+
+test('a null ratio is not offered as a fact', () => {
+  // Offering it invites the writer to cite an empty field.
+  const built = buildPack({ ratios: { source_object_id: '776e8337-4ff2-43a1-86f9-4752b5f50e11', pe: 6.494, nim: null } });
+  const paths = built.facts.map((f) => f.path);
+  assert.ok(paths.includes('pe'));
+  assert.ok(!paths.includes('nim'));
+});
+
+test('the same object contributes its net_income AND its total_assets', () => {
+  // The de-dupe used to key on objectId alone, which would now collapse every field of an
+  // object into whichever one happened to come first.
+  const built = buildPack({
+    statements: [{
+      source_object_id: 'c1b608a0-a866-49dd-bff4-6cd0918bc962',
+      line_items: { net_income: 12_700_000_000, total_assets: 1_440_000_000_000 },
+    }],
+  });
+  const paths = built.facts.filter((f) => f.path).map((f) => f.path);
+  assert.deepEqual(paths.sort(), ['line_items.net_income', 'line_items.total_assets']);
+});
+
+test('one section cannot starve another', () => {
+  // statements sits ahead of ratios in the editorial order; twelve periods of thirty line items
+  // would otherwise push every citable ratio past the head-of-list cut.
+  const statements = Array.from({ length: 12 }, (_, i) => ({
+    source_object_id: `0000000${i}-0000-4000-a000-00000000000${i}`,
+    fiscal_period: `Q${i}`,
+    line_items: Object.fromEntries(Array.from({ length: 30 }, (_, j) => [`item_${j}`, j + 1])),
+  }));
+  const built = buildPack({ statements, ratios: { source_object_id: '776e8337-4ff2-43a1-86f9-4752b5f50e11', pe: 6.494 } });
+  assert.ok(built.facts.some((f) => f.section === 'ratios' && f.path === 'pe'),
+    'the ratio survived the statements flood');
+});
+
+test('the rendered index prints the path beside the fact', () => {
+  const line = renderCitableFacts([
+    { objectId: 'obj-1', section: 'statements', label: 'balance Q1 2026', value: '537083416000', path: 'line_items.total_assets' },
+  ]);
+  assert.match(line, /path=line_items\.total_assets/);
 });
