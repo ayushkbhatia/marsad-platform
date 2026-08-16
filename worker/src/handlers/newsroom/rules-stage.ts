@@ -30,9 +30,22 @@ export function makeRulesStage(): Handler {
     const rulesetVersion = ((await sql`select version_no from ops.rulesets where is_live limit 1`) as unknown as Array<{ version_no: number }>)[0]?.version_no ?? 9;
     const banned = ((await sql`select phrase from ops.banned_phrases where lang = 'en'`) as unknown as Array<{ phrase: string }>).map((r) => r.phrase);
 
+    // R-03's provenance floor, as DATA. The same table lake.fn_intake_eligible_state reads for
+    // intake, so the rule that judges a citation and the gate that admits an object cannot drift
+    // apart again — which is exactly what happened when 20260727150000 widened intake to PENDING
+    // and rules.ts kept demanding VERIFIED.
+    const citableStatesByType = Object.fromEntries(
+      ((await sql`select object_type, citable_states from ops.materiality_prefilter`) as unknown as Array<{ object_type: string; citable_states: string[] | null }>)
+        .filter((r) => Array.isArray(r.citable_states) && r.citable_states.length > 0)
+        .map((r) => [r.object_type, r.citable_states as string[]]),
+    );
+
     const rc = await assembleContext(sql, item.content_id);
 
-    const engine = await runRules(rc, { rulesetVersion, bannedPhrases: banned, headlineMaxChars: 90, autoWordCap: 40 });
+    const engine = await runRules(rc, {
+      rulesetVersion, bannedPhrases: banned, headlineMaxChars: 90, autoWordCap: 40,
+      citableStatesByType,
+    });
 
     // Persist rule outcomes (skip pure passes to keep the table signal-dense).
     await sql.begin(async (tx) => {
@@ -93,25 +106,64 @@ export function makeRulesStage(): Handler {
   return handler;
 }
 
+/**
+ * Every field of a block payload that carries PROSE a rule must judge.
+ *
+ * WHY THIS IS NOT `body.text`: today the writer emits only `{kind:'text', body:{text}}`, so
+ * `body?.text ?? ''` is correct and looks harmless. The moment a compose stage writes a
+ * structured BLK-* payload — `{headline, caption, note, …}` with no `text` key — every block
+ * reads as the empty string, R-03 finds no numbers to demand citations for, R-04 finds no
+ * magnitudes to compare, and the whole piece PASSES SILENTLY. A rules engine that returns
+ * "clean" because it was handed nothing is the worst failure this pipeline can have, so the
+ * extraction is widened before the producer exists rather than after.
+ *
+ * Mirrors PROSE_FIELDS in fit-engine.ts; keep the two in step.
+ */
+const PROSE_FIELDS = ['text', 'body', 'prose', 'caption', 'note', 'standfirst'] as const;
+
+function proseOf(body: Record<string, unknown> | null): string {
+  if (!body) return '';
+  const parts: string[] = [];
+  for (const f of PROSE_FIELDS) {
+    const v = body[f];
+    if (typeof v === 'string' && v.trim()) parts.push(v);
+  }
+  return parts.join(' ');
+}
+
 /** Read the drafted piece into the pure-engine RuleContext. */
 async function assembleContext(sql: HandlerContext['sql'], contentId: string): Promise<RuleContext> {
   const ci = ((await sql`select content_type, template_key, headline, dek, word_count, is_premium from public.content_items where id = ${contentId}::uuid`) as unknown as Array<{ content_type: string; template_key: string | null; headline: string; dek: string | null; word_count: number | null; is_premium: boolean }>)[0]!;
 
-  const blocks = ((await sql`select seq, block_kind, body, bound_object_id::text as bound_object_id, gated from public.content_blocks where content_id = ${contentId}::uuid order by seq`) as unknown as Array<{ seq: number; block_kind: string; body: { text?: string }; bound_object_id: string | null; gated: boolean }>)
-    .map<BlockRow>((b) => ({ seq: b.seq, block_kind: b.block_kind, body: b.body?.text ?? '', bound_object_id: b.bound_object_id, gated: b.gated }));
+  const blocks = ((await sql`select seq, block_kind, body, bound_object_id::text as bound_object_id, gated from public.content_blocks where content_id = ${contentId}::uuid order by seq`) as unknown as Array<{ seq: number; block_kind: string; body: Record<string, unknown> | null; bound_object_id: string | null; gated: boolean }>)
+    .map<BlockRow>((b) => ({ seq: b.seq, block_kind: b.block_kind, body: proseOf(b.body), bound_object_id: b.bound_object_id, gated: b.gated }));
 
   // Citations joined to the cited object's live state/payload + a lineage-root proxy
   // (distinct parse_runs across the piece — the snapshot-root machinery is not fully wired,
   // so this is the documented pragmatic proxy; it only gates auto-publish, which is OFF).
+  // R-03's provenance floor needs more than the state: the object's TYPE (to look up its
+  // citable-state allowlist), whether it has been superseded, and whether its parse-run
+  // lineage actually succeeded. The lineage join is the load-bearing one — it is what makes
+  // "traceable to a primary document" a checked fact rather than an assertion, and it is
+  // re-checked here rather than trusted from intake because a run can be marked failed (or
+  // reaped, see ops.reap_stuck_parse_runs) after the object was admitted.
   const cites = (await sql`
     select c.claim_key, c.object_id::text as object_id, c.quoted_value, c.cited_by,
-           o.state as object_state, o.payload as object_payload, o.parse_run_id
-    from lake.citations c join lake.objects o on o.id = c.object_id
-    where c.content_id = ${contentId}::uuid`) as unknown as Array<{ claim_key: string | null; object_id: string; quoted_value: string | null; object_state: string | null; object_payload: Record<string, unknown> | null; parse_run_id: number | null }>;
+           o.state as object_state, o.object_type, o.payload as object_payload, o.parse_run_id,
+           (o.superseded_by is not null) as superseded,
+           (pr.status = 'succeeded')     as parse_run_ok
+    from lake.citations c
+    join lake.objects o on o.id = c.object_id
+    left join lake.parse_runs pr on pr.id = o.parse_run_id
+    where c.content_id = ${contentId}::uuid`) as unknown as Array<{ claim_key: string | null; object_id: string; quoted_value: string | null; object_state: string | null; object_type: string | null; object_payload: Record<string, unknown> | null; parse_run_id: number | null; superseded: boolean; parse_run_ok: boolean | null }>;
   const distinctRoots = new Set(cites.map((c) => c.parse_run_id).filter((x) => x != null)).size;
   const citations: CitationRow[] = cites.map((c) => ({
     claim_key: c.claim_key ?? '', lake_object_id: c.object_id, cited_value: c.quoted_value,
-    cited_hash: null, object_state: c.object_state, object_payload: c.object_payload,
+    cited_hash: null, object_state: c.object_state, object_type: c.object_type,
+    object_payload: c.object_payload,
+    superseded: c.superseded,
+    // A null parse_run_id (no lineage row at all) reads as unproven, not as absent-so-fine.
+    parse_run_ok: c.parse_run_ok === true,
   }));
 
   const tickers = ((await sql`select ct.security_id, s.ticker, (s.status = 'listed') as resolved from public.content_tickers ct join public.securities s on s.id = ct.security_id where ct.content_id = ${contentId}::uuid`) as unknown as Array<{ security_id: number; ticker: string; resolved: boolean }>)

@@ -63,6 +63,12 @@ jobs:
       - run: npm ci
       - run: npx tsc --noEmit
       - run: npm run lint
+      # The repo holds ~700 passing tests and CI ran NONE of them until 2026-08-16, so
+      # every behavioural guarantee they encode — the fit engine's refusals, the
+      # cross-check 2-source rule, poison-message handling — was unenforced on merge.
+      # `next build` succeeding was the only frontend correctness signal.
+      - name: test (frontend adapters)
+        run: npm test
       - name: next build
         # Real publishable creds, NOT dummies. `generateStaticParams` is backed by
         # `prerenderHead` (src/lib/data/prerender.ts), which reaches the DB twice —
@@ -82,7 +88,7 @@ jobs:
         run: npm run build
 
   worker:
-    name: worker (tsc)
+    name: worker (tsc + tests)
     needs: changes
     if: needs.changes.outputs.worker-exists == 'true'
     runs-on: ubuntu-latest
@@ -103,8 +109,16 @@ jobs:
         working-directory: ingestion
       - run: npm run build
         working-directory: ingestion
+      # Run the ingestion suite here rather than in a job of its own: its devDeps are
+      # already installed and built two steps up, and a separate job would pay that
+      # cost twice for no extra signal.
+      - name: test (ingestion — 608 cases)
+        run: npm test
+        working-directory: ingestion
       - run: npm ci
       - run: npx tsc --noEmit
+      - name: test (worker — 90 cases)
+        run: npm test
 
   migration-ledger:
     name: db (migration ledger in sync)

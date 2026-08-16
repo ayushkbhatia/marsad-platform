@@ -14,6 +14,11 @@ import {
 /** Beyond this the nearest payload value is not 'drift', it is an unrelated number. See r04. */
 const LAKE_DRIFT_MAX = 0.25;
 
+/** R-03 fail-closed default: a type with no ops.materiality_prefilter.citable_states row is
+ *  citable only when VERIFIED. Mirrors lake.fn_intake_eligible_state's fallback for an
+ *  unknown type — a new object family must be registered before it can be cited. */
+const DEFAULT_CITABLE_STATES = ['VERIFIED'];
+
 const CLICKBAIT = /\b(shocking|you won'?t believe|this is why|secret|insane|skyrocket|plunge|crash|explode|breaking)\b/i;
 
 /** Every text surface (headline + dek + blocks) — used by R-05 banned-phrase scan. */
@@ -51,13 +56,35 @@ export function r02(ctx: RuleContext): RuleResult {
     : { rule_key: 'R-02', mode: 'BLOCK', outcome: 'passed', detail: {} };
 }
 
-// R-03 — source or silence / cite what you claim (BLOCK). Every number-bearing sentence
-// carries a [cN]; every marker resolves to a citation whose object is VERIFIED right now.
-// (The ≥2 lineage-roots requirement is an auto-publish gate, computed in the engine — NOT
-// a block here, per Revision #5.)
-export function r03(ctx: RuleContext): RuleResult {
+// R-03 — source or silence / cite what you claim (BLOCK).
+//
+// Two clauses are unchanged since P3.2: every number-bearing sentence carries a [cN], and
+// every marker resolves to a citation. The third clause used to be `object_state ===
+// 'VERIFIED'`, and it is why the newsroom could never publish.
+//
+// ── WHY THAT CLAUSE CHANGED (09 §3.2, and it is not a relaxation) ──────────────────────
+// Migration 20260727150000 deliberately widened INTAKE to admit PENDING FILING.FINANCIALS,
+// because Lane-B researchers write PENDING unconditionally and cross-check cannot promote
+// what never entered staging. Nobody updated this rule to match. The result was a system
+// that admitted exactly the objects it then refused to let anyone cite: 6 of 6 rule runs
+// blocked on `cited_object_not_verified`, both real drafts died, and the conveyor has been
+// off since.
+//
+// The replacement is the PROVENANCE FLOOR: a citation is legal when the cited object is in
+// its type's allowed state set, is not superseded, is not in CONFLICT, carries a parse-run
+// lineage that SUCCEEDED, and has no open correction. That is a claim about traceability to
+// a primary document we still hold the bytes of — which is a stronger guarantee than "two
+// scrapers agreed", because it is anchored to the source rather than to a coincidence
+// between two secondaries.
+//
+// What did NOT move: `distinct_lineage_roots >= 2` remains the AUTO-PUBLISH gate in
+// engine.ts (Revision #5). A single-rooted piece still publishes — through a human.
+export function r03(ctx: RuleContext, opts?: EngineOptions): RuleResult {
   const byKey = citationByKey(ctx);
   const violations: Record<string, unknown>[] = [];
+  const statesFor = (objectType?: string | null): string[] =>
+    (objectType && opts?.citableStatesByType?.[objectType]) || DEFAULT_CITABLE_STATES;
+
   for (const surf of bodySurfaces(ctx)) {
     for (const sentence of splitSentences(surf.body)) {
       const markers = markersIn(sentence);
@@ -68,8 +95,37 @@ export function r03(ctx: RuleContext): RuleResult {
       for (const key of markers) {
         const cit = byKey.get(key);
         if (!cit) { violations.push({ where: surf.where, kind: 'marker_unresolved', key }); continue; }
-        if (cit.object_state !== 'VERIFIED') {
-          violations.push({ where: surf.where, kind: 'cited_object_not_verified', key, state: cit.object_state ?? 'missing' });
+
+        const state = cit.object_state ?? 'missing';
+        const allowed = statesFor(cit.object_type);
+
+        // CONFLICT is blocking whatever the allowlist says: two sources disagree about this
+        // number, so there is no fact to cite yet. Never make it configurable.
+        if (state === 'CONFLICT') {
+          violations.push({ where: surf.where, kind: 'cited_object_in_conflict', key, object_type: cit.object_type });
+          continue;
+        }
+        if (!allowed.includes(state)) {
+          violations.push({
+            where: surf.where, kind: 'cited_object_state_not_citable',
+            key, state, object_type: cit.object_type, allowed,
+          });
+          continue;
+        }
+        if (cit.superseded) {
+          violations.push({ where: surf.where, kind: 'cited_object_superseded', key });
+          continue;
+        }
+        // `undefined` means the assembler did not resolve it; treat only an explicit false as
+        // a failure, so an older assembler cannot silently turn this clause off.
+        if (cit.parse_run_ok === false) {
+          violations.push({ where: surf.where, kind: 'cited_object_lineage_unproven', key });
+          continue;
+        }
+        // Dormant until corrections are object-scoped (see CitationRow.has_open_correction):
+        // ops.correction_flags carries content_id, not object_id, so nothing sets this yet.
+        if (cit.has_open_correction) {
+          violations.push({ where: surf.where, kind: 'cited_object_under_correction', key });
         }
       }
     }
