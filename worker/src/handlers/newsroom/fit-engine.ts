@@ -74,6 +74,8 @@ export interface FitCitation {
   object_id: string;
   quoted_value: string | null;
   object_state: string | null;                      // null ⇒ object missing
+  /** The cited object's type, for the per-type citable-state allowlist (see checkBinding). */
+  object_type?: string | null;
   object_payload: Record<string, unknown> | null;
 }
 
@@ -92,6 +94,13 @@ export interface FitInput {
   registry: Record<string, RegistryBlock>;
   pipelineTemplate: PipelineTemplate | null;
   layoutTemplate: LayoutTemplate | null;
+  /**
+   * Per-object-type citable states, from ops.materiality_prefilter.citable_states — the SAME
+   * table R-03 reads. Injected rather than queried so the engine stays pure and golden-testable.
+   * A missing entry means {VERIFIED}: fail closed, so a new object family is not bindable the
+   * moment it is written.
+   */
+  citableStatesByType?: Record<string, string[]>;
 }
 
 // ---------------------------------------------------------------------------
@@ -382,14 +391,38 @@ function checkBinding(input: FitInput, block: FitBlock, reg: RegistryBlock, refu
     return;
   }
 
-  const bad = cited.filter((c) => c.object_state !== 'VERIFIED');
+  // ── THE PROVENANCE FLOOR, NOT A BLANKET VERIFIED ─────────────────────────────
+  // This check used to be `object_state !== 'VERIFIED'`, which is the same assumption R-03
+  // carried and which kept the newsroom dark for a month: PE.6 deliberately widened intake to
+  // admit PENDING objects, so a stage that then refuses to let anything BIND to them refuses
+  // every piece the system is allowed to start.
+  //
+  // Worse, fit was STRICTER THAN THE WRITER'S OWN SOURCE: lake.v_citable_objects — the surface
+  // the writer is given to cite from — accepts `state in ('VERIFIED','PENDING')`. Handing a
+  // model a fact and then refusing the composition that uses it is the same defect as the
+  // truncated context pack, one stage later.
+  //
+  // So fit reads the SAME per-type allowlist R-03 reads (ops.materiality_prefilter.citable_
+  // states), injected rather than queried so the engine stays pure. Missing entry ⇒ {VERIFIED},
+  // fail closed. CONFLICT is refused whatever the allowlist says: two sources disagree, so
+  // there is no fact to bind to.
+  const citableFor = (objectType: string | null | undefined): string[] =>
+    (objectType && input.citableStatesByType?.[objectType]) || ['VERIFIED'];
+
+  const bad = cited.filter((c) => {
+    const state = c.object_state ?? 'missing';
+    if (state === 'CONFLICT') return true;
+    return !citableFor(c.object_type).includes(state);
+  });
   if (bad.length === cited.length) {
     refusals.push({
       code: 'FIT-BIND-UNRESOLVED', block_code: reg.key, seq: block.seq, rule: 'R-03',
       evidence: {
         bound_object_id: block.bound_object_id,
         object_state: bad[0]?.object_state ?? 'missing',
-        why: 'the bound lake object is not VERIFIED (or does not resolve)',
+        object_type: bad[0]?.object_type ?? null,
+        allowed_states: citableFor(bad[0]?.object_type),
+        why: 'the bound lake object is not in a state its type may be cited in (or does not resolve)',
       },
     });
   }
