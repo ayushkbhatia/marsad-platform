@@ -7,8 +7,8 @@
 
 import type { CitationRow, EngineOptions, RuleContext, RuleLlm, RuleResult } from './types.js';
 import {
-  DRIFT_TOL, hasNumber, isMaterialNumeral, markersIn, normalizePhrase,
-  numberTokens, parseMagnitude, relDiff, splitSentences,
+  DRIFT_TOL, hasNumber, isMaterialNumeral, magnitudeMatches, markersIn, normalizePhrase,
+  numberTokens, parseMagnitude, relDiff, splitSentences, tokenAssertsSign,
 } from './text.js';
 
 /** Beyond this the nearest payload value is not 'drift', it is an unrelated number. See r04. */
@@ -153,7 +153,7 @@ export function r04(ctx: RuleContext): RuleResult {
     const mag = parseMagnitude(tok);
     if (mag === null) continue;
     if (!isMaterialNumeral(tok)) continue; // years and incidental integers are not claims
-    if (!citedMags.some((c) => relDiff(mag, c) <= DRIFT_TOL)) {
+    if (!citedMags.some((c) => magnitudeMatches(mag, c, tokenAssertsSign(tok)))) {
       violations.push({ where: 'headline', kind: 'headline_number_uncited', value: mag });
     }
   }
@@ -165,8 +165,12 @@ export function r04(ctx: RuleContext): RuleResult {
         if (!cit) continue; // R-03 already flagged the unresolved marker
         const citedMag = parseMagnitude(typeof cit.cited_value === 'object' ? JSON.stringify(cit.cited_value) : String(cit.cited_value));
         if (citedMag === null) continue; // non-numeric citation (e.g. a date/label) — nothing to match
-        const mags = numberTokens(sentence).map(parseMagnitude).filter((n): n is number => n !== null);
-        const near = mags.some((m) => relDiff(m, citedMag) <= DRIFT_TOL);
+        const toks = numberTokens(sentence);
+        const mags = toks.map(parseMagnitude).filter((n): n is number => n !== null);
+        const near = toks.some((t) => {
+          const m = parseMagnitude(t);
+          return m !== null && magnitudeMatches(m, citedMag, tokenAssertsSign(t));
+        });
         if (!near) {
           violations.push({ where: surf.where, kind: 'number_mismatch', key, cited: citedMag, sentence_mags: mags });
         }
@@ -214,7 +218,7 @@ export function r04(ctx: RuleContext): RuleResult {
           if (!isMaterialNumeral(tok)) continue;
           const mag = parseMagnitude(tok);
           if (mag === null) continue;
-          if (!sentenceCited.some((c) => relDiff(mag, c) <= DRIFT_TOL)) {
+          if (!sentenceCited.some((c) => magnitudeMatches(mag, c, tokenAssertsSign(tok)))) {
             violations.push({
               where: surf.where, kind: 'number_unaccounted',
               value: mag, token: tok.trim(), keys, sentence_cited: sentenceCited,
