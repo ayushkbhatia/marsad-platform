@@ -1,4 +1,4 @@
-import { hasNumber } from './text.js';
+import { hasNumber, isMaterialNumeral, isYearToken } from './text.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { runRules } from './engine.js';
@@ -375,4 +375,20 @@ test("R-03's trigger and R-04's materiality test agree on what a number is", () 
   assert.equal(hasNumber("Operating income rose 11.2%"), true);
   assert.equal(hasNumber("Assets reached 1,013,707"), true);
   assert.equal(hasNumber("The bank booked 4430000000 in profit"), true);
+});
+
+test('a year keeps its meaning when a comma follows it', () => {
+  // Item 3 blocked on token "2026," — MAG_RE carries the trailing comma, which defeated
+  // isYearToken's ^\d{4}$ and then satisfied isMaterialNumeral's thousands-separator test. The
+  // same year at the end of a sentence passed, so whether a date was a "claim" depended on the
+  // punctuation after it.
+  assert.equal(isYearToken('2026,'), true);
+  assert.equal(isMaterialNumeral('2026,'), false);
+  assert.equal(hasNumber('Profit rose in Q2 2026, driven by lending'), false);
+
+  // What trailing punctuation must NOT do: change a real figure.
+  assert.equal(isMaterialNumeral('1,013,707'), true);
+  assert.equal(isMaterialNumeral('4.43'), true);
+  assert.equal(isMaterialNumeral('11.2%,'), true);
+  assert.equal(hasNumber('Operating income reached QAR 11.80bn, up on the year'), true);
 });

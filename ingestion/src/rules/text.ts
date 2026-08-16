@@ -49,8 +49,24 @@ export function numberTokens(text: string): string[] {
  *  hasNumber and the fit stage's numeric check must agree on this or one of them
  *  refuses every dateline. (A quarter tag "Q1" never tokenizes: NUMBER_TOKEN's
  *  `(?<![\w])` lookbehind rejects a digit preceded by a letter.) */
+/**
+ * Strip punctuation the tokenizer carried along from the sentence.
+ *
+ * MAG_RE's optional-unit tail matches trailing whitespace, so a numeral followed by a comma
+ * arrives as `"2026,"`. That defeated `^\d{4}$` — and then the very same comma satisfied the
+ * thousands-separator test in isMaterialNumeral, so a YEAR mid-sentence was classified as a
+ * claim while the identical year at the end of a sentence was not. Item 3 blocked on
+ * `token: "2026,"` for exactly this.
+ *
+ * Only TRAILING punctuation goes: the separators inside "1,013,707" and the point in "4.43" are
+ * part of the number.
+ */
+function trimToken(token: string): string {
+  return String(token).trim().replace(/[.,;:]+$/, '');
+}
+
 export function isYearToken(token: string): boolean {
-  const t = String(token).trim();
+  const t = trimToken(token);
   return /^\d{4}$/.test(t) && Number(t) >= 1990 && Number(t) <= 2099;
 }
 
@@ -69,7 +85,7 @@ const UNIT_TOKEN = /%|percent|trillion|tn|bn|billion|mn|m|million|k|thousand|SAR
  * drift apart: they are the same question asked at two points in the pipeline.
  */
 export function isMaterialNumeral(token: string): boolean {
-  const t = String(token).trim();
+  const t = trimToken(token);
   if (isYearToken(t)) return false;
   if (UNIT_TOKEN.test(t)) return true;   // a unit makes it a claim: "11.2%", "QAR 4.43bn"
   if (/[.,]/.test(t)) return true;       // a decimal or thousands separator: "0.25", "1,013,707"

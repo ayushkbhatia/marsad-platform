@@ -37,6 +37,17 @@ export interface CitableFact {
   section: string;
   label: string;
   value: string;
+  /**
+   * Which field of the object's payload this fact is, as a dotted path — `pe`,
+   * `line_items.total_assets`. Null when the fact identifies the object rather than one of its
+   * numbers (a filing reference, a profile).
+   *
+   * This works because lake.fn_writer_context mirrors the payload's own shape: a
+   * COMPUTED.RATIOS object's payload keys ARE the `ratios` keys, and a FILING.FINANCIALS
+   * payload carries the same `line_items` map the `statements` section does. So the path can be
+   * read off the context walk — no second query, and no guessing.
+   */
+  path: string | null;
 }
 
 export interface BuiltPack {
@@ -53,6 +64,9 @@ export interface BuiltPack {
 const SECTION_ORDER = [
   'identity', 'statements', 'filings', 'ratios', 'score', 'price', 'freshness',
 ] as const;
+
+/** How many facts any one section may contribute. Keeps statements from crowding out ratios. */
+const SECTION_FACT_CAP = 60;
 
 const isObj = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -82,15 +96,59 @@ function collectFacts(section: string, node: unknown, out: CitableFact[], labelH
   if (id !== null && id !== undefined && String(id).length >= 32) {
     const label = [labelHint, str(node.statement_type), str(node.fiscal_period), str(node.title)]
       .filter(Boolean).join(' ').trim() || section;
-    // A short, human-readable value so the model can match a fact to its id without
-    // re-deriving it from the payload.
+    const objectId = String(id);
+
+    // The object itself, for blocks that reference it rather than one of its numbers.
     const value = str(node.value ?? node.numeric_value ?? node.period_end ?? node.filed_at ?? '');
-    out.push({ objectId: String(id), section, label: label.slice(0, 80), value: value.slice(0, 40) });
+    out.push({ objectId, section, label: label.slice(0, 80), value: value.slice(0, 40), path: null });
+
+    // ── AND ONE FACT PER NUMBER IT HOLDS ────────────────────────────────────────────────────
+    // Previously this emitted exactly one fact per object, labelled "balance Q1 2026" — which
+    // told the writer an object existed but not which of its thirty line items it was about.
+    // The writer then cited the object and wrote whichever number it liked, and R-04 had no
+    // field to check against. Naming each number, with its path, is what makes the drift check
+    // able to run at all.
+    for (const leaf of numericLeaves(node)) {
+      out.push({
+        objectId, section,
+        label: `${label} · ${leaf.path}`.slice(0, 80),
+        value: String(leaf.value).slice(0, 40),
+        path: leaf.path,
+      });
+    }
+    return;   // its own leaves are covered; do not re-walk them as separate objects
   }
   for (const [k, v] of Object.entries(node)) {
     if (k === 'source_object_id' || k === 'object_id') continue;
     if (isObj(v) || Array.isArray(v)) collectFacts(section, v, out, k);
   }
+}
+
+/** Metadata that lives beside the numbers and is never itself a citable figure. */
+const NON_FACT_KEYS = new Set([
+  'row_id', 'version', 'source_filing_id', 'source_object_id', 'object_id',
+  'computed_at', 'currency', 'currency_computed', 'period_end', 'period_kind',
+  'fiscal_period', 'statement_type', 'is_restated', 'basis', 'presentation', 'filing_source_ref',
+]);
+
+/**
+ * Every number in an object, with the dotted path that reaches it.
+ *
+ * Depth-limited to two levels, which covers `pe` and `line_items.total_assets` and stops the
+ * walk from inventing deep paths nothing would cite. Nulls are skipped: a ratio the lake could
+ * not compute is not a fact, and offering it invites the writer to cite an empty field.
+ */
+function numericLeaves(node: Record<string, unknown>, prefix = '', depth = 0): { path: string; value: number }[] {
+  if (depth > 1) return [];
+  const out: { path: string; value: number }[] = [];
+  for (const [k, v] of Object.entries(node)) {
+    if (NON_FACT_KEYS.has(k)) continue;
+    const path = prefix ? `${prefix}.${k}` : k;
+    if (typeof v === 'number' && Number.isFinite(v)) out.push({ path, value: v });
+    else if (typeof v === 'string' && v !== '' && Number.isFinite(Number(v))) out.push({ path, value: Number(v) });
+    else if (isObj(v)) out.push(...numericLeaves(v, path, depth + 1));
+  }
+  return out;
 }
 
 /** Drop the oldest element of the largest trimmable section. Returns false when nothing is left. */
@@ -134,13 +192,29 @@ export function buildPack(raw: unknown, opts: { maxChars?: number } = {}): Built
   const facts: CitableFact[] = [];
   for (const [section, node] of Object.entries(ordered)) collectFacts(section, node, facts);
 
-  // Stable de-dupe: the same object can legitimately appear in two sections.
+  // Stable de-dupe on (object, field): the same object legitimately appears in two sections,
+  // but its net_income and its total_assets are two different facts and both must survive.
   const seen = new Set<string>();
-  const uniq = facts.filter((f) => (seen.has(f.objectId) ? false : (seen.add(f.objectId), true)));
+  const uniq = facts.filter((f) => {
+    const k = `${f.objectId}::${f.path ?? ''}`;
+    return seen.has(k) ? false : (seen.add(k), true);
+  });
+
+  // ── No section may starve the others ─────────────────────────────────────────────────────
+  // Per-field facts made `statements` enormous — twelve periods of thirty line items — and it
+  // sits ahead of `ratios` in the editorial order, so a flat head-of-list cut would drop every
+  // ratio the writer might cite. Sections are capped individually, and because statements
+  // arrive newest-first the cut lands on the oldest periods, which is the right thing to lose.
+  const perSection = new Map<string, number>();
+  const capped = uniq.filter((f) => {
+    const n = (perSection.get(f.section) ?? 0) + 1;
+    perSection.set(f.section, n);
+    return n <= SECTION_FACT_CAP;
+  });
 
   return {
     text,
-    facts: uniq,
+    facts: capped,
     dropped: [...droppedMap.entries()].map(([section, n]) => ({ section, n })),
   };
 }
@@ -156,8 +230,36 @@ export function renderCitableFacts(facts: CitableFact[], limit = 120): string {
   if (facts.length === 0) return 'CITABLE FACTS: none — do not cite any number.';
   const lines = facts.slice(0, limit).map((f) => {
     const v = f.value ? ` = ${f.value}` : '';
-    return `${f.objectId}  [${f.section}] ${f.label}${v}`;
+    // The path is printed because the citation must carry it: it is what lets the rules engine
+    // check later that THIS number has not moved, rather than checking some other field of the
+    // same object and calling the difference drift.
+    const path = f.path ? `  path=${f.path}` : '';
+    return `${f.objectId}  [${f.section}] ${f.label}${v}${path}`;
   });
   const more = facts.length > limit ? `\n… and ${facts.length - limit} more (cite only ids listed above).` : '';
   return `CITABLE FACTS — you may cite ONLY these object ids:\n${lines.join('\n')}${more}`;
+}
+
+
+/**
+ * Per-field facts for a single object the caller already holds — the trigger.
+ *
+ * The trigger is the object a piece is ABOUT, so it is the one most likely to be cited, and it
+ * was the one described least: a single line naming its type, with no fields and no paths. It
+ * gets the same treatment as everything in the pack.
+ */
+export function factsForObject(
+  section: string, label: string, objectId: string, payload: unknown,
+): CitableFact[] {
+  const out: CitableFact[] = [{ objectId, section, label: label.slice(0, 80), value: '', path: null }];
+  if (!isObj(payload)) return out;
+  for (const leaf of numericLeaves(payload)) {
+    out.push({
+      objectId, section,
+      label: `${label} · ${leaf.path}`.slice(0, 80),
+      value: String(leaf.value).slice(0, 40),
+      path: leaf.path,
+    });
+  }
+  return out;
 }
