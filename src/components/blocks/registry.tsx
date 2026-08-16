@@ -30,6 +30,14 @@ import type {
   ImplementedBlockCode,
   UnknownBlockNode,
 } from "./types";
+import { BlockThesis } from "./b/BlockThesis";
+import { BlockPullQuote } from "./b/BlockPullQuote";
+import { BlockBigNum } from "./b/BlockBigNum";
+import { BlockVerdict } from "./b/BlockVerdict";
+import { BlockTake } from "./b/BlockTake";
+import { BlockFalsify } from "./b/BlockFalsify";
+import { BlockCut } from "./h/BlockCut";
+import { BlockPaywall } from "./h/BlockPaywall";
 
 /*
  * The renderer registry (PD.5).
@@ -70,9 +78,19 @@ export const BLOCK_RENDERERS: BlockRendererMap = {
   "BLK-BEATMISS": BlockBeatMiss,
   "BLK-EXDATE": BlockExDate,
   "BLK-COMPARE": BlockCompare,
+  // B · Statement — where the desk commits to a view.
+  "BLK-THESIS": BlockThesis,
+  "BLK-PULLQUOTE": BlockPullQuote,
+  "BLK-BIGNUM": BlockBigNum,
+  "BLK-VERDICT": BlockVerdict,
+  "BLK-TAKE": BlockTake,
+  "BLK-FALSIFY": BlockFalsify,
+  // H · Gates — the seam between the free read and the wall.
+  "BLK-CUT": BlockCut,
+  "BLK-PAYWALL": BlockPaywall,
 };
 
-/** The codes with a renderer today — B, D, E, F, H are still to come. */
+/** The codes with a renderer today — D, E, F and the rest of H are still to come. */
 export const IMPLEMENTED_BLOCK_CODES = Object.keys(BLOCK_RENDERERS) as ImplementedBlockCode[];
 
 export function hasRenderer(code: string): code is ImplementedBlockCode {

@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 import { Block, IMPLEMENTED_BLOCK_CODES } from "@/components/blocks";
 import type { AnyBlockNode } from "@/components/blocks";
-import { FAMILY_A, FAMILY_C, FAMILY_G, FRESH_STATES, PROV_STATES, type Specimen } from "./fixtures";
+import { FAMILY_A, FAMILY_B, FAMILY_C, FAMILY_G, FAMILY_H, FRESH_STATES, PROV_STATES, type Specimen } from "./fixtures";
 
 /**
  * Block library — PD.5 verification surface.
@@ -172,6 +172,26 @@ export default function BlockLibraryPage() {
         />
         <Grid cols={2}>
           {FAMILY_C.map((s) => (
+            <SpecimenCard key={s.node._key} s={s} />
+          ))}
+        </Grid>
+
+        <FamilyBar
+          label="B · STATEMENT"
+          purpose="Where the desk commits to a view. Five of the six are deliberately unbound — a thesis, a quote, a rating and a falsifier are judgements, not data. BLK-BIGNUM is the exception, and it is bound to exactly one lake field."
+        />
+        <Grid cols={2}>
+          {FAMILY_B.map((s) => (
+            <SpecimenCard key={s.node._key} s={s} />
+          ))}
+        </Grid>
+
+        <FamilyBar
+          label="H · GATES"
+          purpose="The seam between the free read and the wall. Both blocks are presentation: RLS on content_blocks withholds every gated row, so premium copy is never sent to an unentitled reader and then hidden with CSS."
+        />
+        <Grid cols={2}>
+          {FAMILY_H.map((s) => (
             <SpecimenCard key={s.node._key} s={s} />
           ))}
         </Grid>

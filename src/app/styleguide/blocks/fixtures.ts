@@ -490,3 +490,138 @@ export const FAMILY_C: Specimen[] = [
     },
   },
 ];
+
+/* ── B · Statement ───────────────────────────────────────────────────────── */
+
+export const FAMILY_B: Specimen[] = [
+  {
+    title: "Argument in three lines",
+    pieceTypes: "FEATURES · DEEP DIVES · NOTES",
+    bindingRule: "EXACTLY THREE LINES — NOT TWO, NOT FOUR · EACH INDEPENDENTLY CHECKABLE",
+    annotation: "THE THREE CLAIMS ARE WHAT THE FIT STAGE VERIFIES AGAINST THE LAKE",
+    node: {
+      _key: "b-thesis-1",
+      code: "BLK-THESIS",
+      payload: {
+        claims: [
+          "Gas now carries the growth: its share of revenue rose 180bp year on year.",
+          "The dividend is covered by operating cash flow at the current Brent strip.",
+          "Phase 3 capex lands before the tariff reset, not after it.",
+        ],
+      },
+    },
+  },
+  {
+    title: "Pull quote",
+    pieceTypes: "FEATURES · DEEP DIVES",
+    bindingRule: "A HUMAN VOICE, NEVER A RESTATED STATISTIC · ONE PER 1,500 WORDS",
+    node: {
+      _key: "b-pullquote-1",
+      code: "BLK-PULLQUOTE",
+      payload: {
+        quote: "The reconciliation fails, which tells you the interim figures are cumulative.",
+        attribution: "MARSAD DESK",
+      },
+    },
+  },
+  {
+    title: "The number that matters",
+    pieceTypes: "ALL",
+    bindingRule: "ONE PER PIECE · THE FIGURE THE HEADLINE RESTS ON · ONE LAKE FIELD, NOT AN AGGREGATE",
+    node: {
+      _key: "b-bignum-1",
+      code: "BLK-BIGNUM",
+      payload: {
+        value: "QAR 4.43bn",
+        caption: "QNB net profit for the quarter ended 30 June 2026.",
+        contextLine: "QAR 4.22bn a year earlier · +5.0%",
+      },
+      boundObjectId: "00000000-0000-4000-a000-0000000000b1",
+    },
+  },
+  {
+    title: "Rating card",
+    pieceTypes: "NOTES",
+    bindingRule: "ONLY ON PIECES WITH A FORMAL CALL, NEVER ON WIRES · MUST NAME THE PRIOR RATING",
+    node: {
+      _key: "b-verdict-1",
+      code: "BLK-VERDICT",
+      payload: {
+        ticker: "2222",
+        companyName: "Saudi Aramco",
+        rating: "Neutral",
+        priorRating: "Overweight",
+        targetPrice: "SAR 29.50",
+        upsidePct: "+4.1%",
+        changedInThisNote: true,
+      },
+    },
+  },
+  {
+    title: "Marsad Take · gated",
+    pieceTypes: "FEATURES · NOTES",
+    bindingRule: "THE HEADLINE STAYS READABLE · THE JUDGEMENT DOES NOT",
+    annotation: "THE BLUR IS PRESENTATION — RLS WITHHOLDS THE ROW, SO THE COPY IS NEVER SENT",
+    node: {
+      _key: "b-take-1",
+      code: "BLK-TAKE",
+      payload: {
+        headline: "Fair value sits below the current price on any Brent strip we can defend.",
+        body: "Trim into strength; the gas mix does not yet offset the tariff reset.",
+        entitlement: "locked",
+      },
+    },
+  },
+  {
+    title: "What would change this view",
+    pieceTypes: "NOTES · DEEP DIVES",
+    bindingRule: "REQUIRED ON ANY PIECE WITH A VIEW · OBSERVABLE EVENTS OR THRESHOLDS, NEVER SENTIMENT",
+    node: {
+      _key: "b-falsify-1",
+      code: "BLK-FALSIFY",
+      payload: {
+        falsifiers: [
+          "Gas revenue share fails to exceed 12% by the Q4 filing.",
+          "Operating cash flow falls below the declared dividend for two consecutive quarters.",
+          "Phase 3 first gas slips beyond the tariff reset date.",
+        ],
+      },
+    },
+  },
+];
+
+/* ── H · Gates ───────────────────────────────────────────────────────────── */
+
+export const FAMILY_H: Specimen[] = [
+  {
+    title: "Premium cut",
+    pieceTypes: "METERED PIECES",
+    bindingRule: "AFTER A COMPLETE THOUGHT · AFTER AT LEAST ONE DATA BLOCK",
+    annotation: "THE READER SEES THE WORK BEFORE THE WALL — THE FIT STAGE RE-VERIFIES BOTH CLAIMS",
+    node: {
+      _key: "h-cut-1",
+      code: "BLK-CUT",
+      payload: {
+        teaser:
+          "The margin question is settled by the impairment line rather than the top line, and that is where the rest of this note goes.",
+        afterBlockIndex: 6,
+        dataBlocksBefore: 3,
+      },
+    },
+  },
+  {
+    title: "In-article paywall band",
+    pieceTypes: "METERED PIECES",
+    bindingRule: "NAMES WHAT IS BEHIND THE WALL · NEVER A GENERIC 'SUBSCRIBE TO READ MORE'",
+    node: {
+      _key: "h-paywall-1",
+      code: "BLK-PAYWALL",
+      payload: {
+        behindTheWall:
+          "The full cost bridge, the 12-quarter margin series, and the desk's target with its falsifiers.",
+        ctaLabel: "Start 14-day trial",
+        reassurance: "cancel anytime",
+      },
+    },
+  },
+];
