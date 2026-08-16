@@ -9,7 +9,7 @@
  */
 import type { Handler, HandlerContext } from '../index.js';
 import { chatComplete } from 'marsad-ingestion';
-import { enqueueStage, loadItem, outputHalted, resolvePrincipal, transition } from './shared.js';
+import { enqueueStage, loadItem, outputHalted, resolvePrincipal, switchOn, transition } from './shared.js';
 
 interface EditMsg { pipeline_item_id?: number }
 
@@ -57,6 +57,17 @@ export function makeEdit(): Handler {
       await tx`update public.content_items set headline = ${headline}, template_key = ${template}, is_premium = ${isPremium}, updated_at = now() where id = ${item.content_id}::uuid`;
       await tx`update ops.pipeline_items set editor_agent = ${editorId}::uuid, template_hint = ${template} where id = ${item.id}`;
     });
+
+    // Route through composition when it is armed. `edit → rules` survives alongside
+    // `edit → compose` in the state machine precisely so this switch can be turned off again
+    // without a migration — and so a composition outage is a presentation problem, not an
+    // editorial one.
+    if (await switchOn(sql, 'newsroom_compose_stage')) {
+      await transition(sql, item.id, 'compose', editorId, { template });
+      await enqueueStage(sql, 'pipeline_compose', item.id);
+      log.info('edit: tightened → compose', { template, headline });
+      return;
+    }
 
     await transition(sql, item.id, 'rules', editorId, { template });
     await enqueueStage(sql, 'pipeline_rules', item.id);

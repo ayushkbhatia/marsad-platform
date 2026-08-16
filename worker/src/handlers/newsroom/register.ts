@@ -14,6 +14,7 @@ import { makeClassify } from './classify.js';
 import { makeDraft } from './draft.js';
 import { makeEdit } from './edit.js';
 import { makeFitStage } from './fit.js';
+import { makeComposeHandler } from './compose.js';
 import { makeRulesStage } from './rules-stage.js';
 
 export function registerNewsroomHandlers(): string[] {
@@ -23,6 +24,7 @@ export function registerNewsroomHandlers(): string[] {
     ['pipeline_edit', makeEdit()],
     ['pipeline_rules', makeRulesStage()],
     ['pipeline_fit', makeFitStage()],
+    ['pipeline_compose', makeComposeHandler()],
   ];
   for (const [name, h] of regs) registerHandler(name, h);
   return regs.map(([n]) => n);
