@@ -7,7 +7,7 @@
 
 import type { CitationRow, EngineOptions, RuleContext, RuleLlm, RuleResult } from './types.js';
 import {
-  DRIFT_TOL, hasNumber, isMaterialNumeral, magnitudeMatches, markersIn, normalizePhrase,
+  DRIFT_TOL, MAGNITUDE_UNITS, hasNumber, isMaterialNumeral, magnitudeMatches, markersIn, normalizePhrase,
   numberTokens, parseMagnitude, relDiff, splitSentences, tokenAssertsSign,
 } from './text.js';
 
@@ -137,7 +137,7 @@ export function r03(ctx: RuleContext, opts?: EngineOptions): RuleResult {
 // R-04 — numbers match the lake (BLOCK). Each marker's sentence must contain a magnitude
 // within 0.5% of the citation's frozen cited_value; and the frozen value must still match
 // the live object payload (catches mid-pipeline correction drift).
-const MAG_RE = /-?\d[\d,]*(?:\.\d+)?\s*(?:%|trillion|tn|bn|billion|mn|m|million|k|thousand)?/gi;
+const MAG_RE = new RegExp(`-?\\d[\\d,]*(?:\\.\\d+)?\\s*(?:%|${MAGNITUDE_UNITS})?`, 'gi');
 
 export function r04(ctx: RuleContext): RuleResult {
   const byKey = citationByKey(ctx);
@@ -199,7 +199,10 @@ export function r04(ctx: RuleContext): RuleResult {
                 where: surf.where, kind: 'lake_drift_unchecked', key,
                 why: 'payload_path resolves to nothing numeric in the live payload', path: cit.payload_path,
               });
-            } else if (relDiff(liveMag, citedMag) > DRIFT_TOL) {
+            } else if (!magnitudeMatches(citedMag, liveMag)) {
+              // magnitudeMatches, not a bare relDiff: the lake stores roe as 0.1344 and the
+              // prose says "13.44%". Those are the same fact in different units, and this
+              // check exists to catch a value that MOVED, not one that is written differently.
               violations.push({
                 where: surf.where, kind: 'lake_drift', key,
                 cited: citedMag, live: liveMag, path: cit.payload_path,
