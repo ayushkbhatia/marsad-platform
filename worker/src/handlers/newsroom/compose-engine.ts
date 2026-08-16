@@ -25,12 +25,29 @@ export interface StoryBlockRow {
   requires_binding: boolean;
   renderer_built: boolean;
   payload_schema: Record<string, unknown> | null;
+  /**
+   * The design cards' constraint prose, verbatim — the same column the fit stage parses.
+   * Compose was blind to this, which is how one piece shipped two BLK-BIGNUMs into a fit
+   * refusal: the constraint was legible to the checker and invisible to the author.
+   */
+  constraints: string[] | null;
 }
 
 export interface OutlineEntry {
   block_code: string;
   binding_object_id: string | null;
   one_line_intent: string;
+  /**
+   * Which prose paragraph this exhibit FOLLOWS: 0 places it above the first, n below the nth.
+   *
+   * The outline used to be the whole document, which meant composing a piece silently deleted
+   * every paragraph the writer had written — the enum held only BLK-* codes, so there was no
+   * token the model could emit that meant "keep the prose here". The result read as nine
+   * exhibits in a row: no running text for the numeral check to check, and no complete thought
+   * anywhere for the premium cut to fall after. An exhibit annotates an argument; it is not
+   * the argument.
+   */
+  after_paragraph: number;
 }
 
 export interface LegalVocabulary {
@@ -88,7 +105,9 @@ export type OutlineRejection =
   | { kind: "unknown_binding"; code: string; objectId: string }
   | { kind: "missing_binding"; code: string }
   | { kind: "empty" }
-  | { kind: "too_long"; n: number };
+  | { kind: "too_long"; n: number }
+  | { kind: "duplicate_unique"; code: string; n: number }
+  | { kind: "anchor_out_of_range"; code: string; after: number; paragraphs: number };
 
 /**
  * Validate an outline BEFORE any fill call is made.
@@ -103,6 +122,7 @@ export function validateOutline(
   legalCodes: string[],
   allowedObjectIds: Set<string>,
   registry: StoryBlockRow[],
+  paragraphCount: number,
   maxBlocks = 24,
 ): OutlineRejection[] {
   const out: OutlineRejection[] = [];
@@ -111,6 +131,19 @@ export function validateOutline(
 
   const legal = new Set(legalCodes);
   const byKey = new Map(registry.map((r) => [r.key, r]));
+
+  // ONE PER PIECE, enforced where it is still free. The fit stage parses the identical prose
+  // from the identical column; the difference is that here the piece has not yet paid for one
+  // fill call per block.
+  const counts = new Map<string, number>();
+  for (const e of outline) counts.set(e.block_code, (counts.get(e.block_code) ?? 0) + 1);
+  for (const [code, n] of counts) {
+    if (n < 2) continue;
+    const row = byKey.get(code);
+    if ((row?.constraints ?? []).some((c) => /^ONE PER PIECE$/i.test(c.trim()))) {
+      out.push({ kind: "duplicate_unique", code, n });
+    }
+  }
 
   for (const e of outline) {
     if (!legal.has(e.block_code)) { out.push({ kind: "illegal_code", code: e.block_code }); continue; }
@@ -122,12 +155,16 @@ export function validateOutline(
     if (row?.requires_binding && !e.binding_object_id) {
       out.push({ kind: "missing_binding", code: e.block_code });
     }
+    const after = e.after_paragraph;
+    if (!Number.isInteger(after) || after < 0 || after > paragraphCount) {
+      out.push({ kind: "anchor_out_of_range", code: e.block_code, after, paragraphs: paragraphCount });
+    }
   }
   return out;
 }
 
 /** The JSON Schema for pass 1, built per piece so the enum is only this piece's legal codes. */
-export function outlineSchema(legalCodes: string[], maxBlocks = 24): Record<string, unknown> {
+export function outlineSchema(legalCodes: string[], paragraphCount: number, maxBlocks = 24): Record<string, unknown> {
   return {
     type: "object",
     additionalProperties: false,
@@ -148,9 +185,71 @@ export function outlineSchema(legalCodes: string[], maxBlocks = 24): Record<stri
               description: "A lake object id from CITABLE FACTS. Required where the block binds.",
             },
             one_line_intent: { type: "string", minLength: 8 },
+            after_paragraph: {
+              type: "integer",
+              minimum: 0,
+              maximum: paragraphCount,
+              description:
+                "The paragraph number this exhibit follows. 0 places it above the first paragraph. " +
+                "The prose itself is kept verbatim — you are placing exhibits into an article, not replacing it.",
+            },
           },
         },
       },
     },
   };
+}
+
+
+/* ── Splice ───────────────────────────────────────────────────────────────── */
+
+/** A chassis block as it already exists on the draft: prose the composer must not touch. */
+export interface ProseBlock {
+  kind: string;
+  body: unknown;
+}
+
+export interface FilledBlock {
+  code: string;
+  payload: unknown;
+  boundObjectId: string | null;
+  afterParagraph: number;
+}
+
+export type ComposedBlock =
+  | { kind: "prose"; blockKind: string; body: unknown }
+  | { kind: "design"; blockKind: string; body: unknown; boundObjectId: string | null };
+
+/** Chassis kinds the draft writes. Anything else on a draft is a design block. */
+export const CHASSIS_KINDS = new Set(["text", "heading", "pull_quote", "disclaimer"]);
+
+/**
+ * Interleave exhibits into prose, preserving both.
+ *
+ * Rules that are not negotiable:
+ *   - every prose block survives, in its original order;
+ *   - `disclaimer` is pinned last whatever the model asked for — it is a legal footer, and an
+ *     exhibit below it reads as being covered by it;
+ *   - exhibits anchored to the same paragraph keep their outline order, so the model's own
+ *     reading-order intent survives the regrouping.
+ */
+export function spliceComposition(prose: ProseBlock[], filled: FilledBlock[]): ComposedBlock[] {
+  const anchors = prose.filter((b) => b.kind !== "disclaimer");
+  const footer = prose.filter((b) => b.kind === "disclaimer");
+  const at = new Map<number, FilledBlock[]>();
+  for (const f of filled) {
+    const i = Math.max(0, Math.min(anchors.length, f.afterParagraph));
+    (at.get(i) ?? at.set(i, []).get(i)!).push(f);
+  }
+  const design = (f: FilledBlock): ComposedBlock =>
+    ({ kind: "design", blockKind: f.code, body: f.payload, boundObjectId: f.boundObjectId });
+
+  const out: ComposedBlock[] = [];
+  for (const f of at.get(0) ?? []) out.push(design(f));
+  anchors.forEach((b, idx) => {
+    out.push({ kind: "prose", blockKind: b.kind, body: b.body });
+    for (const f of at.get(idx + 1) ?? []) out.push(design(f));
+  });
+  for (const b of footer) out.push({ kind: "prose", blockKind: b.kind, body: b.body });
+  return out;
 }
