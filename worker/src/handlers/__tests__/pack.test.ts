@@ -73,8 +73,9 @@ test('the allow-set includes ratios, score and filings — not just statements',
 test('facts are de-duplicated by object id', () => {
   const p = pack(2, 1) as Record<string, unknown>;
   // same object surfacing twice, as it legitimately can
-  (p.filings as Record<string, unknown>[])[0].source_object_id =
-    (p.statements as Record<string, unknown>[])[0].source_object_id;
+  const filings = p.filings as Record<string, unknown>[];
+  const statements = p.statements as Record<string, unknown>[];
+  filings[0]!.source_object_id = statements[0]!.source_object_id;
   const built = buildPack(p);
   const ids = built.facts.map((f) => f.objectId);
   assert.equal(new Set(ids).size, ids.length);
