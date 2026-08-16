@@ -16,6 +16,8 @@ import {
   getRelatedArticles,
 } from "@/lib/data/editorial";
 import { fmtDate, fmtPrice, sectorLabel } from "@/lib/reader/format";
+import { resolveBlocks } from "@/lib/blocks/resolve";
+import type { AnyBlockNode } from "@/components/blocks";
 
 /**
  * ADAPTER: `content_items` / `content_blocks` → the research contracts
@@ -74,14 +76,55 @@ function normalizeKind(kind: string): string {
   return kind.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
+/**
+ * Resolve the bindings on any BLK-* blocks in a rendered article.
+ *
+ * A no-op for a piece with no designed blocks — which is every piece today — so the batched
+ * lake read is only paid for by articles that actually carry bindings.
+ */
+async function resolveArticleBlocks(blocks: ArticleBlock[]): Promise<ArticleBlock[]> {
+  const designed = blocks.filter((b): b is Extract<ArticleBlock, { kind: "block" }> => b.kind === "block");
+  if (designed.length === 0) return blocks;
+
+  const resolved = await resolveBlocks(designed.map((b) => b.node));
+  const byKey = new Map<string, AnyBlockNode>(resolved.map((n) => [n._key, n]));
+  return blocks.map<ArticleBlock>((b) =>
+    b.kind === "block" ? { kind: "block", node: byKey.get(b.node._key) ?? b.node } : b,
+  );
+}
+
+/** A designed block from the closed vocabulary, as opposed to a chassis prose kind. */
+function isDesignBlockCode(kind: string): boolean {
+  return /^BLK-[A-Z]+$/i.test(kind.trim());
+}
+
 function toBlocks(blocks: ArticleDetail["blocks"]): ArticleBlock[] {
   // The design opens the body with a drop cap and the writer does not mark it, so
   // the first PROSE block earns it — not index 0, which may be a heading.
   let dropcapUsed = false;
 
   return blocks
-    .filter((b) => (b.text ?? "").trim().length > 0)
+    .filter((b) => isDesignBlockCode(b.kind) || (b.text ?? "").trim().length > 0)
     .map((b): ArticleBlock => {
+      // ── The designed vocabulary ────────────────────────────────────────────
+      // A BLK-* block is emitted as a block node WHETHER OR NOT a renderer exists
+      // for it. An unregistered code resolves to MissingBlock — loud, logged and
+      // non-fatal — and that is deliberate: degrading it to a paragraph would drop
+      // a designed exhibit into the prose silently, which is exactly how
+      // DEF-ARTICLE-BLOCK-KIND-MISMATCH flattened every heading and pull quote.
+      // The publisher hard-refuses (09 §6.1); the reader says so out loud.
+      if (isDesignBlockCode(b.kind)) {
+        return {
+          kind: "block",
+          node: {
+            _key: String(b.id),
+            code: b.kind.trim().toUpperCase(),
+            payload: b.body,
+            boundObjectId: b.boundObjectId,
+          },
+        };
+      }
+
       const text = (b.text ?? "").trim();
       switch (normalizeKind(b.kind)) {
         case "pullquote":
@@ -207,7 +250,7 @@ export async function buildArticle(slug: string): Promise<Article | null> {
             impliedUpside: a.rating.impliedUpsidePct ?? 0,
           }
         : null,
-    blocks: toBlocks(a.blocks),
+    blocks: await resolveArticleBlocks(toBlocks(a.blocks)),
     inThisPiece: a.tickers.map((t) => ({
       ticker: t.ticker,
       name: t.name,
