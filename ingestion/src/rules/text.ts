@@ -108,6 +108,54 @@ export function parseMagnitude(s: string): number | null {
   return base * scale;
 }
 
+/**
+ * Does a magnitude written in PROSE correspond to a value frozen from the LAKE?
+ *
+ * ── THE BUG THIS EXISTS FOR ────────────────────────────────────────────────────────────
+ * The lake stores a growth rate as a FRACTION (`0.1159`). A writer writes it as a PERCENT
+ * ("revenue up 11.6%"), and freezes `quoted_value` as the raw lake number. R-04 then compared
+ * 11.6 against 0.1159, found a 99% difference, and blocked. Both real drafts died this way,
+ * and the recorded violations show it precisely: {"cited":0.1159, "sentence_mags":[…,11.2,…]}
+ * and {"cited":-0.0586, "sentence_mags":[…,5.86,…]}.
+ *
+ * Every percentage story blocked. Not some — every one, because a fraction can never be within
+ * 0.5% of its own percent rendering.
+ *
+ * ── WHY THIS AND NOT A WIDER TOLERANCE ─────────────────────────────────────────────────
+ * Widening DRIFT_TOL to cover a 100x gap would stop R-04 checking anything at all. The two
+ * numbers are not APPROXIMATELY equal, they are EXACTLY equal in different units, so the fix
+ * belongs in the unit handling. A fraction under 1 and its ×100 rendering are the same fact;
+ * anything else still has to match within 0.5%.
+ *
+ * The residual false-pass this admits: a cited ratio of 0.5 against a prose "50". That is the
+ * price of not blocking every percentage in the product, it is bounded to sub-1 cited values,
+ * and the writer prompt now also requires quoted_value to be the figure AS WRITTEN — so this is
+ * the safety net, not the primary mechanism.
+ */
+export function magnitudeMatches(proseMag: number, citedValue: number, proseAssertsSign = false): boolean {
+  // Direction in prose is carried by WORDS ("fell 5.86%"), not by a minus sign, while the lake
+  // carries it in the sign (-0.0586). Comparing those signed blocks honest copy; comparing them
+  // unsigned would stop R-04 noticing a genuine direction error. So: compare unsigned UNLESS the
+  // prose wrote an explicit '-', in which case the writer has asserted a sign and must match it.
+  //
+  // This is consistent with the block contract, where `direction` is DERIVED from the resolved
+  // value's sign at render time and is never writer-asserted — so the sign is the lake's to state,
+  // and prose adjectives are not a claim R-04 can adjudicate.
+  const p = proseAssertsSign ? proseMag : Math.abs(proseMag);
+  const c = proseAssertsSign ? citedValue : Math.abs(citedValue);
+  if (relDiff(p, c) <= DRIFT_TOL) return true;
+  // A lake fraction rendered as a percent in prose.
+  if (c !== 0 && Math.abs(c) < 1 && relDiff(p, c * 100) <= DRIFT_TOL) return true;
+  // The mirror: prose carries the fraction and the citation froze the percent.
+  if (p !== 0 && Math.abs(p) < 1 && relDiff(p * 100, c) <= DRIFT_TOL) return true;
+  return false;
+}
+
+/** Did the writer put an explicit minus on this numeral? (See magnitudeMatches.) */
+export function tokenAssertsSign(token: string): boolean {
+  return /-\s*\d/.test(String(token));
+}
+
 /** Relative difference |a-b|/|b|; b=0 → 0 when a=0 else Infinity. */
 export function relDiff(a: number, b: number): number {
   if (b === 0) return a === 0 ? 0 : Infinity;

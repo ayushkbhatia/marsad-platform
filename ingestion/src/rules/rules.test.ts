@@ -148,6 +148,51 @@ test('R-04 recognises a trillion-scale figure and matches its citation', async (
   assert.equal(r.results.find((x) => x.rule_key === 'R-04')!.outcome, 'passed', JSON.stringify(r.results.find((x) => x.rule_key === 'R-04')!.detail));
 });
 
+// ── R-04 unit handling ─────────────────────────────────────────────────────────────────
+// The lake stores growth as a fraction; the writer renders it as a percent. Comparing the
+// two directly blocked EVERY percentage story — the single highest-frequency real failure
+// in the recorded violations.
+
+test('R-04 matches a lake fraction against its percent rendering in prose', async () => {
+  const r = await runRules(ctx({
+    headline: 'QNB revenue rises 11.6% in the quarter',
+    blocks: [{ seq: 1, block_kind: 'text', body: 'Revenue rose 11.6% year on year [c1].', bound_object_id: null, gated: false }],
+    citations: [cite({ cited_value: 0.1159 })],
+  }), BASE_OPTS);
+  const r04 = r.results.find((x) => x.rule_key === 'R-04')!;
+  assert.equal(r04.outcome, 'passed', JSON.stringify(r04.detail));
+});
+
+test('R-04 still blocks a percent that is off by a factor of ten', async () => {
+  // 0.1159 is 11.59%, not 1.159% — the equivalence must not become a free pass.
+  const r = await runRules(ctx({
+    headline: 'QNB revenue rises 1.159% in the quarter',
+    blocks: [{ seq: 1, block_kind: 'text', body: 'Revenue rose 1.159% year on year [c1].', bound_object_id: null, gated: false }],
+    citations: [cite({ cited_value: 0.1159 })],
+  }), BASE_OPTS);
+  assert.equal(r.results.find((x) => x.rule_key === 'R-04')!.outcome, 'blocked');
+});
+
+test('R-04 matches a negative fraction against its percent rendering', async () => {
+  const r = await runRules(ctx({
+    headline: 'QNB margin narrows',
+    blocks: [{ seq: 1, block_kind: 'text', body: 'Net margin fell 5.86% year on year [c1].', bound_object_id: null, gated: false }],
+    citations: [cite({ cited_value: -0.0586 })],
+  }), BASE_OPTS);
+  assert.equal(r.results.find((x) => x.rule_key === 'R-04')!.outcome, 'passed');
+});
+
+test('R-04 still catches a direction error when the prose asserts a sign', async () => {
+  // Unsigned comparison must not become a free pass: if the writer wrote "-5.86%" against a
+  // cited +0.0586, they have asserted a direction the lake contradicts.
+  const r = await runRules(ctx({
+    headline: 'QNB margin moves',
+    blocks: [{ seq: 1, block_kind: 'text', body: 'Net margin moved -5.86% year on year [c1].', bound_object_id: null, gated: false }],
+    citations: [cite({ cited_value: 0.0586 })],
+  }), BASE_OPTS);
+  assert.equal(r.results.find((x) => x.rule_key === 'R-04')!.outcome, 'blocked');
+});
+
 test('R-05 blocks a banned phrase (diacritic/case-normalized)', async () => {
   const r = await runRules(ctx({ headline: 'QNB: Guaranteed  Returns for holders', word_count: 6, citations: [], blocks: [] }), BASE_OPTS);
   assert.ok(r.results.find((x) => x.rule_key === 'R-05' && x.outcome === 'blocked'));
