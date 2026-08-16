@@ -179,10 +179,6 @@ begin
   end loop;
 
   raise notice 'PE.6c: % objects VERIFIED (corroborated), % marked CONFLICT', v_verified, v_conflict;
-
-  if v_verified < 9000 then
-    raise exception 'PE.6c: expected ~9,915 promotions, got % — investigate before committing', v_verified;
-  end if;
 end $$;
 
 -- ─── 5. Assertions ────────────────────────────────────────────────────────────
@@ -208,4 +204,27 @@ begin
   select count(*) into v_bad from lake.objects
    where state = 'VERIFIED' and verified_by is null;
   if v_bad > 0 then raise exception '% VERIFIED objects have no verified_by', v_bad; end if;
+
+  -- THE load-bearing assertion: no promotable `agree` verdict may be left unacted on.
+  -- Deliberately scale-free rather than "expect ~9,915" — an absolute count is true of
+  -- production on one afternoon and false of every fresh replay, which is exactly how a
+  -- migration passes review and then fails `db reset` in CI.
+  select count(*) into v_bad
+    from public.financial_statement_xcheck x
+    join lake.objects o on o.id = x.golden_object_id
+   where x.status = 'agree' and o.state = 'PENDING'
+     and not o.price_sensitive and o.superseded_by is null;
+  if v_bad > 0 then
+    raise exception '% agree verdicts still point at a promotable PENDING object', v_bad;
+  end if;
+
+  -- Same for the disagreements: an `agree`/`conflict` verdict and a PENDING object is a
+  -- verdict nobody applied.
+  select count(*) into v_bad
+    from public.financial_statement_xcheck x
+    join lake.objects o on o.id = x.golden_object_id
+   where x.status = 'conflict' and o.state = 'PENDING' and o.superseded_by is null;
+  if v_bad > 0 then
+    raise exception '% conflict verdicts still point at a PENDING object', v_bad;
+  end if;
 end $$;
