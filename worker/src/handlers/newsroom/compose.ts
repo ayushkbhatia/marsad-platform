@@ -20,8 +20,8 @@ import {
   budgetState, enqueueStage, loadItem, outputHalted, parseJsonReply, resolvePrincipal, switchOn, transition,
 } from './shared.js';
 import {
-  legalVocabulary, outlineSchema, validateOutline,
-  type OutlineEntry, type StoryBlockRow,
+  CHASSIS_KINDS, legalVocabulary, outlineSchema, spliceComposition, validateOutline,
+  type FilledBlock, type OutlineEntry, type StoryBlockRow,
 } from './compose-engine.js';
 
 interface ComposeMsg { pipeline_item_id?: number }
@@ -34,7 +34,8 @@ const OUTLINE_SYSTEM = [
   'RULES: use ONLY the block codes offered — the list is the whole vocabulary for this piece.',
   'Where a block binds a figure, give the lake object id from CITABLE FACTS; NEVER invent one.',
   'Prefer fewer, better-chosen blocks: every block must earn its place by answering a question',
-  'the prose raises. Do not restate the same figure in two blocks.',
+  'the prose raises. Do not restate the same figure in two blocks, and never use a block twice',
+  'when its constraints say ONE PER PIECE.',
 ].join('\n');
 
 const FILL_SYSTEM = [
@@ -73,7 +74,7 @@ export function makeComposeHandler(): Handler {
     if (!tpl) { log.warn('compose: no template for piece — leaving prose as drafted'); await handOff(sql, item, composerId, log); return; }
 
     const registry = (await sql`
-      select key, status, family, piece_types, requires_binding, renderer_built, payload_schema
+      select key, status, family, piece_types, requires_binding, renderer_built, payload_schema, constraints
         from ops.story_blocks`) as unknown as StoryBlockRow[];
 
     const vocab = legalVocabulary(tpl.block_keys ?? [], registry, tpl.piece_type, true);
@@ -96,11 +97,18 @@ export function makeComposeHandler(): Handler {
        where content_id = ${item.content_id}::uuid order by seq`) as unknown as Array<{ seq: number; block_kind: string; body: { text?: string } | null }>;
     const ci = ((await sql`select headline, dek from public.content_items where id = ${item.content_id}::uuid`) as unknown as Array<{ headline: string; dek: string | null }>)[0]!;
 
+    // Only the chassis blocks are prose. A re-compose (a send-back) may find design blocks from
+    // the previous pass still on the draft; those are this stage's own output and are replaced,
+    // never fed back in as if the writer had written them.
+    const prose = blocks.filter((b) => CHASSIS_KINDS.has(b.block_kind));
+    const anchors = prose.filter((b) => b.block_kind !== 'disclaimer');
+
     const draftText = [
       `HEADLINE: ${ci.headline}`,
       ci.dek ? `DEK: ${ci.dek}` : '',
       '',
-      ...blocks.map((b) => b.body?.text ?? ''),
+      'THE PROSE (kept verbatim; `after_paragraph` refers to these numbers):',
+      ...anchors.map((b, i) => `[P${i + 1}] (${b.block_kind}) ${b.body?.text ?? ''}`),
       '',
       'CITABLE FACTS (use these ids for bindings):',
       ...cites.map((c) => `${c.object_id}  ${c.claim_key ?? ''}  ${c.quoted_value ?? ''}`),
@@ -113,7 +121,7 @@ export function makeComposeHandler(): Handler {
     try {
       const res = await chatComplete('writer', [{ role: 'user', content: draftText }], {
         system: OUTLINE_SYSTEM,
-        json: outlineSchema(vocab.codes),
+        json: outlineSchema(vocab.codes, anchors.length),
         maxTokens: 1200, temperature: 0.1, budgetDegraded: budget !== 'ok',
         runContext: { agentId: composerId, pipelineItemId: String(item.id), purpose: `compose:outline:${item.template_hint ?? 'TPL'}` },
       });
@@ -125,7 +133,7 @@ export function makeComposeHandler(): Handler {
       return;
     }
 
-    const rejections = validateOutline(outline, vocab.codes, allowedIds, registry);
+    const rejections = validateOutline(outline, vocab.codes, allowedIds, registry, anchors.length);
     if (rejections.length > 0) {
       // Caught BEFORE any fill call: pass 2 costs one model call per block, so a bad outline
       // should be free to reject.
@@ -135,7 +143,7 @@ export function makeComposeHandler(): Handler {
     }
 
     // ── Pass 2 · fill, one constrained call per block ─────────────────────────
-    const filled: { code: string; payload: unknown; boundObjectId: string | null }[] = [];
+    const filled: FilledBlock[] = [];
     for (const entry of outline) {
       const row = registry.find((r) => r.key === entry.block_code);
       if (!row?.payload_schema) continue;
@@ -164,7 +172,10 @@ export function makeComposeHandler(): Handler {
           log.warn('compose: block payload failed its Zod schema — dropping the block', { code: entry.block_code });
           continue;
         }
-        filled.push({ code: entry.block_code, payload, boundObjectId: entry.binding_object_id });
+        filled.push({
+          code: entry.block_code, payload, boundObjectId: entry.binding_object_id,
+          afterParagraph: entry.after_paragraph,
+        });
       } catch (err) {
         log.warn('compose: fill failed for a block — dropping it', { code: entry.block_code, err: String(err).slice(0, 160) });
       }
@@ -178,13 +189,17 @@ export function makeComposeHandler(): Handler {
 
     // ── Persist ───────────────────────────────────────────────────────────────
     await sql.begin(async (tx) => {
+      const composed = spliceComposition(
+        prose.map((b) => ({ kind: b.block_kind, body: b.body })),
+        filled,
+      );
       await tx`delete from public.content_blocks where content_id = ${item.content_id}::uuid`;
       let seq = 1;
-      for (const b of filled) {
+      for (const b of composed) {
         await tx`
           insert into public.content_blocks (content_id, seq, block_kind, body, bound_object_id, gated)
-          values (${item.content_id}::uuid, ${seq}, ${b.code}, ${sql.json(b.payload as never)}::jsonb,
-                  ${b.boundObjectId}::uuid, false)`;
+          values (${item.content_id}::uuid, ${seq}, ${b.blockKind}, ${sql.json(b.body as never)}::jsonb,
+                  ${b.kind === 'design' ? b.boundObjectId : null}::uuid, false)`;
         seq += 1;
       }
       // Every binding must ALSO be a citation, or the fit stage refuses FIT-BIND-UNCITED. The
@@ -200,7 +215,9 @@ export function makeComposeHandler(): Handler {
       }
     });
 
-    log.info('compose: composed', { blocks: filled.length, codes: filled.map((f) => f.code) });
+    log.info('compose: composed', {
+      exhibits: filled.length, prose: prose.length, codes: filled.map((f) => f.code),
+    });
     await transition(sql, item.id, 'rules', composerId, { composed: filled.length, codes: filled.map((f) => f.code) });
     await enqueueStage(sql, 'pipeline_rules', item.id);
   };
