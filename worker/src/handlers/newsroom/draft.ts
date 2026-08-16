@@ -19,6 +19,21 @@ const ALL_RULE_KEYS = ['R-01','R-02','R-03','R-04','R-05','R-06','R-07','R-08','
 /** Mirrors MAX_RULES_LOOPS in rules-stage.ts — shown to the writer so it knows the stakes. */
 const MAX_REVISIONS = 2;
 
+/**
+ * Output budget for one draft attempt.
+ *
+ * Was 2,500 — tuned before citations carried `payload_path`. That field adds roughly 60 tokens
+ * per citation, and an XBRL line item is not a short key: item 3 cites
+ * `line_items.impairment_loss_impairment_gain_and_reversal_of_impairment_loss_determined_in_ac`.
+ * Across nineteen citations the contract stopped fitting, so the JSON truncated mid-object and
+ * the run died `json_contract_failed_after_repair` — a whole piece lost to a budget rather than
+ * to anything the writer did wrong.
+ *
+ * A truncated draft is the worst failure available: it costs a full call, produces nothing, and
+ * reports as a contract error rather than as "the ceiling was too low".
+ */
+const DRAFT_MAX_TOKENS = 4000;
+
 /** The previous draft, re-serialised in the shape the writer emits, so the revision turn reads
  *  as its own last answer rather than as a description of one. Must be called BEFORE draft.ts
  *  deletes content_blocks / lake.citations. */
@@ -163,7 +178,7 @@ export function makeDraft(): Handler {
     let draft: { headline?: string; dek?: string | null; blocks?: { kind?: string; body?: string }[]; citations?: Record<string, { object_id?: string; quoted_value?: unknown; claim?: string; payload_path?: unknown }> };
     try {
       const res = await chatComplete('writer', messages,
-        { system: WRITER_SYSTEM, json: true, maxTokens: 2500, temperature: 0.2, budgetDegraded: budget !== 'ok', runContext: { agentId: writerId, pipelineItemId: String(item.id), purpose: `draft:${item.template_hint ?? 'TPL'}:${trig[0].object_type}` } });
+        { system: WRITER_SYSTEM, json: true, maxTokens: DRAFT_MAX_TOKENS, temperature: 0.2, budgetDegraded: budget !== 'ok', runContext: { agentId: writerId, pipelineItemId: String(item.id), purpose: `draft:${item.template_hint ?? 'TPL'}:${trig[0].object_type}` } });
       draft = (res.parsed ?? parseJsonReply(res.text)) as typeof draft;
       log.info('draft: writer replied', { cost: res.costUsd, model: res.model });
     } catch (err) {

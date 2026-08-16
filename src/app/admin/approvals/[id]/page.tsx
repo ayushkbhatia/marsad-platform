@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getApprovalDetail } from "@/lib/desk/approvals";
 import { decideAction } from "../actions";
+import { DeskBody } from "@/components/desk/DeskBody";
 
 export const metadata: Metadata = { title: "Desk — review piece" };
 
@@ -49,7 +50,6 @@ async function ApprovalDetailBody({
   const detail = await getApprovalDetail(itemId);
   if (!detail.item) notFound();
   const it = detail.item;
-  const bodyText = detail.blocks.map((b) => (b.body as { text?: string })?.text ?? "").join("\n\n");
   const blockedRules = detail.violations.filter((v) => v.outcome === "blocked");
 
   return (
@@ -84,8 +84,8 @@ async function ApprovalDetailBody({
         {/* Body */}
         <section>
           <h2 className="mb-2 font-ui text-[11px] font-semibold uppercase tracking-wide text-ink-muted">Body</h2>
-          <div className="whitespace-pre-wrap rounded-sm border border-hairline bg-paper px-4 py-3 font-ui text-[15px] leading-relaxed text-ink">
-            {bodyText || <span className="text-ink-faint">(no body blocks)</span>}
+          <div className="rounded-sm border border-hairline bg-paper px-4 py-3">
+            <DeskBody blocks={detail.blocks} boundValues={detail.bound_values} />
           </div>
 
           <h2 className="mt-6 mb-2 font-ui text-[11px] font-semibold uppercase tracking-wide text-ink-muted">
