@@ -192,6 +192,46 @@ test('fit: refuses a requires_binding block whose object has no lake.citations r
   assert.equal(hit.rule, 'R-03');
 });
 
+// ── The provenance floor, one stage later ────────────────────────────────────────────────
+// checkBinding used to hard-code VERIFIED, which made fit STRICTER than
+// lake.v_citable_objects — the surface the writer is given to cite from, which accepts
+// PENDING. Handing a model a fact and then refusing the composition that uses it is the same
+// defect as the truncated context pack. It now reads the same per-type allowlist as R-03.
+
+test('fit: ADMITS a PENDING binding when the type may be cited while PENDING', () => {
+  const r = runFit(input({
+    content_type: 'NOTE', template_key: 'TPL-04',
+    pipelineTemplate: { key: 'TPL-04', block_keys: [], auto_publish_eligible: false, always_premium: false, max_words: null },
+    blocks: [block({ seq: 1, code: 'BLK-FINTABLE', bound_object_id: OBJ })],
+    citations: [cite({ object_state: 'PENDING', object_type: 'FILING.FINANCIALS' })],
+    citableStatesByType: { 'FILING.FINANCIALS': ['VERIFIED', 'PENDING'] },
+  }));
+  assert.equal(r.refusals.find((x) => x.code === 'FIT-BIND-UNRESOLVED'), undefined, codes(r.refusals).join(','));
+});
+
+test('fit: refuses a CONFLICT binding even when the allowlist would permit the state', () => {
+  // Two sources disagree about the figure, so there is no fact to bind to. Never configurable.
+  const r = runFit(input({
+    content_type: 'NOTE', template_key: 'TPL-04',
+    pipelineTemplate: { key: 'TPL-04', block_keys: [], auto_publish_eligible: false, always_premium: false, max_words: null },
+    blocks: [block({ seq: 1, code: 'BLK-FINTABLE', bound_object_id: OBJ })],
+    citations: [cite({ object_state: 'CONFLICT', object_type: 'FILING.FINANCIALS' })],
+    citableStatesByType: { 'FILING.FINANCIALS': ['VERIFIED', 'PENDING', 'CONFLICT'] },
+  }));
+  assert.ok(r.refusals.find((x) => x.code === 'FIT-BIND-UNRESOLVED'), codes(r.refusals).join(','));
+});
+
+test('fit: fails closed for a type with no allowlist entry', () => {
+  const r = runFit(input({
+    content_type: 'NOTE', template_key: 'TPL-04',
+    pipelineTemplate: { key: 'TPL-04', block_keys: [], auto_publish_eligible: false, always_premium: false, max_words: null },
+    blocks: [block({ seq: 1, code: 'BLK-FINTABLE', bound_object_id: OBJ })],
+    citations: [cite({ object_state: 'PENDING', object_type: 'EARNINGS.VERDICT' })],
+    citableStatesByType: { 'FILING.FINANCIALS': ['VERIFIED', 'PENDING'] },
+  }));
+  assert.ok(r.refusals.find((x) => x.code === 'FIT-BIND-UNRESOLVED'), codes(r.refusals).join(','));
+});
+
 test('fit: refuses a binding whose lake object is not VERIFIED', () => {
   const r = runFit(input({
     content_type: 'NOTE', template_key: 'TPL-04',

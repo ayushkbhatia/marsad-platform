@@ -39,7 +39,9 @@ export const BLK_TICKER = blockSchema(
   "Inline instrument chip",
   "First mention of a listed name. The chip's change and direction, and the hover quote card, all resolve from the bound live quote — the writer supplies only the ticker and the sentence it sits in.",
   {
-    host_sentence: prose("The sentence the chip is embedded in."),
+    host_sentence: prose(
+      "The sentence the block is embedded in. Mark where each rendered unit sits with a NUMBERED SLOT — `{0}` for the first unit, `{1}` for the second, e.g. `Net profit rose to {0} in the quarter.` Do NOT write the value itself, an object id, or any other placeholder syntax: the renderer substitutes the resolved unit into the slot, and a slot with no unit behind it is reported as a binding failure rather than silently swallowed.",
+    ),
     ticker_code: z
       .string()
       .min(1)
@@ -62,7 +64,9 @@ export const BLK_DELTA = blockSchema(
   "Sentence delta",
   "A change the reader should feel, lifted out of the serif. The arrow follows the arithmetic; the colour follows the meaning — they are separate fields because they are allowed to disagree.",
   {
-    host_sentence: prose("The sentence the delta is embedded in."),
+    host_sentence: prose(
+      "The sentence the block is embedded in. Mark where each rendered unit sits with a NUMBERED SLOT — `{0}` for the first unit, `{1}` for the second, e.g. `Net profit rose to {0} in the quarter.` Do NOT write the value itself, an object id, or any other placeholder syntax: the renderer substitutes the resolved unit into the slot, and a slot with no unit behind it is reported as a binding failure rather than silently swallowed.",
+    ),
     magnitude: z
       .string()
       .min(1)
@@ -128,7 +132,9 @@ export const BLK_TERM = blockSchema(
   "Defined term",
   "First use of a term only. Binds the shared glossary store by key — the one A-family binding that is not a lake object. Feeds BLK-GLOSSARY.",
   {
-    host_sentence: prose("The sentence the term first appears in."),
+    host_sentence: prose(
+      "The sentence the block is embedded in. Mark where each rendered unit sits with a NUMBERED SLOT — `{0}` for the first unit, `{1}` for the second, e.g. `Net profit rose to {0} in the quarter.` Do NOT write the value itself, an object id, or any other placeholder syntax: the renderer substitutes the resolved unit into the slot, and a slot with no unit behind it is reported as a binding failure rather than silently swallowed.",
+    ),
     term: z.string().min(1).describe("The term exactly as it appears in prose."),
     glossary_key: z
       .string()
@@ -160,7 +166,9 @@ export const BLK_SPARK = blockSchema(
   "Inline sparkline",
   "Direction without magnitude. No axes, no labels, no tooltip — if it needs a number it is not a sparkline. The series is bound, never enumerated: max 30 points, enforced on the resolved series.",
   {
-    host_sentence: prose("The sentence the sparkline is embedded in."),
+    host_sentence: prose(
+      "The sentence the block is embedded in. Mark where each rendered unit sits with a NUMBERED SLOT — `{0}` for the first unit, `{1}` for the second, e.g. `Net profit rose to {0} in the quarter.` Do NOT write the value itself, an object id, or any other placeholder syntax: the renderer substitutes the resolved unit into the slot, and a slot with no unit behind it is reported as a binding failure rather than silently swallowed.",
+    ),
     series: ObjectBinding.describe(
       "The numeric series to draw. Resolved to at most 30 points; x spacing is implied and even.",
     ),

@@ -146,17 +146,26 @@ export async function assembleFitInput(sql: Sql, contentId: string): Promise<Fit
 
   const citations = ((await sql`
     select c.claim_key, c.object_id::text as object_id, c.quoted_value,
-           o.state as object_state, o.payload as object_payload
+           o.state as object_state, o.object_type, o.payload as object_payload
       from lake.citations c left join lake.objects o on o.id = c.object_id
      where c.content_id = ${contentId}::uuid
-  `) as unknown as Array<{ claim_key: string | null; object_id: string; quoted_value: string | null; object_state: string | null; object_payload: Record<string, unknown> | null }>)
+  `) as unknown as Array<{ claim_key: string | null; object_id: string; quoted_value: string | null; object_state: string | null; object_type: string | null; object_payload: Record<string, unknown> | null }>)
     .map<FitCitation>((c) => ({
       claim_key: c.claim_key ?? '',
       object_id: c.object_id,
       quoted_value: c.quoted_value,
       object_state: c.object_state,
+      object_type: c.object_type,
       object_payload: c.object_payload,
     }));
+
+  // The SAME allowlist R-03 reads. Loading it here rather than hard-coding VERIFIED is what
+  // stops the fit stage being stricter than the surface the writer was given to cite from.
+  const citableStatesByType = Object.fromEntries(
+    ((await sql`select object_type, citable_states from ops.materiality_prefilter`) as unknown as Array<{ object_type: string; citable_states: string[] | null }>)
+      .filter((r) => Array.isArray(r.citable_states) && r.citable_states.length > 0)
+      .map((r) => [r.object_type, r.citable_states as string[]]),
+  );
 
   // ---- the registry ----------------------------------------------------------
   // Legacy rows are loaded ALONGSIDE the active 61: resolving a legacy code is what
@@ -199,7 +208,7 @@ export async function assembleFitInput(sql: Sql, contentId: string): Promise<Fit
     word_count: ci.word_count ?? 0,
     agent_authored: ci.agent_authored === true,
     premium_cut_after_block: ci.premium_cut_after_block,
-    blocks, citations, registry, pipelineTemplate, layoutTemplate,
+    blocks, citations, registry, pipelineTemplate, layoutTemplate, citableStatesByType,
   };
 }
 
