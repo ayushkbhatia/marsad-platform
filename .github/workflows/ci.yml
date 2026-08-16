@@ -69,6 +69,7 @@ jobs:
       # `next build` succeeding was the only frontend correctness signal.
       - name: test (frontend adapters)
         run: npm test
+      - name: next build
         # Real publishable creds, NOT dummies. `generateStaticParams` is backed by
         # `prerenderHead` (src/lib/data/prerender.ts), which reaches the DB twice —
         # primary, then fallback — and deliberately throws when BOTH come back empty
