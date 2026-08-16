@@ -330,6 +330,40 @@ The locked "2-source cross-check → `VERIFIED` `lake.objects`" is **only fully 
 > DFM+QE-with-egress; `SINGLE_SOURCE` for MSX/BHB) surfaced honestly on the reader's freshness/
 > provenance UI, rather than blocking a venue's data on an unreachable second source.
 
+#### 2.4a UPDATE 2026-08-16 — the second source turned out to be the extraction lane, not the feed
+
+The table above reasons about *quote/price* feeds, and on that axis it still holds. It is the wrong
+frame for **fundamentals**, and framing it that way is what left `VERIFIED` at 0.2% of the lake for
+a month.
+
+The corroboration that matters for statements is not two price feeds; it is **two independent
+extractions of the same company-quarter**: the venue's own filing (PDF/XBRL) against the
+stockanalysis lane, compared by `lake.fn_financials_xcheck_reconcile`
+(`20260721100000_financials_xcheck_reconcile_v2.sql`) on the core line items within 1%. That was
+running, and had already produced **9,915 `agree` verdicts across 523 securities** — in
+`public.financial_statement_xcheck`, where nothing acted on them. The objects stayed `PENDING`, so
+R-03 refused to let the newsroom cite any of them.
+
+`20260816120000_pe6c_financials_verify_from_xcheck.sql` promotes them
+(`VERIFIED`, `verification_basis = 'corroborated'`) and marks the 2,586 disagreements `CONFLICT` so
+a disputed figure cannot be cited at all. Promotion now hangs off the verdict table, so every future
+stockanalysis pass verifies or conflicts its counterpart automatically.
+
+**Live effect:** `lake.objects` VERIFIED went 1,553 → 11,469, and `FILING.FINANCIALS` went from
+**1** verified object to 9,915 across 523 securities.
+
+Two consequences worth carrying forward:
+
+- **`VERIFIED` alone was never a truth claim.** `COMPUTED.RATIOS` and `COMPUTED.SCORE` write
+  themselves verified with `verified_by = SYSTEM`; that is a lineage assertion, not corroboration,
+  and it was 83% of everything verified. `lake.objects.verification_basis` now records *how* a row
+  earned the state (`corroborated` / `derived` / `human` / `primary_document`), and `BLK-PROV`
+  should show it rather than a bare VERIFIED badge.
+- **The corroboration lane is the thing to keep alive.** All six `stockanalysis_financials_*`
+  researchers stopped on 2026-07-21 and nobody noticed for 26 days, which is exactly why no *new*
+  object has earned corroboration since. They are now registered in `ops.researcher_registry` and
+  alert through `ops.heartbeat_sentinel()` (`20260816140000`).
+
 ---
 
 ## 3. Derived pipeline — ratio catalog + Marsad Score v1 + nightly compute

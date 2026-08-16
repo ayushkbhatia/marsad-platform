@@ -17,11 +17,34 @@ Maps against the phase plan in [`docs/architecture/00-master-plan.md`](architect
 | Component | State | Detail |
 |---|---|---|
 | **GitHub** | ✅ | `ayushkbhatia/marsad-platform` (private), continuous on `main`, CI green |
-| **Supabase** | ✅ | Project `yjsncnpbjuueaoeejrqj`, ap-south-1, Postgres 17.6. All 72 migrations applied (128+ tables, RLS on every one); **repo↔live migration ledger reconciled 2026-07-16** (13 MCP-auto-versions re-stamped to filenames + `20260714183239` reconstructed from live — `supabase/reconcile/`), guarded in CI |
+| **Supabase** | ✅ | Project `yjsncnpbjuueaoeejrqj`, ap-south-1, Postgres 17.6. **137 migrations** applied (128+ tables, RLS on every one — asserted in CI by `scripts/assert-rls.sql`); ledger guarded in CI. ⚠️ **Known live drift (2026-08-16 audit):** 3 migrations exist in prod with no source file (`dfm_filings_direct_http`, `bhb_token_page_non_www`, `clock_scheduled_ingest`) and 7 are stamped under a different version than their filename — recover from `supabase_migrations.schema_migrations.statements` and re-stamp before the next `db push` |
 | **Vercel** | ✅ | Auto-deploys `main`; `marsad-platform.vercel.app` |
 | **VPS worker** | ✅ | Hetzner CX23 `91.99.99.85` (Nuremberg). `marsad-worker` running, heartbeating every ~10s, DB-connected via `marsad_worker` role |
 | **LLM gateway** | ✅ | `src/lib/llm/` — Anthropic ↔ OpenRouter ↔ local Ollama swap by env only. Verified all 3 providers |
 | **CI/CD** | ✅ | GitHub Actions: web (tsc/lint/build) + worker (tsc) + db (all migrations from scratch + RLS assert) + **migration-ledger drift guard** (`scripts/check-migration-ledger.mjs` vs `supabase/migrations.ledger` — fails the build on repo↔ledger migration drift). Green |
+
+---
+
+## 1a. Changes since 2026-07-27 (the stale-period reconciliation)
+
+The rest of this document was last revised 2026-07-27 and **understates the front-end while
+overstating the newsroom** — see the 2026-08-16 full-system audit. Treat §2–§7 as needing
+verification against live before being trusted. Landed since:
+
+| Date | Change | Effect |
+|---|---|---|
+| 08-12 | `20260727161500` + `20260727170000` applied (they were committed but never applied to prod) | 61 blocks got `payload_schema`; the reader's turnover prerender head went 1,855 ms → 1.5 ms |
+| 08-12 | `20260812190000_rls_ops_prefilter_llm_cost` | RLS closed on the last two uncovered `ops` tables; `assert-rls` passes on all schemas |
+| 08-12 | CI made a real gate (#85) | CI had built against a dummy Supabase host, so no `generateStaticParams` route could ever succeed; the seed migration could not replay from scratch (3 FK faults) |
+| 08-16 | `20260816120000_pe6c_financials_verify_from_xcheck` | **VERIFIED 1,553 → 11,469**; `FILING.FINANCIALS` verified 1 → 9,915 across 523 securities; 2,586 disagreements marked `CONFLICT`; `verification_basis` records how each row earned its state |
+| 08-16 | `20260816130000_prefilter_hygiene_and_event_type` | `COMPUTED.RATIOS`, `FINANCIALS.XCHECK`, `INDEX.LEVEL`, `FILING.EVENT` registered — a missing prefilter row was a NULL verdict, which passes the `not_material` short-circuit and escalates to the paid LLM tier. Adds `event_type` to the deterministic tier |
+| 08-16 | `20260816140000_researcher_heartbeats_and_reaper` | The researcher fleet is watched for the first time: 16 registered, **11 found silent 16–27 days**, incidents raised. Stuck parse runs are reaped |
+
+**Still true and still blocking** (from the audit, not yet fixed): `pipeline_intake_enabled` is
+false; R-03 demands `VERIFIED` while intake was widened to `PENDING`; `draft.ts` truncates the
+context pack mid-JSON at 12,000 chars, destroying `statements`; `reassigned_human` has no outbound
+transition edge and two items have been frozen there since 2026-07-20; 41 of 61 blocks have no
+renderer; the fit stage is dead behind three locks. Plan: `.claude/plans/` (2026-08-16).
 
 ---
 
