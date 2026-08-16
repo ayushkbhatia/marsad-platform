@@ -111,7 +111,10 @@ export type BlockCode =
   | BlockCodeH;
 
 /** The codes that have a renderer today: G, then A, then C. */
-export type ImplementedBlockCode = BlockCodeG | BlockCodeA | BlockCodeC | BlockCodeB | "BLK-CUT" | "BLK-PAYWALL";
+export type ImplementedBlockCode =
+  | BlockCodeG | BlockCodeA | BlockCodeC | BlockCodeB
+  | "BLK-CUT" | "BLK-PAYWALL"
+  | "BLK-LINE" | "BLK-BARS" | "BLK-AREA";
 
 export type BlockFamily = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H";
 
@@ -532,6 +535,71 @@ export interface FalsifyPayload {
   falsifiers: string[];
 }
 
+/* ── D · Charts ──────────────────────────────────────────────────────────── */
+
+/**
+ * One resolved point of a series.
+ *
+ * `objectId` travels with every point deliberately. The binding contract's promise is per-figure,
+ * and a chart is many figures: reducing a series to bare numbers would break that promise once per
+ * point, and the BLK-PROV stamp under the exhibit would attest to one row while the rest went
+ * unattributed. `lake.fn_resolve_series` returns the ids for exactly this reason.
+ */
+export interface SeriesPointNode {
+  label: string;
+  date: string | null;
+  value: number | null;
+  objectId: string;
+  state: string;
+}
+
+/** A resolved series: the legend label the writer chose, and the points the lake supplied. */
+export interface ChartSeriesNode {
+  label: string;
+  points: SeriesPointNode[];
+}
+
+export interface ChartEmphasisNode {
+  series?: string;
+  why?: string;
+}
+
+/**
+ * BLK-LINE · "WHEN DID IT TURN?"
+ *
+ * The card's hard rule is that a line chart without its annotation is decoration, so `annotation`
+ * is required by the Zod schema rather than optional — and this type mirrors that.
+ */
+export interface LinePayload {
+  caption: string;
+  series: ChartSeriesNode[];
+  annotation: { at: string; whatHappened: string };
+  emphasis?: ChartEmphasisNode;
+  unit?: string | null;
+}
+
+/** BLK-AREA · "HOW MUCH NOW?" — one to three areas; a fourth is BLK-STACK's job. */
+export interface AreaPayload {
+  caption: string;
+  series: ChartSeriesNode[];
+  emphasis?: ChartEmphasisNode;
+  unit?: string | null;
+}
+
+/**
+ * BLK-BARS · "WHO IS BIGGEST?"
+ *
+ * Each series entry is one CATEGORY, not a time series — so each resolves to a single point. The
+ * tail greys down past `leadCount` so the lead reads first.
+ */
+export interface BarsPayload {
+  caption: string;
+  series: ChartSeriesNode[];
+  leadCount: number;
+  emphasis?: ChartEmphasisNode;
+  unit?: string | null;
+}
+
 /* ── H · Gates ───────────────────────────────────────────────────────────── */
 
 export interface CutPayload {
@@ -584,7 +652,11 @@ export type BlockNode =
   | (BlockNodeBase & { code: "BLK-FALSIFY"; payload: FalsifyPayload })
   // H
   | (BlockNodeBase & { code: "BLK-CUT"; payload: CutPayload })
-  | (BlockNodeBase & { code: "BLK-PAYWALL"; payload: PaywallPayload });
+  | (BlockNodeBase & { code: "BLK-PAYWALL"; payload: PaywallPayload })
+  // D
+  | (BlockNodeBase & { code: "BLK-LINE"; payload: LinePayload })
+  | (BlockNodeBase & { code: "BLK-AREA"; payload: AreaPayload })
+  | (BlockNodeBase & { code: "BLK-BARS"; payload: BarsPayload });
 
 /** Narrow the union to one code's node shape. */
 export type BlockNodeOf<C extends ImplementedBlockCode> = Extract<BlockNode, { code: C }>;

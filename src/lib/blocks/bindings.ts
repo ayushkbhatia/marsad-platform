@@ -102,3 +102,94 @@ export function bindingIdsIn(nodes: AnyBlockNode[]): string[] {
   return [...ids];
 }
 
+
+/* ── Series bindings (D · Charts) ─────────────────────────────────────────── */
+
+/**
+ * A chart series binding as stored: `{label, object_id, field}`.
+ *
+ * These must be pulled out BEFORE the scalar walk. `isBinding` fires on anything carrying an
+ * `object_id`, so a ChartSeries left to the walk would collapse into a single formatted string —
+ * losing the label and, more to the point, losing every period but the anchor.
+ */
+export interface SeriesBinding {
+  label: string;
+  object_id: string;
+  field: string | null;
+}
+
+/** How many points each shape asks the lake for. */
+export const SERIES_LIMIT_BY_SHAPE: Record<string, number> = {
+  line: 12,
+  area: 12,
+  // A bar is one CATEGORY, not a time series: each entry resolves to its own single value, and
+  // expanding a bar's family would silently turn "who is biggest" into twelve of one company.
+  bars: 1,
+};
+
+/** Every series binding in a set of nodes, with the shape that decides its point budget. */
+export function seriesBindingsIn(
+  nodes: { code: string; payload: unknown }[],
+): { binding: SeriesBinding; limit: number }[] {
+  const out: { binding: SeriesBinding; limit: number }[] = [];
+  for (const n of nodes) {
+    const payload = n.payload;
+    if (!isObj(payload)) continue;
+    const shape = typeof payload.shape === "string" ? payload.shape : null;
+    const limit = (shape && SERIES_LIMIT_BY_SHAPE[shape]) ?? 0;
+    if (!limit) continue;
+    for (const entry of asSeriesArray(payload.series)) out.push({ binding: entry, limit });
+  }
+  return out;
+}
+
+function asSeriesArray(v: unknown): SeriesBinding[] {
+  if (!Array.isArray(v)) return [];
+  return v.flatMap((e) =>
+    isObj(e) && typeof e.object_id === "string"
+      ? [{
+          label: typeof e.label === "string" ? e.label : "",
+          object_id: e.object_id,
+          field: typeof e.field === "string" ? e.field : null,
+        }]
+      : [],
+  );
+}
+
+/** One resolved point, as the D-family node types expect it. */
+export interface ResolvedPoint {
+  label: string;
+  date: string | null;
+  value: number | null;
+  objectId: string;
+  state: string;
+}
+
+/**
+ * Replace each `series[]` binding with `{label, points}`, in place, for chart payloads only.
+ *
+ * Runs before {@link resolveNode}: after this, a series entry has no bare `object_id` at its top
+ * level, so the scalar walk passes over it untouched.
+ */
+export function applySeries(
+  payload: unknown,
+  points: Map<string, ResolvedPoint[]>,
+): unknown {
+  if (!isObj(payload)) return payload;
+  const shape = typeof payload.shape === "string" ? payload.shape : null;
+  if (!shape || !(shape in SERIES_LIMIT_BY_SHAPE)) return payload;
+  const entries = asSeriesArray(payload.series);
+  if (entries.length === 0) return payload;
+  return {
+    ...payload,
+    series: entries.map((e) => ({
+      label: e.label,
+      points: points.get(seriesKey(e.object_id, e.field)) ?? [],
+    })),
+  };
+}
+
+/** Object and field together: the same object charted on two fields is two different series. */
+export function seriesKey(objectId: string, field: string | null): string {
+  return `${objectId}::${field ?? ""}`;
+}

@@ -1,6 +1,8 @@
 {
   "implemented": [
     "BLK-AGENTS",
+    "BLK-AREA",
+    "BLK-BARS",
     "BLK-BEATMISS",
     "BLK-BIGNUM",
     "BLK-CITE",
@@ -14,6 +16,7 @@
     "BLK-FINTABLE",
     "BLK-FRESH",
     "BLK-KEYSTATS",
+    "BLK-LINE",
     "BLK-MARGIN",
     "BLK-PAYWALL",
     "BLK-PROV",
@@ -32,8 +35,6 @@
   "unbuilt": [
     "BLK-ALERTCTA",
     "BLK-ANATOMY",
-    "BLK-AREA",
-    "BLK-BARS",
     "BLK-BREADTH",
     "BLK-CANDLE",
     "BLK-CHIPROW",
@@ -50,7 +51,6 @@
     "BLK-HALT",
     "BLK-HEAT",
     "BLK-INDEXED",
-    "BLK-LINE",
     "BLK-MYTH",
     "BLK-RANGE",
     "BLK-SCATTER",

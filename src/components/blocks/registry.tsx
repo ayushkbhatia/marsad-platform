@@ -23,6 +23,10 @@ import { BlockRankRow } from "./c/BlockRankRow";
 import { BlockScenario } from "./c/BlockScenario";
 import { BlockStatStrip } from "./c/BlockStatStrip";
 
+import { BlockArea } from "./d/BlockArea";
+import { BlockBars } from "./d/BlockBars";
+import { BlockLine } from "./d/BlockLine";
+
 import { MissingBlock } from "./MissingBlock";
 import type {
   AnyBlockNode,
@@ -88,6 +92,12 @@ export const BLOCK_RENDERERS: BlockRendererMap = {
   // H · Gates — the seam between the free read and the wall.
   "BLK-CUT": BlockCut,
   "BLK-PAYWALL": BlockPaywall,
+
+  // D · Charts — three of fifteen. The other twelve are designed but not drawable, and resolve
+  // to MissingBlock on purpose: a stub that renders nothing is indistinguishable from a bug.
+  "BLK-LINE": BlockLine,
+  "BLK-AREA": BlockArea,
+  "BLK-BARS": BlockBars,
 };
 
 /** The codes with a renderer today — D, E, F and the rest of H are still to come. */
