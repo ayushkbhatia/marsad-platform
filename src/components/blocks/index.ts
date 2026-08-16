@@ -1,10 +1,12 @@
 /*
  * src/components/blocks — the 61-block story vocabulary, rendered.
  *
- * Built families: G · Provenance & trust, A · Inline, C · Tabular (20 of 61).
- * Still absent: B · Statement, D · Charts (needs the PD.6 chart compiler),
- * E · Mechanism, F · Wire & live state, H · Gates & CTAs. Codes from those
- * families resolve to `MissingBlock` — loud, logged and non-fatal.
+ * Built families: G · Provenance & trust, A · Inline, C · Tabular, B · Statement,
+ * and the two H gate blocks (28 of 61). Still absent: D · Charts (needs the PD.6
+ * chart compiler and a series contract), E · Mechanism, F · Wire & live state, and
+ * the rest of H. Codes from those families resolve to `MissingBlock` — loud,
+ * logged and non-fatal. Coverage is asserted by
+ * scripts/design/check-block-renderers.mjs, which runs offline in CI.
  *
  * Spec: docs/design/artifacts/artifact-library-61-blocks.html (authoritative),
  * docs/design/block-registry.json, ops.story_blocks,
@@ -57,5 +59,17 @@ export { BlockRankRow } from "./c/BlockRankRow";
 export { BlockBeatMiss } from "./c/BlockBeatMiss";
 export { BlockExDate } from "./c/BlockExDate";
 export { BlockCompare } from "./c/BlockCompare";
+
+// B
+export { BlockThesis } from "./b/BlockThesis";
+export { BlockPullQuote } from "./b/BlockPullQuote";
+export { BlockBigNum } from "./b/BlockBigNum";
+export { BlockVerdict } from "./b/BlockVerdict";
+export { BlockTake } from "./b/BlockTake";
+export { BlockFalsify } from "./b/BlockFalsify";
+
+// H
+export { BlockCut } from "./h/BlockCut";
+export { BlockPaywall } from "./h/BlockPaywall";
 
 export type * from "./types";

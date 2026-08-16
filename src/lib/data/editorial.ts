@@ -85,6 +85,18 @@ export interface ArticleBlockView {
   seq: number;
   kind: string;
   text: string | null;
+  /**
+   * The raw content_blocks.body.
+   *
+   * `text` is a FLATTENING — it pulls `body.text` (or `body.caption`) out for the
+   * prose path. A BLK-* block's payload has neither, so flattening loses the whole
+   * block. Carrying the payload alongside is what lets the adapter hand a designed
+   * block to the renderer instead of dropping it to an empty paragraph.
+   */
+  body: unknown;
+  /** The lake object this block is bound to, where the block requires a binding. */
+  boundObjectId: string | null;
+  gated: boolean;
 }
 
 export interface ArticleTickerRailItem {
@@ -169,6 +181,8 @@ interface ContentBlockRow {
   seq: number;
   block_kind: string;
   body: unknown;
+  bound_object_id: string | null;
+  gated: boolean;
 }
 
 interface SecLite {
@@ -303,7 +317,7 @@ export async function getArticleBySlug(slug: string): Promise<ArticleDetail | nu
   const [{ data: blockRows }, { data: tickerRows }] = await Promise.all([
     sb
       .from("content_blocks")
-      .select("id,seq,block_kind,body")
+      .select("id,seq,block_kind,body,bound_object_id,gated")
       .eq("content_id", item.id)
       .order("seq", { ascending: true }),
     sb
@@ -324,6 +338,9 @@ export async function getArticleBySlug(slug: string): Promise<ArticleDetail | nu
     seq: b.seq,
     kind: b.block_kind,
     text: blockText(b.block_kind, b.body),
+    body: b.body,
+    boundObjectId: b.bound_object_id ?? null,
+    gated: b.gated ?? false,
   }));
 
   const visibleWordCount = blocks.reduce((sum, b) => sum + countWords(b.text), 0);

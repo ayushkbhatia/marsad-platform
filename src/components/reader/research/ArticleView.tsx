@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { Article, ArticleBlock } from "@/lib/contracts/research";
+// Aliased: this file already has a local `Block` for the prose arms.
+import { Block as DesignBlock } from "@/components/blocks";
 
 /**
  * Article (1k) — the one reusable longform research layout every 1l card
@@ -32,6 +34,14 @@ function fmtSigned(n: number): string {
 
 function Block({ b }: { b: ArticleBlock }) {
   switch (b.kind) {
+    // The closed BLK-* vocabulary. One arm, added without touching the six prose
+    // arms below, so every existing piece renders byte-identically (PD.4 precedent).
+    case "block":
+      return (
+        <div className="mt-[26px]">
+          <DesignBlock node={b.node} />
+        </div>
+      );
     case "dropcap":
       return (
         <p className="mt-[26px] font-display text-[17px] leading-[1.72] text-ink-soft">

@@ -1,3 +1,4 @@
+import type { AnyBlockNode } from "@/components/blocks";
 /**
  * Research index + Article — view-model contract.
  *
@@ -65,6 +66,14 @@ export interface RatingAttached {
 }
 
 export type ArticleBlock =
+  /**
+   * A block from the closed BLK-* vocabulary, rendered by the block registry.
+   *
+   * This is a contract EXTENSION, not a replacement — the six prose arms below are
+   * untouched, so every existing piece renders byte-identically. The precedent is
+   * PD.4, which added `heading` the same way.
+   */
+  | { kind: "block"; node: AnyBlockNode }
   | { kind: "dropcap"; text: string }
   | { kind: "p"; text: string }
   | { kind: "heading"; text: string }
