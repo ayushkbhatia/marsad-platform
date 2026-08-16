@@ -7,8 +7,24 @@
 /** A sentence carries a number if it has a digit run that is a magnitude, %, or currency.
  *  Exported so the deterministic auto-marker (automark.ts) tokenizes numbers with the
  *  EXACT same pattern R-03's hasNumber uses — one source of truth for "what is a number". */
-export const NUMBER_TOKEN =
-  /(?<![\w])(?:SAR|AED|QAR|OMR|BHD|KWD|USD|﷼|\$)?\s?-?\d[\d,]*(?:\.\d+)?\s?(?:%|percent|trillion|tn|bn|billion|mn|m|million|k|thousand|SAR|AED|QAR|OMR|BHD|KWD|USD)?/gi;
+/**
+ * The magnitude units, as ONE alternation.
+ *
+ * There were three copies of this list — NUMBER_TOKEN, parseMagnitude's own match, and R-04's
+ * MAG_RE — and they had drifted: `trn` was in none of them while `tn` and `trillion` were in
+ * all three, so "QAR 1.44trn" parsed as 1.44. A trillion read as a bare number, silently,
+ * because the token still matched: only the optional unit group failed. Item 3 blocked on it
+ * three times in one piece (total assets, prior-period assets, loans).
+ *
+ * Longest-first, so `trillion` beats `tn` and `trn` is never half-eaten.
+ */
+export const MAGNITUDE_UNITS = 'trillion|billion|thousand|million|percent|trn|bn|mn|tn|m|k';
+
+export const NUMBER_TOKEN = new RegExp(
+  '(?<![\\w])(?:SAR|AED|QAR|OMR|BHD|KWD|USD|\uFDFC|\\$)?\\s?-?\\d[\\d,]*(?:\\.\\d+)?\\s?'
+  + `(?:%|${MAGNITUDE_UNITS}|SAR|AED|QAR|OMR|BHD|KWD|USD)?`,
+  'gi',
+);
 
 /** Relative tolerance for "this number matches that number" — 0.5%. R-04's block
  *  threshold, and the SAME threshold the fit stage's numeric-consistency check uses.
@@ -113,7 +129,7 @@ const SCALE: Record<string, number> = {
   k: 1e3, thousand: 1e3,
   m: 1e6, mn: 1e6, million: 1e6,
   bn: 1e9, billion: 1e9,
-  tn: 1e12, trillion: 1e12,
+  tn: 1e12, trn: 1e12, trillion: 1e12,
 };
 
 /**
@@ -123,9 +139,7 @@ const SCALE: Record<string, number> = {
  */
 export function parseMagnitude(s: string): number | null {
   const str = String(s);
-  const m = str.match(
-    /(-?\d[\d,]*(?:\.\d+)?)\s*(%|percent|trillion|tn|bn|billion|mn|m|million|k|thousand)?/i,
-  );
+  const m = str.match(new RegExp(`(-?\\d[\\d,]*(?:\\.\\d+)?)\\s*(%|${MAGNITUDE_UNITS})?`, 'i'));
   if (!m) return null;
   const base = Number(m[1].replace(/,/g, ''));
   if (!Number.isFinite(base)) return null;

@@ -1,4 +1,6 @@
-import { hasNumber, isMaterialNumeral, isYearToken } from './text.js';
+import {
+  hasNumber, isMaterialNumeral, isYearToken, magnitudeMatches, numberTokens, parseMagnitude,
+} from './text.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { runRules } from './engine.js';
@@ -391,4 +393,27 @@ test('a year keeps its meaning when a comma follows it', () => {
   assert.equal(isMaterialNumeral('4.43'), true);
   assert.equal(isMaterialNumeral('11.2%,'), true);
   assert.equal(hasNumber('Operating income reached QAR 11.80bn, up on the year'), true);
+});
+
+test('trn is a trillion — the unit list had three copies and they had drifted', () => {
+  // `tn` and `trillion` were in all three unit alternations; `trn` was in none. So
+  // "QAR 1.44trn" parsed as 1.44 — a trillion read as a bare number, silently, because the
+  // token still matched and only the optional unit group failed. Item 3 blocked on it three
+  // times in one piece: total assets, prior-period assets, loans.
+  assert.equal(parseMagnitude('QAR 1.44trn'), 1.44e12);
+  assert.equal(parseMagnitude('QAR 1.44tn'), 1.44e12);
+  assert.equal(parseMagnitude('QAR 1.44 trillion'), 1.44e12);
+  // Longest-first alternation: `trillion` must not be eaten by `tn`, nor `trn` half-matched.
+  assert.deepEqual(numberTokens('assets of QAR 1.44trn and profit of QAR 4.43bn'),
+    ['QAR 1.44trn', 'QAR 4.43bn']);
+});
+
+test('R-04 drift uses the same matcher as every other magnitude comparison', () => {
+  // The drift check was written with a bare relDiff, so it re-introduced the exact fault
+  // magnitudeMatches exists to prevent: the lake stores roe as 0.1344 and the prose says
+  // "13.44%". Same fact, different units. Drift means a value MOVED, not one written otherwise.
+  assert.equal(magnitudeMatches(13.44, 0.13443888029440915), true);
+  assert.equal(magnitudeMatches(1.44e12, 1438160869000), true);
+  // And a value that genuinely moved still fails.
+  assert.equal(magnitudeMatches(1.44e12, 1.20e12), false);
 });
