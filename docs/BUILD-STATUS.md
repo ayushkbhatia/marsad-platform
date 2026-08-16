@@ -60,11 +60,33 @@ conveyor proves itself on the two historical items. But the conveyor itself now 
 Item 3 now reaches `rules` and fails on **genuine** defects (a number not covered by its
 citations) rather than on a contradiction between two subsystems.
 
-**Still blocking, not yet fixed:** 41 of 61 blocks have no renderer and the reader renders a
-private 6-kind vocabulary, so a designed article cannot ship; the chart compiler and the series
-contract do not exist; `FILING.EVENT`/`DIVIDEND.EXDATE` canonicalisation is unbuilt, so 5 of 6
-signal families still have no producer; 11 researchers remain silent (now alerting).
-Plan: `.claude/plans/` (2026-08-16).
+### Composition proved end to end (2026-08-16, later the same day)
+
+Item 3 was re-run with `newsroom_compose_stage` armed and came back as **9 designed blocks**
+(BLK-TICKER, BLK-BIGNUM, BLK-DELTA ×2, BLK-STATSTRIP ×3, BLK-PROV, BLK-CITE) plus the R-01
+disclaimer — the first `BLK-*` rows ever written. It passed ruleset v10, carries 33 citations,
+and cost $0.16 across 12 LLM calls.
+
+The binding contract holds: payloads carry `{"field":"numeric_value","object_id":"…"}`, not
+typed numbers.
+
+**Two quality defects found by reading the output, both open:**
+
+1. `BLK-DELTA` invented a placeholder syntax — `host_sentence` contains
+   `{{<uuid>:c1}}` where family A's `interpolate()` expects numbered slots `{0}`, `{1}`.
+   Renders as literal text with a constraint warning. The fill prompt does not state the
+   convention.
+2. `BLK-STATSTRIP` bound two different labels ("Operating Income" and the next cell) to
+   `numeric_value` on the SAME object — different labels, identical figure. This is exactly
+   what the fit stage's numeric-consistency pass exists to refuse, and fit is still dormant.
+
+The piece was NOT published. The mechanism is proven; the output is not yet publishable, and
+arming the fit stage is the next step rather than more composition work.
+
+**Still blocking, not yet fixed:** 33 of 61 blocks have no renderer (D charts need the compiler
+AND a series contract; E, F and the rest of H are unbuilt); the fit stage is written and
+dormant behind its switch; 11 researchers remain silent (now alerting); 84 securities remain
+genuinely unclassified. Plan: `.claude/plans/` (2026-08-16).
 
 ---
 
