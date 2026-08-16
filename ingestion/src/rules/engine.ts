@@ -20,7 +20,7 @@ export async function runRules(ctx: RuleContext, opts: EngineOptions): Promise<E
 
   results.push(r01(ctx));
   results.push(r02(ctx));
-  results.push(r03(ctx));
+  results.push(r03(ctx, opts));
   results.push(r04(ctx));
   results.push(r05(ctx, opts.bannedPhrases));
   results.push(await r06(ctx, opts.llm));

@@ -19,8 +19,22 @@ export interface CitationRow {
   cited_hash: string | null;
   // Resolved by the assembler from lake.objects (present = the object exists):
   object_state?: string | null;      // 'VERIFIED' | 'PENDING' | 'CONFLICT' | 'RETIRED' | missing
+  object_type?: string | null;       // R-03 reads the per-type citable-state allowlist
   object_payload?: Record<string, unknown> | null;  // live payload for R-04 drift check
   lineage_root_count?: number;        // distinct snapshot roots (R-03 ≥2 auto-publish gate)
+  /** The object was superseded by a newer revision — you may not cite a retired fact. */
+  superseded?: boolean;
+  /** Its lake.parse_runs lineage resolves to a run that SUCCEEDED. The provenance floor's
+   *  load-bearing clause: it is what makes "traceable to a primary document we hold" true
+   *  rather than merely asserted. Re-checked at rules time because a run can be marked
+   *  failed (or reaped) after the object was admitted. */
+  parse_run_ok?: boolean;
+  /** An open correction on THIS object — you may not cite a fact already known to be wrong.
+   *  DORMANT: ops.correction_flags is content-scoped (content_id / revision_id, no object_id),
+   *  so the assembler cannot populate this today and R-07's piece-level warning is the only
+   *  correction signal. The clause is wired so that object-level flags, when they exist, are a
+   *  schema change rather than a rules change. Never set true by the current assembler. */
+  has_open_correction?: boolean;
 }
 
 /** One rendered content block (public.content_blocks). */
@@ -75,6 +89,16 @@ export interface EngineOptions {
   bannedPhrases: string[];   // normalized lower-case phrases from ops.banned_phrases
   headlineMaxChars?: number; // default 90 (R-10 / content_items CHECK)
   autoWordCap?: number;      // TPL-01 auto-publish word ceiling, default 40
+  /**
+   * Per-object-type citable states, from ops.materiality_prefilter.citable_states.
+   * R-03's provenance floor (09 §3.2). Injected rather than read here so the engine stays
+   * pure and golden-testable.
+   *
+   * A MISSING entry means {VERIFIED} — fail closed, matching lake.fn_intake_eligible_state's
+   * fallback for an unknown type. Never default to "anything", or a new object family becomes
+   * publishable the moment it is written.
+   */
+  citableStatesByType?: Record<string, string[]>;
   llm?: RuleLlm;
 }
 

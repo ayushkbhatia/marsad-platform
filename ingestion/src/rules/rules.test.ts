@@ -47,6 +47,82 @@ test('R-03 blocks a marker citing a non-VERIFIED object', async () => {
   assert.ok(r.results.find((x) => x.rule_key === 'R-03' && x.outcome === 'blocked'));
 });
 
+// ── R-03 provenance floor (09 §3.2) ────────────────────────────────────────────────────
+// The floor replaced a blanket `state === 'VERIFIED'` demand that contradicted PE.6 intake:
+// the system admitted PENDING FILING.FINANCIALS and then refused to let anyone cite them, so
+// every admissible piece was guaranteed to block. These pin the new behaviour in both
+// directions — what it now allows, and what it must still refuse.
+
+const FLOOR_OPTS: EngineOptions = {
+  ...BASE_OPTS,
+  rulesetVersion: 10,
+  citableStatesByType: {
+    'FILING.FINANCIALS': ['VERIFIED', 'PENDING'],
+    'COMPUTED.RATIOS': ['VERIFIED'],
+  },
+};
+
+test('R-03 admits a PENDING object whose type allows it and whose lineage succeeded', async () => {
+  const r = await runRules(
+    ctx({ citations: [cite({ object_state: 'PENDING', object_type: 'FILING.FINANCIALS', parse_run_ok: true })] }),
+    FLOOR_OPTS,
+  );
+  assert.equal(r.passed, true, JSON.stringify(r.results.filter((x) => x.outcome === 'blocked')));
+});
+
+test('R-03 fails closed for a type with no citable_states entry', async () => {
+  // EARNINGS.VERDICT is not in FLOOR_OPTS: an unregistered family must not become citable
+  // just because it exists. Mirrors lake.fn_intake_eligible_state's unknown-type fallback.
+  const r = await runRules(
+    ctx({ citations: [cite({ object_state: 'PENDING', object_type: 'EARNINGS.VERDICT', parse_run_ok: true })] }),
+    FLOOR_OPTS,
+  );
+  assert.equal(r.passed, false);
+  const v = (r.results.find((x) => x.rule_key === 'R-03')!.detail as { violations: { kind: string }[] }).violations;
+  assert.equal(v[0].kind, 'cited_object_state_not_citable');
+});
+
+test('R-03 blocks a CONFLICT object even when its type allows the state', async () => {
+  // Two sources disagree about this number, so there is no fact to cite. Never configurable.
+  const r = await runRules(
+    ctx({ citations: [cite({ object_state: 'CONFLICT', object_type: 'FILING.FINANCIALS', parse_run_ok: true })] }),
+    { ...FLOOR_OPTS, citableStatesByType: { 'FILING.FINANCIALS': ['VERIFIED', 'PENDING', 'CONFLICT'] } },
+  );
+  assert.equal(r.passed, false);
+  const v = (r.results.find((x) => x.rule_key === 'R-03')!.detail as { violations: { kind: string }[] }).violations;
+  assert.equal(v[0].kind, 'cited_object_in_conflict');
+});
+
+test('R-03 blocks a superseded object', async () => {
+  const r = await runRules(
+    ctx({ citations: [cite({ object_state: 'VERIFIED', object_type: 'FILING.FINANCIALS', parse_run_ok: true, superseded: true })] }),
+    FLOOR_OPTS,
+  );
+  assert.equal(r.passed, false);
+  const v = (r.results.find((x) => x.rule_key === 'R-03')!.detail as { violations: { kind: string }[] }).violations;
+  assert.equal(v[0].kind, 'cited_object_superseded');
+});
+
+test('R-03 blocks an object whose parse-run lineage did not succeed', async () => {
+  // The load-bearing clause: without it "traceable to a primary document" is asserted, not checked.
+  const r = await runRules(
+    ctx({ citations: [cite({ object_state: 'PENDING', object_type: 'FILING.FINANCIALS', parse_run_ok: false })] }),
+    FLOOR_OPTS,
+  );
+  assert.equal(r.passed, false);
+  const v = (r.results.find((x) => x.rule_key === 'R-03')!.detail as { violations: { kind: string }[] }).violations;
+  assert.equal(v[0].kind, 'cited_object_lineage_unproven');
+});
+
+test('R-03 keeps failing closed when no allowlist is injected at all', async () => {
+  // An older caller that does not pass citableStatesByType must not silently widen the floor.
+  const r = await runRules(
+    ctx({ citations: [cite({ object_state: 'PENDING', object_type: 'FILING.FINANCIALS', parse_run_ok: true })] }),
+    BASE_OPTS,
+  );
+  assert.equal(r.passed, false);
+});
+
 test('R-04 blocks a number that disagrees with the citation beyond 0.5%', async () => {
   // sentence says 6.25bn, citation frozen at 9.99bn → mismatch
   const r = await runRules(ctx({ citations: [cite({ cited_value: 9_990_000_000 })] }), BASE_OPTS);
