@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/server-admin";
+import type { BoundObject } from "@/lib/blocks/bindings";
 
 /**
  * P3.5 Desk approvals — data access. All reads/actions go through the public
@@ -44,6 +45,8 @@ export interface BlockRow {
   kind: string;
   body: { text?: string } | Record<string, unknown>;
   gated: boolean;
+  /** Which lake object this block binds, if any — the desk resolves it to show the figure. */
+  bound_object_id?: string | null;
 }
 export interface ViolationRow {
   rule_key: string;
@@ -53,6 +56,14 @@ export interface ViolationRow {
 export interface ApprovalDetail {
   item: ApprovalRow | null;
   blocks: BlockRow[];
+  /**
+   * Resolved lake values for every object the blocks bind, keyed by object id.
+   *
+   * Supplied by the RPC rather than read from v_content_bound_objects, which is scoped to LIVE
+   * content by design — a piece at approval is not live, so the reader's view returns nothing
+   * for it.
+   */
+  bound_values: Record<string, BoundObject>;
   citations: CitationRow[];
   violations: ViolationRow[];
 }
@@ -68,7 +79,9 @@ export async function getApprovalDetail(itemId: number): Promise<ApprovalDetail>
   const sb = createAdminClient();
   const { data, error } = await sb.rpc("desk_approval_detail", { p_item: itemId });
   if (error) throw new Error(error.message);
-  return (data ?? { item: null, blocks: [], citations: [], violations: [] }) as ApprovalDetail;
+  return (data ?? {
+    item: null, blocks: [], citations: [], violations: [], bound_values: {},
+  }) as ApprovalDetail;
 }
 
 export type Decision = "approve" | "approve_scheduled" | "send_back" | "reassign";
