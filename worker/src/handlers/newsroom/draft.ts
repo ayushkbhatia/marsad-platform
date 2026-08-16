@@ -12,6 +12,29 @@ import type { Handler, HandlerContext } from '../index.js';
 import { autoMarkNumbers, chatComplete, parseMagnitude } from 'marsad-ingestion';
 import { budgetState, enqueueStage, loadItem, outputHalted, parseJsonReply, resolvePrincipal, transition, wordCount } from './shared.js';
 import { buildPack, renderCitableFacts } from './pack.js';
+import { renderRevisionBrief } from './revision.js';
+
+/** Every rule key the engine runs, so a brief can state what PASSED as well as what failed. */
+const ALL_RULE_KEYS = ['R-01','R-02','R-03','R-04','R-05','R-06','R-07','R-08','R-09','R-10'];
+/** Mirrors MAX_RULES_LOOPS in rules-stage.ts — shown to the writer so it knows the stakes. */
+const MAX_REVISIONS = 2;
+
+/** The previous draft, re-serialised in the shape the writer emits, so the revision turn reads
+ *  as its own last answer rather than as a description of one. Must be called BEFORE draft.ts
+ *  deletes content_blocks / lake.citations. */
+async function loadPreviousDraft(sql: HandlerContext['sql'], contentId: string): Promise<string | null> {
+  const ci = ((await sql`select headline, dek from public.content_items where id = ${contentId}::uuid`) as unknown as Array<{ headline: string | null; dek: string | null }>)[0];
+  if (!ci?.headline) return null;
+  const blocks = (await sql`select block_kind, body from public.content_blocks where content_id = ${contentId}::uuid order by seq`) as unknown as Array<{ block_kind: string; body: { text?: string } | null }>;
+  const cites = (await sql`select claim_key, object_id::text as object_id, quoted_value from lake.citations where content_id = ${contentId}::uuid`) as unknown as Array<{ claim_key: string | null; object_id: string; quoted_value: string | null }>;
+  if (blocks.length === 0) return null;
+  return JSON.stringify({
+    headline: ci.headline,
+    dek: ci.dek,
+    blocks: blocks.map((b) => ({ kind: b.block_kind, body: b.body?.text ?? '' })),
+    citations: Object.fromEntries(cites.map((c) => [c.claim_key ?? '', { object_id: c.object_id, quoted_value: c.quoted_value }])),
+  });
+}
 
 interface DraftMsg { pipeline_item_id?: number }
 
@@ -106,9 +129,32 @@ export function makeDraft(): Handler {
       renderCitableFacts([{ objectId: trig[0].id, section: 'trigger', label: trig[0].object_type, value: '' }, ...built.facts]),
     ].join('\n');
 
+    // ── REVISION vs FIRST DRAFT ────────────────────────────────────────────────────────
+    // A retry used to rebuild this message from scratch, so three attempts were three
+    // independent samples rather than a revision — item 3's word count went 168 → 163 → 178.
+    // Hand the model its own previous output plus a generated brief naming the surface, the
+    // remedy, and what already passed. Read BEFORE the delete below, or the evidence is gone.
+    const loopNo = item.rules_fail_loops ?? 0;
+    const messages: { role: 'user' | 'assistant'; content: string }[] = [{ role: 'user', content: userMsg }];
+    if (loopNo > 0) {
+      const prior = await loadPreviousDraft(sql, item.content_id);
+      const violations = (await sql`
+        select rule_key, outcome, detail
+          from ops.rule_violations
+         where content_id = ${item.content_id}::uuid
+           and occurred_at = (select max(occurred_at) from ops.rule_violations where content_id = ${item.content_id}::uuid)
+      `) as unknown as Array<{ rule_key: string; outcome: string; detail: unknown }>;
+      const blocked = violations.filter((v) => v.outcome === 'blocked');
+      const passed = ALL_RULE_KEYS.filter((k) => !blocked.some((b) => b.rule_key === k));
+      const note = ((await sql`select send_back_note from ops.pipeline_items where id = ${item.id}`) as unknown as Array<{ send_back_note: string | null }>)[0]?.send_back_note ?? null;
+      if (prior) messages.push({ role: 'assistant', content: prior });
+      messages.push({ role: 'user', content: renderRevisionBrief(blocked, passed, loopNo, MAX_REVISIONS, note) });
+      log.info('draft: revising with brief', { loop: loopNo, blocked: blocked.map((b) => b.rule_key) });
+    }
+
     let draft: { headline?: string; dek?: string | null; blocks?: { kind?: string; body?: string }[]; citations?: Record<string, { object_id?: string; quoted_value?: unknown; claim?: string }> };
     try {
-      const res = await chatComplete('writer', [{ role: 'user', content: userMsg }],
+      const res = await chatComplete('writer', messages,
         { system: WRITER_SYSTEM, json: true, maxTokens: 2500, temperature: 0.2, budgetDegraded: budget !== 'ok', runContext: { agentId: writerId, pipelineItemId: String(item.id), purpose: `draft:${item.template_hint ?? 'TPL'}:${trig[0].object_type}` } });
       draft = (res.parsed ?? parseJsonReply(res.text)) as typeof draft;
       log.info('draft: writer replied', { cost: res.costUsd, model: res.model });

@@ -11,6 +11,7 @@ import type { Handler, HandlerContext } from '../index.js';
 import { runRules, type RuleContext, type CitationRow, type BlockRow } from 'marsad-ingestion';
 import { FIT_SWITCH, enqueueFit } from './fit.js';
 import { enqueueStage, loadItem, resolvePrincipal, switchOn, transition } from './shared.js';
+import { revisionSignature } from './revision.js';
 
 interface RulesMsg { pipeline_item_id?: number }
 const MAX_RULES_LOOPS = 2;
@@ -64,13 +65,33 @@ export function makeRulesStage(): Handler {
     if (!engine.passed) {
       const loops = item.rules_fail_loops + 1;
       const blocked = engine.results.filter((r) => r.outcome === 'blocked').map((r) => r.rule_key);
-      if (loops > MAX_RULES_LOOPS) {
-        await transition(sql, item.id, 'reassigned_human', editorId, { reason: 'rules loop exhausted', blocked });
-        log.warn('rules: loop exhausted → human', { blocked });
+
+      // NO-PROGRESS GUARD. A revision that returns the identical set of blocked rules and the
+      // identical violation count has not moved, and a third identical sample will not move
+      // either — it just spends a writer call and delays the human by another cycle. Escalate
+      // on the repeat instead of on the cap.
+      const signature = revisionSignature(
+        engine.results.filter((r) => r.outcome === 'blocked').map((r) => ({ rule_key: r.rule_key, outcome: r.outcome, detail: r.detail })),
+      );
+      const prevSignature = ((await sql`
+        select ar.stats ->> 'revision_signature' as sig
+          from ops.agent_runs ar
+         where ar.task_key = 'pipeline:transition'
+           and (ar.stats ->> 'pipeline_item_id')::bigint = ${item.id}
+           and ar.stats ? 'revision_signature'
+         order by ar.finished_at desc limit 1
+      `) as unknown as Array<{ sig: string | null }>)[0]?.sig ?? null;
+
+      if (loops > MAX_RULES_LOOPS || (prevSignature !== null && prevSignature === signature)) {
+        const reason = prevSignature === signature && loops <= MAX_RULES_LOOPS
+          ? 'rules: revision made no progress (identical failures)'
+          : 'rules loop exhausted';
+        await transition(sql, item.id, 'reassigned_human', editorId, { reason, blocked, revision_signature: signature });
+        log.warn('rules: → human', { blocked, reason });
         return;
       }
       await sql`update ops.pipeline_items set rules_fail_loops = ${loops} where id = ${item.id}`;
-      await transition(sql, item.id, 'draft', editorId, { rules_failed: blocked, loop: loops });
+      await transition(sql, item.id, 'draft', editorId, { rules_failed: blocked, loop: loops, revision_signature: signature });
       await enqueueStage(sql, 'pipeline_draft', item.id);
       log.info('rules: blocked → back to draft', { blocked, loop: loops });
       return;
