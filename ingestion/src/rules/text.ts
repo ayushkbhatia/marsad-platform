@@ -77,9 +77,20 @@ export function isMaterialNumeral(token: string): boolean {
   return mag !== null && Math.abs(mag) >= 1000;
 }
 
-/** True if the sentence contains a numeric/percent/currency token (R-03 trigger). */
+/**
+ * True if the sentence contains a numeric CLAIM (R-03's trigger).
+ *
+ * Delegates to {@link isMaterialNumeral} rather than keeping its own idea of what counts. The two
+ * had diverged: this excluded only year tokens, so "Q2 2026 net profit for the quarter ended
+ * 30 June 2026" tripped on the `2` in Q2 and the `30` in the date and demanded a citation for a
+ * sentence that asserts nothing. Composed block captions are almost entirely period labels, so
+ * that blocked the pipeline on every piece the compose stage touched.
+ *
+ * The line between "a number" and "a claim" now lives in exactly one function, which is what the
+ * note at the top of this file already said was true.
+ */
 export function hasNumber(sentence: string): boolean {
-  return numberTokens(sentence).some((t) => !isYearToken(t) && /\d/.test(t));
+  return numberTokens(sentence).some((t) => /\d/.test(t) && isMaterialNumeral(t));
 }
 
 const SCALE: Record<string, number> = {

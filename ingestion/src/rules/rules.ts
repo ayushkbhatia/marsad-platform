@@ -12,7 +12,6 @@ import {
 } from './text.js';
 
 /** Beyond this the nearest payload value is not 'drift', it is an unrelated number. See r04. */
-const LAKE_DRIFT_MAX = 0.25;
 
 /** R-03 fail-closed default: a type with no ops.materiality_prefilter.citable_states row is
  *  citable only when VERIFIED. Mirrors lake.fn_intake_eligible_state's fallback for an
@@ -143,6 +142,10 @@ const MAG_RE = /-?\d[\d,]*(?:\.\d+)?\s*(?:%|trillion|tn|bn|billion|mn|m|million|
 export function r04(ctx: RuleContext): RuleResult {
   const byKey = citationByKey(ctx);
   const violations: Record<string, unknown>[] = [];
+  // Reported, never blocking. A check that could not run is not a check that passed, and the
+  // difference has to be visible in the record — otherwise "R-04 passed" quietly means "R-04
+  // had nothing to compare" on every citation whose draft predates payload_path.
+  const unchecked: Record<string, unknown>[] = [];
 
   // Headline: every magnitude must match SOME citation's frozen value within 0.5%
   // (the headline carries no marker, but its numbers must still be lake-backed).
@@ -174,21 +177,33 @@ export function r04(ctx: RuleContext): RuleResult {
         if (!near) {
           violations.push({ where: surf.where, kind: 'number_mismatch', key, cited: citedMag, sentence_mags: mags });
         }
-        // Drift vs live payload: if the payload still carries the cited key/value and it moved.
-        // GUARDED (partial DEF-RULES-R04-LAKE-DRIFT): findPayloadMagnitude returns whatever value
-        // in the payload is numerically NEAREST the cited one, which is not evidence of anything
-        // when nothing in the payload is comparable — the recorded live failure matched a fiscal
-        // year (2026) against a QAR 4.43bn profit and declared drift, blocking every citation in
-        // both real drafts. Drift means "the value MOVED A LITTLE"; a wildly different nearest
-        // value means "no corresponding value", which this rule cannot distinguish from a payload
-        // that simply does not carry the cited field. Only report inside a plausible band; the
-        // real fix is an explicit payload_path recorded at draft time (P4.3).
+        // ── Drift vs the live payload ────────────────────────────────────────────────────
+        // Checked ONLY against the field the citation names. `payload_path` is written at draft
+        // time and says which number this citation is about; without it there is nothing to
+        // compare and the honest answer is `unchecked`, not `passed`.
+        //
+        // What this replaces (DEF-RULES-R04-LAKE-DRIFT, now closed): a probe that returned
+        // whatever value in the payload sat NEAREST the cited one. It matched a citation reading
+        // "trailing twelve-month revenue growth rate · 10.6%" against 9.5957 — the object's P/E,
+        // an unrelated field that happened to be close — and blocked the piece. An earlier
+        // recorded failure matched a fiscal year against a QAR 4.43bn profit the same way. Two
+        // unrelated numbers landing within a tolerance band are not drift, and no band can tell
+        // the difference; only the path can.
         if (cit.object_payload && cit.cited_value !== null && typeof cit.cited_value !== 'object') {
-          const liveMag = findPayloadMagnitude(cit.object_payload, citedMag);
-          if (liveMag !== null) {
-            const d = relDiff(liveMag, citedMag);
-            if (d > DRIFT_TOL && d <= LAKE_DRIFT_MAX) {
-              violations.push({ where: surf.where, kind: 'lake_drift', key, cited: citedMag, live: liveMag });
+          if (!cit.payload_path) {
+            unchecked.push({ where: surf.where, kind: 'lake_drift_unchecked', key, why: 'the citation records no payload_path' });
+          } else {
+            const liveMag = readPayloadPath(cit.object_payload, cit.payload_path);
+            if (liveMag === null) {
+              unchecked.push({
+                where: surf.where, kind: 'lake_drift_unchecked', key,
+                why: 'payload_path resolves to nothing numeric in the live payload', path: cit.payload_path,
+              });
+            } else if (relDiff(liveMag, citedMag) > DRIFT_TOL) {
+              violations.push({
+                where: surf.where, kind: 'lake_drift', key,
+                cited: citedMag, live: liveMag, path: cit.payload_path,
+              });
             }
           }
         }
@@ -228,20 +243,28 @@ export function r04(ctx: RuleContext): RuleResult {
       }
     }
   }
+  const detail = unchecked.length > 0 ? { violations, unchecked } : { violations };
   return violations.length > 0
-    ? { rule_key: 'R-04', mode: 'BLOCK', outcome: 'blocked', detail: { violations } }
-    : { rule_key: 'R-04', mode: 'BLOCK', outcome: 'passed', detail: {} };
+    ? { rule_key: 'R-04', mode: 'BLOCK', outcome: 'blocked', detail }
+    : { rule_key: 'R-04', mode: 'BLOCK', outcome: 'passed', detail: unchecked.length > 0 ? { unchecked } : {} };
 }
 
-/** Best-effort: find a magnitude in a flat payload closest to the cited one (drift probe). */
-function findPayloadMagnitude(payload: Record<string, unknown>, cited: number): number | null {
-  let best: number | null = null;
-  for (const v of Object.values(payload)) {
-    const m = typeof v === 'number' ? v : parseMagnitude(String(v));
-    if (m === null) continue;
-    if (best === null || Math.abs(m - cited) < Math.abs(best - cited)) best = m;
-  }
-  return best;
+/**
+ * Read the number a citation names out of the live payload, or null.
+ *
+ * Dotted, so nested statements resolve: `line_items.net_income`, `ratios.pe`. Returns null
+ * rather than guessing whenever the path is absent or does not lead to a number — a drift check
+ * that cannot find its field must report `unchecked`, never `passed` and never a comparison
+ * against some other field.
+ */
+function readPayloadPath(payload: Record<string, unknown>, path: string): number | null {
+  const v = path.split('.').reduce<unknown>(
+    (acc, part) => (acc && typeof acc === 'object' ? (acc as Record<string, unknown>)[part] : undefined),
+    payload,
+  );
+  if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+  if (typeof v === 'string') return parseMagnitude(v);
+  return null;
 }
 
 // R-05 — banned phrases (BLOCK). Normalized substring match across every surface.

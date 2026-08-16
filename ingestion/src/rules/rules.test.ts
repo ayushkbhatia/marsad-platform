@@ -1,3 +1,4 @@
+import { hasNumber } from './text.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { runRules } from './engine.js';
@@ -315,13 +316,63 @@ test('R-04 no longer calls an unrelated payload value "drift"', async () => {
   assert.equal(drift.length, 0, JSON.stringify(drift));
 });
 
-test('R-04 still reports REAL drift inside the plausible band', async () => {
+test('R-04 still reports REAL drift on the field the citation names', async () => {
+  const r = await runRules(ctx({
+    headline: 'QNB posts QAR 6.25bn quarterly profit',
+    citations: [cite({
+      cited_value: 6_250_000_000,
+      object_payload: { net_income: 6_400_000_000 },
+      payload_path: 'net_income',
+    })],
+  }), BASE_OPTS);
+  const r04 = r.results.find((x) => x.rule_key === 'R-04')!;
+  const drift = (r04.detail as { violations?: { kind: string }[] }).violations
+    ?.filter((x) => x.kind === 'lake_drift') ?? [];
+  assert.equal(drift.length, 1, 'a 2.4% move on the cited field is drift and must still block');
+});
+
+test('R-04 does not compare a growth rate against the P/E that sits beside it', async () => {
+  // Item 3, live: citation c15 reads "trailing twelve-month revenue growth rate · 10.6%" against
+  // a COMPUTED.RATIOS object holding pb, pe, ps, roe, eps_ttm and a dozen more. The old probe
+  // returned 9.5957 — the P/E — and called the 10% gap drift. They are different quantities;
+  // their proximity is a coincidence, and no tolerance band can tell that from a real move.
+  const r = await runRules(ctx({
+    headline: 'QNB revenue growth reaches 10.6%',
+    citations: [cite({
+      cited_value: 10.6,
+      object_payload: { pb: 1.193, pe: 9.5956938, ps: 4.4446, roe: 0.1344, eps_ttm: 1.756 },
+      payload_path: 'revenue_growth_ttm',   // present in the citation, absent from the payload
+    })],
+  }), BASE_OPTS);
+  const r04 = r.results.find((x) => x.rule_key === 'R-04')!;
+  const d = r04.detail as { violations?: { kind: string }[]; unchecked?: { kind: string }[] };
+  assert.equal((d.violations ?? []).filter((x) => x.kind === 'lake_drift').length, 0);
+  // And it is reported as UNCHECKED, not silently passed — the check could not run.
+  assert.ok((d.unchecked ?? []).some((x) => x.kind === 'lake_drift_unchecked'));
+});
+
+test('a citation with no payload_path is unchecked, never passed', async () => {
   const r = await runRules(ctx({
     headline: 'QNB posts QAR 6.25bn quarterly profit',
     citations: [cite({ cited_value: 6_250_000_000, object_payload: { net_income: 6_400_000_000 } })],
   }), BASE_OPTS);
   const r04 = r.results.find((x) => x.rule_key === 'R-04')!;
-  const drift = (r04.detail as { violations?: { kind: string }[] }).violations
-    ?.filter((x) => x.kind === 'lake_drift') ?? [];
-  assert.equal(drift.length, 1, 'a 2.4% move is drift and must still block');
+  const d = r04.detail as { violations?: { kind: string }[]; unchecked?: { kind: string; why?: string }[] };
+  assert.equal((d.violations ?? []).filter((x) => x.kind === 'lake_drift').length, 0);
+  assert.match((d.unchecked ?? [])[0]?.why ?? '', /no payload_path/);
+});
+
+test("R-03's trigger and R-04's materiality test agree on what a number is", () => {
+  // Live block:3 on item 3: "QNB Q2 2026 net profit for the quarter ended 30 June 2026".
+  // A composed block's caption is almost entirely period labels — the figure itself is a
+  // BINDING, not typed prose — so a trigger that fires on the `2` in Q2 and the `30` in a date
+  // demanded a citation for a sentence that asserts nothing, and blocked every composed piece.
+  assert.equal(hasNumber("QNB Q2 2026 net profit for the quarter ended 30 June 2026"), false);
+  assert.equal(hasNumber("Results for the quarter ended 30 June 2026"), false);
+
+  // What must still trigger: anything carrying a unit, a separator, or a magnitude.
+  assert.equal(hasNumber("Net profit was QAR 4.43bn"), true);
+  assert.equal(hasNumber("Operating income rose 11.2%"), true);
+  assert.equal(hasNumber("Assets reached 1,013,707"), true);
+  assert.equal(hasNumber("The bank booked 4430000000 in profit"), true);
 });

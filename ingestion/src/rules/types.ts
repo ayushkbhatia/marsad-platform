@@ -21,6 +21,18 @@ export interface CitationRow {
   object_state?: string | null;      // 'VERIFIED' | 'PENDING' | 'CONFLICT' | 'RETIRED' | missing
   object_type?: string | null;       // R-03 reads the per-type citable-state allowlist
   object_payload?: Record<string, unknown> | null;  // live payload for R-04 drift check
+  /**
+   * Which field of the payload this citation is actually about — a dotted path, e.g.
+   * `line_items.net_income` or `ratios.pe`. Written at draft time.
+   *
+   * Without it R-04's drift check had no way to know WHICH number it was checking, and probed
+   * for whatever value in the payload sat nearest the cited one. Live consequence: a citation
+   * reading "trailing twelve-month revenue growth rate · 10.6%" was compared against 9.5957 —
+   * the object's price/earnings ratio, an unrelated field that merely happened to be close.
+   * Two unrelated numbers within 10% of each other are not drift, and no tolerance band can
+   * tell the difference.
+   */
+  payload_path?: string | null;
   lineage_root_count?: number;        // distinct snapshot roots (R-03 ≥2 auto-publish gate)
   /** The object was superseded by a newer revision — you may not cite a retired fact. */
   superseded?: boolean;
