@@ -49,6 +49,12 @@ create table if not exists ops.researcher_registry (
   note                text
 );
 
+-- 02 §19: every private-schema table carries RLS whether or not anything can currently
+-- reach it, so that a later accidental grant cannot silently publish it. No policy: the
+-- only reader is ops.sync_researcher_heartbeats(), which is SECURITY DEFINER and owned by
+-- postgres. (scripts/assert-rls.sql caught this table the first time CI replayed it.)
+alter table ops.researcher_registry enable row level security;
+
 comment on table ops.researcher_registry is
   'The scheduled researcher fleet. A row here means "this lane is expected to keep '
   'producing, and its silence is an incident". Absence means one-shot/backfill/manual. '
