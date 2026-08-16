@@ -111,7 +111,7 @@ export type BlockCode =
   | BlockCodeH;
 
 /** The codes that have a renderer today: G, then A, then C. */
-export type ImplementedBlockCode = BlockCodeG | BlockCodeA | BlockCodeC;
+export type ImplementedBlockCode = BlockCodeG | BlockCodeA | BlockCodeC | BlockCodeB | "BLK-CUT" | "BLK-PAYWALL";
 
 export type BlockFamily = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H";
 
@@ -477,6 +477,80 @@ export interface BlockNodeBase {
   boundObjectId?: string | null;
 }
 
+/* ── B · Statement — where the desk commits to a view ─────────────────────── */
+
+/**
+ * "EXACTLY THREE LINES — not two, not four." The Zod schema carries `.length(3)`
+ * all the way into the emitted JSON Schema, so the provider enforces it during
+ * generation. The renderer still counts, because a payload can reach the page
+ * from a seed or a migration without passing through a model.
+ */
+export interface ThesisPayload {
+  kicker?: string;
+  claims: string[];
+}
+
+export interface PullQuotePayload {
+  /** Without surrounding quotation marks — the renderer supplies them. */
+  quote: string;
+  attribution: string;
+}
+
+/** ONE PER PIECE · THE FIGURE THE HEADLINE RESTS ON · ONE LAKE FIELD. */
+export interface BigNumPayload {
+  caption: string;
+  /** Prior value and change, as prose. Its numerals are R-04's business, not a binding's. */
+  contextLine?: string;
+  value: BoundValue;
+}
+
+export interface VerdictPayload {
+  ticker: string;
+  companyName: string;
+  rating: string;
+  /** Mandatory by schema: a call without a prior is not a call. */
+  priorRating: string;
+  targetPrice: BoundValue;
+  upsidePct: BoundValue;
+  changedInThisNote: boolean;
+}
+
+/** Two values only — a third would unlock premium copy by accident. */
+export type TakeEntitlement = "locked" | "unlocked";
+
+export interface TakePayload {
+  headline: string;
+  body: string;
+  badge?: string;
+  unlockCtaLabel?: string;
+  entitlement: TakeEntitlement;
+}
+
+export interface FalsifyPayload {
+  kicker?: string;
+  /** Observable events or thresholds — never sentiment. */
+  falsifiers: string[];
+}
+
+/* ── H · Gates ───────────────────────────────────────────────────────────── */
+
+export interface CutPayload {
+  /** Blurs into the gradient. Must end on a complete thought. */
+  teaser: string;
+  afterBlockIndex: number;
+  /** At least one data block renders before the wall — the reader sees the work first. */
+  dataBlocksBefore: number;
+  ruleId?: string;
+}
+
+export interface PaywallPayload {
+  kicker?: string;
+  /** What specifically is behind the wall. Generic copy is refused at the fit stage. */
+  behindTheWall: string;
+  ctaLabel: string;
+  reassurance?: string;
+}
+
 export type BlockNode =
   // G
   | (BlockNodeBase & { code: "BLK-PROV"; payload: ProvPayload })
@@ -500,7 +574,17 @@ export type BlockNode =
   | (BlockNodeBase & { code: "BLK-RANKROW"; payload: RankRowPayload })
   | (BlockNodeBase & { code: "BLK-BEATMISS"; payload: BeatMissPayload })
   | (BlockNodeBase & { code: "BLK-EXDATE"; payload: ExDatePayload })
-  | (BlockNodeBase & { code: "BLK-COMPARE"; payload: ComparePayload });
+  | (BlockNodeBase & { code: "BLK-COMPARE"; payload: ComparePayload })
+  // B
+  | (BlockNodeBase & { code: "BLK-THESIS"; payload: ThesisPayload })
+  | (BlockNodeBase & { code: "BLK-PULLQUOTE"; payload: PullQuotePayload })
+  | (BlockNodeBase & { code: "BLK-BIGNUM"; payload: BigNumPayload })
+  | (BlockNodeBase & { code: "BLK-VERDICT"; payload: VerdictPayload })
+  | (BlockNodeBase & { code: "BLK-TAKE"; payload: TakePayload })
+  | (BlockNodeBase & { code: "BLK-FALSIFY"; payload: FalsifyPayload })
+  // H
+  | (BlockNodeBase & { code: "BLK-CUT"; payload: CutPayload })
+  | (BlockNodeBase & { code: "BLK-PAYWALL"; payload: PaywallPayload });
 
 /** Narrow the union to one code's node shape. */
 export type BlockNodeOf<C extends ImplementedBlockCode> = Extract<BlockNode, { code: C }>;

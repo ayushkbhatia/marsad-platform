@@ -69,6 +69,11 @@ jobs:
       # `next build` succeeding was the only frontend correctness signal.
       - name: test (frontend adapters)
         run: npm test
+      # ops.story_blocks.renderer_component names a component on all 69 rows, including ones
+      # that do not exist — it reads as a capability and is only a name. registry.tsx is the
+      # real resolution table, so coverage changes have to be a deliberate edit.
+      - name: check block renderer coverage
+        run: node scripts/design/check-block-renderers.mjs
       - name: next build
         # Real publishable creds, NOT dummies. `generateStaticParams` is backed by
         # `prerenderHead` (src/lib/data/prerender.ts), which reaches the DB twice —
