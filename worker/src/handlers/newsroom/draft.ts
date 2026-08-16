@@ -11,6 +11,7 @@
 import type { Handler, HandlerContext } from '../index.js';
 import { autoMarkNumbers, chatComplete, parseMagnitude } from 'marsad-ingestion';
 import { budgetState, enqueueStage, loadItem, outputHalted, parseJsonReply, resolvePrincipal, transition, wordCount } from './shared.js';
+import { buildPack, renderCitableFacts } from './pack.js';
 
 interface DraftMsg { pipeline_item_id?: number }
 
@@ -82,9 +83,28 @@ export function makeDraft(): Handler {
       ? (await sql`select lake.fn_writer_context(${item.security_id}::bigint) as p`) as unknown as Array<{ p: unknown }>
       : [{ p: null }];
 
+    // Ordered, budgeted, always-parseable pack + the citable-id index (see pack.ts for why
+    // the old `.slice(0, 12000)` handed the writer invalid JSON with its only citable section
+    // missing on every call).
+    const built = buildPack(pack[0]?.p);
+    if (built.dropped.length > 0) {
+      // A silent trim reads as a complete pack. Say what was lost.
+      log.info('draft: context pack trimmed to fit', { dropped: built.dropped, facts: built.facts.length });
+    }
+
     // Thread the item's priority/template into the USER message (previously it only reached `purpose`).
     const modeMsg = isWire ? WIRE_MODE : `MODE: STORY (priority=${item.priority ?? 'normal'}, template=${item.template_hint ?? 'auto'}).`;
-    const userMsg = `${modeMsg}\n\nTRIGGER object:\n${JSON.stringify({ object_id: trig[0].id, type: trig[0].object_type, payload: trig[0].payload })}\n\nCONTEXT pack:\n${JSON.stringify(pack[0]?.p ?? {}).slice(0, 12000)}`;
+    const userMsg = [
+      modeMsg,
+      '',
+      'TRIGGER object:',
+      JSON.stringify({ object_id: trig[0].id, type: trig[0].object_type, payload: trig[0].payload }),
+      '',
+      'CONTEXT pack:',
+      built.text,
+      '',
+      renderCitableFacts([{ objectId: trig[0].id, section: 'trigger', label: trig[0].object_type, value: '' }, ...built.facts]),
+    ].join('\n');
 
     let draft: { headline?: string; dek?: string | null; blocks?: { kind?: string; body?: string }[]; citations?: Record<string, { object_id?: string; quoted_value?: unknown; claim?: string }> };
     try {
@@ -105,8 +125,11 @@ export function makeDraft(): Handler {
     const citations = draft.citations ?? {};
     if (!headline || blocks.length === 0) { await reassignHuman(sql, item.id, writerId, 'empty draft'); return; }
 
-    // The set of object ids the writer was ALLOWED to cite = trigger + every id in the pack.
-    const allowed = new Set<string>([trig[0].id, ...idsInPack(pack[0]?.p)]);
+    // The allow-set is the SAME list the writer was shown, built once in pack.ts — not
+    // re-derived here by scanning untyped JSON for four key names (which missed `filing_id`
+    // entirely and skipped every bigint, so price/identity/filings were uncitable and any
+    // draft quoting a share price was terminally reassigned as if it had invented the id).
+    const allowed = new Set<string>([trig[0].id, ...built.facts.map((f) => f.objectId)]);
     for (const [key, c] of Object.entries(citations)) {
       if (!c.object_id || !allowed.has(c.object_id)) {
         log.error('draft: invented/out-of-set citation — kicking back', { key, object_id: c.object_id });
@@ -154,23 +177,6 @@ export function makeDraft(): Handler {
     log.info('draft: written → edit', { headline, wc, citations: Object.keys(citations).length });
   };
   return handler;
-}
-
-/** All lake object ids referenced inside the writer-context pack (statements/filings/etc.). */
-function idsInPack(pack: unknown): string[] {
-  const ids: string[] = [];
-  const walk = (v: unknown) => {
-    if (v == null) return;
-    if (Array.isArray(v)) { v.forEach(walk); return; }
-    if (typeof v === 'object') {
-      for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
-        if ((k === 'source_object_id' || k === 'row_id' || k === 'object_id' || k === 'source_filing_id') && typeof val === 'string') ids.push(val);
-        else walk(val);
-      }
-    }
-  };
-  walk(pack);
-  return ids;
 }
 
 async function reassignHuman(sql: HandlerContext['sql'], itemId: number, actorId: string, note: string): Promise<void> {
