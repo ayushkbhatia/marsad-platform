@@ -196,17 +196,18 @@ async function assembleContext(sql: HandlerContext['sql'], contentId: string): P
   // re-checked here rather than trusted from intake because a run can be marked failed (or
   // reaped, see ops.reap_stuck_parse_runs) after the object was admitted.
   const cites = (await sql`
-    select c.claim_key, c.object_id::text as object_id, c.quoted_value, c.cited_by,
+    select c.claim_key, c.object_id::text as object_id, c.quoted_value, c.cited_by, c.payload_path,
            o.state as object_state, o.object_type, o.payload as object_payload, o.parse_run_id,
            (o.superseded_by is not null) as superseded,
            (pr.status = 'succeeded')     as parse_run_ok
     from lake.citations c
     join lake.objects o on o.id = c.object_id
     left join lake.parse_runs pr on pr.id = o.parse_run_id
-    where c.content_id = ${contentId}::uuid`) as unknown as Array<{ claim_key: string | null; object_id: string; quoted_value: string | null; object_state: string | null; object_type: string | null; object_payload: Record<string, unknown> | null; parse_run_id: number | null; superseded: boolean; parse_run_ok: boolean | null }>;
+    where c.content_id = ${contentId}::uuid`) as unknown as Array<{ claim_key: string | null; object_id: string; quoted_value: string | null; object_state: string | null; object_type: string | null; object_payload: Record<string, unknown> | null; payload_path: string | null; parse_run_id: number | null; superseded: boolean; parse_run_ok: boolean | null }>;
   const distinctRoots = new Set(cites.map((c) => c.parse_run_id).filter((x) => x != null)).size;
   const citations: CitationRow[] = cites.map((c) => ({
     claim_key: c.claim_key ?? '', lake_object_id: c.object_id, cited_value: c.quoted_value,
+    payload_path: c.payload_path,
     cited_hash: null, object_state: c.object_state, object_type: c.object_type,
     object_payload: c.object_payload,
     superseded: c.superseded,
