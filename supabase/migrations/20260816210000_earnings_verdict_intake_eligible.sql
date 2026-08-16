@@ -35,7 +35,10 @@ begin
   raise notice 'EARNINGS.VERDICT now admissible: % (% within the 120-day recency floor)',
     v_admissible, v_recent;
 
-  if v_admissible = 0 then
-    raise exception 'EARNINGS.VERDICT is still not admissible after widening its states';
+  -- Only meaningful where the family exists at all: a fresh replay has no filings, so no
+  -- verdicts, and zero is the correct answer there.
+  if exists (select 1 from lake.objects where object_type = 'EARNINGS.VERDICT' and superseded_by is null)
+     and v_admissible = 0 then
+    raise exception 'EARNINGS.VERDICT objects exist but none is admissible after widening its states';
   end if;
 end $$;

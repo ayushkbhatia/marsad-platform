@@ -256,10 +256,34 @@ begin
            group by object_type) t;
   raise notice 'new families: %', coalesce(v_types, 'NONE');
 
-  -- The point of the exercise: more than one family must now have supply.
-  if (select count(distinct object_type) from lake.objects
-       where object_type in ('EARNINGS.VERDICT','FILING.EVENT')) < 2 then
-    raise exception 'canonicalisation produced fewer than 2 new families';
+  -- Assert the INVARIANT, not a production headcount: after the seeding loop no eligible
+  -- candidate may remain un-canonicalised. True of an empty database (0 = 0) and of
+  -- production, and strictly stronger than "expect 2 families" — it catches a candidate the
+  -- loop skipped, which a count never could. (An absolute threshold here is what failed CI
+  -- from-scratch: a fresh database has no filings, so zero objects is the right answer.)
+  if exists (
+    select 1
+      from public.earnings_events ee
+      join public.securities s on s.id = ee.security_id
+     where ee.eps_actual is not null and ee.eps_prior is not null
+       and not exists (select 1 from lake.objects o
+                        where o.natural_key = 'EARNINGS.VERDICT:' || s.venue_code || ':' || s.ticker || ':' || ee.fiscal_period
+                          and o.superseded_by is null)
+     limit 1
+  ) then
+    raise exception 'earnings verdict candidates remain un-canonicalised after seeding';
+  end if;
+
+  if exists (
+    select 1 from public.filings f
+     where f.extracted_facts ? 'ai' and f.security_id is not null
+       and nullif(f.extracted_facts -> 'ai' ->> 'event_date', '') is not null
+       and not exists (select 1 from lake.objects o
+                        where o.natural_key = 'FILING.EVENT:' || f.venue_code || ':' || f.source_ref
+                          and o.superseded_by is null)
+     limit 1
+  ) then
+    raise exception 'filing event candidates remain un-canonicalised after seeding';
   end if;
 
   -- Every EARNINGS.VERDICT must name its benchmark, or a reader will call it a beat.
