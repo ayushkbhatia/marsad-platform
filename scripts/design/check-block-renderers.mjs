@@ -57,11 +57,39 @@ if (unknown.length > 0) {
 }
 
 const unbuilt = vocabulary.filter((c) => !implemented.includes(c));
-const manifest = { implemented, unbuilt };
+
+/**
+ * Which families are COMPLETE — derived here rather than written down anywhere.
+ *
+ * The styleguide header hardcoded this next to a derived count, so it read "families G · A · C"
+ * long after B, H, E and F had landed: the number moved and the list did not. Deriving it into the
+ * manifest means the header cannot drift again, and because this script already gates every PR the
+ * derivation is checked for free.
+ *
+ * Family comes from docs/design/block-registry.json, the same authority the vocabulary check uses.
+ */
+const registryJson = JSON.parse(
+  readFileSync(join(repoRoot, 'docs', 'design', 'block-registry.json'), 'utf8'),
+);
+const familyOf = new Map(registryJson.blocks.map((b) => [b.code, b.family]));
+const byFamily = new Map();
+for (const code of vocabulary) {
+  const fam = familyOf.get(code) ?? '?';
+  const e = byFamily.get(fam) ?? { total: 0, built: 0 };
+  e.total += 1;
+  if (implemented.includes(code)) e.built += 1;
+  byFamily.set(fam, e);
+}
+const builtFamilies = [...byFamily.entries()]
+  .filter(([, v]) => v.total === v.built)
+  .map(([fam]) => fam)
+  .sort();
+
+const manifest = { implemented, unbuilt, builtFamilies };
 
 if (process.argv.includes('--write')) {
   writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
-  console.log(`✓ wrote manifest — ${implemented.length} implemented, ${unbuilt.length} unbuilt`);
+  console.log(`✓ wrote manifest — ${implemented.length} implemented, ${unbuilt.length} unbuilt, families complete: ${builtFamilies.join(' ')}`);
   process.exit(0);
 }
 

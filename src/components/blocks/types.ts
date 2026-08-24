@@ -112,7 +112,7 @@ export type BlockCode =
 
 /** The codes that have a renderer today: G, then A, then C. */
 export type ImplementedBlockCode =
-  | BlockCodeG | BlockCodeA | BlockCodeC | BlockCodeB
+  | BlockCodeG | BlockCodeA | BlockCodeC | BlockCodeB | BlockCodeE | BlockCodeF
   | "BLK-CUT" | "BLK-PAYWALL" | "BLK-ALERTCTA" | "BLK-DOWNLOAD"
   | "BLK-LINE" | "BLK-BARS" | "BLK-AREA";
 
@@ -600,6 +600,249 @@ export interface BarsPayload {
   unit?: string | null;
 }
 
+/* ── E · Mechanism — how a thing actually works ──────────────────────────── */
+
+/**
+ * BLK-TIMELINE · "EXACTLY ONE STAGE IN RED — THE ONE THAT COSTS MONEY IF MISSED."
+ *
+ * One critical stage, not zero and not two. A timeline where everything is urgent tells a reader
+ * nothing about what to actually do; the single red stage is the block's entire editorial claim.
+ */
+export interface TimelineStage {
+  name: string;
+  /** ISO `YYYY-MM-DD`. */
+  date: string;
+  description: string;
+  /** Exactly one stage carries this — the one that costs money if missed. */
+  isCritical: boolean;
+}
+export interface TimelinePayload {
+  stages: TimelineStage[];
+}
+
+/** BLK-STEPS · "3–5 STEPS · A BOLD CLAIM PLUS ONE CLARIFYING LINE, NEVER A PARAGRAPH." */
+export interface MechanismStep {
+  /** The bold claim. */
+  claim: string;
+  /** One line. The numeral is the index, formatted — never a payload field. */
+  clarifier: string;
+}
+export interface StepsPayload {
+  steps: MechanismStep[];
+}
+
+/**
+ * BLK-FLOW · "MAX 4 NODES, LEFT TO RIGHT · NEVER BRANCHES — USE BLK-DECISION."
+ *
+ * Arrow weight shows SENIORITY, not size. That inversion is deliberate and worth preserving: a
+ * subordinated claim on a large sum is still subordinated, and drawing it thick because it is big
+ * would say the opposite of what the diagram exists to say.
+ */
+export interface FlowNode {
+  /** e.g. "OPERATOR", "HOLDCO", "EQUITY". */
+  role: string;
+  name: string;
+  qualifier: string;
+  /** Equity is always the pale box at the end. */
+  isTerminalEquity?: boolean;
+  /** The operating node renders as the inverted ink box. */
+  isOperating?: boolean;
+}
+export interface FlowConnector {
+  label: string;
+  /** Senior claims draw 2px ink; subordinated draw 2px faint. NOT a size. */
+  seniority: "senior" | "subordinated";
+  value?: string | null;
+}
+export interface FlowPayload {
+  nodes: FlowNode[];
+  connectors: FlowConnector[];
+}
+
+/** BLK-ANATOMY · "ABSTRACTED WIREFRAME, NEVER A SCREENSHOT · TEACHES WHERE TO LOOK." */
+export interface AnatomyRegion {
+  /** Relative width, 0–1, of the wireframe rail. */
+  width: number;
+  /** critical = the figure that changes your cash · secondary = the date block · boilerplate = skip. */
+  highlight: "critical" | "secondary" | "boilerplate";
+}
+export interface AnatomyAnnotation {
+  swatch: "critical" | "secondary" | "boilerplate";
+  title: string;
+  why: string;
+}
+export interface AnatomyPayload {
+  /** e.g. "TADAWUL · CG-1". */
+  documentType: string;
+  regions: AnatomyRegion[];
+  annotations: AnatomyAnnotation[];
+}
+
+/** BLK-WORKED · "ROUND NUMBERS, REAL TICKER · MUST END IN A TOTAL ROW THAT SETTLES THE POINT." */
+export interface WorkedRow {
+  label: string;
+  before: BoundValue;
+  after: BoundValue;
+}
+export interface WorkedPayload {
+  /** e.g. "1,000 SHARES". */
+  premise: string;
+  beforeLabel: string;
+  afterLabel: string;
+  rows: WorkedRow[];
+  /** Mandatory — the row that settles the point. */
+  total: WorkedRow;
+  /** What the difference actually is, in a sentence. */
+  closing: string;
+}
+
+/**
+ * BLK-MYTH · "NEVER MOCK THE ASSUMPTION · STATE IT IN THE READER'S OWN WORDS, THEN CORRECT IT."
+ *
+ * The first clause is the one that matters and it is a house rule, not a style note: a reader who
+ * feels mocked stops reading before the mechanism arrives, so the correction never lands.
+ */
+export interface MythPayload {
+  /** Quoted in the reader's own words. Serif italic. */
+  assumption: string;
+  /** What actually happens, with the arithmetic. */
+  mechanism: string;
+}
+
+/** BLK-DECISION · "ONE QUESTION, TWO OUTCOMES · NEVER NEST." */
+export interface DecisionPayload {
+  question: string;
+  yes: string;
+  no: string;
+}
+
+/**
+ * BLK-GLOSSARY · auto-assembled from every BLK-TERM on the page.
+ *
+ * "A writer agent does not author this block, it emits BLK-TERM and this follows." So `terms` is
+ * DERIVED by the projector, never written by a model — which is why there is no constraint check
+ * on it here: there is no author to warn.
+ */
+export interface GlossaryTerm {
+  term: string;
+  definition: string;
+}
+export interface GlossaryPayload {
+  terms: GlossaryTerm[];
+}
+
+/* ── F · Wire & live state — timestamped, perishable, honest about being stale ─ */
+
+/** BLK-TAPEROW · "TIME IN THE GUTTER, VENUE UNDER IT · MAX 40 WORDS FOR AGENT AUTO-PUBLISH." */
+export interface TapeRowPayload {
+  /** HH:MM. Every F-family block carries a clock. */
+  time: string;
+  venue: string;
+  category: string;
+  /** e.g. "7010 · CG-1". */
+  reference: string;
+  headline: string;
+  /** Max 40 words — the auto-publish cap, the same number the rules engine enforces. */
+  body: string;
+}
+
+/** BLK-CHIPROW · "3–5 CHIPS · THE CHEAPEST WAY TO ATTACH DATA TO A 30-WORD ITEM." */
+export interface DataChip {
+  label: string;
+  value: BoundValue;
+  /** The moving number gets the ink border; context chips stay grey. */
+  isMoving?: boolean;
+  /** Signed direction for the moving chip, which colours the value. */
+  direction?: "up" | "down" | null;
+}
+export interface ChipRowPayload {
+  chips: DataChip[];
+}
+
+/**
+ * BLK-SNAPSHOT · "ONE SERIES, NO AXES, THREE LABELS MAX · THE WIRE'S ONLY PERMITTED CHART."
+ *
+ * Bars are plain; the peak is ink; the latest takes the direction colour. Note this is the ONLY
+ * chart the wire may carry — no D-family block may appear there — which is why it lives in F and
+ * not in D despite drawing a series.
+ */
+export interface SnapshotBar {
+  /** null = an unlabelled bar. The card allows at most three labels across the whole series. */
+  label: string | null;
+  value: number | null;
+}
+export interface SnapshotPayload {
+  title: string;
+  bars: SnapshotBar[];
+  /** Index into `bars`. */
+  peakIndex: number;
+  latestIndex: number;
+  latestDirection?: "up" | "down" | null;
+}
+
+/** BLK-COUNTDOWN · "ABSOLUTE DEADLINE UNDER THE RELATIVE ONE · MARSAD NEVER TAKES THE ORDER." */
+export interface CountdownPayload {
+  kicker: string;
+  /** e.g. "2d 09h". Never shown alone. */
+  relative: string;
+  /** e.g. "9 JUL 13:00 GST". Mandatory — a relative clock with no absolute is unactionable. */
+  absolute: string;
+  context: string;
+  /** Routes the reader to their broker. Marsad never takes the order. */
+  ctaLabel: string;
+}
+
+/** BLK-HALT · "MUST DISTINGUISH FROZEN FROM STALE · STATES THE REASON AND THE EXPECTED LIFT." */
+export interface HaltPayload {
+  ticker: string;
+  haltedSince: string;
+  expectedLift: string;
+  reason: string;
+  lastTraded: BoundValue;
+  /** The explicit frozen-not-stale sentence. The copy must say which. */
+  frozenStatement: string;
+}
+
+/** BLK-CORRECTION · "AMBER, NOT RED — A CORRECTION IS INTEGRITY · SAYS WHETHER THE ARGUMENT SURVIVED." */
+export interface CorrectionPayload {
+  originalAt: string;
+  correctedAt: string;
+  correctedValue: string;
+  wrongValue: string;
+  /** Which source conflicted. */
+  why: string;
+  /** What was done to the lake object and to downstream pieces. */
+  remediation: string;
+  /** Mandatory — a correction that does not say this leaves the reader unable to judge. */
+  argumentSurvived: boolean;
+  ruleId?: string;
+}
+
+/** BLK-BREADTH · "MEDIAN MOVE MATTERS MORE THAN THE INDEX." */
+export interface BreadthPayload {
+  advancers: number;
+  decliners: number;
+  unchanged: number;
+  medianMovePct: BoundValue;
+  best: { ticker: string; pct: BoundValue };
+  valueTraded: BoundValue;
+}
+
+/** BLK-VENUEHEAD · "A DEGRADED FEED IS NAMED IN THE HEADER, NOT HIDDEN IN A FOOTNOTE." */
+export interface VenueIndexChip {
+  label: string;
+  change: BoundValue;
+  /** Named in the header, in caution amber — never a footnote. */
+  degraded?: boolean;
+}
+export interface VenueHeadPayload {
+  /** e.g. "QATAR · KUWAIT · OMAN". */
+  title: string;
+  headline: VenueIndexChip;
+  secondary: VenueIndexChip[];
+  itemCount: number;
+}
+
 /* ── H · Gates ───────────────────────────────────────────────────────────── */
 
 export interface CutPayload {
@@ -687,6 +930,25 @@ export type BlockNode =
   | (BlockNodeBase & { code: "BLK-VERDICT"; payload: VerdictPayload })
   | (BlockNodeBase & { code: "BLK-TAKE"; payload: TakePayload })
   | (BlockNodeBase & { code: "BLK-FALSIFY"; payload: FalsifyPayload })
+  // H
+  // E
+  | (BlockNodeBase & { code: "BLK-TIMELINE"; payload: TimelinePayload })
+  | (BlockNodeBase & { code: "BLK-STEPS"; payload: StepsPayload })
+  | (BlockNodeBase & { code: "BLK-FLOW"; payload: FlowPayload })
+  | (BlockNodeBase & { code: "BLK-ANATOMY"; payload: AnatomyPayload })
+  | (BlockNodeBase & { code: "BLK-WORKED"; payload: WorkedPayload })
+  | (BlockNodeBase & { code: "BLK-MYTH"; payload: MythPayload })
+  | (BlockNodeBase & { code: "BLK-DECISION"; payload: DecisionPayload })
+  | (BlockNodeBase & { code: "BLK-GLOSSARY"; payload: GlossaryPayload })
+  // F
+  | (BlockNodeBase & { code: "BLK-TAPEROW"; payload: TapeRowPayload })
+  | (BlockNodeBase & { code: "BLK-CHIPROW"; payload: ChipRowPayload })
+  | (BlockNodeBase & { code: "BLK-SNAPSHOT"; payload: SnapshotPayload })
+  | (BlockNodeBase & { code: "BLK-COUNTDOWN"; payload: CountdownPayload })
+  | (BlockNodeBase & { code: "BLK-HALT"; payload: HaltPayload })
+  | (BlockNodeBase & { code: "BLK-CORRECTION"; payload: CorrectionPayload })
+  | (BlockNodeBase & { code: "BLK-BREADTH"; payload: BreadthPayload })
+  | (BlockNodeBase & { code: "BLK-VENUEHEAD"; payload: VenueHeadPayload })
   // H
   | (BlockNodeBase & { code: "BLK-CUT"; payload: CutPayload })
   | (BlockNodeBase & { code: "BLK-PAYWALL"; payload: PaywallPayload })

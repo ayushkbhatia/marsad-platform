@@ -40,6 +40,24 @@ import { BlockBigNum } from "./b/BlockBigNum";
 import { BlockVerdict } from "./b/BlockVerdict";
 import { BlockTake } from "./b/BlockTake";
 import { BlockFalsify } from "./b/BlockFalsify";
+import { BlockAnatomy } from "./e/BlockAnatomy";
+import { BlockDecision } from "./e/BlockDecision";
+import { BlockFlow } from "./e/BlockFlow";
+import { BlockGlossary } from "./e/BlockGlossary";
+import { BlockMyth } from "./e/BlockMyth";
+import { BlockSteps } from "./e/BlockSteps";
+import { BlockTimeline } from "./e/BlockTimeline";
+import { BlockWorked } from "./e/BlockWorked";
+
+import { BlockBreadth } from "./f/BlockBreadth";
+import { BlockChipRow } from "./f/BlockChipRow";
+import { BlockCorrection } from "./f/BlockCorrection";
+import { BlockCountdown } from "./f/BlockCountdown";
+import { BlockHalt } from "./f/BlockHalt";
+import { BlockSnapshot } from "./f/BlockSnapshot";
+import { BlockTapeRow } from "./f/BlockTapeRow";
+import { BlockVenueHead } from "./f/BlockVenueHead";
+
 import { BlockAlertCta } from "./h/BlockAlertCta";
 import { BlockCut } from "./h/BlockCut";
 import { BlockDownload } from "./h/BlockDownload";
@@ -91,6 +109,27 @@ export const BLOCK_RENDERERS: BlockRendererMap = {
   "BLK-VERDICT": BlockVerdict,
   "BLK-TAKE": BlockTake,
   "BLK-FALSIFY": BlockFalsify,
+  // E · Mechanism — how a thing actually works. No bindings in the whole family:
+  // these teach a mechanism, they do not quote a figure.
+  "BLK-TIMELINE": BlockTimeline,
+  "BLK-STEPS": BlockSteps,
+  "BLK-FLOW": BlockFlow,
+  "BLK-ANATOMY": BlockAnatomy,
+  "BLK-WORKED": BlockWorked,
+  "BLK-MYTH": BlockMyth,
+  "BLK-DECISION": BlockDecision,
+  "BLK-GLOSSARY": BlockGlossary,
+
+  // F · Wire & live state — every one carries a clock, and is honest about being stale.
+  "BLK-TAPEROW": BlockTapeRow,
+  "BLK-CHIPROW": BlockChipRow,
+  "BLK-SNAPSHOT": BlockSnapshot,
+  "BLK-COUNTDOWN": BlockCountdown,
+  "BLK-HALT": BlockHalt,
+  "BLK-CORRECTION": BlockCorrection,
+  "BLK-BREADTH": BlockBreadth,
+  "BLK-VENUEHEAD": BlockVenueHead,
+
   // H · Gates — the seam between the free read and the wall.
   "BLK-CUT": BlockCut,
   "BLK-PAYWALL": BlockPaywall,

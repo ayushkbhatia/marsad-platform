@@ -1,9 +1,10 @@
+import manifest from "@/components/blocks/renderer-manifest.json";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { Block, IMPLEMENTED_BLOCK_CODES } from "@/components/blocks";
 import type { AnyBlockNode } from "@/components/blocks";
-import { FAMILY_A, FAMILY_B, FAMILY_C, FAMILY_G, FAMILY_H, FRESH_STATES, PROV_STATES, type Specimen } from "./fixtures";
+import { FAMILY_E, FAMILY_F, FAMILY_A, FAMILY_B, FAMILY_C, FAMILY_G, FAMILY_H, FRESH_STATES, PROV_STATES, type Specimen } from "./fixtures";
 
 /**
  * Block library — PD.5 verification surface.
@@ -106,7 +107,7 @@ export default function BlockLibraryPage() {
           Block library
         </h1>
         <p className="mt-1.5 font-mono text-[9px] tracking-[0.16em] text-ink-faint uppercase">
-          {IMPLEMENTED_BLOCK_CODES.length} of 61 built · families G · A · C ·
+          {IMPLEMENTED_BLOCK_CODES.length} of 61 built · families {manifest.builtFamilies.join(" · ")} complete ·
           verify against docs/design/artifacts/artifact-library-61-blocks.html
         </p>
 
@@ -192,6 +193,26 @@ export default function BlockLibraryPage() {
         />
         <Grid cols={2}>
           {FAMILY_H.map((s) => (
+            <SpecimenCard key={s.node._key} s={s} />
+          ))}
+        </Grid>
+
+        <FamilyBar
+          label="E · MECHANISM"
+          purpose="How a thing actually works. No bindings anywhere in this family — these teach a mechanism, they do not quote a figure."
+        />
+        <Grid cols={2}>
+          {FAMILY_E.map((s) => (
+            <SpecimenCard key={s.node._key} s={s} />
+          ))}
+        </Grid>
+
+        <FamilyBar
+          label="F · WIRE & LIVE STATE"
+          purpose="Timestamped, perishable, and honest about being stale. Every block here carries a clock; BLK-HALT exists to say a frozen price is not a dead feed."
+        />
+        <Grid cols={2}>
+          {FAMILY_F.map((s) => (
             <SpecimenCard key={s.node._key} s={s} />
           ))}
         </Grid>

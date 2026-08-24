@@ -625,3 +625,268 @@ export const FAMILY_H: Specimen[] = [
     },
   },
 ];
+
+/* ── E · Mechanism — how a thing actually works ──────────────────────────── */
+
+export const FAMILY_E: Specimen[] = [
+  {
+    title: "Dates in order",
+    pieceTypes: "EXPLAINER · IPO",
+    bindingRule: "EXACTLY ONE STAGE IN RED — THE ONE THAT COSTS MONEY IF MISSED",
+    node: {
+      code: "BLK-TIMELINE", _key: "e1",
+      payload: {
+        stages: [
+          { name: "Announced", date: "2026-06-18", description: "Board declares the interim dividend.", isCritical: false },
+          { name: "Ex-date", date: "2026-07-02", description: "Buy before this date to receive it. Miss it and the payment goes to the seller.", isCritical: true },
+          { name: "Record", date: "2026-07-03", description: "Register closes.", isCritical: false },
+          { name: "Pay", date: "2026-07-21", description: "Cash settles to the holder of record.", isCritical: false },
+        ],
+      },
+    },
+  },
+  {
+    title: "Numbered mechanism",
+    pieceTypes: "EXPLAINER",
+    bindingRule: "3–5 STEPS · A BOLD CLAIM PLUS ONE CLARIFYING LINE, NEVER A PARAGRAPH",
+    node: {
+      code: "BLK-STEPS", _key: "e2",
+      payload: {
+        steps: [
+          { claim: "The company files its statements with the exchange.", clarifier: "Tadawul publishes the XBRL the same morning." },
+          { claim: "We extract the line items, not the summary.", clarifier: "The summary is the company's framing." },
+          { claim: "Every figure keeps the id of the filing it came from.", clarifier: "That is what makes a number traceable later." },
+        ],
+      },
+    },
+  },
+  {
+    title: "Money flow",
+    pieceTypes: "DEEP DIVE",
+    bindingRule: "MAX 4 NODES, LEFT TO RIGHT · NEVER BRANCHES — USE BLK-DECISION",
+    annotation: "ARROW WEIGHT SHOWS SENIORITY, NOT SIZE",
+    node: {
+      code: "BLK-FLOW", _key: "e3",
+      payload: {
+        nodes: [
+          { role: "Operator", name: "Jafurah JV", qualifier: "Gas processing", isOperating: true },
+          { role: "Holdco", name: "Aramco Gas", qualifier: "Ring-fenced" },
+          { role: "Equity", name: "Shareholders", qualifier: "Residual claim", isTerminalEquity: true },
+        ],
+        connectors: [
+          { label: "Senior debt", seniority: "senior", value: "SAR 18bn" },
+          { label: "Distributions", seniority: "subordinated", value: "Residual" },
+        ],
+      },
+    },
+  },
+  {
+    title: "Annotated document",
+    pieceTypes: "EXPLAINER",
+    bindingRule: "ABSTRACTED WIREFRAME, NEVER A SCREENSHOT · TEACHES WHERE TO LOOK",
+    node: {
+      code: "BLK-ANATOMY", _key: "e4",
+      payload: {
+        documentType: "TADAWUL · CG-1",
+        regions: [
+          { width: 0.55, highlight: "boilerplate" },
+          { width: 0.8, highlight: "secondary" },
+          { width: 1, highlight: "critical" },
+          { width: 0.65, highlight: "boilerplate" },
+        ],
+        annotations: [
+          { swatch: "critical", title: "Dividend per share", why: "The only figure on the page that changes your cash." },
+          { swatch: "secondary", title: "The date block", why: "Ex-date and pay date. Everything else is scheduling." },
+          { swatch: "boilerplate", title: "Regulatory preamble", why: "Identical on every filing. Skip it." },
+        ],
+      },
+    },
+  },
+  {
+    title: "Worked example",
+    pieceTypes: "EXPLAINER",
+    bindingRule: "ROUND NUMBERS, REAL TICKER · MUST END IN A TOTAL ROW THAT SETTLES THE POINT",
+    node: {
+      code: "BLK-WORKED", _key: "e5",
+      payload: {
+        premise: "1,000 shares of 2222",
+        beforeLabel: "Before ex-date",
+        afterLabel: "After ex-date",
+        rows: [
+          { label: "Share price", before: "SAR 30.00", after: "SAR 29.20" },
+          { label: "Dividend receivable", before: "SAR 0", after: "SAR 800" },
+        ],
+        total: { label: "Total position", before: "SAR 30,000", after: "SAR 30,000" },
+        closing: "Nothing was created. The price fell by the dividend, and the dividend became cash you are owed.",
+      },
+    },
+  },
+  {
+    title: "Assumption vs mechanism",
+    pieceTypes: "EXPLAINER",
+    bindingRule: "NEVER MOCK THE ASSUMPTION · STATE IT IN THE READER'S OWN WORDS, THEN CORRECT IT",
+    node: {
+      code: "BLK-MYTH", _key: "e6",
+      payload: {
+        assumption: "If I buy the day before the ex-date, I get the dividend for free.",
+        mechanism:
+          "You get the dividend, and the price opens roughly the dividend lower. On an SAR 0.80 payout the SAR 30.00 close opens near SAR 29.20 — the cash moves from the price into your account, and the position is worth the same either way.",
+      },
+    },
+  },
+  {
+    title: "If / then",
+    pieceTypes: "EXPLAINER",
+    bindingRule: "ONE QUESTION, TWO OUTCOMES · NEVER NEST",
+    node: {
+      code: "BLK-DECISION", _key: "e7",
+      payload: {
+        question: "Did you hold the shares at the close before the ex-date?",
+        yes: "You receive the dividend on the pay date, whatever you do with the shares afterwards.",
+        no: "The seller receives it. Buying on the ex-date itself is too late.",
+      },
+    },
+  },
+  {
+    title: "Terms on this page",
+    pieceTypes: "RAIL",
+    bindingRule: "AUTO-ASSEMBLED FROM EVERY BLK-TERM ON THE PAGE · SHARED STORE WITH LEARN",
+    annotation: "DERIVED — A WRITER AGENT DOES NOT AUTHOR THIS BLOCK",
+    node: {
+      code: "BLK-GLOSSARY", _key: "e8",
+      payload: {
+        terms: [
+          { term: "Ex-date", definition: "The first day the shares trade without the declared dividend attached." },
+          { term: "Record date", definition: "The day the register is checked to decide who is paid." },
+        ],
+      },
+    },
+  },
+];
+
+/* ── F · Wire & live state ───────────────────────────────────────────────── */
+
+export const FAMILY_F: Specimen[] = [
+  {
+    title: "Tape entry",
+    pieceTypes: "THE TAPE",
+    bindingRule: "TIME IN THE GUTTER, VENUE UNDER IT · MAX 40 WORDS FOR AGENT AUTO-PUBLISH",
+    node: {
+      code: "BLK-TAPEROW", _key: "f1",
+      payload: {
+        time: "11:42", venue: "Tadawul", category: "Dividend", reference: "7010 · CG-1",
+        headline: "stc declares SAR 0.80 interim, ex-date 2 July",
+        body: "The board approved an interim dividend of SAR 0.80 a share, unchanged on the prior period. The ex-date is 2 July and payment follows on 21 July.",
+      },
+    },
+  },
+  {
+    title: "Data chip row",
+    pieceTypes: "WIRE",
+    bindingRule: "3–5 CHIPS · THE CHEAPEST WAY TO ATTACH DATA TO A 30-WORD ITEM",
+    annotation: "THE MOVING NUMBER GETS THE INK BORDER · CONTEXT CHIPS STAY GREY",
+    node: {
+      code: "BLK-CHIPROW", _key: "f2",
+      payload: {
+        chips: [
+          { label: "DPS", value: "SAR 0.80", isMoving: false },
+          { label: "Yield", value: "4.2%", isMoving: false },
+          { label: "Last", value: "−0.6%", isMoving: true, direction: "down" },
+          { label: "Ex-date", value: "2 Jul", isMoving: false },
+        ],
+      },
+    },
+  },
+  {
+    title: "Mini chart card",
+    pieceTypes: "WIRE",
+    bindingRule: "ONE SERIES, NO AXES, THREE LABELS MAX · THE WIRE'S ONLY PERMITTED CHART",
+    node: {
+      code: "BLK-SNAPSHOT", _key: "f3",
+      payload: {
+        title: "Interim DPS, six periods",
+        bars: [
+          { label: "1H24", value: 0.5 }, { label: null, value: 0.6 }, { label: null, value: 0.75 },
+          { label: "Peak", value: 0.9 }, { label: null, value: 0.8 }, { label: "Now", value: 0.8 },
+        ],
+        peakIndex: 3, latestIndex: 5, latestDirection: "down",
+      },
+    },
+  },
+  {
+    title: "Deadline clock",
+    pieceTypes: "IPO · EX-DATE",
+    bindingRule: "ABSOLUTE DEADLINE UNDER THE RELATIVE ONE · MARSAD NEVER TAKES THE ORDER",
+    node: {
+      code: "BLK-COUNTDOWN", _key: "f4",
+      payload: {
+        kicker: "Retail tranche closes",
+        relative: "2d 09h",
+        absolute: "9 Jul 13:00 GST",
+        context: "Covered 3.1× at the last disclosure.",
+        ctaLabel: "Subscribe with your broker →",
+      },
+    },
+  },
+  {
+    title: "Trading halt",
+    pieceTypes: "WIRE · STOCK",
+    bindingRule: "MUST DISTINGUISH FROZEN FROM STALE · STATES THE REASON AND THE EXPECTED LIFT",
+    node: {
+      code: "BLK-HALT", _key: "f5",
+      payload: {
+        ticker: "1234", haltedSince: "10:18 GST", expectedLift: "13:00 GST",
+        reason: "Pending material announcement",
+        lastTraded: "SAR 18.40",
+        frozenStatement: "This price is frozen, not stale — the instrument is halted and our feed is current.",
+      },
+    },
+  },
+  {
+    title: "Correction note",
+    pieceTypes: "ALL TYPES",
+    bindingRule: "AMBER, NOT RED — A CORRECTION IS INTEGRITY · SAYS WHETHER THE ARGUMENT SURVIVED",
+    node: {
+      code: "BLK-CORRECTION", _key: "f6",
+      payload: {
+        originalAt: "16 Aug 09:14", correctedAt: "16 Aug 11:02",
+        wrongValue: "SAR 4.22bn", correctedValue: "SAR 4.43bn",
+        why: "The vendor feed carried the standalone figure; the filing states consolidated.",
+        remediation: "The lake object was superseded and the two pieces citing it were re-rendered.",
+        argumentSurvived: true, ruleId: "R-07",
+      },
+    },
+  },
+  {
+    title: "Session breadth",
+    pieceTypes: "CLOSE",
+    bindingRule: "MEDIAN MOVE MATTERS MORE THAN THE INDEX — IT SAYS WHETHER THE DAY WAS BROAD",
+    node: {
+      code: "BLK-BREADTH", _key: "f7",
+      payload: {
+        advancers: 62, decliners: 148, unchanged: 31,
+        medianMovePct: "−0.7%",
+        best: { ticker: "2010", pct: "+3.1%" },
+        valueTraded: "SAR 4.9bn",
+      },
+    },
+  },
+  {
+    title: "Venue column header",
+    pieceTypes: "BY-MARKET",
+    bindingRule: "BINDS MARKET.STATUS PER VENUE · CARRIES ITS OWN ITEM COUNT",
+    annotation: "A DEGRADED FEED IS NAMED IN THE HEADER, NOT HIDDEN IN A FOOTNOTE",
+    node: {
+      code: "BLK-VENUEHEAD", _key: "f8",
+      payload: {
+        title: "Qatar · Kuwait · Oman",
+        headline: { label: "QE Index", change: "+0.4%" },
+        secondary: [
+          { label: "Boursa", change: "−0.2%" },
+          { label: "MSX30", change: "+0.1%", degraded: true },
+        ],
+        itemCount: 14,
+      },
+    },
+  },
+];
