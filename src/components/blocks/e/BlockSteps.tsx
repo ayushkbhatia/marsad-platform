@@ -14,7 +14,7 @@ import type { BlockNodeOf } from "../types";
  * rule was written against.
  */
 export function BlockSteps({ node }: { node: BlockNodeOf<"BLK-STEPS"> }) {
-  const { steps } = node.payload;
+  const { steps = [] } = node.payload;
 
   if (steps.length < 3 || steps.length > 5) {
     warnConstraint("BLK-STEPS", `${steps.length} steps — the block is three to five.`);

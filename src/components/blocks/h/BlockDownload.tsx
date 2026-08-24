@@ -15,7 +15,7 @@ import type { BlockNodeOf } from "../types";
  * Outlined, not filled: the card is explicit that this is not the primary CTA.
  */
 export function BlockDownload({ node }: { node: BlockNodeOf<"BLK-DOWNLOAD"> }) {
-  const { kicker = "Every series is downloadable", explainer, seriesCount, format, objectIds } = node.payload;
+  const { kicker = "Every series is downloadable", explainer, seriesCount = 0, format, objectIds = [] } = node.payload;
 
   if (objectIds.length !== seriesCount) {
     warnConstraint(

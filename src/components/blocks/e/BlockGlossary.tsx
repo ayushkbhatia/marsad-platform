@@ -14,7 +14,7 @@ import type { BlockNodeOf } from "../types";
  * Learn hub is worse than one that appears only once.
  */
 export function BlockGlossary({ node }: { node: BlockNodeOf<"BLK-GLOSSARY"> }) {
-  const { terms } = node.payload;
+  const { terms = [] } = node.payload;
   if (terms.length === 0) return null;
 
   return (

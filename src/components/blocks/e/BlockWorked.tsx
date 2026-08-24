@@ -18,7 +18,8 @@ import type { BlockNodeOf } from "../types";
 const GRID = { gridTemplateColumns: "1fr 96px 96px" };
 
 export function BlockWorked({ node }: { node: BlockNodeOf<"BLK-WORKED"> }) {
-  const { premise, beforeLabel, afterLabel, rows, total, closing } = node.payload;
+  const { premise, beforeLabel, afterLabel, rows = [], total, closing } = node.payload;
+  const totalRow = total ?? { label: "Total", before: null, after: null };
 
   if (!total?.label) {
     warnConstraint("BLK-WORKED", "no total row — the example must end in the row that settles the point.");
@@ -52,12 +53,12 @@ export function BlockWorked({ node }: { node: BlockNodeOf<"BLK-WORKED"> }) {
       ))}
 
       <div className="grid items-baseline gap-2.5 bg-paper-tint px-3 py-[9px]" style={GRID}>
-        <span className="font-display text-[12.5px] font-bold text-ink">{total.label}</span>
+        <span className="font-display text-[12.5px] font-bold text-ink">{totalRow.label}</span>
         <span className="text-right font-mono text-[12px] text-ink-muted tabular-nums">
-          <Val v={total.before} />
+          <Val v={totalRow.before} />
         </span>
         <span className="text-right font-mono text-[12px] font-bold text-ink tabular-nums">
-          <Val v={total.after} />
+          <Val v={totalRow.after} />
         </span>
       </div>
 

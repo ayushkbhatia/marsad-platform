@@ -17,7 +17,7 @@ import type { BlockNodeOf } from "../types";
 const PLOT_H = 84;
 
 export function BlockSnapshot({ node }: { node: BlockNodeOf<"BLK-SNAPSHOT"> }) {
-  const { title, bars, peakIndex, latestIndex, latestDirection } = node.payload;
+  const { title, bars = [], peakIndex, latestIndex, latestDirection } = node.payload;
 
   const labelled = bars.filter((b) => b.label).length;
   if (labelled > 3) warnConstraint("BLK-SNAPSHOT", `${labelled} labels — the card shows at most three.`);

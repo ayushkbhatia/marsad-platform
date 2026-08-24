@@ -12,7 +12,7 @@ import type { BlockNodeOf } from "../types";
  * defensible. Warned here so the overrun is visible while writing, then refused upstream.
  */
 export function BlockTapeRow({ node }: { node: BlockNodeOf<"BLK-TAPEROW"> }) {
-  const { time, venue, category, reference, headline, body } = node.payload;
+  const { time, venue, category, reference, headline, body = "" } = node.payload;
 
   const words = body.trim().split(/\s+/).filter(Boolean).length;
   if (words > 40) {

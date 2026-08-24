@@ -31,7 +31,7 @@ const SWATCH_CLASS: Record<string, string> = {
 };
 
 export function BlockAnatomy({ node }: { node: BlockNodeOf<"BLK-ANATOMY"> }) {
-  const { documentType, regions, annotations } = node.payload;
+  const { documentType, regions = [], annotations = [] } = node.payload;
 
   if (!regions.some((r) => r.highlight === "critical")) {
     warnConstraint("BLK-ANATOMY", "no critical region — the block exists to point at the figure that changes your cash.");

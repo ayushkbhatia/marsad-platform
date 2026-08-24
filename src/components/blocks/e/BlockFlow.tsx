@@ -17,7 +17,7 @@ import type { BlockNodeOf } from "../types";
  * claim and a diagram that guessed would sometimes be wrong silently.
  */
 export function BlockFlow({ node }: { node: BlockNodeOf<"BLK-FLOW"> }) {
-  const { nodes, connectors } = node.payload;
+  const { nodes = [], connectors = [] } = node.payload;
 
   if (nodes.length > 4) warnConstraint("BLK-FLOW", `${nodes.length} nodes — the block is at most four.`);
   if (connectors.length !== Math.max(0, nodes.length - 1)) {

@@ -128,3 +128,41 @@ export function seriesProvenance(series: SeriesPoint[]): { objectIds: string[]; 
   const allVerified = series.length > 0 && series.every((p) => p.state === "VERIFIED");
   return { objectIds, allVerified };
 }
+
+/**
+ * The extent of a set of numbers, ignoring nulls, padded so a flat series still draws.
+ *
+ * Returns null when nothing is finite — the caller must then say "nothing resolved" rather than
+ * draw an empty axis, because an axis with no data on it reads as a measurement of zero.
+ */
+export function extent(values: Array<number | null | undefined>): { min: number; max: number } | null {
+  const ok = values.filter((v): v is number => typeof v === "number" && Number.isFinite(v));
+  if (ok.length === 0) return null;
+  let min = Math.min(...ok);
+  let max = Math.max(...ok);
+  if (min === max) {
+    // A flat series is a real observation. Give it a band so it renders as a line rather than
+    // collapsing to zero height, which would read as missing.
+    const pad = Math.abs(min) > 0 ? Math.abs(min) * 0.05 : 1;
+    min -= pad;
+    max += pad;
+  }
+  return { min, max };
+}
+
+/** Map a value into a pixel span. Returns the low end for a non-finite input. */
+export function scale(v: number | null | undefined, dom: { min: number; max: number }, px: number): number {
+  if (typeof v !== "number" || !Number.isFinite(v)) return 0;
+  const span = dom.max - dom.min || 1;
+  return ((v - dom.min) / span) * px;
+}
+
+/** The median of a set, used for a scatter's quadrant lines. Null when nothing is finite. */
+export function median(values: Array<number | null | undefined>): number | null {
+  const ok = values
+    .filter((v): v is number => typeof v === "number" && Number.isFinite(v))
+    .sort((a, b) => a - b);
+  if (ok.length === 0) return null;
+  const mid = Math.floor(ok.length / 2);
+  return ok.length % 2 === 0 ? (ok[mid - 1]! + ok[mid]!) / 2 : ok[mid]!;
+}

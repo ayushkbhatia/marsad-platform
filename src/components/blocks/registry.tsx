@@ -40,6 +40,19 @@ import { BlockBigNum } from "./b/BlockBigNum";
 import { BlockVerdict } from "./b/BlockVerdict";
 import { BlockTake } from "./b/BlockTake";
 import { BlockFalsify } from "./b/BlockFalsify";
+import { BlockCandle } from "./d/BlockCandle";
+import { BlockCover } from "./d/BlockCover";
+import { BlockDist } from "./d/BlockDist";
+import { BlockDonut } from "./d/BlockDonut";
+import { BlockDumbbell } from "./d/BlockDumbbell";
+import { BlockHeat } from "./d/BlockHeat";
+import { BlockIndexed } from "./d/BlockIndexed";
+import { BlockRange } from "./d/BlockRange";
+import { BlockScatter } from "./d/BlockScatter";
+import { BlockSlope } from "./d/BlockSlope";
+import { BlockStack } from "./d/BlockStack";
+import { BlockWaterfall } from "./d/BlockWaterfall";
+
 import { BlockAnatomy } from "./e/BlockAnatomy";
 import { BlockDecision } from "./e/BlockDecision";
 import { BlockFlow } from "./e/BlockFlow";
@@ -140,6 +153,18 @@ export const BLOCK_RENDERERS: BlockRendererMap = {
   // to MissingBlock on purpose: a stub that renders nothing is indistinguishable from a bug.
   "BLK-LINE": BlockLine,
   "BLK-AREA": BlockArea,
+  "BLK-STACK": BlockStack,
+  "BLK-WATERFALL": BlockWaterfall,
+  "BLK-SCATTER": BlockScatter,
+  "BLK-DIST": BlockDist,
+  "BLK-DUMBBELL": BlockDumbbell,
+  "BLK-SLOPE": BlockSlope,
+  "BLK-RANGE": BlockRange,
+  "BLK-HEAT": BlockHeat,
+  "BLK-INDEXED": BlockIndexed,
+  "BLK-DONUT": BlockDonut,
+  "BLK-COVER": BlockCover,
+  "BLK-CANDLE": BlockCandle,
   "BLK-BARS": BlockBars,
 };
 

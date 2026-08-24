@@ -17,7 +17,7 @@ import type { BlockNodeOf } from "../types";
  * one thing that must not happen.
  */
 export function BlockBreadth({ node }: { node: BlockNodeOf<"BLK-BREADTH"> }) {
-  const { advancers, decliners, unchanged, medianMovePct, best, valueTraded } = node.payload;
+  const { advancers = 0, decliners = 0, unchanged = 0, medianMovePct, best, valueTraded } = node.payload;
 
   const total = advancers + decliners + unchanged;
   if (total <= 0) {
@@ -57,7 +57,7 @@ export function BlockBreadth({ node }: { node: BlockNodeOf<"BLK-BREADTH"> }) {
         <div>
           <div className="font-mono text-[7.5px] tracking-[0.1em] text-ink-faint uppercase">Best</div>
           <div className="font-mono text-[12.5px] text-ink tabular-nums">
-            {best.ticker} <Val v={best.pct} />
+            {best?.ticker ?? "—"} <Val v={best?.pct ?? null} />
           </div>
         </div>
         <div>

@@ -15,7 +15,7 @@ import type { BlockNodeOf } from "../types";
  * sign, and conflating them would make a large fall look like a small rise.
  */
 export function BlockChipRow({ node }: { node: BlockNodeOf<"BLK-CHIPROW"> }) {
-  const { chips } = node.payload;
+  const { chips = [] } = node.payload;
 
   if (chips.length < 3 || chips.length > 5) {
     warnConstraint("BLK-CHIPROW", `${chips.length} chips — the row is three to five.`);

@@ -16,7 +16,7 @@ import type { BlockNodeOf } from "../types";
  * with the truncation instead of exposing it.
  */
 export function BlockVenueHead({ node }: { node: BlockNodeOf<"BLK-VENUEHEAD"> }) {
-  const { title, headline, secondary, itemCount } = node.payload;
+  const { title, headline, secondary = [], itemCount } = node.payload;
 
   return (
     <header className="my-3">
@@ -30,12 +30,12 @@ export function BlockVenueHead({ node }: { node: BlockNodeOf<"BLK-VENUEHEAD"> })
       <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1.5 border border-hairline bg-paper-tint px-3 py-2">
         <span className="flex items-baseline gap-1.5">
           <span className="font-mono text-[10px] font-semibold tracking-[0.06em] text-ink uppercase">
-            {headline.label}
+            {headline?.label ?? "—"}
           </span>
           <span className="font-mono text-[12px] font-semibold text-ink tabular-nums">
-            <Val v={headline.change} />
+            <Val v={headline?.change ?? null} />
           </span>
-          {headline.degraded ? <DegradedFlag label={headline.label} /> : null}
+          {headline?.degraded ? <DegradedFlag label={headline?.label ?? "—"} /> : null}
         </span>
 
         {secondary.map((s, i) => (

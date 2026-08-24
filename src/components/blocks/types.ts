@@ -114,7 +114,7 @@ export type BlockCode =
 export type ImplementedBlockCode =
   | BlockCodeG | BlockCodeA | BlockCodeC | BlockCodeB | BlockCodeE | BlockCodeF
   | "BLK-CUT" | "BLK-PAYWALL" | "BLK-ALERTCTA" | "BLK-DOWNLOAD"
-  | "BLK-LINE" | "BLK-BARS" | "BLK-AREA";
+  | BlockCodeD;
 
 export type BlockFamily = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H";
 
@@ -600,6 +600,191 @@ export interface BarsPayload {
   unit?: string | null;
 }
 
+/**
+ * The remaining twelve D shapes.
+ *
+ * Nine of the fifteen are a list of bound series and reuse `ChartSeriesNode`. Six are structurally
+ * different on their own cards — a scatter is points carrying three variables each, a waterfall has
+ * a start and an end sitting on the baseline, a range has bear/base/bull plus a live marker — and
+ * forcing those into `series[]` would lose exactly the structure the shape needs. Those name their
+ * data field explicitly.
+ */
+
+/** BLK-STACK · "WHAT'S IT MADE OF?" — max 4 segments; under 5% merges into "other". */
+export interface StackSegment {
+  label: string;
+  value: number | null;
+  objectId: string;
+  state: string;
+}
+export interface StackPayload {
+  caption: string;
+  segments: StackSegment[];
+  unit?: string | null;
+}
+
+/** BLK-WATERFALL · "WHAT MOVED IT?" — 4–6 drivers between a start and an end on the baseline. */
+export interface WaterfallStep {
+  label: string;
+  /** Signed: the contribution this driver made. */
+  value: number | null;
+  objectId: string;
+  state: string;
+}
+export interface WaterfallPayload {
+  caption: string;
+  start: WaterfallStep;
+  drivers: WaterfallStep[];
+  end: WaterfallStep;
+  unit?: string | null;
+}
+
+/** BLK-SCATTER · "WHO'S POSITIONED?" — radius is a third variable and is always stated. */
+export interface ScatterPoint {
+  label: string;
+  x: number | null;
+  y: number | null;
+  /** The third variable. Its meaning is named in `radiusMeans` — never left implicit. */
+  r: number | null;
+  /** Drives the outline: a positive call, a negative one, or unrated. */
+  rating?: "positive" | "negative" | null;
+  objectId: string;
+  state: string;
+}
+export interface ScatterPayload {
+  caption: string;
+  points: ScatterPoint[];
+  xLabel: string;
+  yLabel: string;
+  /** Mandatory: a bubble whose size means nothing stated is a decoration. */
+  radiusMeans: string;
+  unit?: string | null;
+}
+
+/** BLK-DIST · "HOW SPREAD OUT?" — bars hang both ways from a heavy zero line. */
+export interface DistPayload {
+  caption: string;
+  series: ChartSeriesNode[];
+  unit?: string | null;
+}
+
+/** BLK-DUMBBELL · "WHAT CHANGED?" — hollow is old, solid is new. */
+export interface DumbbellRow {
+  label: string;
+  from: number | null;
+  to: number | null;
+  objectId: string;
+  state: string;
+}
+export interface DumbbellPayload {
+  caption: string;
+  rows: DumbbellRow[];
+  fromLabel: string;
+  toLabel: string;
+  unit?: string | null;
+}
+
+/** BLK-SLOPE · "WHO OVERTOOK WHOM?" — two periods only; only the crossing pair gets colour. */
+export interface SlopeRow {
+  label: string;
+  from: number | null;
+  to: number | null;
+  objectId: string;
+  state: string;
+}
+export interface SlopePayload {
+  caption: string;
+  rows: SlopeRow[];
+  fromPeriod: string;
+  toPeriod: string;
+  unit?: string | null;
+}
+
+/** BLK-RANGE · "WHERE'S FAIR?" — a range without a stated method is a guess. */
+export interface RangePayload {
+  caption: string;
+  bear: number | null;
+  base: number | null;
+  bull: number | null;
+  /** The diamond marker. */
+  live: number | null;
+  /** Mandatory — the card's rule is that the method and basis must be stated. */
+  method: string;
+  basis: string;
+  objectIds: string[];
+  unit?: string | null;
+}
+
+/** BLK-HEAT · "WHERE'S THE PATTERN?" — max 8×8, and the ONE block that may carry the dark ramp. */
+export interface HeatCell {
+  value: number | null;
+  objectId: string;
+  state: string;
+}
+export interface HeatPayload {
+  caption: string;
+  rowLabels: string[];
+  colLabels: string[];
+  /** Row-major, rowLabels.length × colLabels.length. */
+  cells: HeatCell[][];
+  unit?: string | null;
+}
+
+/** BLK-INDEXED · "VS WHAT?" — always rebased to 100, always with the benchmark. */
+export interface IndexedPayload {
+  caption: string;
+  subject: ChartSeriesNode;
+  /** Mandatory: "vs what?" has no answer without it. */
+  benchmark: ChartSeriesNode;
+  unit?: string | null;
+}
+
+/** BLK-DONUT · composition ring; the hole carries the one number that matters. */
+export interface DonutSegment {
+  label: string;
+  value: number | null;
+  objectId: string;
+  state: string;
+}
+export interface DonutPayload {
+  caption: string;
+  /** Max 5. Monochrome ramp, darkest = largest. */
+  segments: DonutSegment[];
+  /** The single figure in the hole, and what it is. */
+  centreValue: string;
+  centreLabel: string;
+  unit?: string | null;
+}
+
+/** BLK-COVER · subscription cover meter. The 1.0× line is always drawn, in red. */
+export interface CoverPayload {
+  caption: string;
+  /** Times covered. Below 1.0 the offer is undersubscribed, which IS the story. */
+  covered: number | null;
+  scaleMax: number;
+  objectId: string;
+  state: string;
+}
+
+/** BLK-CANDLE · session candles. On a debut the reference is the OFFER price, not a prior close. */
+export interface Candle {
+  label: string;
+  open: number | null;
+  high: number | null;
+  low: number | null;
+  close: number | null;
+  objectId: string;
+  state: string;
+}
+export interface CandlePayload {
+  caption: string;
+  candles: Candle[];
+  /** Dashed reference line. On a debut this is the offer price — say which in `referenceLabel`. */
+  reference?: number | null;
+  referenceLabel?: string | null;
+  unit?: string | null;
+}
+
 /* ── E · Mechanism — how a thing actually works ──────────────────────────── */
 
 /**
@@ -955,6 +1140,18 @@ export type BlockNode =
   | (BlockNodeBase & { code: "BLK-ALERTCTA"; payload: AlertCtaPayload })
   | (BlockNodeBase & { code: "BLK-DOWNLOAD"; payload: DownloadPayload })
   // D
+  | (BlockNodeBase & { code: "BLK-STACK"; payload: StackPayload })
+  | (BlockNodeBase & { code: "BLK-WATERFALL"; payload: WaterfallPayload })
+  | (BlockNodeBase & { code: "BLK-SCATTER"; payload: ScatterPayload })
+  | (BlockNodeBase & { code: "BLK-DIST"; payload: DistPayload })
+  | (BlockNodeBase & { code: "BLK-DUMBBELL"; payload: DumbbellPayload })
+  | (BlockNodeBase & { code: "BLK-SLOPE"; payload: SlopePayload })
+  | (BlockNodeBase & { code: "BLK-RANGE"; payload: RangePayload })
+  | (BlockNodeBase & { code: "BLK-HEAT"; payload: HeatPayload })
+  | (BlockNodeBase & { code: "BLK-INDEXED"; payload: IndexedPayload })
+  | (BlockNodeBase & { code: "BLK-DONUT"; payload: DonutPayload })
+  | (BlockNodeBase & { code: "BLK-COVER"; payload: CoverPayload })
+  | (BlockNodeBase & { code: "BLK-CANDLE"; payload: CandlePayload })
   | (BlockNodeBase & { code: "BLK-LINE"; payload: LinePayload })
   | (BlockNodeBase & { code: "BLK-AREA"; payload: AreaPayload })
   | (BlockNodeBase & { code: "BLK-BARS"; payload: BarsPayload });

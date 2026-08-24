@@ -890,3 +890,280 @@ export const FAMILY_F: Specimen[] = [
     },
   },
 ];
+
+/* ── D · Charts — one shape per question ─────────────────────────────────── */
+
+const OID = (n: number) => `dddddddd-${String(n).padStart(4, "0")}-4000-8000-000000000001`;
+
+/** A bound point. Every chart datum carries the object it resolved from. */
+const pt = (label: string, value: number | null, i: number, date: string | null = null) => ({
+  label, date, value, objectId: OID(i), state: "PENDING",
+});
+
+export const FAMILY_D: Specimen[] = [
+  {
+    title: "Trend line",
+    pieceTypes: "ALL",
+    bindingRule: "WHEN DID IT TURN? · A LINE WITHOUT ITS ANNOTATION IS DECORATION",
+    node: {
+      code: "BLK-LINE", _key: "d1",
+      payload: {
+        caption: "Net interest margin, eight quarters.",
+        series: [{ label: "NIM", points: [
+          pt("Q3 24", 3.02, 1), pt("Q4 24", 3.11, 2), pt("Q1 25", 3.24, 3), pt("Q2 25", 3.38, 4),
+          pt("Q3 25", 3.41, 5), pt("Q4 25", 3.29, 6), pt("Q1 26", 3.12, 7), pt("Q2 26", 2.98, 8),
+        ] }],
+        annotation: { at: "Q3 25", whatHappened: "Deposit costs repriced faster than the loan book." },
+        unit: "%",
+      },
+    },
+  },
+  {
+    title: "Area",
+    pieceTypes: "ALL",
+    bindingRule: "HOW MUCH NOW? · ONE TO THREE AREAS; A FOURTH IS BLK-STACK'S JOB",
+    node: {
+      code: "BLK-AREA", _key: "d2",
+      payload: {
+        caption: "Total assets, SAR bn.",
+        series: [{ label: "Assets", points: [
+          pt("FY22", 640, 11), pt("FY23", 712, 12), pt("FY24", 798, 13), pt("FY25", 844, 14),
+        ] }],
+        unit: "SAR bn",
+      },
+    },
+  },
+  {
+    title: "Categorical bars",
+    pieceTypes: "ALL",
+    bindingRule: "WHO IS BIGGEST? · SORTED DESCENDING BY THE RESOLVED VALUE",
+    node: {
+      code: "BLK-BARS", _key: "d3",
+      payload: {
+        caption: "Market capitalisation, top five banks.",
+        series: [
+          { label: "Al Rajhi", points: [pt("Al Rajhi", 328, 21)] },
+          { label: "SNB", points: [pt("SNB", 292, 22)] },
+          { label: "Riyad", points: [pt("Riyad", 96, 23)] },
+          { label: "SAB", points: [pt("SAB", 78, 24)] },
+          { label: "Alinma", points: [pt("Alinma", 64, 25)] },
+        ],
+        leadCount: 2, unit: "SAR bn",
+      },
+    },
+  },
+  {
+    title: "Proportional bar",
+    pieceTypes: "ALL",
+    bindingRule: "WHAT'S IT MADE OF? · MAX 4 SEGMENTS · UNDER 5% MERGES INTO “OTHER”",
+    annotation: "THE 5% MERGE IS DONE BY THE RENDERER — THE WRITER NEVER SAW THE VALUES",
+    node: {
+      code: "BLK-STACK", _key: "d4",
+      payload: {
+        caption: "Revenue by segment, FY25.",
+        segments: [
+          { label: "Retail", value: 54, objectId: OID(31), state: "PENDING" },
+          { label: "Corporate", value: 31, objectId: OID(32), state: "PENDING" },
+          { label: "Treasury", value: 12, objectId: OID(33), state: "PENDING" },
+          { label: "Other fees", value: 2, objectId: OID(34), state: "PENDING" },
+          { label: "Sundry", value: 1, objectId: OID(35), state: "PENDING" },
+        ],
+        unit: "%",
+      },
+    },
+  },
+  {
+    title: "Bridge",
+    pieceTypes: "ALL",
+    bindingRule: "WHAT MOVED IT? · START AND END ON THE BASELINE · CONNECTORS DASHED · 4–6 DRIVERS",
+    node: {
+      code: "BLK-WATERFALL", _key: "d5",
+      payload: {
+        caption: "Net profit bridge, FY24 to FY25, SAR bn.",
+        start: { label: "FY24", value: 14.2, objectId: OID(41), state: "PENDING" },
+        drivers: [
+          { label: "NII", value: 2.1, objectId: OID(42), state: "PENDING" },
+          { label: "Fees", value: 0.6, objectId: OID(43), state: "PENDING" },
+          { label: "Opex", value: -0.9, objectId: OID(44), state: "PENDING" },
+          { label: "Provisions", value: -1.4, objectId: OID(45), state: "PENDING" },
+        ],
+        end: { label: "FY25", value: 14.6, objectId: OID(46), state: "PENDING" },
+        unit: "SAR bn",
+      },
+    },
+  },
+  {
+    title: "Bubble scatter",
+    pieceTypes: "ALL",
+    bindingRule: "WHO'S POSITIONED? · RADIUS = A THIRD VARIABLE, ALWAYS STATED",
+    annotation: "QUADRANTS SIT AT THE COHORT'S OWN MEDIANS — NEVER AN IMPORTED BENCHMARK",
+    node: {
+      code: "BLK-SCATTER", _key: "d6",
+      payload: {
+        caption: "Valuation against returns, GCC banks.",
+        points: [
+          { label: "RJHI", x: 18.2, y: 21.4, r: 328, rating: "positive", objectId: OID(51), state: "PENDING" },
+          { label: "SNB", x: 11.4, y: 14.2, r: 292, rating: null, objectId: OID(52), state: "PENDING" },
+          { label: "RIBL", x: 9.8, y: 15.9, r: 96, rating: "positive", objectId: OID(53), state: "PENDING" },
+          { label: "SAB", x: 10.6, y: 11.1, r: 78, rating: "negative", objectId: OID(54), state: "PENDING" },
+          { label: "ALINMA", x: 13.1, y: 17.6, r: 64, rating: null, objectId: OID(55), state: "PENDING" },
+        ],
+        xLabel: "P/E", yLabel: "ROE %", radiusMeans: "market capitalisation, SAR bn",
+      },
+    },
+  },
+  {
+    title: "Distribution",
+    pieceTypes: "ALL",
+    bindingRule: "HOW SPREAD OUT? · ZERO LINE IS THE HEAVY RULE · BARS HANG BOTH WAYS",
+    node: {
+      code: "BLK-DIST", _key: "d7",
+      payload: {
+        caption: "Session moves across the index constituents.",
+        series: [{ label: "Move %", points: [
+          pt("−4", -4.1, 61), pt("−2", -2.2, 62), pt("−1", -0.8, 63), pt("0", 0.2, 64),
+          pt("+1", 1.1, 65), pt("+2", 2.4, 66), pt("+3", 3.2, 67),
+        ] }],
+        unit: "%",
+      },
+    },
+  },
+  {
+    title: "Before / after",
+    pieceTypes: "ALL",
+    bindingRule: "WHAT CHANGED? · HOLLOW = OLD · SOLID = NEW · DIRECTION READS INSTANTLY",
+    node: {
+      code: "BLK-DUMBBELL", _key: "d8",
+      payload: {
+        caption: "Price-target revisions after the Q2 print.",
+        rows: [
+          { label: "RJHI", from: 88, to: 96, objectId: OID(71), state: "PENDING" },
+          { label: "SNB", from: 42, to: 39, objectId: OID(72), state: "PENDING" },
+          { label: "RIBL", from: 31, to: 34, objectId: OID(73), state: "PENDING" },
+        ],
+        fromLabel: "before", toLabel: "after", unit: "SAR",
+      },
+    },
+  },
+  {
+    title: "Rank change",
+    pieceTypes: "ALL",
+    bindingRule: "WHO OVERTOOK WHOM? · TWO PERIODS ONLY · ONLY THE CROSSING PAIR GETS COLOUR",
+    annotation: "THE CROSSING PAIR IS COMPUTED FROM RESOLVED VALUES — THE WRITER COULD NOT HAVE KNOWN IT",
+    node: {
+      code: "BLK-SLOPE", _key: "d9",
+      payload: {
+        caption: "Deposit market share, FY24 to FY25.",
+        rows: [
+          { label: "RJHI", from: 21.2, to: 22.8, objectId: OID(81), state: "PENDING" },
+          { label: "SNB", from: 23.4, to: 22.1, objectId: OID(82), state: "PENDING" },
+          { label: "RIBL", from: 9.1, to: 9.4, objectId: OID(83), state: "PENDING" },
+          { label: "SAB", from: 7.8, to: 7.5, objectId: OID(84), state: "PENDING" },
+        ],
+        fromPeriod: "FY24", toPeriod: "FY25", unit: "%",
+      },
+    },
+  },
+  {
+    title: "Valuation range",
+    pieceTypes: "ALL",
+    bindingRule: "WHERE'S FAIR? · MUST STATE THE METHOD AND BASIS · A RANGE WITHOUT A DECK IS A GUESS",
+    node: {
+      code: "BLK-RANGE", _key: "d10",
+      payload: {
+        caption: "Fair-value range against the live price.",
+        bear: 24, base: 31, bull: 38, live: 29.2,
+        method: "Residual income", basis: "FY26E book, 11.5% CoE",
+        objectIds: [OID(91), OID(92)], unit: "SAR",
+      },
+    },
+  },
+  {
+    title: "Mini heat grid",
+    pieceTypes: "ALL",
+    bindingRule: "WHERE'S THE PATTERN? · MAX 8×8 · NEVER INVENT A SECOND SCALE",
+    annotation: "THE ONLY BLOCK PERMITTED TO CARRY THE DARK-ROOM PALETTE ON PAPER",
+    node: {
+      code: "BLK-HEAT", _key: "d11",
+      payload: {
+        caption: "Monthly returns by venue.",
+        rowLabels: ["TDWL", "ADX", "DFM", "QE"],
+        colLabels: ["Apr", "May", "Jun", "Jul"],
+        cells: [
+          [{ value: 0.8, objectId: OID(101), state: "PENDING" }, { value: 0.3, objectId: OID(102), state: "PENDING" }, { value: -0.2, objectId: OID(103), state: "PENDING" }, { value: 0.6, objectId: OID(104), state: "PENDING" }],
+          [{ value: 0.2, objectId: OID(105), state: "PENDING" }, { value: -0.5, objectId: OID(106), state: "PENDING" }, { value: -0.9, objectId: OID(107), state: "PENDING" }, { value: 0.1, objectId: OID(108), state: "PENDING" }],
+          [{ value: -0.4, objectId: OID(109), state: "PENDING" }, { value: 0.1, objectId: OID(110), state: "PENDING" }, { value: 0.5, objectId: OID(111), state: "PENDING" }, { value: 0.9, objectId: OID(112), state: "PENDING" }],
+          // one cell deliberately unresolved — it must NOT take a mid-ramp colour
+          [{ value: 0.4, objectId: OID(113), state: "PENDING" }, { value: null, objectId: OID(114), state: "PENDING" }, { value: -0.7, objectId: OID(115), state: "PENDING" }, { value: -0.1, objectId: OID(116), state: "PENDING" }],
+        ],
+        unit: "%",
+      },
+    },
+  },
+  {
+    title: "Rebased performance",
+    pieceTypes: "ALL",
+    bindingRule: "VS WHAT? · ALWAYS REBASE TO 100 AND ALWAYS SHOW THE BENCHMARK",
+    node: {
+      code: "BLK-INDEXED", _key: "d12",
+      payload: {
+        caption: "Total return against the index, rebased.",
+        subject: { label: "RJHI", points: [
+          pt("Jan", 100, 121), pt("Feb", 104, 122), pt("Mar", 109, 123), pt("Apr", 107, 124), pt("May", 114, 125),
+        ] },
+        benchmark: { label: "TASI", points: [
+          pt("Jan", 100, 131), pt("Feb", 101, 132), pt("Mar", 103, 133), pt("Apr", 104, 134), pt("May", 105, 135),
+        ] },
+      },
+    },
+  },
+  {
+    title: "Composition ring",
+    pieceTypes: "ALL",
+    bindingRule: "MONOCHROME RAMP, DARKEST = LARGEST · MAX 5 · THE HOLE CARRIES THE ONE NUMBER",
+    node: {
+      code: "BLK-DONUT", _key: "d13",
+      payload: {
+        caption: "Funding mix.",
+        segments: [
+          { label: "Demand deposits", value: 48, objectId: OID(141), state: "PENDING" },
+          { label: "Time deposits", value: 29, objectId: OID(142), state: "PENDING" },
+          { label: "Wholesale", value: 15, objectId: OID(143), state: "PENDING" },
+          { label: "Equity", value: 8, objectId: OID(144), state: "PENDING" },
+        ],
+        centreValue: "SAR 844bn", centreLabel: "total funding",
+      },
+    },
+  },
+  {
+    title: "Subscription cover meter",
+    pieceTypes: "IPO",
+    bindingRule: "THE 1.0× LINE IS ALWAYS DRAWN IN RED — BELOW IT THE OFFER IS UNDERSUBSCRIBED",
+    node: {
+      code: "BLK-COVER", _key: "d14",
+      payload: {
+        caption: "Retail tranche cover at the close of subscription.",
+        covered: 3.1, scaleMax: 5, objectId: OID(151), state: "PENDING",
+      },
+    },
+  },
+  {
+    title: "Session candles",
+    pieceTypes: "IPO · STOCK",
+    bindingRule: "WICK TAKES THE BODY COLOUR · ON A DEBUT THE REFERENCE IS THE OFFER PRICE",
+    node: {
+      code: "BLK-CANDLE", _key: "d15",
+      payload: {
+        caption: "First five sessions after listing.",
+        candles: [
+          { label: "D1", open: 24.0, high: 27.4, low: 23.8, close: 26.9, objectId: OID(161), state: "PENDING" },
+          { label: "D2", open: 26.9, high: 28.1, low: 26.2, close: 27.6, objectId: OID(162), state: "PENDING" },
+          { label: "D3", open: 27.6, high: 27.8, low: 25.4, close: 25.7, objectId: OID(163), state: "PENDING" },
+          { label: "D4", open: 25.7, high: 26.3, low: 24.9, close: 26.1, objectId: OID(164), state: "PENDING" },
+          { label: "D5", open: 26.1, high: 26.4, low: 25.1, close: 25.3, objectId: OID(165), state: "PENDING" },
+        ],
+        reference: 24.0, referenceLabel: "offer price", unit: "SAR",
+      },
+    },
+  },
+];

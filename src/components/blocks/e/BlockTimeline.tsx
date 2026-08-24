@@ -14,7 +14,7 @@ import type { BlockNodeOf } from "../types";
  * Stages are equal-width columns in date order. The index is positional, never a payload field.
  */
 export function BlockTimeline({ node }: { node: BlockNodeOf<"BLK-TIMELINE"> }) {
-  const { stages } = node.payload;
+  const { stages = [] } = node.payload;
 
   const critical = stages.filter((s) => s.isCritical).length;
   if (critical !== 1) {

@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 import { Block, IMPLEMENTED_BLOCK_CODES } from "@/components/blocks";
 import type { AnyBlockNode } from "@/components/blocks";
-import { FAMILY_E, FAMILY_F, FAMILY_A, FAMILY_B, FAMILY_C, FAMILY_G, FAMILY_H, FRESH_STATES, PROV_STATES, type Specimen } from "./fixtures";
+import { FAMILY_D, FAMILY_E, FAMILY_F, FAMILY_A, FAMILY_B, FAMILY_C, FAMILY_G, FAMILY_H, FRESH_STATES, PROV_STATES, type Specimen } from "./fixtures";
 
 /**
  * Block library — PD.5 verification surface.
@@ -93,11 +93,18 @@ function SpecimenCard({ s }: { s: Specimen }) {
 
 // An intentionally unregistered code: family D is not built (it needs the PD.6
 // chart compiler), so this must render the loud non-fatal marker, not throw.
+/**
+ * A code that is genuinely NOT in the vocabulary.
+ *
+ * This used to be `BLK-WATERFALL`, which worked only because family D was unbuilt. Now that all 61
+ * have renderers there is no real code left to demonstrate the fallback with, so it uses an
+ * invented one — the same string `fit.test.ts` uses for its out-of-vocabulary case.
+ */
 const UNREGISTERED: AnyBlockNode = {
   _key: "demo-missing",
-  code: "BLK-WATERFALL",
+  code: "BLK-INFOGRAPHIC",
   payload: {},
-};
+} as AnyBlockNode;
 
 export default function BlockLibraryPage() {
   return (
@@ -151,7 +158,7 @@ export default function BlockLibraryPage() {
             title="Unregistered code (not a block)"
             pieceTypes="RENDERER BEHAVIOUR"
             bindingRule="LOUD, LOGGED, NON-FATAL AT RENDER · THE PUBLISHER IS THE THING THAT REFUSES"
-            annotation="Family D is not built. The renderer reports and continues; PD.8 refuses to publish."
+            annotation="An invented code. The renderer reports and continues; PD.8 refuses to publish."
           >
             <Block node={UNREGISTERED} />
           </Card>
@@ -193,6 +200,16 @@ export default function BlockLibraryPage() {
         />
         <Grid cols={2}>
           {FAMILY_H.map((s) => (
+            <SpecimenCard key={s.node._key} s={s} />
+          ))}
+        </Grid>
+
+        <FamilyBar
+          label="D · CHARTS"
+          purpose="One shape per question, and the question is printed on every exhibit. Server-rendered SVG with no charting dependency; a missing period breaks the line rather than being interpolated."
+        />
+        <Grid cols={2}>
+          {FAMILY_D.map((s) => (
             <SpecimenCard key={s.node._key} s={s} />
           ))}
         </Grid>

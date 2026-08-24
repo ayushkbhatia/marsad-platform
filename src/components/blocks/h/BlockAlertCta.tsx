@@ -16,7 +16,7 @@ import type { BlockNodeOf } from "../types";
  * so there is no resolver and no unresolved path.
  */
 export function BlockAlertCta({ node }: { node: BlockNodeOf<"BLK-ALERTCTA"> }) {
-  const { kicker = "Keep watching this", headline, expected, subject, ctaLabel } = node.payload;
+  const { kicker = "Keep watching this", headline, expected, subject = { entity: "", series: "", condition: "" }, ctaLabel } = node.payload;
 
   if (!subject.entity || !subject.series || !subject.condition) {
     warnConstraint(
