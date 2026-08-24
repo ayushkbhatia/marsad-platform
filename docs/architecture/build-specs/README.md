@@ -1,57 +1,86 @@
-# Build specs — the PR phases (the research desk)
+# Build specs — the PR phases, and what survived contact with `main`
 
-Full build specifications for the phases sketched in `docs/BRIDGE-BUILD-PLAN.md` under
-**"PR — The research desk"**. The build plan carries the one-paragraph version of each; these carry
-the design, the SQL, the types, the build order and the acceptance criteria.
+⚠️ **Read this section first. Most of these specs were overtaken by work on `main`.**
 
-Produced 2026-07-27 against the live database and the tree at `8633a6b`. Each was written by a
-planning pass that investigated the repo, designed, was then attacked by an adversarial reviewer
-told to refute it, and revised. The verdict column is that reviewer's, not the author's.
+They were written on 2026-07-27 against a tree at `87763e5`. While that branch sat detached,
+`main` advanced 29 commits (2026-08-16) and independently built most of what they describe —
+in several cases better. This file records what is still true. The specs themselves are kept
+because their *investigations* remain accurate and their adversarial reviews found real defects,
+but **do not build from them without checking this table.**
 
-| spec | phase | verdict | objections | status |
-|---|---|---|---|---|
-| [PR0c-templates-reseed.md](PR0c-templates-reseed.md) | PR.0c — reseed `ops.templates`, add `piece_type` | sound with changes | 9 (1 blocking) | ready to build |
-| [PR1-evidence-bundles.md](PR1-evidence-bundles.md) | PR.1 — evidence bundles | **broken** ×2 lenses, revised | 23 (8 blocking) | ready to build, **blocked on D-14** |
-| [PR4-compose-stage.md](PR4-compose-stage.md) | PR.4 — the compose stage | **broken**, revised | 13 (3 blocking) | depends on PR.1 |
-| [PR5-renderers-chart-compiler.md](PR5-renderers-chart-compiler.md) | PR.5 — 41 renderers + chart compiler | sound with changes | 7 (2 blocking) | independent, can start now |
-| [PR6-open-the-gate.md](PR6-open-the-gate.md) | PR.6 — open intake narrowly | sound with changes | 10 (3 blocking) | last |
+| spec | status against `main` today |
+|---|---|
+| `PR0c-templates-reseed.md` | ⛔ **Superseded** by `#98` and `20260816230000_templates_recut_and_piece_type.sql`. `ops.templates.piece_type` exists. |
+| `PR1-evidence-bundles.md` | ✅ **Still the open phase.** See below — this is the one genuinely unbuilt piece. |
+| `PR4-compose-stage.md` | ⛔ **Superseded** by `#97` — the compose stage is built, armed, and has produced a real article. |
+| `PR5-renderers-chart-compiler.md` | 🔶 **Partly superseded.** 33 of 61 built (A/B/C/G/H complete). Families D (12), E (8), F (8) remain — 28 blocks. The chart substrate (`src/lib/blocks/{bindings,chart-svg,resolve}.ts`) now exists, so PD.6 has a foundation the spec assumed it would have to create. |
+| `PR6-open-the-gate.md` | ✅ **Still accurate and still last.** `pipeline_intake_enabled` is `false`; nothing flows automatically. |
+| `apply-pending-migrations.md` (runbook) | ⛔ **Superseded.** Its six migrations were all independently landed on `main`; the ledger is at 158, not 137. Kept only for the apply/stamp *procedure*, which is still correct. |
 
-**PR.2 (researcher agent) and PR.3 (analyst pass) are deliberately unplanned.** Their entire content
-is the interface PR.1 defines — the `BoundFact`/`FactRef` envelope and the absence contract — so
-planning them before PR.1's contract existed would have meant inventing it twice.
+## What `main` proved, and what it did not
 
-## The decisions these specs surfaced
+**The conveyor works end to end.** Stages are `classify → draft → edit → compose → rules → fit →
+approval`, with `newsroom_compose_stage`, `newsroom_fit_stage` and `newsroom_intake_sweep` all
+armed. One item composed as **9 designed blocks** (`BLK-TICKER`, `BLK-BIGNUM`, `BLK-DELTA` ×2,
+`BLK-STATSTRIP` ×3, `BLK-PROV`, `BLK-CITE`), carried 33 citations, cost $0.16 across 12 LLM calls,
+and passed ruleset v10. Live `content_blocks` now holds real `BLK-*` rows — 6 of them. The D-8
+binding contract holds in practice: payloads carry `{"field":…,"object_id":…}`, not typed numbers.
 
-**D-14 — the VERIFIED wall. Owner decision, and it caps every phase downstream.**
-`worker/src/handlers/newsroom/fit-engine.ts:386-395` refuses a bound object whose citations are all
-non-`VERIFIED`. Measured live: `COMPUTED.RATIOS` 736, `COMPUTED.SCORE` 540, `QUOTE.LAST` 264,
-**`FILING.FINANCIALS` 1 of 36,330**. A piece can therefore bind a P/E and a Marsad score but **not
-one reported revenue figure**. Options are in `PR1-evidence-bundles.md §11`: widen fit to read a new
-`ops.materiality_prefilter.citable_states text[]` (the identical D-10 argument PE.6 already won for
-*intake* — and it must be a separate column, since widening `accepted_states` would open intake to
-640,992 `OHLCV.CLOSE` objects), or cap PR.1's ambition to what binds today.
+**It was not published**, and that is the right call: reading the output exposed two defects, and
+the piece is a demonstration rather than a product.
 
-**Bindings expire nightly.** `COMPUTED.RATIOS` carries 13.9 revisions per natural key (10,263 rows,
-9,527 retired), rebuilt inside a single hour each night. A brief assembled at 23:00 and composed at
-06:00 binds retired uuids — or, worse, follows `superseded_by` and renders a *new* value under
-*frozen* prose, which fit passes. Hence `hydrate()` is async against a live resolver, by design.
+## Three independent convergences
 
-**`effective_date` is NULL across the whole fundamentals tier** — 0 of 36,330 `FILING.FINANCIALS`,
-0 of 41,621 `FINANCIALS.XCHECK`, 0 of 736 ratios, 0 of 540 scores. Only `OHLCV.CLOSE` populates it.
-Any staleness check reading that column reports the fundamentals corpus as permanently fresh.
+Recorded because they are evidence the analysis was sound rather than idiosyncratic — two sessions,
+working separately, reached the same conclusions:
 
-**`'fit'` is not a legal `ops.pipeline_items.stage`.** The CHECK at
-`20260713000009_rules_pipeline.sql:81-82` lists eight stages and `fit` is not one;
-`worker/src/handlers/newsroom/fit-stage.sql` was never applied and is absent from the ledger.
+1. **The VERIFIED wall had to be widened per-object-type** via
+   `ops.materiality_prefilter.citable_states`. `main`'s version (`#87`, R-03 provenance floor) also
+   refuses `CONFLICT`, which the branch version did not.
+2. **`ops.templates` needed a `piece_type` column** to stop every ARTICLE inheriting chassis `1a`
+   and its required metered cut.
+3. **The registry needed a drift guard.** `main`'s `scripts/design/check-block-renderers.mjs` is the
+   better shape — offline, and wired into CI — so the branch's `registry.test.ts` was dropped.
 
-**The sector gap is venue-shaped, not universe-wide.** TDWL 227/387 and QE 48/49 are sectored;
-**ADX 0/93, DFM 0/72, MSX 0/120, BHB 0/41** are not. It is a producer gap on four venues, fixable on
-its own, not a taxonomy problem.
+## The one thing still genuinely unbuilt: the research stage
 
-## A correction these specs forced
+`20260816150000_pipeline_state_machine_complete.sql:94` seeds a `newsroom_research_stage` switch.
+**Nothing reads it.** There is no `pipeline_research` handler, and no research module anywhere in
+`worker/` or `ingestion/`.
 
-Earlier revisions of `BRIDGE-BUILD-PLAN.md` and `09 §12` claimed every seeded template *would be
-refused at the fit stage today*. That was **wrong**. `fit-engine.ts:330-343` raises
-`FIT-TEMPLATE-LEGACY-KEY` as a **warning** — with a comment saying so, and a golden test at
-`fit.test.ts:112` asserting `passed === true`. `09 §6.0` had it right all along. Both documents now
-carry the correction inline; PR.0c remains necessary for a different reason, stated there.
+What exists instead is `lake.fn_writer_context` + `worker/src/handlers/newsroom/pack.ts` — a
+*context pack* for the writer: ordered, budgeted, and valid JSON, with a citation allow-set built
+as a typed by-product. It is a real fix to a real bug (the pack used to be truncated mid-token at
+12,000 chars, cutting off the only citable section). But it is the writer's **input**, not a
+research desk: it reads a fixed set of sections for one security and does not decide what to look
+for, follow a thread, or report what it looked for and did not find.
+
+`ingestion/src/research/` (PR.1 steps 1–2, on this branch) is the contract for that stage:
+
+- `Evidence` is a discriminated union of `BoundFact | BoundRef | UnboundFact` — **not** one type
+  with an optional binding, so composing a D-8 binding from something unbindable is a *type error*.
+- an absence contract that distinguishes `empty` (this company filed nothing) from `absent` (no
+  producer exists for anyone) — the difference between a sentence a writer may write and one it
+  may not.
+- `RebindKey`, because a binding to `COMPUTED.RATIOS` has a ~24-hour life: 13.9 revisions per
+  natural key, every live row rewritten nightly.
+- `FIELD_FORMAT`, the single place the fraction-vs-percent decision lives — read off the producer
+  (`ratios-compute.ts:202` computes `roe = netIncome/equity`), not guessed.
+- `verify.ts` + 18 tests that pass with the network down.
+
+## Re-derived sequence
+
+Ordered by what actually stands between today and an autonomous editorial deep dive.
+
+1. **Family E + F renderers (16 blocks).** Cheapest real progress: zero bindings across both
+   families, no chart compiler needed. E completes the Explainer template outright; F unlocks the
+   wire lane. Nothing blocks this.
+2. **The research stage (PR.1 → PR.2).** The switch is already there and dead. This is what turns
+   "the writer receives a context pack" into "a researcher reads the lake" — the difference between
+   a competent recap and a deep dive. Largest single lever on output quality.
+3. **The chart compiler + D's remaining 12.** A deep dive without exhibits is not a deep dive. The
+   substrate exists now, so this is no longer a from-scratch build.
+4. **A quality pass on composed output**, then **PR.6 — open the intake gate narrowly.** The gate is
+   last on purpose: the conveyor already works, so opening it multiplies whatever quality exists at
+   that moment. The first composed piece was not publishable; opening intake before that is fixed
+   would industrialise the defect rather than the capability.

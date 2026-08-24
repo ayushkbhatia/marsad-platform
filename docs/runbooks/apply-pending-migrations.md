@@ -1,5 +1,17 @@
 # Runbook — apply the pending migration batch
 
+> ⛔ **SUPERSEDED 2026-08-16. Do not run this list.** Every one of the six migrations below was
+> independently landed on `main` (D-14's `citable_states` as `20260816160000`, the `piece_type`
+> recut as `20260816230000`, `'fit'` as a pipeline stage as `20260816150000`). The ledger is at
+> **158**, not the 137 this page checks for, and the pre-flight assertion will fail.
+>
+> Kept because the **procedure** is still correct and still non-obvious: the ordering rule
+> (cheapest and least-locking first), the `CREATE INDEX` lock warning on a hot table, and above
+> all the stamping step — `psql -f` does not write `supabase_migrations.schema_migrations`, and
+> the MCP path generates its own wall-clock version that will not match the filename. That has
+> bitten this project twice. Reuse the shape; ignore the list.
+
+
 **Status 2026-07-27:** six migrations are committed and unapplied. They are the whole of Track 0's
 mechanical half. No agent session can apply them — the Supabase MCP returns
 `You do not have permission to perform this action`, `marsad_worker` has no DDL rights, the local
