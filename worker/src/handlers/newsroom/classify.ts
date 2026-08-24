@@ -86,6 +86,10 @@ export function makeClassify(): Handler {
 
     const isMaterial = verdict === 'material' && priority !== 'watch';
 
+    // PR.1 — is the research stage armed? Read once, and used both for the item's ENTRY stage and
+    // for which handler is enqueued, so the row and the queue cannot disagree.
+    const researchArmed = await switchOn(sql, 'newsroom_research_stage');
+
     // Create the piece (stub + ticker + pipeline item) atomically, then log the verdict with its id.
     let pipelineItemId: number | null = null;
     if (isMaterial) {
@@ -100,7 +104,7 @@ export function makeClassify(): Handler {
         }
         const item = (await tx`
           insert into ops.pipeline_items (content_id, stage, trigger_object_id, priority, template_hint, writer_agent)
-          values (${contentId}::uuid, 'draft', ${lakeObjectId}::uuid, ${priority}, ${template},
+          values (${contentId}::uuid, ${researchArmed ? 'research' : 'draft'}, ${lakeObjectId}::uuid, ${priority}, ${template},
                   (select id from iam.principals where handle = ${writerForTemplate(template)}))
           returning id`) as unknown as Array<{ id: number }>;
         return item[0]!.id;
@@ -112,8 +116,13 @@ export function makeClassify(): Handler {
       values (${lakeObjectId}::uuid, ${objectType}, ${securityId}, ${tier}, ${verdict}, ${priority}, ${eventType}, ${template}, ${confidence}, ${reason}, ${pipelineItemId}, ${llmRunId}::uuid)`;
 
     if (isMaterial && pipelineItemId) {
-      await enqueueStage(sql, 'pipeline_draft', pipelineItemId);
-      log.info('classify: material → piece created', { pipelineItemId, priority, template, tier });
+      // PR.1 — route through research when it is armed. The state machine already allows
+      // queued → research → draft (20260816150000); this is the only thing that was choosing not
+      // to use it. switchOn() reads a missing key as false, so the default is the old path.
+      await enqueueStage(sql, researchArmed ? 'pipeline_research' : 'pipeline_draft', pipelineItemId);
+      log.info('classify: material → piece created', {
+        pipelineItemId, priority, template, tier, entry: researchArmed ? 'research' : 'draft',
+      });
     } else {
       log.info('classify: not drafted', { verdict, priority, tier, confidence });
     }

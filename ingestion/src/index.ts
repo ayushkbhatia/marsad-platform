@@ -115,3 +115,5 @@ export {
 } from './research/lexicon.js';
 export { verifyBundle, resolveField, valuesAgree, isStrictUuidV4 } from './research/verify.js';
 export type { ObjectSnapshot, ResolveFailure, ResolveFailureCode } from './research/verify.js';
+export { assembleBrief, coversAllLegs, EMITTED_LEGS } from './research/assemble.js';
+export type { AssembleOptions } from './research/assemble.js';
