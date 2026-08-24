@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import Link from "next/link";
-import { runSearch, type SearchDocType } from "@/lib/data/search";
+import { runSearch, type SearchContentHit, type SearchDocType } from "@/lib/data/search";
 import type { FilingItem } from "@/lib/data/filings";
 import { SearchTopMatch } from "@/components/reader/search/SearchTopMatch";
+import { SearchContentList } from "@/components/reader/search/SearchContentList";
 import { SearchNoResults } from "@/components/reader/search/SearchNoResults";
 import { RecentSearches } from "@/components/reader/search/RecentSearches";
 import { FilingsList } from "@/components/reader/FilingsList";
@@ -68,6 +69,7 @@ export async function generateMetadata({
 const FACETS: Array<{ key: SearchDocType | "all"; label: string }> = [
   { key: "all", label: "All" },
   { key: "security", label: "Stocks" },
+  { key: "content", label: "Editorial" },
   { key: "filing", label: "Filings" },
 ];
 
@@ -107,6 +109,38 @@ function FacetBar({
           </Link>
         );
       })}
+    </div>
+  );
+}
+
+/** Number of editorial hits shown in the "All" view before the facet link-out. */
+const CONTENT_PREVIEW = 5;
+
+/** Editorial block of the "All" view — headlines only; premium pieces link out. */
+function EditorialPreview({
+  q,
+  hits,
+  count,
+}: {
+  q: string;
+  hits: SearchContentHit[];
+  count: number;
+}) {
+  if (hits.length === 0) return null;
+  return (
+    <div>
+      <div className="mb-2 font-mono text-[10px] font-semibold tracking-[0.18em] text-ink-faint uppercase">
+        Editorial · {count}
+      </div>
+      <SearchContentList hits={hits.slice(0, CONTENT_PREVIEW)} />
+      {hits.length > CONTENT_PREVIEW ? (
+        <Link
+          href={facetHref(q, "content")}
+          className="mt-2 inline-block font-mono text-[10px] text-ink-muted hover:text-ink hover:underline underline-offset-2"
+        >
+          All {count} editorial →
+        </Link>
+      ) : null}
     </div>
   );
 }
@@ -174,6 +208,10 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
     aiSummary: null,
   }));
 
+  const contentCount = counts.get("content") ?? result.contentHits.length;
+  const editorialFirst =
+    (result.contentHits[0]?.rank ?? 0) > (result.topSecurity?.rank ?? 0);
+
   return (
     <div className="mx-auto max-w-[1180px] px-5 py-6 sm:px-8">
       <div className="flex flex-wrap items-center gap-3 border-b-2 border-ink pb-3">
@@ -216,6 +254,13 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                   ))}
                 </ul>
               </>
+            ) : activeType === "content" ? (
+              <>
+                <div className="mb-2 font-mono text-[10px] font-semibold tracking-[0.18em] text-ink-faint uppercase">
+                  Editorial · {counts.get("content") ?? result.contentHits.length}
+                </div>
+                <SearchContentList hits={result.contentHits} />
+              </>
             ) : activeType === "filing" ? (
               <>
                 <div className="mb-2 font-mono text-[10px] font-semibold tracking-[0.18em] text-ink-faint uppercase">
@@ -224,11 +269,19 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                 <FilingsList items={filingItems} showTicker />
               </>
             ) : (
-              <>
+              <div className="flex flex-col gap-6">
+                {/* Editorial outranks the security identity hit often enough
+                    (a headline match beats a fuzzy ticker match) that fixing
+                    the section order to "stocks first" would bury the best
+                    result — as it did before P3.8 wired content in at all. */}
+                {editorialFirst ? <EditorialPreview q={q} hits={result.contentHits} count={contentCount} /> : null}
+
                 {result.topSecurity ? <SearchTopMatch hit={result.topSecurity} /> : null}
 
+                {!editorialFirst ? <EditorialPreview q={q} hits={result.contentHits} count={contentCount} /> : null}
+
                 {filingItems.length > 0 ? (
-                  <div className={result.topSecurity ? "mt-6" : ""}>
+                  <div>
                     <div className="mb-2 font-mono text-[10px] font-semibold tracking-[0.18em] text-ink-faint uppercase">
                       Filings · {counts.get("filing") ?? filingItems.length}
                     </div>
@@ -244,13 +297,13 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                   </div>
                 ) : null}
 
-                {!result.topSecurity && filingItems.length === 0 ? (
+                {!result.topSecurity && filingItems.length === 0 && contentCount === 0 ? (
                   <EmptyState
                     title="Matched, but nothing to preview yet"
                     body="This query matched documents outside the types shown here."
                   />
                 ) : null}
-              </>
+              </div>
             )}
           </div>
 
