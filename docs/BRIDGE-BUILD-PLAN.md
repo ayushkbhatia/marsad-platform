@@ -485,10 +485,18 @@ _Accept:_ home lead is a real article linking to a real `/articles/{slug}`; all 
 `cacheLife` expires.
 _Accept:_ publishing a row makes it appear on `/wire` within one request.
 
-**P3.8 — Search + sitemap inclusion.** `fn_search` indexes only `doc_type in ('security','filing')`
-— published content is **unsearchable**. Extend it to `content_items`. Wire the already-written
-`listPublishedArticleSlugs` / `listPublishedWireSlugs` into `src/app/sitemap.ts`.
-_Accept:_ a seeded article is findable at `/search?q=<its headline>` and present in the sitemap.
+**P3.8 — Search + sitemap inclusion.** ✅ **DONE 2026-07-27.** `fn_search` indexed only
+`doc_type in ('security','filing')` — published content was **unsearchable**. Extended to
+`content_items` by `20260726203031_search_content_items.sql` (applied live; 11 rows indexed), and
+`listPublishedArticleSlugs` / `listPublishedWireSlugs` are wired into `src/app/sitemap.ts`.
+The **reader half shipped separately** (it was filed as `DEF-SEARCH-CONTENT-UI` and closed the same
+day): `SearchDocType` now includes `'content'`, `runSearch` returns enriched `contentHits`, and
+`/search` has an Editorial facet + results section. Section order in the "All" view follows rank,
+so a top-ranked headline is no longer buried under the Top-match card.
+_Accept:_ ✅ `/search?q=Almarai+dividend` → "7 RESULTS", Editorial 1 / Stocks 2 / Filings 4, and the
+Almarai article (rank 1.19, above the 1.09 ALMARAI identity hit) renders first with a `Premium` chip; `/search?q=Qatar+banks` → 23 results,
+Editorial 5 / Stocks 18. Count and content now agree. Premium hits stay link-outs — `fn_search`
+returns no body text and must not start.
 
 ---
 

@@ -398,14 +398,30 @@ answers this in single-digit milliseconds, comfortably inside the 0.04s the desi
 
 Implementation:
 
-- One denormalized table `search_documents(doc_type, doc_id, ticker, title, body_tsv tsvector
-  GENERATED, trigram_label text, weight, url, premium boolean)` maintained by triggers on
-  `securities`, `articles`, `filings`, `analyst_profiles`, `holders`. GIN index on `body_tsv`,
-  GIN `gin_trgm_ops` on `trigram_label` for ticker/name prefix and fuzzy matches ("aramco",
-  "2222", "QNBK").
+- One denormalized table `search_documents(doc_type, doc_id, doc_uuid, ticker, title, body_tsv
+  tsvector GENERATED, trigram_label text, weight, url, premium boolean)` maintained by triggers on
+  `securities`, `content_items`, `filings`, (later: `analyst_profiles`, `holders`). GIN index on
+  `body_tsv`, GIN `gin_trgm_ops` on `trigram_label` for ticker/name prefix and fuzzy matches
+  ("aramco", "2222", "QNBK").
+  **AS BUILT (2026-07-27):** three doc_types are live — `'security'` + `'filing'`
+  (`20260722090000_search_fts.sql`) and `'content'` (`20260726203031_search_content_items.sql`;
+  there is no `articles` table — published editorial is `public.content_items`, indexed IFF
+  `status in ('live','updated','retracted')` with a canonical URL, and the trigger DELETEs the
+  index row the moment a piece leaves that set). `content_items.id` is a uuid, so `doc_id` holds a
+  `fn_search_doc_id()` bigint digest (dedup/upsert key only) and the real key lives in `doc_uuid`
+  — **never join on a content `doc_id`.**
 - `fn_search(p_q text)` runs `websearch_to_tsquery('english', p_q)` union-ranked with a trigram
   pass, returns grouped hits with per-type counts (16a facets). Premium research hits return
   metadata + `premium: true` chip only — body never in the index payload for anon.
+  `fn_search`'s return signature is the frozen FE contract (`src/lib/data/search.ts`) and does
+  **not** carry `doc_uuid`, so the reader's per-type enrichment joins editorial hits by the slug
+  (or uuid) recovered from the row's `url`, reading `content_items` only — `content_blocks`, where
+  the premium cut is enforced, is never touched on the search path.
+- Reader render (16a): three facet chips — Stocks / Editorial / Filings — plus an "All" view whose
+  section order follows rank, so a headline match that outranks the security identity hit is shown
+  above the Top-match card instead of below it. Editorial rows are headline + section/kicker +
+  date + a `Premium` chip linking out to `/articles/[slug]` or `/wire/[slug]`; no dek or excerpt is
+  rendered from a search hit, because none is indexed.
 - Per-user recents: `search_history(user_id, q, at)` capped at 20 by trigger. Zero-result
   logging into `search_misses(q, at)` feeds the Desk's product-gap panel (26a) for free.
 - English-only (locked decision #4) keeps this simple: one `english` config, no Arabic

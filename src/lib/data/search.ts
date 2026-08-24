@@ -11,9 +11,16 @@ import { toInt, toNum } from "./util";
  * ranked + counted server-side. This module never reads `search_documents`
  * directly — only `fn_search` is a sanctioned reader (it returns metadata only,
  * never a document body).
+ *
+ * `20260726203031_search_content_items.sql` added the third doc_type,
+ * `'content'` (published `content_items` — articles, explainers, wire). Only
+ * public metadata is indexed for those: `fn_search` never returns body text,
+ * and a premium hit is a headline + a `premium` flag + a link-out, nothing
+ * more. Enrichment below reads `content_items` (anon RLS = published rows
+ * only), never `content_blocks` — the gated prose stays where RLS guards it.
  */
 
-export type SearchDocType = "security" | "filing";
+export type SearchDocType = "security" | "filing" | "content";
 
 export interface SearchHit {
   docType: SearchDocType;
@@ -48,6 +55,19 @@ export interface SearchFilingHit extends SearchHit {
   isMarketMoving: boolean;
 }
 
+/**
+ * An editorial hit enriched with the publication metadata `fn_search` doesn't
+ * carry. NOT enriched with body text — see the file header; premium pieces are
+ * link-outs only.
+ */
+export interface SearchContentHit extends SearchHit {
+  contentType: string | null;
+  section: string | null;
+  kicker: string | null;
+  publishedAt: string | null;
+  readMinutes: number | null;
+}
+
 export interface SearchResult {
   q: string;
   /** All hits, rank-ordered, as returned by fn_search (flat — before per-type enrichment). */
@@ -60,6 +80,8 @@ export interface SearchResult {
   securityHits: SearchHit[];
   /** Every filing hit, enriched with type/date for FilingsList reuse. */
   filingHits: SearchFilingHit[];
+  /** Every published-editorial hit, enriched with section/date. */
+  contentHits: SearchContentHit[];
 }
 
 interface SearchRow {
@@ -83,6 +105,7 @@ const EMPTY_RESULT = (q: string): SearchResult => ({
   topSecurity: null,
   securityHits: [],
   filingHits: [],
+  contentHits: [],
 });
 
 /**
@@ -126,13 +149,15 @@ export async function runSearch(q: string): Promise<SearchResult> {
 
   const securityHits = hits.filter((h) => h.docType === "security");
   const filingHitsRaw = hits.filter((h) => h.docType === "filing");
+  const contentHitsRaw = hits.filter((h) => h.docType === "content");
 
-  const [topSecurity, filingHits] = await Promise.all([
+  const [topSecurity, filingHits, contentHits] = await Promise.all([
     securityHits[0] ? enrichSecurity(sb, securityHits[0]) : Promise.resolve(null),
     filingHitsRaw.length ? enrichFilings(sb, filingHitsRaw) : Promise.resolve([]),
+    contentHitsRaw.length ? enrichContent(sb, contentHitsRaw) : Promise.resolve([]),
   ]);
 
-  return { q: query, hits, totalCount, typeCounts, topSecurity, securityHits, filingHits };
+  return { q: query, hits, totalCount, typeCounts, topSecurity, securityHits, filingHits, contentHits };
 }
 
 async function enrichSecurity(
@@ -200,6 +225,75 @@ async function enrichFilings(
       filingType: m?.filing_type ?? null,
       filedAt: m?.filed_at ?? null,
       isMarketMoving: m?.is_market_moving ?? false,
+    };
+  });
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Last path segment of an indexed content URL (`/articles/{slug}`, `/wire/{slug|id}`). */
+function contentUrlKey(url: string): string {
+  return url.split("?")[0].replace(/\/+$/, "").split("/").pop() ?? "";
+}
+
+/**
+ * Batch-enrich editorial hits with section/kicker/date.
+ *
+ * Keyed on the URL, NOT on `doc_id`: `content_items.id` is a uuid and
+ * `search_documents.doc_id` is a bigint, so the index stores only a
+ * `fn_search_doc_id()` digest there (real uuid in `doc_uuid`, which `fn_search`
+ * does not return — its signature is the frozen FE contract). The digest is a
+ * dedup key, never a join key. The URL is carried on every row and is
+ * canonical per piece (`20260726203031_search_content_items.sql` §3), so the
+ * slug — or, for a slugless WIRE item, the uuid — recovered from it is the join
+ * key. Reads `content_items` only (anon RLS = published rows); `content_blocks`
+ * is deliberately never touched here.
+ */
+async function enrichContent(
+  sb: ReturnType<typeof createAnonClient>,
+  hits: SearchHit[],
+): Promise<SearchContentHit[]> {
+  const keys = hits.map((h) => contentUrlKey(h.url)).filter(Boolean);
+  const slugs = keys.filter((k) => !UUID_RE.test(k));
+  const ids = keys.filter((k) => UUID_RE.test(k));
+  const cols = "id,slug,content_type,section,kicker,published_at,read_minutes";
+
+  const [{ data: bySlug }, { data: byId }] = await Promise.all([
+    slugs.length
+      ? sb.from("content_items").select(cols).in("slug", slugs)
+      : Promise.resolve({ data: null }),
+    ids.length
+      ? sb.from("content_items").select(cols).in("id", ids)
+      : Promise.resolve({ data: null }),
+  ]);
+
+  type Row = {
+    id: string;
+    slug: string | null;
+    content_type: string | null;
+    section: string | null;
+    kicker: string | null;
+    published_at: string | null;
+    read_minutes: number | null;
+  };
+  const meta = new Map<string, Row>();
+  for (const r of [
+    ...(((bySlug as Row[] | null) ?? [])),
+    ...(((byId as Row[] | null) ?? [])),
+  ]) {
+    if (r.slug) meta.set(r.slug, r);
+    meta.set(r.id, r);
+  }
+
+  return hits.map((h) => {
+    const m = meta.get(contentUrlKey(h.url));
+    return {
+      ...h,
+      contentType: m?.content_type ?? null,
+      section: m?.section ?? null,
+      kicker: m?.kicker ?? null,
+      publishedAt: m?.published_at ?? null,
+      readMinutes: toInt(m?.read_minutes ?? null),
     };
   });
 }
