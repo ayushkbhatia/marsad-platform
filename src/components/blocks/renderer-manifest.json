@@ -1,6 +1,7 @@
 {
   "implemented": [
     "BLK-AGENTS",
+    "BLK-ALERTCTA",
     "BLK-AREA",
     "BLK-BARS",
     "BLK-BEATMISS",
@@ -10,6 +11,7 @@
     "BLK-CONFLICT",
     "BLK-CUT",
     "BLK-DELTA",
+    "BLK-DOWNLOAD",
     "BLK-ESTIMATE",
     "BLK-EXDATE",
     "BLK-FALSIFY",
@@ -33,7 +35,6 @@
     "BLK-VERDICT"
   ],
   "unbuilt": [
-    "BLK-ALERTCTA",
     "BLK-ANATOMY",
     "BLK-BREADTH",
     "BLK-CANDLE",
@@ -44,7 +45,6 @@
     "BLK-DECISION",
     "BLK-DIST",
     "BLK-DONUT",
-    "BLK-DOWNLOAD",
     "BLK-DUMBBELL",
     "BLK-FLOW",
     "BLK-GLOSSARY",

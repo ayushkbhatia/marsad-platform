@@ -40,7 +40,9 @@ import { BlockBigNum } from "./b/BlockBigNum";
 import { BlockVerdict } from "./b/BlockVerdict";
 import { BlockTake } from "./b/BlockTake";
 import { BlockFalsify } from "./b/BlockFalsify";
+import { BlockAlertCta } from "./h/BlockAlertCta";
 import { BlockCut } from "./h/BlockCut";
+import { BlockDownload } from "./h/BlockDownload";
 import { BlockPaywall } from "./h/BlockPaywall";
 
 /*
@@ -92,6 +94,8 @@ export const BLOCK_RENDERERS: BlockRendererMap = {
   // H · Gates — the seam between the free read and the wall.
   "BLK-CUT": BlockCut,
   "BLK-PAYWALL": BlockPaywall,
+  "BLK-ALERTCTA": BlockAlertCta,
+  "BLK-DOWNLOAD": BlockDownload,
 
   // D · Charts — three of fifteen. The other twelve are designed but not drawable, and resolve
   // to MissingBlock on purpose: a stub that renders nothing is indistinguishable from a bug.

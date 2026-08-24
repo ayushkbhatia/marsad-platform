@@ -113,7 +113,7 @@ export type BlockCode =
 /** The codes that have a renderer today: G, then A, then C. */
 export type ImplementedBlockCode =
   | BlockCodeG | BlockCodeA | BlockCodeC | BlockCodeB
-  | "BLK-CUT" | "BLK-PAYWALL"
+  | "BLK-CUT" | "BLK-PAYWALL" | "BLK-ALERTCTA" | "BLK-DOWNLOAD"
   | "BLK-LINE" | "BLK-BARS" | "BLK-AREA";
 
 export type BlockFamily = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H";
@@ -619,6 +619,43 @@ export interface PaywallPayload {
   reassurance?: string;
 }
 
+/**
+ * BLK-ALERTCTA · pre-filled from the piece's own subject.
+ *
+ * The pre-fill is the entire idea. A reader who has just read why NIM matters for this bank
+ * should not then have to describe "this bank" and "NIM" to a form — the piece already knows
+ * both. An empty subject makes it a generic "create an alert" button, which the card says it
+ * must never be.
+ *
+ * Binds an ObjectRef (the subject), not a field: nothing here reads a value, so there is no
+ * resolver and no unresolved path.
+ */
+export interface AlertCtaPayload {
+  kicker?: string;
+  headline: string;
+  /** The expected event and its date. */
+  expected: string;
+  /** Pre-filled: entity, series, condition. The reader re-specifies nothing. */
+  subject: { entity: string; series: string; condition: string };
+  ctaLabel: string;
+}
+
+/**
+ * BLK-DOWNLOAD · "SHIPPING THE OBJECT IDS IS THE DIFFERENTIATOR."
+ *
+ * The ids ARE the product: they are what makes a figure in the .xlsx traceable back to the
+ * filing that stated it. Anyone can ship a spreadsheet; shipping one where every figure carries
+ * its lake object is what makes the research auditable.
+ */
+export interface DownloadPayload {
+  kicker?: string;
+  explainer: string;
+  seriesCount: number;
+  format: string;
+  /** One lake object id per series in the file. */
+  objectIds: string[];
+}
+
 export type BlockNode =
   // G
   | (BlockNodeBase & { code: "BLK-PROV"; payload: ProvPayload })
@@ -653,6 +690,8 @@ export type BlockNode =
   // H
   | (BlockNodeBase & { code: "BLK-CUT"; payload: CutPayload })
   | (BlockNodeBase & { code: "BLK-PAYWALL"; payload: PaywallPayload })
+  | (BlockNodeBase & { code: "BLK-ALERTCTA"; payload: AlertCtaPayload })
+  | (BlockNodeBase & { code: "BLK-DOWNLOAD"; payload: DownloadPayload })
   // D
   | (BlockNodeBase & { code: "BLK-LINE"; payload: LinePayload })
   | (BlockNodeBase & { code: "BLK-AREA"; payload: AreaPayload })
