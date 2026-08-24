@@ -625,3 +625,545 @@ export const FAMILY_H: Specimen[] = [
     },
   },
 ];
+
+/* ── E · Mechanism — how a thing actually works ──────────────────────────── */
+
+export const FAMILY_E: Specimen[] = [
+  {
+    title: "Dates in order",
+    pieceTypes: "EXPLAINER · IPO",
+    bindingRule: "EXACTLY ONE STAGE IN RED — THE ONE THAT COSTS MONEY IF MISSED",
+    node: {
+      code: "BLK-TIMELINE", _key: "e1",
+      payload: {
+        stages: [
+          { name: "Announced", date: "2026-06-18", description: "Board declares the interim dividend.", isCritical: false },
+          { name: "Ex-date", date: "2026-07-02", description: "Buy before this date to receive it. Miss it and the payment goes to the seller.", isCritical: true },
+          { name: "Record", date: "2026-07-03", description: "Register closes.", isCritical: false },
+          { name: "Pay", date: "2026-07-21", description: "Cash settles to the holder of record.", isCritical: false },
+        ],
+      },
+    },
+  },
+  {
+    title: "Numbered mechanism",
+    pieceTypes: "EXPLAINER",
+    bindingRule: "3–5 STEPS · A BOLD CLAIM PLUS ONE CLARIFYING LINE, NEVER A PARAGRAPH",
+    node: {
+      code: "BLK-STEPS", _key: "e2",
+      payload: {
+        steps: [
+          { claim: "The company files its statements with the exchange.", clarifier: "Tadawul publishes the XBRL the same morning." },
+          { claim: "We extract the line items, not the summary.", clarifier: "The summary is the company's framing." },
+          { claim: "Every figure keeps the id of the filing it came from.", clarifier: "That is what makes a number traceable later." },
+        ],
+      },
+    },
+  },
+  {
+    title: "Money flow",
+    pieceTypes: "DEEP DIVE",
+    bindingRule: "MAX 4 NODES, LEFT TO RIGHT · NEVER BRANCHES — USE BLK-DECISION",
+    annotation: "ARROW WEIGHT SHOWS SENIORITY, NOT SIZE",
+    node: {
+      code: "BLK-FLOW", _key: "e3",
+      payload: {
+        nodes: [
+          { role: "Operator", name: "Jafurah JV", qualifier: "Gas processing", isOperating: true },
+          { role: "Holdco", name: "Aramco Gas", qualifier: "Ring-fenced" },
+          { role: "Equity", name: "Shareholders", qualifier: "Residual claim", isTerminalEquity: true },
+        ],
+        connectors: [
+          { label: "Senior debt", seniority: "senior", value: "SAR 18bn" },
+          { label: "Distributions", seniority: "subordinated", value: "Residual" },
+        ],
+      },
+    },
+  },
+  {
+    title: "Annotated document",
+    pieceTypes: "EXPLAINER",
+    bindingRule: "ABSTRACTED WIREFRAME, NEVER A SCREENSHOT · TEACHES WHERE TO LOOK",
+    node: {
+      code: "BLK-ANATOMY", _key: "e4",
+      payload: {
+        documentType: "TADAWUL · CG-1",
+        regions: [
+          { width: 0.55, highlight: "boilerplate" },
+          { width: 0.8, highlight: "secondary" },
+          { width: 1, highlight: "critical" },
+          { width: 0.65, highlight: "boilerplate" },
+        ],
+        annotations: [
+          { swatch: "critical", title: "Dividend per share", why: "The only figure on the page that changes your cash." },
+          { swatch: "secondary", title: "The date block", why: "Ex-date and pay date. Everything else is scheduling." },
+          { swatch: "boilerplate", title: "Regulatory preamble", why: "Identical on every filing. Skip it." },
+        ],
+      },
+    },
+  },
+  {
+    title: "Worked example",
+    pieceTypes: "EXPLAINER",
+    bindingRule: "ROUND NUMBERS, REAL TICKER · MUST END IN A TOTAL ROW THAT SETTLES THE POINT",
+    node: {
+      code: "BLK-WORKED", _key: "e5",
+      payload: {
+        premise: "1,000 shares of 2222",
+        beforeLabel: "Before ex-date",
+        afterLabel: "After ex-date",
+        rows: [
+          { label: "Share price", before: "SAR 30.00", after: "SAR 29.20" },
+          { label: "Dividend receivable", before: "SAR 0", after: "SAR 800" },
+        ],
+        total: { label: "Total position", before: "SAR 30,000", after: "SAR 30,000" },
+        closing: "Nothing was created. The price fell by the dividend, and the dividend became cash you are owed.",
+      },
+    },
+  },
+  {
+    title: "Assumption vs mechanism",
+    pieceTypes: "EXPLAINER",
+    bindingRule: "NEVER MOCK THE ASSUMPTION · STATE IT IN THE READER'S OWN WORDS, THEN CORRECT IT",
+    node: {
+      code: "BLK-MYTH", _key: "e6",
+      payload: {
+        assumption: "If I buy the day before the ex-date, I get the dividend for free.",
+        mechanism:
+          "You get the dividend, and the price opens roughly the dividend lower. On an SAR 0.80 payout the SAR 30.00 close opens near SAR 29.20 — the cash moves from the price into your account, and the position is worth the same either way.",
+      },
+    },
+  },
+  {
+    title: "If / then",
+    pieceTypes: "EXPLAINER",
+    bindingRule: "ONE QUESTION, TWO OUTCOMES · NEVER NEST",
+    node: {
+      code: "BLK-DECISION", _key: "e7",
+      payload: {
+        question: "Did you hold the shares at the close before the ex-date?",
+        yes: "You receive the dividend on the pay date, whatever you do with the shares afterwards.",
+        no: "The seller receives it. Buying on the ex-date itself is too late.",
+      },
+    },
+  },
+  {
+    title: "Terms on this page",
+    pieceTypes: "RAIL",
+    bindingRule: "AUTO-ASSEMBLED FROM EVERY BLK-TERM ON THE PAGE · SHARED STORE WITH LEARN",
+    annotation: "DERIVED — A WRITER AGENT DOES NOT AUTHOR THIS BLOCK",
+    node: {
+      code: "BLK-GLOSSARY", _key: "e8",
+      payload: {
+        terms: [
+          { term: "Ex-date", definition: "The first day the shares trade without the declared dividend attached." },
+          { term: "Record date", definition: "The day the register is checked to decide who is paid." },
+        ],
+      },
+    },
+  },
+];
+
+/* ── F · Wire & live state ───────────────────────────────────────────────── */
+
+export const FAMILY_F: Specimen[] = [
+  {
+    title: "Tape entry",
+    pieceTypes: "THE TAPE",
+    bindingRule: "TIME IN THE GUTTER, VENUE UNDER IT · MAX 40 WORDS FOR AGENT AUTO-PUBLISH",
+    node: {
+      code: "BLK-TAPEROW", _key: "f1",
+      payload: {
+        time: "11:42", venue: "Tadawul", category: "Dividend", reference: "7010 · CG-1",
+        headline: "stc declares SAR 0.80 interim, ex-date 2 July",
+        body: "The board approved an interim dividend of SAR 0.80 a share, unchanged on the prior period. The ex-date is 2 July and payment follows on 21 July.",
+      },
+    },
+  },
+  {
+    title: "Data chip row",
+    pieceTypes: "WIRE",
+    bindingRule: "3–5 CHIPS · THE CHEAPEST WAY TO ATTACH DATA TO A 30-WORD ITEM",
+    annotation: "THE MOVING NUMBER GETS THE INK BORDER · CONTEXT CHIPS STAY GREY",
+    node: {
+      code: "BLK-CHIPROW", _key: "f2",
+      payload: {
+        chips: [
+          { label: "DPS", value: "SAR 0.80", isMoving: false },
+          { label: "Yield", value: "4.2%", isMoving: false },
+          { label: "Last", value: "−0.6%", isMoving: true, direction: "down" },
+          { label: "Ex-date", value: "2 Jul", isMoving: false },
+        ],
+      },
+    },
+  },
+  {
+    title: "Mini chart card",
+    pieceTypes: "WIRE",
+    bindingRule: "ONE SERIES, NO AXES, THREE LABELS MAX · THE WIRE'S ONLY PERMITTED CHART",
+    node: {
+      code: "BLK-SNAPSHOT", _key: "f3",
+      payload: {
+        title: "Interim DPS, six periods",
+        bars: [
+          { label: "1H24", value: 0.5 }, { label: null, value: 0.6 }, { label: null, value: 0.75 },
+          { label: "Peak", value: 0.9 }, { label: null, value: 0.8 }, { label: "Now", value: 0.8 },
+        ],
+        peakIndex: 3, latestIndex: 5, latestDirection: "down",
+      },
+    },
+  },
+  {
+    title: "Deadline clock",
+    pieceTypes: "IPO · EX-DATE",
+    bindingRule: "ABSOLUTE DEADLINE UNDER THE RELATIVE ONE · MARSAD NEVER TAKES THE ORDER",
+    node: {
+      code: "BLK-COUNTDOWN", _key: "f4",
+      payload: {
+        kicker: "Retail tranche closes",
+        relative: "2d 09h",
+        absolute: "9 Jul 13:00 GST",
+        context: "Covered 3.1× at the last disclosure.",
+        ctaLabel: "Subscribe with your broker →",
+      },
+    },
+  },
+  {
+    title: "Trading halt",
+    pieceTypes: "WIRE · STOCK",
+    bindingRule: "MUST DISTINGUISH FROZEN FROM STALE · STATES THE REASON AND THE EXPECTED LIFT",
+    node: {
+      code: "BLK-HALT", _key: "f5",
+      payload: {
+        ticker: "1234", haltedSince: "10:18 GST", expectedLift: "13:00 GST",
+        reason: "Pending material announcement",
+        lastTraded: "SAR 18.40",
+        frozenStatement: "This price is frozen, not stale — the instrument is halted and our feed is current.",
+      },
+    },
+  },
+  {
+    title: "Correction note",
+    pieceTypes: "ALL TYPES",
+    bindingRule: "AMBER, NOT RED — A CORRECTION IS INTEGRITY · SAYS WHETHER THE ARGUMENT SURVIVED",
+    node: {
+      code: "BLK-CORRECTION", _key: "f6",
+      payload: {
+        originalAt: "16 Aug 09:14", correctedAt: "16 Aug 11:02",
+        wrongValue: "SAR 4.22bn", correctedValue: "SAR 4.43bn",
+        why: "The vendor feed carried the standalone figure; the filing states consolidated.",
+        remediation: "The lake object was superseded and the two pieces citing it were re-rendered.",
+        argumentSurvived: true, ruleId: "R-07",
+      },
+    },
+  },
+  {
+    title: "Session breadth",
+    pieceTypes: "CLOSE",
+    bindingRule: "MEDIAN MOVE MATTERS MORE THAN THE INDEX — IT SAYS WHETHER THE DAY WAS BROAD",
+    node: {
+      code: "BLK-BREADTH", _key: "f7",
+      payload: {
+        advancers: 62, decliners: 148, unchanged: 31,
+        medianMovePct: "−0.7%",
+        best: { ticker: "2010", pct: "+3.1%" },
+        valueTraded: "SAR 4.9bn",
+      },
+    },
+  },
+  {
+    title: "Venue column header",
+    pieceTypes: "BY-MARKET",
+    bindingRule: "BINDS MARKET.STATUS PER VENUE · CARRIES ITS OWN ITEM COUNT",
+    annotation: "A DEGRADED FEED IS NAMED IN THE HEADER, NOT HIDDEN IN A FOOTNOTE",
+    node: {
+      code: "BLK-VENUEHEAD", _key: "f8",
+      payload: {
+        title: "Qatar · Kuwait · Oman",
+        headline: { label: "QE Index", change: "+0.4%" },
+        secondary: [
+          { label: "Boursa", change: "−0.2%" },
+          { label: "MSX30", change: "+0.1%", degraded: true },
+        ],
+        itemCount: 14,
+      },
+    },
+  },
+];
+
+/* ── D · Charts — one shape per question ─────────────────────────────────── */
+
+const OID = (n: number) => `dddddddd-${String(n).padStart(4, "0")}-4000-8000-000000000001`;
+
+/** A bound point. Every chart datum carries the object it resolved from. */
+const pt = (label: string, value: number | null, i: number, date: string | null = null) => ({
+  label, date, value, objectId: OID(i), state: "PENDING",
+});
+
+export const FAMILY_D: Specimen[] = [
+  {
+    title: "Trend line",
+    pieceTypes: "ALL",
+    bindingRule: "WHEN DID IT TURN? · A LINE WITHOUT ITS ANNOTATION IS DECORATION",
+    node: {
+      code: "BLK-LINE", _key: "d1",
+      payload: {
+        caption: "Net interest margin, eight quarters.",
+        series: [{ label: "NIM", points: [
+          pt("Q3 24", 3.02, 1), pt("Q4 24", 3.11, 2), pt("Q1 25", 3.24, 3), pt("Q2 25", 3.38, 4),
+          pt("Q3 25", 3.41, 5), pt("Q4 25", 3.29, 6), pt("Q1 26", 3.12, 7), pt("Q2 26", 2.98, 8),
+        ] }],
+        annotation: { at: "Q3 25", whatHappened: "Deposit costs repriced faster than the loan book." },
+        unit: "%",
+      },
+    },
+  },
+  {
+    title: "Area",
+    pieceTypes: "ALL",
+    bindingRule: "HOW MUCH NOW? · ONE TO THREE AREAS; A FOURTH IS BLK-STACK'S JOB",
+    node: {
+      code: "BLK-AREA", _key: "d2",
+      payload: {
+        caption: "Total assets, SAR bn.",
+        series: [{ label: "Assets", points: [
+          pt("FY22", 640, 11), pt("FY23", 712, 12), pt("FY24", 798, 13), pt("FY25", 844, 14),
+        ] }],
+        unit: "SAR bn",
+      },
+    },
+  },
+  {
+    title: "Categorical bars",
+    pieceTypes: "ALL",
+    bindingRule: "WHO IS BIGGEST? · SORTED DESCENDING BY THE RESOLVED VALUE",
+    node: {
+      code: "BLK-BARS", _key: "d3",
+      payload: {
+        caption: "Market capitalisation, top five banks.",
+        series: [
+          { label: "Al Rajhi", points: [pt("Al Rajhi", 328, 21)] },
+          { label: "SNB", points: [pt("SNB", 292, 22)] },
+          { label: "Riyad", points: [pt("Riyad", 96, 23)] },
+          { label: "SAB", points: [pt("SAB", 78, 24)] },
+          { label: "Alinma", points: [pt("Alinma", 64, 25)] },
+        ],
+        leadCount: 2, unit: "SAR bn",
+      },
+    },
+  },
+  {
+    title: "Proportional bar",
+    pieceTypes: "ALL",
+    bindingRule: "WHAT'S IT MADE OF? · MAX 4 SEGMENTS · UNDER 5% MERGES INTO “OTHER”",
+    annotation: "THE 5% MERGE IS DONE BY THE RENDERER — THE WRITER NEVER SAW THE VALUES",
+    node: {
+      code: "BLK-STACK", _key: "d4",
+      payload: {
+        caption: "Revenue by segment, FY25.",
+        segments: [
+          { label: "Retail", value: 54, objectId: OID(31), state: "PENDING" },
+          { label: "Corporate", value: 31, objectId: OID(32), state: "PENDING" },
+          { label: "Treasury", value: 12, objectId: OID(33), state: "PENDING" },
+          { label: "Other fees", value: 2, objectId: OID(34), state: "PENDING" },
+          { label: "Sundry", value: 1, objectId: OID(35), state: "PENDING" },
+        ],
+        unit: "%",
+      },
+    },
+  },
+  {
+    title: "Bridge",
+    pieceTypes: "ALL",
+    bindingRule: "WHAT MOVED IT? · START AND END ON THE BASELINE · CONNECTORS DASHED · 4–6 DRIVERS",
+    node: {
+      code: "BLK-WATERFALL", _key: "d5",
+      payload: {
+        caption: "Net profit bridge, FY24 to FY25, SAR bn.",
+        start: { label: "FY24", value: 14.2, objectId: OID(41), state: "PENDING" },
+        drivers: [
+          { label: "NII", value: 2.1, objectId: OID(42), state: "PENDING" },
+          { label: "Fees", value: 0.6, objectId: OID(43), state: "PENDING" },
+          { label: "Opex", value: -0.9, objectId: OID(44), state: "PENDING" },
+          { label: "Provisions", value: -1.4, objectId: OID(45), state: "PENDING" },
+        ],
+        end: { label: "FY25", value: 14.6, objectId: OID(46), state: "PENDING" },
+        unit: "SAR bn",
+      },
+    },
+  },
+  {
+    title: "Bubble scatter",
+    pieceTypes: "ALL",
+    bindingRule: "WHO'S POSITIONED? · RADIUS = A THIRD VARIABLE, ALWAYS STATED",
+    annotation: "QUADRANTS SIT AT THE COHORT'S OWN MEDIANS — NEVER AN IMPORTED BENCHMARK",
+    node: {
+      code: "BLK-SCATTER", _key: "d6",
+      payload: {
+        caption: "Valuation against returns, GCC banks.",
+        points: [
+          { label: "RJHI", x: 18.2, y: 21.4, r: 328, rating: "positive", objectId: OID(51), state: "PENDING" },
+          { label: "SNB", x: 11.4, y: 14.2, r: 292, rating: null, objectId: OID(52), state: "PENDING" },
+          { label: "RIBL", x: 9.8, y: 15.9, r: 96, rating: "positive", objectId: OID(53), state: "PENDING" },
+          { label: "SAB", x: 10.6, y: 11.1, r: 78, rating: "negative", objectId: OID(54), state: "PENDING" },
+          { label: "ALINMA", x: 13.1, y: 17.6, r: 64, rating: null, objectId: OID(55), state: "PENDING" },
+        ],
+        xLabel: "P/E", yLabel: "ROE %", radiusMeans: "market capitalisation, SAR bn",
+      },
+    },
+  },
+  {
+    title: "Distribution",
+    pieceTypes: "ALL",
+    bindingRule: "HOW SPREAD OUT? · ZERO LINE IS THE HEAVY RULE · BARS HANG BOTH WAYS",
+    node: {
+      code: "BLK-DIST", _key: "d7",
+      payload: {
+        caption: "Session moves across the index constituents.",
+        series: [{ label: "Move %", points: [
+          pt("−4", -4.1, 61), pt("−2", -2.2, 62), pt("−1", -0.8, 63), pt("0", 0.2, 64),
+          pt("+1", 1.1, 65), pt("+2", 2.4, 66), pt("+3", 3.2, 67),
+        ] }],
+        unit: "%",
+      },
+    },
+  },
+  {
+    title: "Before / after",
+    pieceTypes: "ALL",
+    bindingRule: "WHAT CHANGED? · HOLLOW = OLD · SOLID = NEW · DIRECTION READS INSTANTLY",
+    node: {
+      code: "BLK-DUMBBELL", _key: "d8",
+      payload: {
+        caption: "Price-target revisions after the Q2 print.",
+        rows: [
+          { label: "RJHI", from: 88, to: 96, objectId: OID(71), state: "PENDING" },
+          { label: "SNB", from: 42, to: 39, objectId: OID(72), state: "PENDING" },
+          { label: "RIBL", from: 31, to: 34, objectId: OID(73), state: "PENDING" },
+        ],
+        fromLabel: "before", toLabel: "after", unit: "SAR",
+      },
+    },
+  },
+  {
+    title: "Rank change",
+    pieceTypes: "ALL",
+    bindingRule: "WHO OVERTOOK WHOM? · TWO PERIODS ONLY · ONLY THE CROSSING PAIR GETS COLOUR",
+    annotation: "THE CROSSING PAIR IS COMPUTED FROM RESOLVED VALUES — THE WRITER COULD NOT HAVE KNOWN IT",
+    node: {
+      code: "BLK-SLOPE", _key: "d9",
+      payload: {
+        caption: "Deposit market share, FY24 to FY25.",
+        rows: [
+          { label: "RJHI", from: 21.2, to: 22.8, objectId: OID(81), state: "PENDING" },
+          { label: "SNB", from: 23.4, to: 22.1, objectId: OID(82), state: "PENDING" },
+          { label: "RIBL", from: 9.1, to: 9.4, objectId: OID(83), state: "PENDING" },
+          { label: "SAB", from: 7.8, to: 7.5, objectId: OID(84), state: "PENDING" },
+        ],
+        fromPeriod: "FY24", toPeriod: "FY25", unit: "%",
+      },
+    },
+  },
+  {
+    title: "Valuation range",
+    pieceTypes: "ALL",
+    bindingRule: "WHERE'S FAIR? · MUST STATE THE METHOD AND BASIS · A RANGE WITHOUT A DECK IS A GUESS",
+    node: {
+      code: "BLK-RANGE", _key: "d10",
+      payload: {
+        caption: "Fair-value range against the live price.",
+        bear: 24, base: 31, bull: 38, live: 29.2,
+        method: "Residual income", basis: "FY26E book, 11.5% CoE",
+        objectIds: [OID(91), OID(92)], unit: "SAR",
+      },
+    },
+  },
+  {
+    title: "Mini heat grid",
+    pieceTypes: "ALL",
+    bindingRule: "WHERE'S THE PATTERN? · MAX 8×8 · NEVER INVENT A SECOND SCALE",
+    annotation: "THE ONLY BLOCK PERMITTED TO CARRY THE DARK-ROOM PALETTE ON PAPER",
+    node: {
+      code: "BLK-HEAT", _key: "d11",
+      payload: {
+        caption: "Monthly returns by venue.",
+        rowLabels: ["TDWL", "ADX", "DFM", "QE"],
+        colLabels: ["Apr", "May", "Jun", "Jul"],
+        cells: [
+          [{ value: 0.8, objectId: OID(101), state: "PENDING" }, { value: 0.3, objectId: OID(102), state: "PENDING" }, { value: -0.2, objectId: OID(103), state: "PENDING" }, { value: 0.6, objectId: OID(104), state: "PENDING" }],
+          [{ value: 0.2, objectId: OID(105), state: "PENDING" }, { value: -0.5, objectId: OID(106), state: "PENDING" }, { value: -0.9, objectId: OID(107), state: "PENDING" }, { value: 0.1, objectId: OID(108), state: "PENDING" }],
+          [{ value: -0.4, objectId: OID(109), state: "PENDING" }, { value: 0.1, objectId: OID(110), state: "PENDING" }, { value: 0.5, objectId: OID(111), state: "PENDING" }, { value: 0.9, objectId: OID(112), state: "PENDING" }],
+          // one cell deliberately unresolved — it must NOT take a mid-ramp colour
+          [{ value: 0.4, objectId: OID(113), state: "PENDING" }, { value: null, objectId: OID(114), state: "PENDING" }, { value: -0.7, objectId: OID(115), state: "PENDING" }, { value: -0.1, objectId: OID(116), state: "PENDING" }],
+        ],
+        unit: "%",
+      },
+    },
+  },
+  {
+    title: "Rebased performance",
+    pieceTypes: "ALL",
+    bindingRule: "VS WHAT? · ALWAYS REBASE TO 100 AND ALWAYS SHOW THE BENCHMARK",
+    node: {
+      code: "BLK-INDEXED", _key: "d12",
+      payload: {
+        caption: "Total return against the index, rebased.",
+        subject: { label: "RJHI", points: [
+          pt("Jan", 100, 121), pt("Feb", 104, 122), pt("Mar", 109, 123), pt("Apr", 107, 124), pt("May", 114, 125),
+        ] },
+        benchmark: { label: "TASI", points: [
+          pt("Jan", 100, 131), pt("Feb", 101, 132), pt("Mar", 103, 133), pt("Apr", 104, 134), pt("May", 105, 135),
+        ] },
+      },
+    },
+  },
+  {
+    title: "Composition ring",
+    pieceTypes: "ALL",
+    bindingRule: "MONOCHROME RAMP, DARKEST = LARGEST · MAX 5 · THE HOLE CARRIES THE ONE NUMBER",
+    node: {
+      code: "BLK-DONUT", _key: "d13",
+      payload: {
+        caption: "Funding mix.",
+        segments: [
+          { label: "Demand deposits", value: 48, objectId: OID(141), state: "PENDING" },
+          { label: "Time deposits", value: 29, objectId: OID(142), state: "PENDING" },
+          { label: "Wholesale", value: 15, objectId: OID(143), state: "PENDING" },
+          { label: "Equity", value: 8, objectId: OID(144), state: "PENDING" },
+        ],
+        centreValue: "SAR 844bn", centreLabel: "total funding",
+      },
+    },
+  },
+  {
+    title: "Subscription cover meter",
+    pieceTypes: "IPO",
+    bindingRule: "THE 1.0× LINE IS ALWAYS DRAWN IN RED — BELOW IT THE OFFER IS UNDERSUBSCRIBED",
+    node: {
+      code: "BLK-COVER", _key: "d14",
+      payload: {
+        caption: "Retail tranche cover at the close of subscription.",
+        covered: 3.1, scaleMax: 5, objectId: OID(151), state: "PENDING",
+      },
+    },
+  },
+  {
+    title: "Session candles",
+    pieceTypes: "IPO · STOCK",
+    bindingRule: "WICK TAKES THE BODY COLOUR · ON A DEBUT THE REFERENCE IS THE OFFER PRICE",
+    node: {
+      code: "BLK-CANDLE", _key: "d15",
+      payload: {
+        caption: "First five sessions after listing.",
+        candles: [
+          { label: "D1", open: 24.0, high: 27.4, low: 23.8, close: 26.9, objectId: OID(161), state: "PENDING" },
+          { label: "D2", open: 26.9, high: 28.1, low: 26.2, close: 27.6, objectId: OID(162), state: "PENDING" },
+          { label: "D3", open: 27.6, high: 27.8, low: 25.4, close: 25.7, objectId: OID(163), state: "PENDING" },
+          { label: "D4", open: 25.7, high: 26.3, low: 24.9, close: 26.1, objectId: OID(164), state: "PENDING" },
+          { label: "D5", open: 26.1, high: 26.4, low: 25.1, close: 25.3, objectId: OID(165), state: "PENDING" },
+        ],
+        reference: 24.0, referenceLabel: "offer price", unit: "SAR",
+      },
+    },
+  },
+];

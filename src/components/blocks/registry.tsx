@@ -40,7 +40,40 @@ import { BlockBigNum } from "./b/BlockBigNum";
 import { BlockVerdict } from "./b/BlockVerdict";
 import { BlockTake } from "./b/BlockTake";
 import { BlockFalsify } from "./b/BlockFalsify";
+import { BlockCandle } from "./d/BlockCandle";
+import { BlockCover } from "./d/BlockCover";
+import { BlockDist } from "./d/BlockDist";
+import { BlockDonut } from "./d/BlockDonut";
+import { BlockDumbbell } from "./d/BlockDumbbell";
+import { BlockHeat } from "./d/BlockHeat";
+import { BlockIndexed } from "./d/BlockIndexed";
+import { BlockRange } from "./d/BlockRange";
+import { BlockScatter } from "./d/BlockScatter";
+import { BlockSlope } from "./d/BlockSlope";
+import { BlockStack } from "./d/BlockStack";
+import { BlockWaterfall } from "./d/BlockWaterfall";
+
+import { BlockAnatomy } from "./e/BlockAnatomy";
+import { BlockDecision } from "./e/BlockDecision";
+import { BlockFlow } from "./e/BlockFlow";
+import { BlockGlossary } from "./e/BlockGlossary";
+import { BlockMyth } from "./e/BlockMyth";
+import { BlockSteps } from "./e/BlockSteps";
+import { BlockTimeline } from "./e/BlockTimeline";
+import { BlockWorked } from "./e/BlockWorked";
+
+import { BlockBreadth } from "./f/BlockBreadth";
+import { BlockChipRow } from "./f/BlockChipRow";
+import { BlockCorrection } from "./f/BlockCorrection";
+import { BlockCountdown } from "./f/BlockCountdown";
+import { BlockHalt } from "./f/BlockHalt";
+import { BlockSnapshot } from "./f/BlockSnapshot";
+import { BlockTapeRow } from "./f/BlockTapeRow";
+import { BlockVenueHead } from "./f/BlockVenueHead";
+
+import { BlockAlertCta } from "./h/BlockAlertCta";
 import { BlockCut } from "./h/BlockCut";
+import { BlockDownload } from "./h/BlockDownload";
 import { BlockPaywall } from "./h/BlockPaywall";
 
 /*
@@ -89,14 +122,49 @@ export const BLOCK_RENDERERS: BlockRendererMap = {
   "BLK-VERDICT": BlockVerdict,
   "BLK-TAKE": BlockTake,
   "BLK-FALSIFY": BlockFalsify,
+  // E · Mechanism — how a thing actually works. No bindings in the whole family:
+  // these teach a mechanism, they do not quote a figure.
+  "BLK-TIMELINE": BlockTimeline,
+  "BLK-STEPS": BlockSteps,
+  "BLK-FLOW": BlockFlow,
+  "BLK-ANATOMY": BlockAnatomy,
+  "BLK-WORKED": BlockWorked,
+  "BLK-MYTH": BlockMyth,
+  "BLK-DECISION": BlockDecision,
+  "BLK-GLOSSARY": BlockGlossary,
+
+  // F · Wire & live state — every one carries a clock, and is honest about being stale.
+  "BLK-TAPEROW": BlockTapeRow,
+  "BLK-CHIPROW": BlockChipRow,
+  "BLK-SNAPSHOT": BlockSnapshot,
+  "BLK-COUNTDOWN": BlockCountdown,
+  "BLK-HALT": BlockHalt,
+  "BLK-CORRECTION": BlockCorrection,
+  "BLK-BREADTH": BlockBreadth,
+  "BLK-VENUEHEAD": BlockVenueHead,
+
   // H · Gates — the seam between the free read and the wall.
   "BLK-CUT": BlockCut,
   "BLK-PAYWALL": BlockPaywall,
+  "BLK-ALERTCTA": BlockAlertCta,
+  "BLK-DOWNLOAD": BlockDownload,
 
   // D · Charts — three of fifteen. The other twelve are designed but not drawable, and resolve
   // to MissingBlock on purpose: a stub that renders nothing is indistinguishable from a bug.
   "BLK-LINE": BlockLine,
   "BLK-AREA": BlockArea,
+  "BLK-STACK": BlockStack,
+  "BLK-WATERFALL": BlockWaterfall,
+  "BLK-SCATTER": BlockScatter,
+  "BLK-DIST": BlockDist,
+  "BLK-DUMBBELL": BlockDumbbell,
+  "BLK-SLOPE": BlockSlope,
+  "BLK-RANGE": BlockRange,
+  "BLK-HEAT": BlockHeat,
+  "BLK-INDEXED": BlockIndexed,
+  "BLK-DONUT": BlockDonut,
+  "BLK-COVER": BlockCover,
+  "BLK-CANDLE": BlockCandle,
   "BLK-BARS": BlockBars,
 };
 

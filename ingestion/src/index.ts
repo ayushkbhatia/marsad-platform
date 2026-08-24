@@ -96,3 +96,24 @@ export {
   CHART_SHAPES, SHAPE_BY_BLOCK, CHART_QUESTION_BY_SHAPE,
 } from './blocks/index.js';
 export type { BlockCode } from './blocks/codes.js';
+
+// PR.1 — the evidence-brief contract. Same reasoning as the block schemas above: the WORKER's
+// research stage is the producing consumer and cannot compile outside its own tree, so the shared
+// types live in this package. Steps 1-2 are pure — no SQL, no I/O — so they are importable from
+// anywhere and testable with the network down.
+export {
+  BUNDLE_CONTRACT_VERSION, Freshness, ObjectState, Volatility, RebindKey, FactPeriod, FactFormat,
+  BoundFact, BoundRef, UnboundFact, Evidence, EvidenceLeg, EvidenceBrief,
+} from './research/envelope.js';
+export {
+  LEG_KEYS, LEG_STATUSES, LEG_REASONS, TOLERANCE_DAYS, isLegKey,
+  STATUSES_ALLOWING_BOUND_FACTS, STATUSES_ALLOWING_ANY_EVIDENCE,
+} from './research/types.js';
+export type { LegKey, LegStatus, LegReason } from './research/types.js';
+export {
+  RESOLVABLE_FIELD, FIELD_FORMAT, isResolvableField, formatFor, isLineItemField,
+} from './research/lexicon.js';
+export { verifyBundle, resolveField, valuesAgree, isStrictUuidV4 } from './research/verify.js';
+export type { ObjectSnapshot, ResolveFailure, ResolveFailureCode } from './research/verify.js';
+export { assembleBrief, coversAllLegs, EMITTED_LEGS } from './research/assemble.js';
+export type { AssembleOptions } from './research/assemble.js';

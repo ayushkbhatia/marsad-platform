@@ -4,6 +4,7 @@
  * from marsad-ingestion) — so they self-register at boot with no injected deps.
  *
  *   pipeline_classify  VERIFIED lake object → materiality verdict → piece + draft
+ *   pipeline_research  deterministic evidence legs → EvidenceBrief → draft (no LLM, no cost)
  *   pipeline_draft     writer-context pack → chatComplete('writer') → blocks+citations
  *   pipeline_edit      tighten headline + template auto-select
  *   pipeline_rules     runRules R-01..R-10 → approval / auto-publish / rules loop
@@ -15,11 +16,13 @@ import { makeDraft } from './draft.js';
 import { makeEdit } from './edit.js';
 import { makeFitStage } from './fit.js';
 import { makeComposeHandler } from './compose.js';
+import { makeResearchStage } from './research.js';
 import { makeRulesStage } from './rules-stage.js';
 
 export function registerNewsroomHandlers(): string[] {
   const regs: [string, ReturnType<typeof makeClassify>][] = [
     ['pipeline_classify', makeClassify()],
+    ['pipeline_research', makeResearchStage()],
     ['pipeline_draft', makeDraft()],
     ['pipeline_edit', makeEdit()],
     ['pipeline_rules', makeRulesStage()],
