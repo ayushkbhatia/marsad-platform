@@ -11,7 +11,7 @@ but **do not build from them without checking this table.**
 | spec | status against `main` today |
 |---|---|
 | `PR0c-templates-reseed.md` | ⛔ **Superseded** by `#98` and `20260816230000_templates_recut_and_piece_type.sql`. `ops.templates.piece_type` exists. |
-| `PR1-evidence-bundles.md` | ✅ **Still the open phase.** See below — this is the one genuinely unbuilt piece. |
+| `PR1-evidence-bundles.md` | 🔶 **Built.** All 12 legs, the assembler and the `pipeline_research` stage are in. Two corrections to the spec are recorded below. Outstanding: `20260817090000` unapplied, and the switch is still off. |
 | `PR4-compose-stage.md` | ⛔ **Superseded** by `#97` — the compose stage is built, armed, and has produced a real article. |
 | `PR5-renderers-chart-compiler.md` | 🔶 **Partly superseded.** 33 of 61 built (A/B/C/G/H complete). Families D (12), E (8), F (8) remain — 28 blocks. The chart substrate (`src/lib/blocks/{bindings,chart-svg,resolve}.ts`) now exists, so PD.6 has a foundation the spec assumed it would have to create. |
 | `PR6-open-the-gate.md` | ✅ **Still accurate and still last.** `pipeline_intake_enabled` is `false`; nothing flows automatically. |
@@ -67,6 +67,19 @@ for, follow a thread, or report what it looked for and did not find.
 - `FIELD_FORMAT`, the single place the fraction-vs-percent decision lives — read off the producer
   (`ratios-compute.ts:202` computes `roe = netIncome/equity`), not guessed.
 - `verify.ts` + 18 tests that pass with the network down.
+
+## Corrections to the PR.1 spec, found while building it
+
+Both were spec errors, not implementation choices:
+
+1. **`public.financial_statement_history` does not exist.** The spec named it as `EB-REVISIONS`'
+   source. Revisions are detected instead from `financial_statements.is_restated` / `version` plus
+   the lake supersede chain. Measured while fixing it: **13,181 of 52,415 statements are restated —
+   one in four**, so a naive period pair has a 25% chance of comparing a revision with a result.
+2. **`EB-QUOTE` cannot use a plain `security_id` join.** `QUOTE.LAST` carries `security_id` on
+   19,437 of 34,383 live rows (56.5%), so the naive query reports a false `empty` for four in ten
+   securities. It falls back to a venue+ticker match on the natural key and *reports* that it did,
+   because a quote matched by ticker is a slightly weaker claim about identity.
 
 ## Re-derived sequence
 

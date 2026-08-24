@@ -125,10 +125,20 @@ export function makeResearchStage(): Handler {
     }
 
     const citableStates = await loadCitableStates(sql);
+
+    // Venue and ticker are not decoration: EB-QUOTE's fallback join needs them because QUOTE.LAST
+    // carries security_id on only 56.5% of live rows, and EB-VENUESTATE is keyed by venue. Without
+    // them both legs report a false 'empty'.
+    const sec = (await sql`
+      select venue_code, ticker from public.securities where id = ${item.security_id}
+    `) as unknown as Array<{ venue_code: string | null; ticker: string | null }>;
+
     const brief = await assembleBrief({
       sql: sql as never,
       securityId: item.security_id,
       citableStates,
+      venueCode: sec[0]?.venue_code ?? null,
+      ticker: sec[0]?.ticker ?? null,
       triggerObjectId: item.trigger_object_id,
     });
 

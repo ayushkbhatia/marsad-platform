@@ -15,7 +15,10 @@
 import type { Sql } from "../core/db.js";
 
 import { BUNDLE_CONTRACT_VERSION, type EvidenceBrief, type EvidenceLeg } from "./envelope.js";
-import { legCalendar, legIdentity, legPeers, legRatios, legScore, legStatements, type LegContext } from "./legs.js";
+import {
+  legCalendar, legFilings, legIdentity, legPeers, legPeriodPair, legPrice, legQuote,
+  legRatios, legRevisions, legScore, legStatements, legVenueState, type LegContext,
+} from "./legs.js";
 import { LEG_KEYS, type LegKey } from "./types.js";
 
 export interface AssembleOptions {
@@ -26,38 +29,9 @@ export interface AssembleOptions {
   /** `ops.materiality_prefilter.citable_states`, per object_type. Fail closed when absent. */
   citableStates?: Record<string, string[]>;
   venueCode?: string | null;
+  /** Needed for EB-QUOTE's fallback join — QUOTE.LAST has security_id on only 56.5% of rows. */
+  ticker?: string | null;
   triggerObjectId?: string | null;
-}
-
-/**
- * Legs that are DECLARED but not yet implemented.
- *
- * They are listed rather than omitted on purpose. An undeclared leg cannot be asked for and teaches
- * a downstream agent nothing; a declared leg reporting `absent` tells it the concept exists and is
- * not available, which is a different and more useful statement. `LEG_KEYS` is the closed set, so
- * this list plus the implemented ones must cover it exactly — asserted in the tests.
- */
-const NOT_YET_BUILT: Array<[LegKey, string]> = [
-  ["EB-PERIODPAIR", "Period-over-period pairing is not built. Do not compute a delta from two facts in EB-STATEMENTS and present it as a bound figure — no lake object holds it."],
-  ["EB-PRICE", "Price series are not assembled here yet. OHLCV.CLOSE is bindable but the series shape lands with the chart work."],
-  ["EB-QUOTE", "The live quote leg is not built. QUOTE.LAST carries security_id on only 57% of rows, so the join needs the venue+ticker fallback first."],
-  ["EB-FILINGS", "Filing text is not assembled here yet. Filings are evidence a researcher READS; they are structurally unbindable (public.filings has no source_object_id)."],
-  ["EB-REVISIONS", "The supersede-chain leg is not built. Until it is, an open correction cannot be detected here — R-07 still owns that."],
-  ["EB-VENUESTATE", "No MARKET.STATUS object family exists, so venue state cannot be bound at all."],
-];
-
-function stub(bundle: LegKey, note: string): EvidenceLeg {
-  return {
-    bundle,
-    status: "absent",
-    reason: "no_producer",
-    evidence: [],
-    notes: [note],
-    unavailable_fields: [],
-    tolerance_days: null,
-    newest_as_of: null,
-    query_ms: 0,
-  };
 }
 
 export async function assembleBrief(opts: AssembleOptions): Promise<EvidenceBrief> {
@@ -74,16 +48,24 @@ export async function assembleBrief(opts: AssembleOptions): Promise<EvidenceBrie
   };
 
   // Sequential rather than parallel, deliberately: the worker shares a small Supavisor budget with
-  // the ingest fleet, and six concurrent security-scoped reads per brief would multiply straight
+  // the ingest fleet, and twelve concurrent security-scoped reads per brief would multiply straight
   // through a batch. Each leg is index-served and short.
+  //
+  // Ordered as a desk would ask: who is this, what is it worth, what did it report, how does that
+  // compare, what has the price done, who does it sit against, what has it said, what changed.
   const legs: EvidenceLeg[] = [
     await legIdentity(ctx),
     await legRatios(ctx),
     await legScore(ctx),
     await legStatements(ctx),
+    await legPeriodPair(ctx),
+    await legPrice(ctx),
+    await legQuote(ctx, opts.venueCode ?? null, opts.ticker ?? null),
     await legPeers(ctx),
+    await legFilings(ctx),
+    await legRevisions(ctx),
     await legCalendar(ctx),
-    ...NOT_YET_BUILT.map(([k, note]) => stub(k, note)),
+    await legVenueState(ctx, opts.venueCode ?? null),
   ];
 
   // The allow-set is derived from what the legs BOUND, never from a model's output.
@@ -106,10 +88,10 @@ export async function assembleBrief(opts: AssembleOptions): Promise<EvidenceBrie
   };
 }
 
-/** Every leg the assembler emits, implemented or declared-absent. Asserted against LEG_KEYS. */
+/** Every leg the assembler emits — now all twelve, none stubbed. Asserted against LEG_KEYS. */
 export const EMITTED_LEGS: readonly LegKey[] = [
-  "EB-IDENTITY", "EB-RATIOS", "EB-SCORE", "EB-STATEMENTS", "EB-PEERS", "EB-CALENDAR",
-  ...NOT_YET_BUILT.map(([k]) => k),
+  "EB-IDENTITY", "EB-RATIOS", "EB-SCORE", "EB-STATEMENTS", "EB-PERIODPAIR", "EB-PRICE",
+  "EB-QUOTE", "EB-PEERS", "EB-FILINGS", "EB-REVISIONS", "EB-CALENDAR", "EB-VENUESTATE",
 ] as const;
 
 /** True when the assembler covers the closed vocabulary exactly — no leg silently dropped. */

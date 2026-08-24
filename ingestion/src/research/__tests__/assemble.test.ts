@@ -37,10 +37,19 @@ const obj = (over: Partial<Record<string, unknown>> & { id: string }) => ({
 function lakeAwareSql(byType: Record<string, unknown[]>, rest: Record<string, unknown[]>): Sql {
   const fn = (strings: TemplateStringsArray, ...vals: unknown[]) => {
     const text = strings.join(" ").replace(/\s+/g, " ").trim();
+    // lake.objects is queried by type, so route on the bound parameter rather than the text.
     if (text.includes("from lake.objects")) {
+      // legRevisions counts superseded objects — a different shape from the object reads.
+      if (text.includes("superseded_by is not null")) return Promise.resolve([{ n: 0 }]);
+      // EB-QUOTE's fallback also reads lake.objects, but matches on natural_key rather than
+      // security_id — route it explicitly or the type map answers for it.
+      if (text.includes("natural_key like")) return Promise.resolve(rest["natural_key like"] ?? []);
       const t = vals.find((v) => typeof v === "string" && v.includes(".")) as string | undefined;
       return Promise.resolve(t ? (byType[t] ?? []) : []);
     }
+    // Both legStatements and legRevisions read financial_statements; the revisions query is the
+    // one filtering on is_restated. Match it FIRST or it collects the statement rows.
+    if (text.includes("is_restated = true")) return Promise.resolve(rest["__revisions"] ?? []);
     for (const [needle, out] of Object.entries(rest)) {
       if (text.includes(needle)) return Promise.resolve(out);
     }
@@ -63,6 +72,9 @@ function db(over: { byType?: Record<string, unknown[]>; rest?: Record<string, un
     })],
   };
   const rest: Record<string, unknown[]> = over.rest ?? {
+    __revisions: [],
+    "from public.filings": [],
+    "from public.venue_feed_status": [],
     "from public.financial_statements": [{
       statement_type: "income", basis: "consolidated", period_kind: "quarter",
       fiscal_period: "Q2 2026", period_end: "2026-06-30", currency: "SAR", is_restated: false,
@@ -215,18 +227,6 @@ test("the thin-cohort score flag is carried forward, not silently dropped", asyn
   assert.ok(legOf(b, "EB-SCORE").notes.some((n) => /THIN/.test(n)));
 });
 
-test("declared-but-unbuilt legs report absent and explain what not to infer", async () => {
-  const b = await assembleBrief({ sql: db(), securityId: 15, now: NOW });
-  for (const k of ["EB-PERIODPAIR", "EB-PRICE", "EB-QUOTE", "EB-FILINGS", "EB-REVISIONS", "EB-VENUESTATE"]) {
-    const l = legOf(b, k);
-    assert.equal(l.status, "absent", k);
-    assert.equal(l.evidence.length, 0, k);
-    assert.ok(l.notes.length > 0, k);
-  }
-  // The one that would otherwise invite a fabricated delta.
-  assert.ok(legOf(b, "EB-PERIODPAIR").notes.some((n) => /no lake object holds it/.test(n)));
-});
-
 test("the allow-set is exactly what the legs bound — and verifyBundle agrees", async () => {
   const b = await assembleBrief({ sql: db(), securityId: 15, now: NOW });
   const bound = new Set(
@@ -250,4 +250,158 @@ test("assembly is reproducible — same database, same facts and same ids", asyn
   const ids = (x: typeof a) => x.legs.flatMap((l) => l.evidence.map((e) => `${e.fact_id}:${e.kind}`));
   assert.deepEqual(ids(a), ids(c));
   assert.deepEqual(a.allow_set.sort(), c.allow_set.sort());
+});
+
+// ---------------------------------------------------------------------------
+// The six legs added after the first cut. Each is here for the specific way it
+// can be wrong, not merely to prove it returns something.
+// ---------------------------------------------------------------------------
+
+test("EB-PERIODPAIR emits both periods bound and NEVER a delta", async () => {
+  const two = [
+    { statement_type: "income", basis: "consolidated", period_kind: "quarter",
+      fiscal_period: "Q2 2026", period_end: "2026-06-30", is_restated: false,
+      obj_id: FIN_ID, obj_state: "PENDING", obj_type: "FILING.FINANCIALS",
+      natural_key: "nk1", revision: 1,
+      obj_payload: { currency: "SAR", line_items: { revenue: 12_000_000 } },
+      obj_updated_at: "2026-07-20T10:00:00.000Z", source_rank: 1 },
+    { statement_type: "income", basis: "consolidated", period_kind: "quarter",
+      fiscal_period: "Q1 2026", period_end: "2026-03-31", is_restated: true,
+      obj_id: SCORE_ID, obj_state: "PENDING", obj_type: "FILING.FINANCIALS",
+      natural_key: "nk2", revision: 1,
+      obj_payload: { currency: "SAR", line_items: { revenue: 10_800_000 } },
+      obj_updated_at: "2026-04-20T10:00:00.000Z", source_rank: 1 },
+  ];
+  const b = await assembleBrief({
+    sql: db({ rest: {
+      __revisions: [],
+      "from public.financial_statements": two,
+      "from public.securities where id =": [{ sector: "banks", venue_code: "TDWL" }],
+      "from public.dividends": [{ div_dated: 0, ee_consensus: 0 }],
+      "from public.filings": [], "from public.venue_feed_status": [],
+      "status = 'listed'": [],
+    } }),
+    securityId: 15, now: NOW,
+  });
+  const l = legOf(b, "EB-PERIODPAIR");
+  assert.equal(l.status, "present");
+  // both sides present, and every emitted fact is BOUND
+  assert.ok(l.evidence.some((e) => e.kind === "fact" && e.metric_key === "current.revenue"));
+  assert.ok(l.evidence.some((e) => e.kind === "fact" && e.metric_key === "prior.revenue"));
+  assert.ok(l.evidence.every((e) => e.kind === "fact"), "no unbound evidence in a pair");
+  // and the leg says out loud that a delta is not available
+  assert.ok(l.unavailable_fields.includes("growth_pct"));
+  assert.ok(l.notes.some((n) => /NO delta is computed/.test(n)));
+  assert.ok(l.notes.some((n) => /rev_growth_yoy/.test(n)), "should point at the bound alternative");
+  // the restated prior must be called out — 1 in 4 statements is restated
+  assert.ok(l.notes.some((n) => /RESTATED/.test(n) && /Q1 2026/.test(n)));
+});
+
+test("EB-QUOTE falls back to venue+ticker, and says that it did", async () => {
+  // security_id is null on 43% of QUOTE.LAST rows, so the naive join returns nothing and the leg
+  // would report `empty` while a perfectly good quote exists.
+  const quote = obj({
+    id: "eeeeeeee-5555-4555-8555-555555555555", object_type: "QUOTE.LAST",
+    natural_key: "QUOTE.LAST:TDWL:2222:2026-07-27", effective_date: "2026-07-27",
+    payload: { last: 30.1, changePct: -0.6 },
+  });
+  const sql = lakeAwareSql(
+    { "QUOTE.LAST": [] },                       // the security_id join finds nothing
+    { "natural_key like": [quote],              // the fallback does
+      "from public.securities where id =": [{ sector: "banks", venue_code: "TDWL" }],
+      "from public.dividends": [{ div_dated: 0, ee_consensus: 0 }],
+      __revisions: [], "from public.filings": [], "from public.venue_feed_status": [],
+      "status = 'listed'": [] },
+  );
+  const b = await assembleBrief({ sql, securityId: 15, now: NOW, venueCode: "TDWL", ticker: "2222" });
+  const l = legOf(b, "EB-QUOTE");
+  assert.ok(l.evidence.some((e) => e.kind === "fact" && e.metric_key === "last"));
+  assert.ok(l.notes.some((n) => /venue\+ticker/.test(n)), "the looser match must be reported");
+});
+
+test("EB-FILINGS is unbindable by construction, and flags what has not been read", async () => {
+  const filings = [
+    { id: 1, title: "Q2 results", form_code: "CG-1", filing_type: "results",
+      filed_at: "2026-07-20", is_market_moving: true, has_text: true, text_chars: 5000,
+      ai_summary: null, created_at: "2026-07-20T09:00:00.000Z" },
+    { id: 2, title: "Board changes", form_code: "CG-2", filing_type: "governance",
+      filed_at: "2026-07-10", is_market_moving: false, has_text: false, text_chars: null,
+      ai_summary: null, created_at: "2026-07-10T09:00:00.000Z" },
+  ];
+  const b = await assembleBrief({
+    sql: db({ rest: {
+      __revisions: [], "from public.filings": filings,
+      "from public.financial_statements": [],
+      "from public.securities where id =": [{ sector: "banks", venue_code: "TDWL" }],
+      "from public.dividends": [{ div_dated: 0, ee_consensus: 0 }],
+      "from public.venue_feed_status": [], "status = 'listed'": [],
+    } }),
+    securityId: 15, now: NOW,
+  });
+  const l = legOf(b, "EB-FILINGS");
+  assert.equal(l.status, "unbindable");
+  // no filing may ever carry a binding — the shape must make that impossible
+  assert.ok(l.evidence.every((e) => e.kind === "unbound"));
+  assert.ok(l.evidence.every((e) => e.kind === "unbound" && e.prose_legal === false));
+  assert.ok(l.notes.some((n) => /1 of 2 have NO extracted text/.test(n)));
+  assert.ok(l.notes.some((n) => /do not cite a figure to one/i.test(n)));
+});
+
+test("EB-REVISIONS reports an open correction — R-07's only input", async () => {
+  const b = await assembleBrief({
+    sql: db({ rest: {
+      __revisions: [{ fiscal_period: "Q1 2026", statement_type: "income",
+        period_end: "2026-03-31", is_restated: true, version: 2,
+        updated_at: "2026-05-02T09:00:00.000Z" }],
+      "from public.financial_statements": [],
+      "from public.securities where id =": [{ sector: "banks", venue_code: "TDWL" }],
+      "from public.dividends": [{ div_dated: 0, ee_consensus: 0 }],
+      "from public.filings": [], "from public.venue_feed_status": [], "status = 'listed'": [],
+    } }),
+    securityId: 15, now: NOW,
+  });
+  const l = legOf(b, "EB-REVISIONS");
+  assert.ok(l.notes.some((n) => /OPEN CORRECTION/.test(n)), "R-07 blocks auto-publish on this");
+  assert.ok(l.notes.some((n) => /NOT a result/.test(n)));
+});
+
+test("EB-VENUESTATE names a degraded feed rather than footnoting it", async () => {
+  const b = await assembleBrief({
+    sql: db({ rest: {
+      __revisions: [], "from public.financial_statements": [],
+      "from public.securities where id =": [{ sector: "banks", venue_code: "MSX" }],
+      "from public.dividends": [{ div_dated: 0, ee_consensus: 0 }],
+      "from public.filings": [],
+      "from public.venue_feed_status": [{ venue_code: "MSX", state: "degraded",
+        detail: "poller timeout", last_sync_at: "2026-07-28T06:00:00.000Z", latency_ms: 9000 }],
+      "status = 'listed'": [],
+    } }),
+    securityId: 15, now: NOW, venueCode: "MSX",
+  });
+  const l = legOf(b, "EB-VENUESTATE");
+  assert.equal(l.status, "unbindable");
+  assert.ok(l.notes.some((n) => /degraded/.test(n) && /must be named/.test(n)));
+  // and it states why nothing here can be cited
+  assert.ok(l.notes.some((n) => /no MARKET\.STATUS object family exists/.test(n)));
+});
+
+test("a malformed timestamp degrades one fact, it does not take down the brief", async () => {
+  // new Date(undefined).toISOString() throws RangeError. Twelve legs must not be lost to one row.
+  const b = await assembleBrief({
+    sql: db({ rest: {
+      __revisions: [{ fiscal_period: "Q1 2026", statement_type: "income",
+        period_end: "2026-03-31", is_restated: true, version: 2, updated_at: null }],
+      "from public.financial_statements": [],
+      "from public.securities where id =": [{ sector: "banks", venue_code: "TDWL" }],
+      "from public.dividends": [{ div_dated: 0, ee_consensus: 0 }],
+      "from public.filings": [], "from public.venue_feed_status": [], "status = 'listed'": [],
+    } }),
+    securityId: 15, now: NOW,
+  });
+  assert.equal(b.legs.length, 12, "every leg still reported");
+  const l = legOf(b, "EB-REVISIONS");
+  const e = l.evidence[0];
+  assert.ok(e);
+  // an obviously-wrong epoch reads as "we do not know when", which is true — not an exception
+  assert.equal(e.observed_at, new Date(0).toISOString());
 });
